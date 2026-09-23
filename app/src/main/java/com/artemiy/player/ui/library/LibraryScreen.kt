@@ -69,12 +69,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.artemiy.player.data.LibraryViewMode
 import com.artemiy.player.data.PlaylistWithCount
 import com.artemiy.player.data.Song
 import com.artemiy.player.ui.components.AlbumArt
+import com.artemiy.player.ui.components.songLongPressTrigger
+import com.artemiy.player.ui.settings.SettingsViewModel
 import com.artemiy.player.ui.theme.PlayerColors
 
-private sealed class LibraryRoute {
+sealed class LibraryRoute {
     data object Home : LibraryRoute()
     data object Playlists : LibraryRoute()
     data object Artists : LibraryRoute()
@@ -105,15 +108,19 @@ private enum class SongSort(val label: String) { RECENT("Недавно доба
 fun LibraryScreen(
     permissionGranted: Boolean,
     songs: List<Song>,
+    backStack: androidx.compose.runtime.snapshots.SnapshotStateList<LibraryRoute>,
     onRequestPermission: () -> Unit,
     onSongClick: (Song, List<Song>) -> Unit,
     onPlayNext: (Song) -> Unit,
+    onAddToQueue: (Song) -> Unit,
+    onAddToPlaylist: (List<Song>) -> Unit,
+    onGoToAlbum: (Song) -> Unit,
+    onGoToArtist: (Song) -> Unit,
 ) {
-    val backStack = remember { mutableStateListOf<LibraryRoute>(LibraryRoute.Home) }
     val route = backStack.last()
     val playlistsVm: PlaylistsViewModel = viewModel()
+    val settingsVm: SettingsViewModel = viewModel()
 
-    var addToPlaylistSongs by remember { mutableStateOf<List<Song>?>(null) }
     var showCreatePlaylist by remember { mutableStateOf(false) }
 
     // Hoisted so scroll position survives navigating into a detail screen and back.
@@ -126,13 +133,15 @@ fun LibraryScreen(
 
     var artistQuery by remember { mutableStateOf("") }
     var artistSort by remember { mutableStateOf(ArtistSort.COUNT) }
-    var artistViewMode by remember { mutableStateOf(ViewMode.LIST) }
+    // Persisted (DataStore, via SettingsViewModel) so the chosen list/grid style survives a
+    // restart instead of resetting to each tab's default every time.
+    val artistViewMode = ViewMode.valueOf(settingsVm.viewMode("artists").name)
     var albumQuery by remember { mutableStateOf("") }
     var albumSort by remember { mutableStateOf(AlbumSort.RECENT) }
-    var albumViewMode by remember { mutableStateOf(ViewMode.GRID_2) }
+    val albumViewMode = ViewMode.valueOf(settingsVm.viewMode("albums").name)
     var songQuery by remember { mutableStateOf("") }
     var songSort by remember { mutableStateOf(SongSort.RECENT) }
-    var songViewMode by remember { mutableStateOf(ViewMode.GRID_2) }
+    val songViewMode = ViewMode.valueOf(settingsVm.viewMode("songs").name)
 
     BackHandler(enabled = backStack.size > 1) {
         backStack.removeAt(backStack.lastIndex)
@@ -260,7 +269,7 @@ fun LibraryScreen(
                                 currentSort = artistSort.label,
                                 onSortSelect = { artistSort = it },
                                 viewMode = artistViewMode,
-                                onViewModeCycle = { artistViewMode = artistViewMode.next() },
+                                onViewModeCycle = { settingsVm.setViewMode("artists", LibraryViewMode.valueOf(artistViewMode.next().name)) },
                             )
                             when (artistViewMode) {
                                 ViewMode.LIST -> ArtistsList(
@@ -304,7 +313,7 @@ fun LibraryScreen(
                                 currentSort = albumSort.label,
                                 onSortSelect = { albumSort = it },
                                 viewMode = albumViewMode,
-                                onViewModeCycle = { albumViewMode = albumViewMode.next() },
+                                onViewModeCycle = { settingsVm.setViewMode("albums", LibraryViewMode.valueOf(albumViewMode.next().name)) },
                             )
                             when (albumViewMode) {
                                 ViewMode.LIST -> AlbumsList(
@@ -348,7 +357,7 @@ fun LibraryScreen(
                                 currentSort = songSort.label,
                                 onSortSelect = { songSort = it },
                                 viewMode = songViewMode,
-                                onViewModeCycle = { songViewMode = songViewMode.next() },
+                                onViewModeCycle = { settingsVm.setViewMode("songs", LibraryViewMode.valueOf(songViewMode.next().name)) },
                             )
                             if (filtered.isNotEmpty()) {
                                 PlayShuffleRow(
@@ -361,16 +370,22 @@ fun LibraryScreen(
                                     songs = filtered,
                                     state = songsListState,
                                     onSongClick = { song -> onSongClick(song, filtered) },
-                                    onAddClick = { song -> addToPlaylistSongs = listOf(song) },
                                     onPlayNext = onPlayNext,
+                                    onAddToQueue = onAddToQueue,
+                                    onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
+                                    onGoToAlbum = onGoToAlbum,
+                                    onGoToArtist = onGoToArtist,
                                 )
                                 ViewMode.GRID_2, ViewMode.GRID_3 -> SongsGrid(
                                     songs = filtered,
                                     columns = if (songViewMode == ViewMode.GRID_2) 2 else 3,
                                     state = songsGridState,
                                     onSongClick = { song -> onSongClick(song, filtered) },
-                                    onAddClick = { song -> addToPlaylistSongs = listOf(song) },
                                     onPlayNext = onPlayNext,
+                                    onAddToQueue = onAddToQueue,
+                                    onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
+                                    onGoToAlbum = onGoToAlbum,
+                                    onGoToArtist = onGoToArtist,
                                 )
                             }
                         }
@@ -399,6 +414,10 @@ fun LibraryScreen(
                             onAlbumClick = { album ->
                                 push(LibraryRoute.AlbumDetail(album, r.artist))
                             },
+                            onPlayNext = onPlayNext,
+                            onAddToQueue = onAddToQueue,
+                            onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
+                            onGoToAlbum = onGoToAlbum,
                         )
                     }
 
@@ -419,7 +438,11 @@ fun LibraryScreen(
                                 }
                             },
                             onSongClick = { song, list -> onSongClick(song, list) },
-                            onAddAllClick = { list -> addToPlaylistSongs = list },
+                            onAddAllClick = { list -> onAddToPlaylist(list) },
+                            onPlayNext = onPlayNext,
+                            onAddToQueue = onAddToQueue,
+                            onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
+                            onGoToArtist = onGoToArtist,
                         )
                     }
 
@@ -436,34 +459,17 @@ fun LibraryScreen(
                             SongList(
                                 songs = playlistSongs,
                                 onSongClick = { song -> onSongClick(song, playlistSongs) },
-                                onAddClick = { song -> addToPlaylistSongs = listOf(song) },
                                 onPlayNext = onPlayNext,
+                                onAddToQueue = onAddToQueue,
+                                onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
+                                onGoToAlbum = onGoToAlbum,
+                                onGoToArtist = onGoToArtist,
                             )
                         }
                     }
                 }
             }
         }
-    }
-
-    addToPlaylistSongs?.let { songsToAdd ->
-        fun addAllTo(playlistId: Long) {
-            var remaining = songsToAdd.size
-            songsToAdd.forEach { song ->
-                playlistsVm.addSongToPlaylist(playlistId, song.id) {
-                    remaining--
-                    if (remaining == 0) addToPlaylistSongs = null
-                }
-            }
-        }
-        AddToPlaylistDialog(
-            playlists = playlistsVm.playlists,
-            onDismiss = { addToPlaylistSongs = null },
-            onAddToPlaylist = { playlistId -> addAllTo(playlistId) },
-            onCreatePlaylist = { name ->
-                playlistsVm.createPlaylist(name) { id -> addAllTo(id) }
-            },
-        )
     }
 
     if (showCreatePlaylist) {
@@ -874,8 +880,11 @@ private fun SongsGrid(
     columns: Int,
     state: LazyGridState,
     onSongClick: (Song) -> Unit,
-    onAddClick: (Song) -> Unit,
     onPlayNext: (Song) -> Unit,
+    onAddToQueue: (Song) -> Unit,
+    onAddToPlaylist: (Song) -> Unit,
+    onGoToAlbum: (Song) -> Unit,
+    onGoToArtist: (Song) -> Unit,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
@@ -885,9 +894,12 @@ private fun SongsGrid(
         modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 4.dp),
     ) {
         gridItems(songs, key = { it.id }) { song ->
+            var menuExpanded by remember { mutableStateOf(false) }
             Column(
-                modifier = Modifier
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onSongClick(song) },
+                modifier = Modifier.songLongPressTrigger(
+                    onClick = { onSongClick(song) },
+                    onLongPress = { menuExpanded = true },
+                ),
             ) {
                 Box {
                     AlbumArt(
@@ -897,22 +909,16 @@ private fun SongsGrid(
                             .aspectRatio(1f)
                             .clip(RoundedCornerShape(10.dp)),
                     )
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(6.dp)
-                            .size(26.dp)
-                            .clip(RoundedCornerShape(13.dp))
-                            .background(PlayerColors.Background.copy(alpha = 0.55f)),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        SongOverflowMenu(
-                            song = song,
-                            onAddClick = onAddClick,
-                            onPlayNext = onPlayNext,
-                            iconSize = 15.dp,
-                        )
-                    }
+                    com.artemiy.player.ui.components.SongActionsMenuPopup(
+                        song = song,
+                        expanded = menuExpanded,
+                        onDismiss = { menuExpanded = false },
+                        onPlayNext = onPlayNext,
+                        onAddToQueue = onAddToQueue,
+                        onAddToPlaylist = onAddToPlaylist,
+                        onGoToAlbum = onGoToAlbum,
+                        onGoToArtist = onGoToArtist,
+                    )
                 }
                 Text(
                     text = song.title,
@@ -940,8 +946,11 @@ private fun SongList(
     songs: List<Song>,
     state: LazyListState = rememberLazyListState(),
     onSongClick: (Song) -> Unit,
-    onAddClick: ((Song) -> Unit)? = null,
-    onPlayNext: ((Song) -> Unit)? = null,
+    onPlayNext: (Song) -> Unit,
+    onAddToQueue: (Song) -> Unit,
+    onAddToPlaylist: (Song) -> Unit,
+    onGoToAlbum: (Song) -> Unit,
+    onGoToArtist: (Song) -> Unit,
 ) {
     LazyColumn(modifier = Modifier.fillMaxWidth(), state = state) {
         items(songs, key = { it.id }) { song ->
@@ -969,15 +978,16 @@ private fun SongList(
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
-                if (onAddClick != null) {
-                    SongOverflowMenu(
-                        song = song,
-                        onAddClick = onAddClick,
-                        onPlayNext = onPlayNext,
-                        iconSize = 20.dp,
-                        modifier = Modifier.padding(start = 10.dp),
-                    )
-                }
+                com.artemiy.player.ui.components.SongActionsMenu(
+                    song = song,
+                    onPlayNext = onPlayNext,
+                    onAddToQueue = onAddToQueue,
+                    onAddToPlaylist = onAddToPlaylist,
+                    onGoToAlbum = onGoToAlbum,
+                    onGoToArtist = onGoToArtist,
+                    iconSize = 20.dp,
+                    modifier = Modifier.padding(start = 10.dp),
+                )
             }
         }
     }
@@ -1007,43 +1017,6 @@ private fun PlayShuffleButton(icon: ImageVector, label: String, onClick: () -> U
     ) {
         Icon(imageVector = icon, contentDescription = null, tint = PlayerColors.TextPrimary, modifier = Modifier.size(17.dp))
         Text(text = label, color = PlayerColors.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
-    }
-}
-
-/** The "⋮" per-song menu: add to playlist (always), plus "play next" wherever that's wired up —
- * not every song surface in the app has it yet (just Songs/Playlist lists for this pass). */
-@Composable
-private fun SongOverflowMenu(
-    song: Song,
-    onAddClick: (Song) -> Unit,
-    onPlayNext: ((Song) -> Unit)?,
-    iconSize: Dp,
-    modifier: Modifier = Modifier,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    Box(modifier = modifier) {
-        Icon(
-            imageVector = Icons.Filled.MoreVert,
-            contentDescription = "Действия с треком",
-            tint = PlayerColors.TextSecondary,
-            modifier = Modifier
-                .size(iconSize)
-                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { expanded = true },
-        )
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            if (onPlayNext != null) {
-                DropdownMenuItem(
-                    text = { Text("Играть следующим") },
-                    leadingIcon = { Icon(Icons.Filled.QueuePlayNext, contentDescription = null) },
-                    onClick = { expanded = false; onPlayNext(song) },
-                )
-            }
-            DropdownMenuItem(
-                text = { Text("Добавить в плейлист") },
-                leadingIcon = { Icon(Icons.Filled.PlaylistAdd, contentDescription = null) },
-                onClick = { expanded = false; onAddClick(song) },
-            )
-        }
     }
 }
 

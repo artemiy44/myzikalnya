@@ -16,7 +16,9 @@ import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.artemiy.player.data.AppDatabase
+import com.artemiy.player.data.InfinitePlayMode
 import com.artemiy.player.data.PlayHistoryEntity
+import com.artemiy.player.data.SettingsRepository
 import com.artemiy.player.data.Song
 import com.artemiy.player.lyrics.LyricsExtractor
 import com.artemiy.player.lyrics.ParsedLyrics
@@ -26,10 +28,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private const val TAG = "PlaybackViewModel"
+private const val INFINITE_PLAY_TOPUP_THRESHOLD = 5
+private const val INFINITE_PLAY_BATCH_SIZE = 20
 
 class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
 
     private val playHistoryDao = AppDatabase.get(app).playHistoryDao()
+    private val settingsRepository = SettingsRepository(app)
+    private var infinitePlayMode = InfinitePlayMode.RANDOM
 
     private var controller: MediaController? = null
     private var songsById: Map<Long, Song> = emptyMap()
@@ -163,6 +169,10 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
                 delay(100)
             }
         }
+
+        viewModelScope.launch {
+            settingsRepository.infinitePlayMode.collect { infinitePlayMode = it }
+        }
     }
 
     fun play(song: Song, playlist: List<Song> = listOf(song)) {
@@ -267,6 +277,15 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
         refreshDerivedQueues()
     }
 
+    /** Unlike [playNext], this goes at the very end of the timeline — "add to queue", not "play
+     * next": it doesn't jump the line ahead of whatever's already lined up. */
+    fun addToQueue(song: Song) {
+        val c = controller ?: return
+        songsById = songsById + (song.id to song)
+        c.addMediaItem(toMediaItem(song))
+        refreshDerivedQueues()
+    }
+
     fun clearManualQueue() {
         val c = controller ?: return
         val count = manualQueueIds.size
@@ -298,6 +317,12 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
         val manualCount = manualQueueIds.size.coerceAtMost(upcoming.size)
         manualQueue = upcoming.take(manualCount)
         continueQueue = upcoming.drop(manualCount)
+        // Top up *before* actually running dry — waiting for STATE_ENDED is a real fallback (see
+        // onPlaybackStateChanged) but relying on it alone means a gap of silence while the next
+        // batch buffers in. This keeps a cushion of upcoming songs at all times instead.
+        if (infinitePlayEnabled && continueQueue.size < INFINITE_PLAY_TOPUP_THRESHOLD) {
+            appendInfinitePlayBatch()
+        }
     }
 
     /** Walks `Timeline.getNextWindowIndex` (repeat-mode aware) rather than just reading
@@ -320,7 +345,19 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
     private fun appendInfinitePlayBatch() {
         val c = controller ?: return
         if (library.isEmpty()) return
-        val batch = library.shuffled().take(20)
+        val alreadyQueued = (manualQueue + continueQueue).mapTo(mutableSetOf()) { it.id } + setOfNotNull(currentSong?.id)
+        val pool = when (infinitePlayMode) {
+            InfinitePlayMode.RANDOM -> library
+            InfinitePlayMode.GENRE_RADIO -> {
+                val genre = currentSong?.genre
+                if (genre != null) library.filter { it.genre.equals(genre, ignoreCase = true) }.ifEmpty { library } else library
+            }
+        }
+        // Avoid immediately re-queuing something that's already lined up — a small pool (e.g. a
+        // narrow genre) would otherwise keep picking the same handful of songs on every top-up.
+        val candidates = pool.filterNot { it.id in alreadyQueued }.ifEmpty { pool }
+        val batch = candidates.shuffled().take(INFINITE_PLAY_BATCH_SIZE)
+        if (batch.isEmpty()) return
         songsById = songsById + batch.associateBy { it.id }
         c.addMediaItems(batch.map(::toMediaItem))
         c.prepare()

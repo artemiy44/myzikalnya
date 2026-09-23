@@ -38,8 +38,10 @@ private object AlbumArtCache {
     fun put(id: Long, size: Int, bitmap: Bitmap) = cache.put(id to size, bitmap)
 }
 
+/** Loads (and caches) the raw thumbnail bitmap behind [AlbumArt] — reusable wherever the pixels
+ * themselves are needed too, e.g. to extract a color palette for a background effect. */
 @Composable
-fun AlbumArt(uri: Uri?, modifier: Modifier = Modifier, size: Int = ART_SIZE_THUMB) {
+fun rememberAlbumArtBitmap(uri: Uri?, size: Int = ART_SIZE_THUMB): Bitmap? {
     val context = LocalContext.current
     val id = remember(uri) { uri?.let { runCatching { ContentUris.parseId(it) }.getOrNull() } }
     val bitmap by produceState<Bitmap?>(initialValue = id?.let { AlbumArtCache.get(it, size) }, key1 = uri, key2 = size) {
@@ -58,8 +60,12 @@ fun AlbumArt(uri: Uri?, modifier: Modifier = Modifier, size: Int = ART_SIZE_THUM
             }.getOrNull()?.also { bmp -> AlbumArtCache.put(id, size, bmp) }
         }
     }
+    return bitmap
+}
 
-    val bmp = bitmap
+@Composable
+fun AlbumArt(uri: Uri?, modifier: Modifier = Modifier, size: Int = ART_SIZE_THUMB) {
+    val bmp = rememberAlbumArtBitmap(uri, size)
     if (bmp != null) {
         Image(
             bitmap = bmp.asImageBitmap(),

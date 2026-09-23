@@ -35,12 +35,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.artemiy.player.data.Song
 import com.artemiy.player.ui.components.AlbumArt
+import com.artemiy.player.ui.components.SongActionsMenu
 import com.artemiy.player.ui.theme.PlayerColors
 
 @Composable
 fun SearchScreen(
     songs: List<Song>,
     onSongClick: (Song, List<Song>) -> Unit,
+    onPlayNext: (Song) -> Unit,
+    onAddToQueue: (Song) -> Unit,
+    onAddToPlaylist: (Song) -> Unit,
+    onGoToAlbum: (Song) -> Unit,
+    onGoToArtist: (Song) -> Unit,
 ) {
     var query by remember { mutableStateOf("") }
 
@@ -144,7 +150,7 @@ fun SearchScreen(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             AlbumArt(uri = song.uri, modifier = Modifier.size(42.dp).clip(RoundedCornerShape(7.dp)))
-                            Column(modifier = Modifier.padding(start = 12.dp)) {
+                            Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
                                 Text(
                                     text = song.title,
                                     color = PlayerColors.TextPrimary,
@@ -161,6 +167,15 @@ fun SearchScreen(
                                     overflow = TextOverflow.Ellipsis,
                                 )
                             }
+                            SongActionsMenu(
+                                song = song,
+                                onPlayNext = onPlayNext,
+                                onAddToQueue = onAddToQueue,
+                                onAddToPlaylist = onAddToPlaylist,
+                                onGoToAlbum = onGoToAlbum,
+                                onGoToArtist = onGoToArtist,
+                                modifier = Modifier.padding(start = 8.dp),
+                            )
                         }
                     }
                 }

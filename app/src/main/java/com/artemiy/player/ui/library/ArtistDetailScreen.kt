@@ -28,7 +28,10 @@ import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +44,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.artemiy.player.data.Song
 import com.artemiy.player.ui.components.AlbumArt
+import com.artemiy.player.ui.components.SongActionsMenuPopup
+import com.artemiy.player.ui.components.songLongPressTrigger
 import com.artemiy.player.ui.theme.PlayerColors
 
 @Composable
@@ -53,6 +58,10 @@ fun ArtistDetailScreen(
     onShuffleAll: (List<Song>) -> Unit,
     onSongClick: (Song, List<Song>) -> Unit,
     onAlbumClick: (String) -> Unit,
+    onPlayNext: (Song) -> Unit,
+    onAddToQueue: (Song) -> Unit,
+    onAddToPlaylist: (Song) -> Unit,
+    onGoToAlbum: (Song) -> Unit,
 ) {
     val heroArts = remember(songs) {
         val distinct = songs.groupBy { it.album }.values.map { it.first() }
@@ -189,10 +198,14 @@ fun ArtistDetailScreen(
         Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
             Text(text = "Треки", color = PlayerColors.TextPrimary, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 10.dp))
             songs.forEach { song ->
+                var menuExpanded by remember { mutableStateOf(false) }
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onSongClick(song, songs) }
+                        .songLongPressTrigger(
+                            onClick = { onSongClick(song, songs) },
+                            onLongPress = { menuExpanded = true },
+                        )
                         .padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -201,6 +214,15 @@ fun ArtistDetailScreen(
                         Text(text = song.title, color = PlayerColors.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Text(text = song.album.ifBlank { artist }, color = PlayerColors.TextSecondary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
+                    SongActionsMenuPopup(
+                        song = song,
+                        expanded = menuExpanded,
+                        onDismiss = { menuExpanded = false },
+                        onPlayNext = onPlayNext,
+                        onAddToQueue = onAddToQueue,
+                        onAddToPlaylist = onAddToPlaylist,
+                        onGoToAlbum = onGoToAlbum,
+                    )
                 }
             }
         }

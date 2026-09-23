@@ -2,9 +2,11 @@ package com.artemiy.player.ui.settings
 
 import android.content.Intent
 import android.media.audiofx.AudioEffect
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -23,13 +25,18 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.BlurOn
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,10 +44,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.artemiy.player.data.InfinitePlayMode
+import com.artemiy.player.data.LiveBlurIntensity
 import com.artemiy.player.data.Mood
+import com.artemiy.player.data.NowPlayingBackgroundMode
 import com.artemiy.player.data.SettingsRepository
 import com.artemiy.player.ui.components.MinimalSlider
 import com.artemiy.player.ui.theme.PlayerColors
+
+private enum class SettingsRoute { Main, NowPlayingBackground }
 
 @Composable
 fun SettingsScreen(
@@ -54,9 +66,20 @@ fun SettingsScreen(
     availableScanFolders: List<String>,
     scanFolders: Set<String>,
     onToggleScanFolder: (String) -> Unit,
+    infinitePlayMode: InfinitePlayMode,
+    onInfinitePlayModeChange: (InfinitePlayMode) -> Unit,
+    nowPlayingBackgroundMode: NowPlayingBackgroundMode,
+    onNowPlayingBackgroundModeChange: (NowPlayingBackgroundMode) -> Unit,
+    liveBlurIntensity: LiveBlurIntensity,
+    onLiveBlurIntensityChange: (LiveBlurIntensity) -> Unit,
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
+    var route by remember { mutableStateOf(SettingsRoute.Main) }
+
+    BackHandler(enabled = route != SettingsRoute.Main) {
+        route = SettingsRoute.Main
+    }
 
     Column(
         modifier = Modifier
@@ -74,17 +97,66 @@ fun SettingsScreen(
                 tint = PlayerColors.TextPrimary,
                 modifier = Modifier
                     .size(24.dp)
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onBack() }
+                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                        if (route == SettingsRoute.Main) onBack() else route = SettingsRoute.Main
+                    }
                     .padding(end = 12.dp),
             )
             Text(
-                text = "Настройки",
+                text = when (route) {
+                    SettingsRoute.Main -> "Настройки"
+                    SettingsRoute.NowPlayingBackground -> "Фон плеера"
+                },
                 color = PlayerColors.TextPrimary,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold,
             )
         }
 
+        when (route) {
+            SettingsRoute.Main -> SettingsMainContent(
+                fontScale = fontScale,
+                onFontScaleChange = onFontScaleChange,
+                songCount = songCount,
+                onRescanLibrary = onRescanLibrary,
+                availableFolders = availableFolders,
+                moodFolders = moodFolders,
+                onToggleMoodFolder = onToggleMoodFolder,
+                availableScanFolders = availableScanFolders,
+                scanFolders = scanFolders,
+                onToggleScanFolder = onToggleScanFolder,
+                infinitePlayMode = infinitePlayMode,
+                onInfinitePlayModeChange = onInfinitePlayModeChange,
+                context = context,
+                onOpenNowPlayingBackground = { route = SettingsRoute.NowPlayingBackground },
+            )
+            SettingsRoute.NowPlayingBackground -> NowPlayingBackgroundContent(
+                mode = nowPlayingBackgroundMode,
+                onModeChange = onNowPlayingBackgroundModeChange,
+                intensity = liveBlurIntensity,
+                onIntensityChange = onLiveBlurIntensityChange,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SettingsMainContent(
+    fontScale: Float,
+    onFontScaleChange: (Float) -> Unit,
+    songCount: Int,
+    onRescanLibrary: () -> Unit,
+    availableFolders: List<String>,
+    moodFolders: Map<Mood, Set<String>>,
+    onToggleMoodFolder: (Mood, String) -> Unit,
+    availableScanFolders: List<String>,
+    scanFolders: Set<String>,
+    onToggleScanFolder: (String) -> Unit,
+    infinitePlayMode: InfinitePlayMode,
+    onInfinitePlayModeChange: (InfinitePlayMode) -> Unit,
+    context: android.content.Context,
+    onOpenNowPlayingBackground: () -> Unit,
+) {
         Column(
             modifier = Modifier
                 .verticalScroll(rememberScrollState())
@@ -174,6 +246,31 @@ fun SettingsScreen(
                         }
                     },
                 )
+                Text(
+                    text = "«Бесконечное» воспроизведение",
+                    color = PlayerColors.TextPrimary,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(top = 16.dp),
+                )
+                Text(
+                    text = "Когда очередь подходит к концу, а в плеере включена кнопка \"∞\" — чем её подмешивать.",
+                    color = PlayerColors.TextSecondary,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 2.dp, bottom = 8.dp),
+                )
+                Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                    InfinitePlayModeChip(
+                        label = "Случайно",
+                        selected = infinitePlayMode == InfinitePlayMode.RANDOM,
+                        onClick = { onInfinitePlayModeChange(InfinitePlayMode.RANDOM) },
+                    )
+                    InfinitePlayModeChip(
+                        label = "По жанру (радио)",
+                        selected = infinitePlayMode == InfinitePlayMode.GENRE_RADIO,
+                        onClick = { onInfinitePlayModeChange(InfinitePlayMode.GENRE_RADIO) },
+                    )
+                }
             }
 
             SectionTitle("Настроение")
@@ -204,10 +301,21 @@ fun SettingsScreen(
                 }
             }
 
+            SectionTitle("Плеер")
+            SettingsCard {
+                SettingsRow(
+                    icon = Icons.Filled.BlurOn,
+                    title = "Фон плеера",
+                    subtitle = "Живой блюр, статичный блюр или без блюра",
+                    onClick = onOpenNowPlayingBackground,
+                    showChevron = true,
+                )
+            }
+
             SectionTitle("Скоро")
             SettingsCard {
                 Text(
-                    text = "Цветовые режимы (Material You / из обложки), поиск по тексту песен — появятся здесь по мере готовности.",
+                    text = "Цветовая тема (светлая/тёмная), акцентный цвет, поиск по тексту песен — появятся здесь по мере готовности.",
                     color = PlayerColors.TextSecondary,
                     fontSize = 12.sp,
                 )
@@ -215,7 +323,6 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
         }
-    }
 }
 
 @Composable
@@ -247,6 +354,7 @@ private fun SettingsRow(
     title: String,
     subtitle: String,
     onClick: () -> Unit,
+    showChevron: Boolean = false,
 ) {
     Row(
         modifier = Modifier
@@ -255,11 +363,34 @@ private fun SettingsRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(imageVector = icon, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(20.dp))
-        Column(modifier = Modifier.padding(start = 10.dp)) {
+        Column(modifier = Modifier.padding(start = 10.dp).weight(1f)) {
             Text(text = title, color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
             Text(text = subtitle, color = PlayerColors.TextSecondary, fontSize = 12.sp)
         }
+        if (showChevron) {
+            Icon(
+                imageVector = Icons.Filled.ChevronRight,
+                contentDescription = null,
+                tint = PlayerColors.TextTertiary,
+                modifier = Modifier.size(20.dp),
+            )
+        }
     }
+}
+
+@Composable
+private fun InfinitePlayModeChip(label: String, selected: Boolean, onClick: () -> Unit) {
+    Text(
+        text = label,
+        color = if (selected) PlayerColors.AccentText else PlayerColors.TextPrimary,
+        fontSize = 12.sp,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(if (selected) PlayerColors.AccentOnDark else PlayerColors.SurfaceDim)
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 7.dp),
+    )
 }
 
 @Composable
@@ -309,6 +440,111 @@ private fun FolderChips(
                     ) { onToggleFolder(folder) }
                     .padding(horizontal = 12.dp, vertical = 7.dp),
             )
+        }
+    }
+}
+
+@Composable
+private fun NowPlayingBackgroundContent(
+    mode: NowPlayingBackgroundMode,
+    onModeChange: (NowPlayingBackgroundMode) -> Unit,
+    intensity: LiveBlurIntensity,
+    onIntensityChange: (LiveBlurIntensity) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp)
+            .navigationBarsPadding(),
+    ) {
+        SectionTitle("Режим фона")
+        SettingsCard {
+            Text(
+                text = "Как выглядит фон в режиме воспроизведения — одинаково на вкладках обложки, текста и очереди.",
+                color = PlayerColors.TextSecondary,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(bottom = 10.dp),
+            )
+            BackgroundModeOption(
+                title = "Живой блюр",
+                subtitle = "Размытая обложка мягко «дышит» — плавное движение и масштаб.",
+                selected = mode == NowPlayingBackgroundMode.LIVE_BLUR,
+                onClick = { onModeChange(NowPlayingBackgroundMode.LIVE_BLUR) },
+            )
+            BackgroundModeOption(
+                title = "Статичный блюр",
+                subtitle = "Обложка размыта, но неподвижна — как раньше.",
+                selected = mode == NowPlayingBackgroundMode.STATIC_BLUR,
+                onClick = { onModeChange(NowPlayingBackgroundMode.STATIC_BLUR) },
+            )
+            BackgroundModeOption(
+                title = "Без блюра",
+                subtitle = "Обычный фон приложения, без обложки.",
+                selected = mode == NowPlayingBackgroundMode.NONE,
+                onClick = { onModeChange(NowPlayingBackgroundMode.NONE) },
+            )
+        }
+
+        if (mode == NowPlayingBackgroundMode.LIVE_BLUR) {
+            SectionTitle("Насыщенность")
+            SettingsCard {
+                Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                    InfinitePlayModeChip(
+                        label = "Приглушённый",
+                        selected = intensity == LiveBlurIntensity.MUTED,
+                        onClick = { onIntensityChange(LiveBlurIntensity.MUTED) },
+                    )
+                    InfinitePlayModeChip(
+                        label = "Обычный",
+                        selected = intensity == LiveBlurIntensity.NORMAL,
+                        onClick = { onIntensityChange(LiveBlurIntensity.NORMAL) },
+                    )
+                    InfinitePlayModeChip(
+                        label = "Vivid",
+                        selected = intensity == LiveBlurIntensity.VIVID,
+                        onClick = { onIntensityChange(LiveBlurIntensity.VIVID) },
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+    }
+}
+
+@Composable
+private fun BackgroundModeOption(
+    title: String,
+    subtitle: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onClick() }
+            .padding(vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(18.dp)
+                .clip(RoundedCornerShape(50))
+                .background(if (selected) PlayerColors.AccentOnDark else PlayerColors.SurfaceDim),
+        ) {
+            if (selected) {
+                Box(
+                    modifier = Modifier
+                        .padding(5.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(PlayerColors.AccentText)
+                        .size(8.dp),
+                )
+            }
+        }
+        Column(modifier = Modifier.padding(start = 12.dp)) {
+            Text(text = title, color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(text = subtitle, color = PlayerColors.TextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 2.dp))
         }
     }
 }

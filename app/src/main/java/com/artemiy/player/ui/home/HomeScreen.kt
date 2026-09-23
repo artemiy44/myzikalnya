@@ -30,7 +30,10 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,6 +53,8 @@ import androidx.compose.ui.unit.sp
 import com.artemiy.player.data.Mood
 import com.artemiy.player.data.Song
 import com.artemiy.player.ui.components.AlbumArt
+import com.artemiy.player.ui.components.SongActionsMenuPopup
+import com.artemiy.player.ui.components.songLongPressTrigger
 import com.artemiy.player.ui.theme.PlayerColors
 import kotlin.math.cos
 import kotlin.math.sin
@@ -62,6 +67,11 @@ fun HomeScreen(
     onSongClick: (Song, List<Song>) -> Unit,
     onMoodClick: (Mood) -> Unit,
     onSettingsClick: () -> Unit,
+    onPlayNext: (Song) -> Unit,
+    onAddToQueue: (Song) -> Unit,
+    onAddToPlaylist: (Song) -> Unit,
+    onGoToAlbum: (Song) -> Unit,
+    onGoToArtist: (Song) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -106,18 +116,21 @@ fun HomeScreen(
                 .padding(top = 16.dp, bottom = 20.dp),
             verticalArrangement = Arrangement.spacedBy(22.dp),
         ) {
+            val menuActions = SongMenuActions(onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
             MoodSection(onMoodClick = onMoodClick)
             SongGridSection(
                 title = "Quick picks",
                 songs = quickPicks,
                 emptyHint = "Здесь появятся часто прослушиваемые треки",
                 onSongClick = { song -> onSongClick(song, quickPicks) },
+                menuActions = menuActions,
             )
             SongRowSection(
                 title = "Keep listening",
                 songs = keepListening,
                 emptyHint = "Здесь появятся недавно прослушанные треки",
                 onSongClick = { song -> onSongClick(song, keepListening) },
+                menuActions = menuActions,
             )
             SongRowSection(
                 title = "Recently added",
@@ -125,10 +138,21 @@ fun HomeScreen(
                 small = true,
                 emptyHint = null,
                 onSongClick = { song -> onSongClick(song, recentlyAdded) },
+                menuActions = menuActions,
             )
         }
     }
 }
+
+/** Bundles the five "⋮" menu callbacks so they thread through Home's several song sections as
+ * one param instead of five. */
+private data class SongMenuActions(
+    val onPlayNext: (Song) -> Unit,
+    val onAddToQueue: (Song) -> Unit,
+    val onAddToPlaylist: (Song) -> Unit,
+    val onGoToAlbum: (Song) -> Unit,
+    val onGoToArtist: (Song) -> Unit,
+)
 
 @Composable
 private fun SongGridSection(
@@ -136,6 +160,7 @@ private fun SongGridSection(
     songs: List<Song>,
     emptyHint: String?,
     onSongClick: (Song) -> Unit,
+    menuActions: SongMenuActions,
 ) {
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
         Text(
@@ -163,14 +188,16 @@ private fun SongGridSection(
                 .height(gridHeight),
         ) {
             items(songs) { song ->
+                var menuExpanded by remember { mutableStateOf(false) }
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp))
                         .background(PlayerColors.Surface)
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
-                            onSongClick(song)
-                        }
+                        .songLongPressTrigger(
+                            onClick = { onSongClick(song) },
+                            onLongPress = { menuExpanded = true },
+                        )
                         .padding(6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -180,7 +207,7 @@ private fun SongGridSection(
                             .size(50.dp)
                             .clip(RoundedCornerShape(6.dp)),
                     )
-                    Column(modifier = Modifier.padding(start = 10.dp)) {
+                    Column(modifier = Modifier.weight(1f).padding(start = 10.dp)) {
                         Text(
                             text = song.title,
                             color = PlayerColors.TextPrimary,
@@ -197,6 +224,16 @@ private fun SongGridSection(
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
+                    SongActionsMenuPopup(
+                        song = song,
+                        expanded = menuExpanded,
+                        onDismiss = { menuExpanded = false },
+                        onPlayNext = menuActions.onPlayNext,
+                        onAddToQueue = menuActions.onAddToQueue,
+                        onAddToPlaylist = menuActions.onAddToPlaylist,
+                        onGoToAlbum = menuActions.onGoToAlbum,
+                        onGoToArtist = menuActions.onGoToArtist,
+                    )
                 }
             }
         }
@@ -209,6 +246,7 @@ private fun SongRowSection(
     songs: List<Song>,
     emptyHint: String?,
     onSongClick: (Song) -> Unit,
+    menuActions: SongMenuActions,
     small: Boolean = false,
 ) {
     val artSize = if (small) 88.dp else 120.dp
@@ -238,19 +276,33 @@ private fun SongRowSection(
             horizontalArrangement = Arrangement.spacedBy(if (small) 10.dp else 12.dp),
         ) {
             songs.forEach { song ->
+                var menuExpanded by remember { mutableStateOf(false) }
                 Column(
                     modifier = Modifier
                         .width(artSize)
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
-                            onSongClick(song)
-                        },
+                        .songLongPressTrigger(
+                            onClick = { onSongClick(song) },
+                            onLongPress = { menuExpanded = true },
+                        ),
                 ) {
-                    AlbumArt(
-                        uri = song.uri,
-                        modifier = Modifier
-                            .size(artSize)
-                            .clip(RoundedCornerShape(if (small) 10.dp else 12.dp)),
-                    )
+                    Box {
+                        AlbumArt(
+                            uri = song.uri,
+                            modifier = Modifier
+                                .size(artSize)
+                                .clip(RoundedCornerShape(if (small) 10.dp else 12.dp)),
+                        )
+                        SongActionsMenuPopup(
+                            song = song,
+                            expanded = menuExpanded,
+                            onDismiss = { menuExpanded = false },
+                            onPlayNext = menuActions.onPlayNext,
+                            onAddToQueue = menuActions.onAddToQueue,
+                            onAddToPlaylist = menuActions.onAddToPlaylist,
+                            onGoToAlbum = menuActions.onGoToAlbum,
+                            onGoToArtist = menuActions.onGoToArtist,
+                        )
+                    }
                     Text(
                         text = song.title,
                         color = PlayerColors.TextPrimary,

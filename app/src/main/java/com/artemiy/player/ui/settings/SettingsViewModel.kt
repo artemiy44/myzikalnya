@@ -7,7 +7,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.artemiy.player.data.InfinitePlayMode
+import com.artemiy.player.data.LibraryViewMode
+import com.artemiy.player.data.LiveBlurIntensity
 import com.artemiy.player.data.Mood
+import com.artemiy.player.data.NowPlayingBackgroundMode
 import com.artemiy.player.data.SettingsRepository
 import com.artemiy.player.data.discoverAllAudioFolders
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +36,19 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     var availableScanFolders by mutableStateOf<List<String>>(emptyList())
         private set
 
+    var infinitePlayMode by mutableStateOf(InfinitePlayMode.RANDOM)
+        private set
+
+    var nowPlayingBackgroundMode by mutableStateOf(NowPlayingBackgroundMode.LIVE_BLUR)
+        private set
+
+    var liveBlurIntensity by mutableStateOf(LiveBlurIntensity.NORMAL)
+        private set
+
+    private var artistViewMode by mutableStateOf(LibraryViewMode.LIST)
+    private var albumViewMode by mutableStateOf(LibraryViewMode.GRID_2)
+    private var songViewMode by mutableStateOf(LibraryViewMode.GRID_2)
+
     init {
         viewModelScope.launch {
             repository.fontScale.collect { fontScale = it }
@@ -42,7 +59,55 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             repository.scanFolders.collect { scanFolders = it }
         }
+        viewModelScope.launch {
+            repository.infinitePlayMode.collect { infinitePlayMode = it }
+        }
+        viewModelScope.launch {
+            repository.nowPlayingBackgroundMode.collect { nowPlayingBackgroundMode = it }
+        }
+        viewModelScope.launch {
+            repository.liveBlurIntensity.collect { liveBlurIntensity = it }
+        }
+        viewModelScope.launch {
+            repository.viewMode("artists", LibraryViewMode.LIST).collect { artistViewMode = it }
+        }
+        viewModelScope.launch {
+            repository.viewMode("albums", LibraryViewMode.GRID_2).collect { albumViewMode = it }
+        }
+        viewModelScope.launch {
+            repository.viewMode("songs", LibraryViewMode.GRID_2).collect { songViewMode = it }
+        }
         loadAvailableScanFolders()
+    }
+
+    fun viewMode(tab: String): LibraryViewMode = when (tab) {
+        "artists" -> artistViewMode
+        "albums" -> albumViewMode
+        else -> songViewMode
+    }
+
+    fun setViewMode(tab: String, mode: LibraryViewMode) {
+        when (tab) {
+            "artists" -> artistViewMode = mode
+            "albums" -> albumViewMode = mode
+            else -> songViewMode = mode
+        }
+        viewModelScope.launch { repository.setViewMode(tab, mode) }
+    }
+
+    fun updateInfinitePlayMode(mode: InfinitePlayMode) {
+        infinitePlayMode = mode
+        viewModelScope.launch { repository.setInfinitePlayMode(mode) }
+    }
+
+    fun updateNowPlayingBackgroundMode(mode: NowPlayingBackgroundMode) {
+        nowPlayingBackgroundMode = mode
+        viewModelScope.launch { repository.setNowPlayingBackgroundMode(mode) }
+    }
+
+    fun updateLiveBlurIntensity(intensity: LiveBlurIntensity) {
+        liveBlurIntensity = intensity
+        viewModelScope.launch { repository.setLiveBlurIntensity(intensity) }
     }
 
     fun loadAvailableScanFolders() {

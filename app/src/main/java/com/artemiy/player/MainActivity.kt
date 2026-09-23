@@ -42,7 +42,10 @@ import com.artemiy.player.ui.components.MiniPlayer
 import com.artemiy.player.ui.components.PlayerBottomBar
 import com.artemiy.player.ui.home.HomeScreen
 import com.artemiy.player.ui.home.HomeViewModel
+import com.artemiy.player.ui.library.AddToPlaylistDialog
+import com.artemiy.player.ui.library.LibraryRoute
 import com.artemiy.player.ui.library.LibraryScreen
+import com.artemiy.player.ui.library.PlaylistsViewModel
 import com.artemiy.player.ui.nowplaying.NowPlayingScreen
 import com.artemiy.player.ui.search.SearchScreen
 import com.artemiy.player.ui.settings.SettingsScreen
@@ -82,6 +85,26 @@ private fun PlayerApp(settings: SettingsViewModel) {
     val context = LocalContext.current
     val playback: PlaybackViewModel = viewModel()
     val home: HomeViewModel = viewModel()
+    val playlistsVm: PlaylistsViewModel = viewModel()
+
+    // Hoisted above the Library tab (rather than owned by LibraryScreen itself) for two reasons:
+    // it survives switching tabs and back instead of resetting to the Library home every time,
+    // and it lets "перейти к альбому/исполнителю" from Home/Search actually land somewhere —
+    // those tabs have no navigation stack of their own to push a detail screen onto.
+    val libraryBackStack = remember { mutableStateListOf<LibraryRoute>(LibraryRoute.Home) }
+    var addToPlaylistSongs by remember { mutableStateOf<List<Song>?>(null) }
+
+    fun goToAlbum(song: Song) {
+        showNowPlaying = false
+        selectedTab = AppTab.Library
+        libraryBackStack.add(LibraryRoute.AlbumDetail(song.album, song.artist))
+    }
+
+    fun goToArtist(song: Song) {
+        showNowPlaying = false
+        selectedTab = AppTab.Library
+        libraryBackStack.add(LibraryRoute.ArtistDetail(song.artist))
+    }
 
     var permissionGranted by remember {
         mutableStateOf(
@@ -183,16 +206,26 @@ private fun PlayerApp(settings: SettingsViewModel) {
                         }
                     },
                     onSettingsClick = { showSettings = true },
+                    onPlayNext = { song -> playback.playNext(song) },
+                    onAddToQueue = { song -> playback.addToQueue(song) },
+                    onAddToPlaylist = { song -> addToPlaylistSongs = listOf(song) },
+                    onGoToAlbum = ::goToAlbum,
+                    onGoToArtist = ::goToArtist,
                 )
                 AppTab.Library -> LibraryScreen(
                     permissionGranted = permissionGranted,
                     songs = songs,
+                    backStack = libraryBackStack,
                     onRequestPermission = { permissionLauncher.launch(audioPermission) },
                     onSongClick = { song, list ->
                         playback.play(song, list)
                         showNowPlaying = true
                     },
                     onPlayNext = { song -> playback.playNext(song) },
+                    onAddToQueue = { song -> playback.addToQueue(song) },
+                    onAddToPlaylist = { list -> addToPlaylistSongs = list },
+                    onGoToAlbum = ::goToAlbum,
+                    onGoToArtist = ::goToArtist,
                 )
                 AppTab.Search -> SearchScreen(
                     songs = songs,
@@ -200,6 +233,11 @@ private fun PlayerApp(settings: SettingsViewModel) {
                         playback.play(song, list)
                         showNowPlaying = true
                     },
+                    onPlayNext = { song -> playback.playNext(song) },
+                    onAddToQueue = { song -> playback.addToQueue(song) },
+                    onAddToPlaylist = { song -> addToPlaylistSongs = listOf(song) },
+                    onGoToAlbum = ::goToAlbum,
+                    onGoToArtist = ::goToArtist,
                 )
             }
         }
@@ -235,6 +273,12 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 onToggleShuffle = { playback.toggleShuffle() },
                 onToggleRepeat = { playback.toggleRepeat() },
                 onToggleInfinitePlay = { playback.toggleInfinitePlay() },
+                allSongs = songs,
+                onAddToQueue = { song -> playback.addToQueue(song) },
+                onGoToAlbum = ::goToAlbum,
+                onGoToArtist = ::goToArtist,
+                nowPlayingBackgroundMode = settings.nowPlayingBackgroundMode,
+                liveBlurIntensity = settings.liveBlurIntensity,
             )
         }
     }
@@ -262,8 +306,34 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 availableScanFolders = settings.availableScanFolders,
                 scanFolders = settings.scanFolders,
                 onToggleScanFolder = { folder -> settings.toggleScanFolder(folder) },
+                infinitePlayMode = settings.infinitePlayMode,
+                onInfinitePlayModeChange = { settings.updateInfinitePlayMode(it) },
+                nowPlayingBackgroundMode = settings.nowPlayingBackgroundMode,
+                onNowPlayingBackgroundModeChange = { settings.updateNowPlayingBackgroundMode(it) },
+                liveBlurIntensity = settings.liveBlurIntensity,
+                onLiveBlurIntensityChange = { settings.updateLiveBlurIntensity(it) },
                 onBack = { showSettings = false },
             )
         }
+    }
+
+    addToPlaylistSongs?.let { songsToAdd ->
+        fun addAllTo(playlistId: Long) {
+            var remaining = songsToAdd.size
+            songsToAdd.forEach { song ->
+                playlistsVm.addSongToPlaylist(playlistId, song.id) {
+                    remaining--
+                    if (remaining == 0) addToPlaylistSongs = null
+                }
+            }
+        }
+        AddToPlaylistDialog(
+            playlists = playlistsVm.playlists,
+            onDismiss = { addToPlaylistSongs = null },
+            onAddToPlaylist = { playlistId -> addAllTo(playlistId) },
+            onCreatePlaylist = { name ->
+                playlistsVm.createPlaylist(name) { id -> addAllTo(id) }
+            },
+        )
     }
 }

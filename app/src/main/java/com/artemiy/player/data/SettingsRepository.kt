@@ -3,12 +3,21 @@ package com.artemiy.player.data
 import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 private val Context.settingsDataStore by preferencesDataStore(name = "settings")
+
+enum class LibraryViewMode { LIST, GRID_2, GRID_3 }
+
+enum class InfinitePlayMode { RANDOM, GENRE_RADIO }
+
+enum class NowPlayingBackgroundMode { LIVE_BLUR, STATIC_BLUR, NONE }
+
+enum class LiveBlurIntensity { MUTED, NORMAL, VIVID }
 
 class SettingsRepository(private val context: Context) {
 
@@ -18,6 +27,10 @@ class SettingsRepository(private val context: Context) {
         const val MIN_FONT_SCALE = 0.9f
         const val MAX_FONT_SCALE = 1.35f
         val SCAN_FOLDERS_KEY = stringSetPreferencesKey("scan_folders")
+        val INFINITE_PLAY_MODE_KEY = stringPreferencesKey("infinite_play_mode")
+        val NOW_PLAYING_BACKGROUND_MODE_KEY = stringPreferencesKey("now_playing_background_mode")
+        val LIVE_BLUR_INTENSITY_KEY = stringPreferencesKey("live_blur_intensity")
+        private fun viewModeKey(tab: String) = stringPreferencesKey("view_mode_$tab")
     }
 
     val fontScale: Flow<Float> = context.settingsDataStore.data.map { prefs ->
@@ -52,6 +65,50 @@ class SettingsRepository(private val context: Context) {
     suspend fun setScanFolders(folders: Set<String>) {
         context.settingsDataStore.edit { prefs ->
             prefs[SCAN_FOLDERS_KEY] = folders
+        }
+    }
+
+    /** Per-tab list/grid choice (Artists/Albums/Songs — `tab` is just a stable key string, not
+     * shared with any UI enum, so this stays independent of Compose). */
+    fun viewMode(tab: String, default: LibraryViewMode): Flow<LibraryViewMode> =
+        context.settingsDataStore.data.map { prefs ->
+            prefs[viewModeKey(tab)]?.let { runCatching { LibraryViewMode.valueOf(it) }.getOrNull() } ?: default
+        }
+
+    suspend fun setViewMode(tab: String, mode: LibraryViewMode) {
+        context.settingsDataStore.edit { prefs ->
+            prefs[viewModeKey(tab)] = mode.name
+        }
+    }
+
+    val infinitePlayMode: Flow<InfinitePlayMode> = context.settingsDataStore.data.map { prefs ->
+        prefs[INFINITE_PLAY_MODE_KEY]?.let { runCatching { InfinitePlayMode.valueOf(it) }.getOrNull() } ?: InfinitePlayMode.RANDOM
+    }
+
+    suspend fun setInfinitePlayMode(mode: InfinitePlayMode) {
+        context.settingsDataStore.edit { prefs ->
+            prefs[INFINITE_PLAY_MODE_KEY] = mode.name
+        }
+    }
+
+    val nowPlayingBackgroundMode: Flow<NowPlayingBackgroundMode> = context.settingsDataStore.data.map { prefs ->
+        prefs[NOW_PLAYING_BACKGROUND_MODE_KEY]?.let { runCatching { NowPlayingBackgroundMode.valueOf(it) }.getOrNull() }
+            ?: NowPlayingBackgroundMode.LIVE_BLUR
+    }
+
+    suspend fun setNowPlayingBackgroundMode(mode: NowPlayingBackgroundMode) {
+        context.settingsDataStore.edit { prefs ->
+            prefs[NOW_PLAYING_BACKGROUND_MODE_KEY] = mode.name
+        }
+    }
+
+    val liveBlurIntensity: Flow<LiveBlurIntensity> = context.settingsDataStore.data.map { prefs ->
+        prefs[LIVE_BLUR_INTENSITY_KEY]?.let { runCatching { LiveBlurIntensity.valueOf(it) }.getOrNull() } ?: LiveBlurIntensity.NORMAL
+    }
+
+    suspend fun setLiveBlurIntensity(intensity: LiveBlurIntensity) {
+        context.settingsDataStore.edit { prefs ->
+            prefs[LIVE_BLUR_INTENSITY_KEY] = intensity.name
         }
     }
 }
