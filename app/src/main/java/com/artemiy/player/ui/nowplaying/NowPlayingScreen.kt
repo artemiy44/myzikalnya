@@ -15,6 +15,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -26,7 +27,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -67,10 +67,12 @@ import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
@@ -80,12 +82,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
@@ -94,7 +102,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.getSystemService
-import androidx.palette.graphics.Palette
 import com.artemiy.player.data.LiveBlurIntensity
 import com.artemiy.player.data.NowPlayingBackgroundMode
 import com.artemiy.player.data.Song
@@ -111,6 +118,18 @@ import kotlinx.coroutines.withContext
 import kotlin.math.max
 
 private enum class CenterMode { Art, Lyrics, Queue }
+
+/** Muted gray text/icons (title/artist column, position/duration, volume, quick-action row) are
+ * normally [PlayerColors.TextSecondary] — fine against the app's flat dark background, but a
+ * bright album cover under the live-blur background can wash them out. Live-blur mode overrides
+ * this per track based on the background's actual brightness; every other background mode (and
+ * anything reading it before the first frame resolves) keeps the plain default. */
+private val LocalAdaptiveSecondaryColor = compositionLocalOf { PlayerColors.TextSecondary }
+
+/** The readable counterpart to [PlayerColors.TextSecondary] for when live-blur's background
+ * reads as bright rather than dark — a muted dark gray, not pure black, to match TextSecondary's
+ * own "quieter than primary text" weight rather than jumping to full contrast. */
+private val AdaptiveSecondaryOnBright = Color(0xFF333336)
 
 @Composable
 fun NowPlayingScreen(
@@ -144,6 +163,7 @@ fun NowPlayingScreen(
     var centerMode by remember { mutableStateOf(CenterMode.Art) }
     var controlsVisible by remember { mutableStateOf(true) }
     var showAddToQueuePicker by remember { mutableStateOf(false) }
+    var adaptiveSecondaryColor by remember { mutableStateOf(PlayerColors.TextSecondary) }
     val context = LocalContext.current
 
     // Reset to visible whenever the center content changes mode.
@@ -183,20 +203,36 @@ fun NowPlayingScreen(
         label = "artScale",
     )
 
+    // No Haze anymore, anywhere in this screen. Studied a real working Apple-Music-style player
+    // (github.com/shouryadixitisverycool/Flamingo) and its whole "living blur" is a completely
+    // different, much cheaper trick: blur the album art ONCE in software (not live, not per
+    // frame) at a tiny resolution, then just pan/zoom that already-blurred static bitmap
+    // (Ken Burns style). No continuous backdrop capture of scrolling content at all — the
+    // "smooth fade under the header/controls" people see in Apple Music isn't a blur behind
+    // those elements either; it's the *list content itself* fading to transparent (per-row alpha)
+    // as it nears the edges, revealing this same static background underneath. See
+    // LiveBlurBackground below and the fadeInList() modifier further down.
+    // Only live-blur mode ever overrides the muted gray text/icon color — other modes always
+    // keep the plain default, even if a stale value lingers from a previous mode switch.
+    val secondaryColor = if (nowPlayingBackgroundMode == NowPlayingBackgroundMode.LIVE_BLUR) {
+        adaptiveSecondaryColor
+    } else {
+        PlayerColors.TextSecondary
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(PlayerColors.Background),
     ) {
+      CompositionLocalProvider(LocalAdaptiveSecondaryColor provides secondaryColor) {
         when (nowPlayingBackgroundMode) {
             // Passed as a String, not a Uri — android.net.Uri isn't a type Compose's compiler
-            // can prove stable, so with a raw Uri param this composable (and its whole animated
-            // blob subtree) would restart on every position tick from the progress slider (every
-            // ~100-250ms), which is almost certainly the real cause of the blobs looking like
-            // they "jump" instead of drifting smoothly — not the animation itself.
+            // can prove stable, so with a raw Uri param this composable would restart on every
+            // position tick from the progress slider (every ~100-250ms).
             NowPlayingBackgroundMode.LIVE_BLUR -> LiveBlurBackground(
                 songUriString = song?.uri?.toString(),
                 intensity = liveBlurIntensity,
+                onSecondaryColorChange = { adaptiveSecondaryColor = it },
             )
 
             NowPlayingBackgroundMode.STATIC_BLUR -> {
@@ -231,6 +267,9 @@ fun NowPlayingScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
+                // top only, not bottom — the control panel below already gets its own
+                // navigationBarsPadding lower down; a bottom value here too double-reserves
+                // space and brings back the "ledge" above the gesture bar.
                 .padding(start = 22.dp, end = 22.dp, top = 20.dp),
         ) {
             Box(
@@ -243,7 +282,7 @@ fun NowPlayingScreen(
                     modifier = Modifier
                         .size(width = 36.dp, height = 5.dp)
                         .clip(RoundedCornerShape(3.dp))
-                        .background(PlayerColors.TextSecondary)
+                        .background(LocalAdaptiveSecondaryColor.current)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
@@ -253,6 +292,7 @@ fun NowPlayingScreen(
 
             var controlsHeightPx by remember { mutableStateOf(0) }
             var headerHeightPx by remember { mutableStateOf(0) }
+            var toggleRowHeightPx by remember { mutableStateOf(0) }
             val density = LocalDensity.current
 
             Box(
@@ -284,6 +324,12 @@ fun NowPlayingScreen(
                             lyrics = lyrics,
                             positionMs = positionMs,
                             isPlaying = isPlaying,
+                            topFadePx = { headerHeightPx },
+                            // The control panel auto-hides while a Lyrics track plays — no panel
+                            // up means nothing for the list to fade out from under, so the fade
+                            // boundary collapses to the true bottom edge instead of staying
+                            // pinned to the (now invisible) panel's last known height.
+                            bottomFadePx = { if (controlsVisible) controlsHeightPx else 0 },
                             contentPadding = PaddingValues(
                                 top = with(density) { headerHeightPx.toDp() } + 8.dp,
                                 bottom = with(density) { controlsHeightPx.toDp() } + 24.dp,
@@ -303,21 +349,10 @@ fun NowPlayingScreen(
                         }
                     }
 
-                    // The toggle row is fixed (not part of the scrolling list) — it sits right
-                    // under the floating header and always stays put, only the song rows scroll.
-                    CenterMode.Queue -> Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(top = with(density) { headerHeightPx.toDp() }),
-                    ) {
-                        QueueToggleRow(
-                            shuffleEnabled = shuffleEnabled,
-                            repeatEnabled = repeatEnabled,
-                            infinitePlayEnabled = infinitePlayEnabled,
-                            onToggleShuffle = onToggleShuffle,
-                            onToggleRepeat = onToggleRepeat,
-                            onToggleInfinitePlay = onToggleInfinitePlay,
-                        )
+                    // The toggle row floats fixed under the header (same idea as the header
+                    // itself) — the list scrolls underneath BOTH of them and fades out as it
+                    // approaches, exactly like Lyrics does under its header.
+                    CenterMode.Queue -> Box(modifier = Modifier.fillMaxSize()) {
                         QueueList(
                             manualQueue = manualQueue,
                             continueQueue = continueQueue,
@@ -325,34 +360,47 @@ fun NowPlayingScreen(
                             onClearManualQueue = onClearManualQueue,
                             onAddSongsClick = { showAddToQueuePicker = true },
                             state = queueListState,
+                            topFadePx = { headerHeightPx + toggleRowHeightPx },
+                            // Same reasoning as Lyrics — the panel hides on scroll in Queue too,
+                            // so the fade should collapse with it instead of hanging around.
+                            bottomFadePx = { if (controlsVisible) controlsHeightPx else 0 },
                             modifier = Modifier
-                                .weight(1f)
+                                .fillMaxSize()
                                 .nestedScroll(queueNestedScrollConnection),
                             contentPadding = PaddingValues(
+                                top = with(density) { (headerHeightPx + toggleRowHeightPx).toDp() } + 8.dp,
                                 bottom = with(density) { controlsHeightPx.toDp() } + 24.dp,
                             ),
                         )
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .fillMaxWidth()
+                                .padding(top = with(density) { headerHeightPx.toDp() })
+                                .onGloballyPositioned { toggleRowHeightPx = it.size.height },
+                        ) {
+                            QueueToggleRow(
+                                shuffleEnabled = shuffleEnabled,
+                                repeatEnabled = repeatEnabled,
+                                infinitePlayEnabled = infinitePlayEnabled,
+                                onToggleShuffle = onToggleShuffle,
+                                onToggleRepeat = onToggleRepeat,
+                                onToggleInfinitePlay = onToggleInfinitePlay,
+                            )
+                        }
                     }
                 }
 
                 // Floating mini-header — Lyrics/Queue only (Art shows title in the control panel
-                // below instead). Overlaps the scrollable content instead of pushing it down. This
-                // is a deliberately near-solid panel, not a half-blur — real backdrop blur (the
-                // content actually visible-but-soft behind it) needs a library this app doesn't
-                // pull in yet; a weak translucent gradient just looked like an unexplained smudge.
+                // below instead). Overlaps the scrollable content instead of pushing it down — no
+                // background/blur of its own at all now; the list underneath fades itself out via
+                // fadeInList() before it gets here, so there's nothing to hide a hard edge from.
                 if (centerMode != CenterMode.Art) {
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
                             .fillMaxWidth()
                             .onGloballyPositioned { headerHeightPx = it.size.height }
-                            .background(
-                                Brush.verticalGradient(
-                                    0f to PlayerColors.Background.copy(alpha = 0.94f),
-                                    0.82f to PlayerColors.Background.copy(alpha = 0.94f),
-                                    1f to Color.Transparent,
-                                ),
-                            )
                             // Absorbs taps anywhere in this panel's bounds so they don't fall
                             // through to whatever's scrolling underneath (was letting stray taps
                             // near the header hit list rows behind it).
@@ -371,17 +419,6 @@ fun NowPlayingScreen(
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
                         .onGloballyPositioned { controlsHeightPx = it.size.height }
-                        .then(
-                            if (centerMode != CenterMode.Art) {
-                                Modifier.background(
-                                    Brush.verticalGradient(
-                                        0f to Color.Transparent,
-                                        0.18f to PlayerColors.Background.copy(alpha = 0.94f),
-                                        1f to PlayerColors.Background.copy(alpha = 0.94f),
-                                    ),
-                                )
-                            } else Modifier,
-                        )
                         // Same tap-absorption as the header above — otherwise taps landing in the
                         // gaps between the slider/buttons fall through to the list underneath.
                         .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {}
@@ -417,7 +454,7 @@ fun NowPlayingScreen(
                                 )
                                 Text(
                                     text = song?.artist ?: "",
-                                    color = PlayerColors.TextSecondary,
+                                    color = LocalAdaptiveSecondaryColor.current,
                                     fontSize = 14.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
@@ -468,8 +505,8 @@ fun NowPlayingScreen(
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        Text(text = formatMs(shownPosition.toLong()), color = PlayerColors.TextSecondary, fontSize = 11.sp)
-                        Text(text = formatMs(durationMs), color = PlayerColors.TextSecondary, fontSize = 11.sp)
+                        Text(text = formatMs(shownPosition.toLong()), color = LocalAdaptiveSecondaryColor.current, fontSize = 11.sp)
+                        Text(text = formatMs(durationMs), color = LocalAdaptiveSecondaryColor.current, fontSize = 11.sp)
                     }
 
                     Row(
@@ -533,6 +570,7 @@ fun NowPlayingScreen(
             }
             }
         }
+      }
     }
 
     if (showAddToQueuePicker) {
@@ -545,156 +583,335 @@ fun NowPlayingScreen(
 }
 
 /**
- * Extracts a handful of dominant colors from the current track's art via
- * [androidx.palette.graphics.Palette], for the live-blur "color blob" background. Runs off the
- * main thread since Palette's analysis isn't free; recomputes only when the bitmap changes.
+ * Prepares the "живой блюр" background bitmap: crop to square, downscale HARD (blur cost scales
+ * with pixel count, so a tiny source blurs in a fraction of a millisecond), boost saturation so
+ * it doesn't read as washed-out, then run a classic software stack blur — no live
+ * RenderEffect/`Modifier.blur()` anywhere in this, which is what caused banding on this device
+ * every previous time this project tried a live-blurred version of the art. Runs once per song
+ * change, off the main thread; the result is a small, already-blurred, static [Bitmap].
  */
 @Composable
-private fun rememberAlbumPalette(uri: android.net.Uri?): List<Color> {
-    val bitmap = rememberAlbumArtBitmap(uri, ART_SIZE_THUMB)
-    var colors by remember { mutableStateOf<List<Color>>(emptyList()) }
-    LaunchedEffect(bitmap) {
-        val bmp = bitmap
-        colors = if (bmp == null) {
-            emptyList()
+private fun rememberLivingBackgroundBitmap(uri: android.net.Uri?): android.graphics.Bitmap? {
+    val source = rememberAlbumArtBitmap(uri, ART_SIZE_THUMB)
+    var result by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+    LaunchedEffect(source) {
+        val bmp = source
+        result = if (bmp == null) {
+            null
         } else {
             withContext(Dispatchers.Default) {
-                runCatching {
-                    val palette = Palette.from(bmp).maximumColorCount(12).generate()
-                    listOfNotNull(
-                        palette.vibrantSwatch,
-                        palette.lightVibrantSwatch,
-                        palette.darkVibrantSwatch,
-                        palette.mutedSwatch,
-                        palette.darkMutedSwatch,
-                        palette.lightMutedSwatch,
-                    ).ifEmpty { palette.swatches }
-                        .sortedByDescending { it.population }
-                        .take(4)
-                        .map { Color(it.rgb) }
-                }.getOrElse { emptyList() }
+                runCatching { prepareLivingBackgroundBitmap(bmp) }.getOrNull()
             }
         }
     }
-    return colors
+    return result
+}
+
+private fun prepareLivingBackgroundBitmap(source: android.graphics.Bitmap): android.graphics.Bitmap {
+    val size = minOf(source.width, source.height)
+    val xOffset = (source.width - size) / 2
+    val yOffset = (source.height - size) / 2
+    val square = android.graphics.Bitmap.createBitmap(source, xOffset, yOffset, size, size)
+    val targetPx = 72
+    val small = if (size > targetPx) {
+        android.graphics.Bitmap.createScaledBitmap(square, targetPx, targetPx, true)
+    } else {
+        square
+    }
+
+    val saturated = android.graphics.Bitmap.createBitmap(
+        small.width,
+        small.height,
+        android.graphics.Bitmap.Config.ARGB_8888,
+    )
+    val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG or android.graphics.Paint.FILTER_BITMAP_FLAG).apply {
+        colorFilter = android.graphics.ColorMatrixColorFilter(
+            android.graphics.ColorMatrix().apply { setSaturation(2.2f) },
+        )
+    }
+    android.graphics.Canvas(saturated).drawBitmap(small, 0f, 0f, paint)
+
+    return stackBlur(saturated, radius = 14)
 }
 
 /**
- * The "живой блюр" background: a handful of the album art's own dominant colors, rendered as
- * large soft glowing blobs that slowly drift and blend into each other — the Apple Music style of
- * "living" background, rather than the photo itself panning/scaling (which showed visible
- * banding at the blur radii needed to fully obscure the art).
- *
- * This deliberately does NOT use `Modifier.blur()` — a solid-color shape blurred with it rendered
- * as a plain hard-edged circle with zero visible softness on this device (same dead end this
- * project already hit once before with the mood-card glow). Instead each blob is its own radial
- * gradient fading to transparent, which can't produce a hard edge by construction.
+ * Classic "stack blur" (Mario Klingemann's well-known, widely-reused algorithm) — plain software
+ * box-style blur over raw pixels, no RenderEffect/GPU shader involved at all. Only ever runs on a
+ * ~72x72px bitmap here, so even this pure-Kotlin implementation finishes near-instantly.
+ */
+private fun stackBlur(bitmap: android.graphics.Bitmap, radius: Int): android.graphics.Bitmap {
+    if (radius < 1) return bitmap
+    val w = bitmap.width
+    val h = bitmap.height
+    val pixels = IntArray(w * h)
+    bitmap.getPixels(pixels, 0, w, 0, 0, w, h)
+
+    val div = radius * 2 + 1
+    val divSum = (div + 1) shr 1
+    val divSum2 = divSum * divSum
+    val mulLookup = IntArray(256 * divSum2) { it / divSum2 }
+    val stack = Array(div) { IntArray(3) }
+
+    var minY: IntArray
+    val vMin = IntArray(maxOf(w, h))
+
+    var y = 0
+    while (y < h) {
+        var rSum = 0; var gSum = 0; var bSum = 0
+        var rOut = 0; var gOut = 0; var bOut = 0
+        var rIn = 0; var gIn = 0; var bIn = 0
+        var i = 0
+        while (i < div) {
+            val x = (i - radius).coerceIn(0, w - 1)
+            val p = pixels[y * w + x]
+            val s = stack[i]
+            s[0] = (p shr 16) and 0xFF
+            s[1] = (p shr 8) and 0xFF
+            s[2] = p and 0xFF
+            val weight = radius + 1 - kotlin.math.abs(i - radius)
+            rSum += s[0] * weight; gSum += s[1] * weight; bSum += s[2] * weight
+            if (i <= radius) { rOut += s[0]; gOut += s[1]; bOut += s[2] }
+            else { rIn += s[0]; gIn += s[1]; bIn += s[2] }
+            i++
+        }
+        var stackPointer = radius
+        var x = 0
+        while (x < w) {
+            pixels[y * w + x] = (pixels[y * w + x] and -0x1000000) or
+                (mulLookup[rSum] shl 16) or (mulLookup[gSum] shl 8) or mulLookup[bSum]
+            rSum -= rOut; gSum -= gOut; bSum -= bOut
+            var stackStart = stackPointer - radius + div
+            if (stackStart >= div) stackStart -= div
+            val sOut = stack[stackStart]
+            rOut -= sOut[0]; gOut -= sOut[1]; bOut -= sOut[2]
+            if (y == 0) vMin[x] = minOf(x + radius + 1, w - 1)
+            val p = pixels[y * w + vMin[x]]
+            sOut[0] = (p shr 16) and 0xFF; sOut[1] = (p shr 8) and 0xFF; sOut[2] = p and 0xFF
+            rIn += sOut[0]; gIn += sOut[1]; bIn += sOut[2]
+            rSum += rIn; gSum += gIn; bSum += bIn
+            stackPointer++
+            if (stackPointer >= div) stackPointer = 0
+            val sIn = stack[stackPointer]
+            rOut += sIn[0]; gOut += sIn[1]; bOut += sIn[2]
+            rIn -= sIn[0]; gIn -= sIn[1]; bIn -= sIn[2]
+            x++
+        }
+        y++
+    }
+
+    minY = vMin.copyOf()
+    x@ for (x0 in 0 until w) {
+        var rSum = 0; var gSum = 0; var bSum = 0
+        var rOut = 0; var gOut = 0; var bOut = 0
+        var rIn = 0; var gIn = 0; var bIn = 0
+        var i = 0
+        while (i < div) {
+            val yy = (i - radius).coerceIn(0, h - 1) * w
+            val s = stack[i]
+            val p = pixels[yy + x0]
+            s[0] = (p shr 16) and 0xFF; s[1] = (p shr 8) and 0xFF; s[2] = p and 0xFF
+            val weight = radius + 1 - kotlin.math.abs(i - radius)
+            rSum += s[0] * weight; gSum += s[1] * weight; bSum += s[2] * weight
+            if (i <= radius) { rOut += s[0]; gOut += s[1]; bOut += s[2] }
+            else { rIn += s[0]; gIn += s[1]; bIn += s[2] }
+            i++
+        }
+        var stackPointer = radius
+        var yy = 0
+        while (yy < h) {
+            val idx = yy * w + x0
+            pixels[idx] = (pixels[idx] and -0x1000000) or
+                (mulLookup[rSum] shl 16) or (mulLookup[gSum] shl 8) or mulLookup[bSum]
+            rSum -= rOut; gSum -= gOut; bSum -= bOut
+            var stackStart = stackPointer - radius + div
+            if (stackStart >= div) stackStart -= div
+            val sOut = stack[stackStart]
+            rOut -= sOut[0]; gOut -= sOut[1]; bOut -= sOut[2]
+            if (x0 == 0) minY[yy] = minOf(yy + radius + 1, h - 1) * w
+            val p = pixels[minY[yy] + x0]
+            sOut[0] = (p shr 16) and 0xFF; sOut[1] = (p shr 8) and 0xFF; sOut[2] = p and 0xFF
+            rIn += sOut[0]; gIn += sOut[1]; bIn += sOut[2]
+            rSum += rIn; gSum += gIn; bSum += bIn
+            stackPointer++
+            if (stackPointer >= div) stackPointer = 0
+            val sIn = stack[stackPointer]
+            rOut += sIn[0]; gOut += sIn[1]; bOut += sIn[2]
+            rIn -= sIn[0]; gIn -= sIn[1]; bIn -= sIn[2]
+            yy++
+        }
+    }
+
+    val out = bitmap.copy(bitmap.config ?: android.graphics.Bitmap.Config.ARGB_8888, true)
+    out.setPixels(pixels, 0, w, 0, 0, w, h)
+    return out
+}
+
+/** Perceived (relative-luminance-weighted) average brightness of a bitmap, 0f (black) to 1f
+ * (white). Only ever called on the same ~72x72 bitmap [prepareLivingBackgroundBitmap] already
+ * produces, so a plain per-pixel loop is cheap enough with no need to subsample. */
+private fun averageLuminance(bitmap: android.graphics.Bitmap): Float {
+    val w = bitmap.width
+    val h = bitmap.height
+    if (w == 0 || h == 0) return 0f
+    val pixels = IntArray(w * h)
+    bitmap.getPixels(pixels, 0, w, 0, 0, w, h)
+    var sum = 0.0
+    for (p in pixels) {
+        val r = (p shr 16) and 0xFF
+        val g = (p shr 8) and 0xFF
+        val b = p and 0xFF
+        sum += 0.2126 * r + 0.7152 * g + 0.0722 * b
+    }
+    return (sum / pixels.size / 255.0).toFloat()
+}
+
+/**
+ * The "живой блюр" background: the album art itself, pre-blurred once (see above) and then
+ * slowly panned/zoomed — a "Ken Burns" effect, the same trick a real, well-regarded open-source
+ * Apple-Music-style player (github.com/shouryadixitisverycool/Flamingo) uses. No per-frame blur
+ * recompute at all; the bitmap is already-blurred, so this is just a cheap continuous
+ * scale/translate on a `graphicsLayer`.
  */
 @Composable
-private fun LiveBlurBackground(songUriString: String?, intensity: LiveBlurIntensity) {
+private fun LiveBlurBackground(
+    songUriString: String?,
+    intensity: LiveBlurIntensity,
+    onSecondaryColorChange: (Color) -> Unit,
+) {
     val songUri = remember(songUriString) { songUriString?.let { android.net.Uri.parse(it) } }
-    val palette = rememberAlbumPalette(songUri)
-    val base = palette.ifEmpty { listOf(PlayerColors.Surface, PlayerColors.SurfaceDim) }
-    // Always render 4 blobs regardless of how many distinct colors Palette actually found —
-    // repeating colors still gives more overlap/coverage than 1-2 sparse blobs did.
-    val colors = List(4) { base[it % base.size] }
+    val bitmap = rememberLivingBackgroundBitmap(songUri)
 
-    val blobAlpha = when (intensity) {
-        LiveBlurIntensity.MUTED -> 0.42f
-        LiveBlurIntensity.NORMAL -> 0.60f
-        LiveBlurIntensity.VIVID -> 0.80f
-    }
-    // How far the gradient holds full color before it starts fading to transparent — a bigger
-    // "core" reads as more saturated/present (vivid), a smaller one as a softer wash (muted).
-    val coreStop = when (intensity) {
-        LiveBlurIntensity.MUTED -> 0.10f
-        LiveBlurIntensity.NORMAL -> 0.25f
-        LiveBlurIntensity.VIVID -> 0.4f
-    }
-    val liveScrimAlpha = when (intensity) {
-        LiveBlurIntensity.MUTED -> 0.45f
-        LiveBlurIntensity.NORMAL -> 0.34f
-        LiveBlurIntensity.VIVID -> 0.22f
+    // Lower intensity = more scrim = the blurred art reads as a softer, more muted wash; higher
+    // intensity lets more of its actual color through.
+    val scrimAlpha = when (intensity) {
+        LiveBlurIntensity.MUTED -> 0.66f
+        LiveBlurIntensity.NORMAL -> 0.52f
+        LiveBlurIntensity.VIVID -> 0.38f
     }
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize().background(PlayerColors.Background)) {
-        val density = LocalDensity.current
-        val areaWidthPx = with(density) { maxWidth.toPx() }
-        val areaHeightPx = with(density) { maxHeight.toPx() }
-        colors.forEachIndexed { index, color ->
-            LiveBlurBlob(
-                color = color,
-                index = index,
-                alpha = blobAlpha,
-                coreStop = coreStop,
-                areaWidthPx = areaWidthPx,
-                areaHeightPx = areaHeightPx,
+    // The gray "secondary" text/icons elsewhere on screen read fine against the app's normal flat
+    // dark background, but a bright album cover showing through the scrim can wash them out —
+    // pick a readable variant per track based on how bright the background actually ends up after
+    // the scrim darkens it (PlayerColors.Background is near-black, so its own contribution is
+    // negligible — this is basically "raw art brightness * how much the scrim lets through").
+    LaunchedEffect(bitmap, scrimAlpha) {
+        val bmp = bitmap
+        onSecondaryColorChange(
+            if (bmp == null) {
+                PlayerColors.TextSecondary
+            } else {
+                val effectiveBrightness = withContext(Dispatchers.Default) { averageLuminance(bmp) } * (1f - scrimAlpha)
+                if (effectiveBrightness > 0.45f) AdaptiveSecondaryOnBright else PlayerColors.TextSecondary
+            },
+        )
+    }
+
+    Box(modifier = Modifier.fillMaxSize().background(PlayerColors.Background)) {
+        val bmp = bitmap
+        if (bmp != null) {
+            // Two fully independent phases (scale vs. pan), each always read at a straight 1x
+            // multiplier — the exact bug that made the old color-blob version "teleport" was
+            // multiplying a single shared phase before feeding it to sin/cos, which breaks the
+            // smooth wrap RepeatMode.Restart otherwise gives for free.
+            val scaleTransition = rememberInfiniteTransition(label = "kenBurnsScale")
+            val scalePhase by scaleTransition.animateFloat(
+                initialValue = 0f,
+                targetValue = (2 * Math.PI).toFloat(),
+                animationSpec = infiniteRepeatable(
+                    animation = tween(26_000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Restart,
+                ),
+                label = "scalePhase",
             )
+            val panTransition = rememberInfiniteTransition(label = "kenBurnsPan")
+            val panPhase by panTransition.animateFloat(
+                initialValue = 0f,
+                targetValue = (2 * Math.PI).toFloat(),
+                animationSpec = infiniteRepeatable(
+                    animation = tween(34_000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Restart,
+                ),
+                label = "panPhase",
+            )
+            val panAmplitudePx = with(LocalDensity.current) { 26.dp.toPx() }
+
+            Crossfade(
+                targetState = bmp,
+                animationSpec = tween(600),
+                modifier = Modifier.fillMaxSize(),
+            ) { frame ->
+                Image(
+                    bitmap = frame.asImageBitmap(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            val scale = 1.2f + 0.08f * kotlin.math.sin(scalePhase)
+                            scaleX = scale
+                            scaleY = scale
+                            translationX = panAmplitudePx * kotlin.math.cos(panPhase)
+                            translationY = panAmplitudePx * kotlin.math.sin(panPhase)
+                        },
+                )
+            }
         }
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(PlayerColors.Background.copy(alpha = liveScrimAlpha)),
+                .background(PlayerColors.Background.copy(alpha = scrimAlpha)),
         )
     }
 }
 
-/** One drifting color blob — its own independent period (seeded from [index]) so a handful of
- * these together never look like they're moving in lockstep, each anchored to a different
- * quadrant of the screen so different album colors don't just stack on top of each other.
- *
- * The position is read inside the `offset { }` lambda (deferred to the layout phase) rather than
- * directly in the composable body — reading the animated value directly would recompose this
- * whole composable on every single animation frame, which was the actual cause of the motion
- * looking like it was "jumping" instead of drifting smoothly.
- */
-@Composable
-private fun LiveBlurBlob(
-    color: Color,
-    index: Int,
-    alpha: Float,
-    coreStop: Float,
-    areaWidthPx: Float,
-    areaHeightPx: Float,
-) {
-    val periodMs = 19_000 + index * 7_000
-    val transition = rememberInfiniteTransition(label = "liveBlurBlob$index")
-    val phase = transition.animateFloat(
-        initialValue = 0f,
-        targetValue = (2 * Math.PI).toFloat(),
-        animationSpec = infiniteRepeatable(
-            animation = tween(periodMs, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "phase",
-    )
-    val anchorX = when (index % 4) { 0 -> 0.28f; 1 -> 0.75f; 2 -> 0.7f; else -> 0.25f }
-    val anchorY = when (index % 4) { 0 -> 0.3f; 1 -> 0.34f; 2 -> 0.72f; else -> 0.76f }
-    // Big and overlapping on purpose — the gradient fade (not a size-vs-blur-radius trick) is
-    // what keeps the edges soft, so there's no downside to going large like there was with blur.
-    val blobDiameterPx = minOf(areaWidthPx, areaHeightPx) * 1.15f
-    val brush = remember(color, alpha, coreStop) {
-        Brush.radialGradient(
-            0f to color.copy(alpha = alpha),
-            coreStop to color.copy(alpha = alpha),
-            1f to color.copy(alpha = 0f),
-        )
-    }
+/** How far (in px, converted from [FADE_SPAN]) before an edge a row starts fading — fixed and the
+ * same on all four edges (Lyrics top/bottom, Queue top/bottom), regardless of how tall the
+ * floating panel sitting at that edge happens to be. */
+private val FADE_SPAN = 72.dp
 
-    Box(
-        modifier = Modifier
-            .size(with(LocalDensity.current) { blobDiameterPx.toDp() })
-            .offset {
-                val p = phase.value
-                val driftX = 0.14f * kotlin.math.sin(p + index)
-                val driftY = 0.12f * kotlin.math.cos(p * 0.8f + index)
-                androidx.compose.ui.unit.IntOffset(
-                    (areaWidthPx * (anchorX + driftX) - blobDiameterPx * 0.5f).toInt(),
-                    (areaHeightPx * (anchorY + driftY) - blobDiameterPx * 0.5f).toInt(),
-                )
-            }
-            .background(brush),
-    )
+/**
+ * Fades ONE list row's own alpha down as it nears the top/bottom edges of its LazyColumn's
+ * viewport — applied per-item, not as a single mask over the whole list. The whole-list
+ * `BlendMode.DstIn` + `CompositingStrategy.Offscreen` mask approach (a technique that works fine
+ * in reference code elsewhere) produced zero visible effect on this device/build no matter how it
+ * was wired up — the same category of "this normally-reliable technique silently no-ops here"
+ * problem this project already hit twice with `Modifier.blur()` on solid shapes. This is the
+ * fallback: plain per-item `alpha`, computed from [state]'s own live layout info (so it updates
+ * every scroll frame via the draw phase, no recomposition), matched to this item by
+ * [absoluteIndex] — its position among ALL items in the LazyColumn, not just within one
+ * `item`/`itemsIndexed` block (Compose numbers items sequentially across the whole list in
+ * declaration order). [topPx]/[bottomPx] are read lazily for the same reason.
+ *
+ * [topPx]/[bottomPx] only mark WHERE the edge of the floating panel sits (so a row reaches
+ * alpha 0 exactly as it slides under it, never before or after) — the fade's own length is
+ * always [FADE_SPAN], not the panel's height. Coupling the two (an earlier version did) made
+ * the fade under the tall control panel comically slow/mushy compared to the short, crisp one
+ * under the mini-header, even though both used the same formula.
+ *
+ * IMPORTANT coordinate gotcha that caused the fade to end early/late by a constant offset: a
+ * `LazyListItemInfo.offset` of 0 is NOT the top of the viewport — per Compose's own docs it's
+ * the point right AFTER `beforeContentPadding` (top content padding), and `visibleItemsInfo`
+ * offsets are relative to that same zero point. Comparing that offset directly against
+ * [topPx]/[bottomPx] (which are the header/panel's raw pixel heights, i.e. measured from the
+ * true top/bottom of the screen) was off by exactly the content padding amount. Anchoring to
+ * `info.viewportStartOffset`/`viewportEndOffset` instead — which already bake in
+ * `beforeContentPadding` per Compose's own definition — fixes that for good.
+ */
+private fun Modifier.fadeInList(
+    state: LazyListState,
+    absoluteIndex: Int,
+    topPx: () -> Int,
+    bottomPx: () -> Int,
+): Modifier = this.graphicsLayer {
+    val info = state.layoutInfo
+    val itemInfo = info.visibleItemsInfo.firstOrNull { it.index == absoluteIndex } ?: return@graphicsLayer
+    val span = FADE_SPAN.toPx().coerceAtLeast(1f)
+    val topEdge = topPx().toFloat() + info.viewportStartOffset
+    val bottomEdge = info.viewportEndOffset - bottomPx().toFloat()
+    val center = itemInfo.offset + itemInfo.size / 2f
+    val topAlpha = ((center - topEdge) / span).coerceIn(0f, 1f)
+    val bottomAlpha = ((bottomEdge - center) / span).coerceIn(0f, 1f)
+    alpha = minOf(topAlpha, bottomAlpha)
 }
 
 @Composable
@@ -702,6 +919,8 @@ private fun LyricsView(
     lyrics: ParsedLyrics?,
     positionMs: Long,
     isPlaying: Boolean,
+    topFadePx: () -> Int,
+    bottomFadePx: () -> Int,
     contentPadding: PaddingValues = PaddingValues(top = 16.dp, bottom = 220.dp),
 ) {
     // The controller only reports a fresh position every ~100ms, which is far too coarse for a
@@ -728,7 +947,10 @@ private fun LyricsView(
             )
         }
 
-        is ParsedLyrics.Unsynced -> LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = contentPadding) {
+        is ParsedLyrics.Unsynced -> LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = contentPadding,
+        ) {
             item {
                 Text(
                     text = lyrics.text,
@@ -763,14 +985,19 @@ private fun LyricsView(
             }
             LazyColumn(
                 state = listState,
-                modifier = Modifier.fillMaxSize(),
+                // clipToBounds() is explicit here, not just relying on the default scroll clip —
+                // the active line's glow uses an Unbounded blur (intentionally bleeds past its
+                // own text bounds for a soft look), and without an explicit clip that bleed could
+                // escape into the floating mini-header above when the glowing line scrolls near
+                // the top of the list.
+                modifier = Modifier.fillMaxSize().clipToBounds(),
                 contentPadding = contentPadding,
             ) {
                 itemsIndexed(lyrics.lines) { index, line ->
                     val active = index == activeIndex
                     val alpha by animateFloatAsState(if (active) 1f else 0.35f, label = "lineAlpha")
                     val fontSize by animateFloatAsState(if (active) 28f else 22f, label = "lineSize")
-                    Column {
+                    Column(modifier = Modifier.fadeInList(listState, index, topFadePx, bottomFadePx)) {
                         if (line.words != null && active) {
                             // Glow only applies to the active eLRC (word-synced) line — a plain
                             // LRC line has no per-word timing to justify the effect, and a
@@ -953,7 +1180,7 @@ private fun NowPlayingMiniHeader(
             )
             Text(
                 text = song?.artist ?: "",
-                color = PlayerColors.TextSecondary,
+                color = LocalAdaptiveSecondaryColor.current,
                 fontSize = 13.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -974,14 +1201,29 @@ private fun QueueList(
     onItemClick: (Song) -> Unit,
     onClearManualQueue: () -> Unit,
     onAddSongsClick: () -> Unit,
+    topFadePx: () -> Int,
+    bottomFadePx: () -> Int,
     state: LazyListState = rememberLazyListState(),
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
-    LazyColumn(modifier = modifier.fillMaxSize(), state = state, contentPadding = contentPadding) {
+    // Absolute positions of the fade-eligible rows among ALL items in this LazyColumn (needed by
+    // fadeInList() below) — index 0 is the "Очередь" header row, 1 is "Добавить треки", so the
+    // manualQueue rows start at 2; continueQueue rows start after those plus its own header row
+    // (only present when continueQueue is non-empty).
+    val manualQueueStart = 2
+    val continueQueueStart = manualQueueStart + manualQueue.size + 1
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        state = state,
+        contentPadding = contentPadding,
+    ) {
         item {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 4.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fadeInList(state, 0, topFadePx, bottomFadePx)
+                    .padding(top = 12.dp, bottom = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -997,8 +1239,14 @@ private fun QueueList(
                 }
             }
         }
-        item { AddSongsToQueueRow(onClick = onAddSongsClick) }
-        itemsIndexed(manualQueue) { _, item -> QueueRow(item = item, onClick = { onItemClick(item) }) }
+        item { AddSongsToQueueRow(onClick = onAddSongsClick, modifier = Modifier.fadeInList(state, 1, topFadePx, bottomFadePx)) }
+        itemsIndexed(manualQueue) { i, item ->
+            QueueRow(
+                item = item,
+                onClick = { onItemClick(item) },
+                modifier = Modifier.fadeInList(state, manualQueueStart + i, topFadePx, bottomFadePx),
+            )
+        }
         if (continueQueue.isNotEmpty()) {
             item {
                 Text(
@@ -1006,18 +1254,26 @@ private fun QueueList(
                     color = PlayerColors.TextPrimary,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 18.dp, bottom = 4.dp),
+                    modifier = Modifier
+                        .fadeInList(state, manualQueueStart + manualQueue.size, topFadePx, bottomFadePx)
+                        .padding(top = 18.dp, bottom = 4.dp),
                 )
             }
-            itemsIndexed(continueQueue) { _, item -> QueueRow(item = item, onClick = { onItemClick(item) }) }
+            itemsIndexed(continueQueue) { i, item ->
+                QueueRow(
+                    item = item,
+                    onClick = { onItemClick(item) },
+                    modifier = Modifier.fadeInList(state, continueQueueStart + i, topFadePx, bottomFadePx),
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun AddSongsToQueueRow(onClick: () -> Unit) {
+private fun AddSongsToQueueRow(onClick: () -> Unit, modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
             .padding(vertical = 8.dp),
@@ -1043,9 +1299,9 @@ private fun AddSongsToQueueRow(onClick: () -> Unit) {
 }
 
 @Composable
-private fun QueueRow(item: Song, onClick: () -> Unit) {
+private fun QueueRow(item: Song, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
             .padding(vertical = 8.dp),
@@ -1248,7 +1504,7 @@ private fun VolumeRow(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(imageVector = Icons.Filled.VolumeDown, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(18.dp))
+        Icon(imageVector = Icons.Filled.VolumeDown, contentDescription = null, tint = LocalAdaptiveSecondaryColor.current, modifier = Modifier.size(18.dp))
         MinimalSlider(
             value = volume,
             onValueChange = {
@@ -1258,7 +1514,7 @@ private fun VolumeRow(modifier: Modifier = Modifier) {
             valueRange = 0f..maxVolume.toFloat(),
             modifier = Modifier.weight(1f).padding(horizontal = 10.dp),
         )
-        Icon(imageVector = Icons.Filled.VolumeUp, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(20.dp))
+        Icon(imageVector = Icons.Filled.VolumeUp, contentDescription = null, tint = LocalAdaptiveSecondaryColor.current, modifier = Modifier.size(20.dp))
     }
 }
 
@@ -1279,7 +1535,7 @@ private fun BottomQuickActionsRow(
         Icon(
             imageVector = Icons.Filled.FormatQuote,
             contentDescription = "Текст песни",
-            tint = if (lyricsActive) PlayerColors.TextPrimary else PlayerColors.TextSecondary,
+            tint = if (lyricsActive) PlayerColors.TextPrimary else LocalAdaptiveSecondaryColor.current,
             modifier = Modifier
                 .size(24.dp)
                 .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onLyricsClick() },
@@ -1293,12 +1549,12 @@ private fun BottomQuickActionsRow(
             Icon(
                 imageVector = Icons.Filled.Cast,
                 contentDescription = "Устройство воспроизведения",
-                tint = PlayerColors.TextSecondary,
+                tint = LocalAdaptiveSecondaryColor.current,
                 modifier = Modifier.size(24.dp),
             )
             Text(
                 text = "Это устройство",
-                color = PlayerColors.TextSecondary,
+                color = LocalAdaptiveSecondaryColor.current,
                 fontSize = 10.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -1308,7 +1564,7 @@ private fun BottomQuickActionsRow(
         Icon(
             imageVector = Icons.Filled.QueueMusic,
             contentDescription = "Очередь",
-            tint = if (queueActive) PlayerColors.TextPrimary else PlayerColors.TextSecondary,
+            tint = if (queueActive) PlayerColors.TextPrimary else LocalAdaptiveSecondaryColor.current,
             modifier = Modifier
                 .size(24.dp)
                 .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onQueueClick() },
