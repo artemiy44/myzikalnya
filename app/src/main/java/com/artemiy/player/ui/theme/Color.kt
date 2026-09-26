@@ -203,7 +203,28 @@ data class AccentChoice(val family: AccentFamily, val index: Int) {
 private fun standaloneAccent(accent: Color, onLight: Boolean): Color {
     val oklab = accent.convert(ColorSpaces.Oklab)
     val l = if (onLight) minOf(oklab.red, 0.5f) else maxOf(oklab.red, 0.85f)
-    return Color(l, oklab.green, oklab.blue, 1f, ColorSpaces.Oklab).convert(ColorSpaces.Srgb)
+    // A saturated color pushed that light doesn't exist on screen; letting the conversion clip it
+    // shifts its hue (GNOME blue turned turquoise). Instead give up just enough saturation to fit,
+    // keeping the hue itself.
+    var low = 0f
+    var high = 1f
+    repeat(20) {
+        val mid = (low + high) / 2
+        if (inSrgbGamut(l, oklab.green * mid, oklab.blue * mid)) low = mid else high = mid
+    }
+    return Color(l, oklab.green * low, oklab.blue * low, 1f, ColorSpaces.Oklab).convert(ColorSpaces.Srgb)
+}
+
+/** Whether this Oklab color can be shown in sRGB without clipping (Björn Ottosson's formulas). */
+private fun inSrgbGamut(lightness: Float, a: Float, b: Float): Boolean {
+    val l = (lightness + 0.3963377774f * a + 0.2158037573f * b).let { it * it * it }
+    val m = (lightness - 0.1055613458f * a - 0.0638541728f * b).let { it * it * it }
+    val s = (lightness - 0.0894841775f * a - 1.2914855480f * b).let { it * it * it }
+    val r = 4.0767416621f * l - 3.3077115913f * m + 0.2309699292f * s
+    val g = -1.2684380046f * l + 2.6097574011f * m - 0.3413193965f * s
+    val bl = -0.0041960863f * l - 0.7034186147f * m + 1.7076147010f * s
+    val eps = 0.0005f
+    return r in -eps..1f + eps && g in -eps..1f + eps && bl in -eps..1f + eps
 }
 
 fun darkPalette(variant: DarkVariant): PlayerPalette = when (variant) {

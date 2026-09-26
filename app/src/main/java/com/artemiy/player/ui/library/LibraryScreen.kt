@@ -58,6 +58,7 @@ import com.artemiy.player.data.LibraryViewMode
 import com.artemiy.player.data.PlaylistWithCount
 import com.artemiy.player.data.Song
 import com.artemiy.player.ui.components.AlbumArt
+import com.artemiy.player.ui.components.AnimatedBackStack
 import com.artemiy.player.ui.components.BlurredCollageArt
 import com.artemiy.player.ui.components.COLLAGE_HERO_HEIGHT
 import com.artemiy.player.ui.components.CircleIconButton
@@ -154,405 +155,405 @@ fun LibraryScreen(
     val songViewMode = ViewMode.valueOf(settingsVm.viewMode("songs").name)
     val playlistViewMode = ViewMode.valueOf(settingsVm.viewMode("playlist").name)
 
-    BackHandler(enabled = backStack.size > 1) {
-        backStack.removeAt(backStack.lastIndex)
-    }
-
     fun push(r: LibraryRoute) {
         backStack.add(r)
     }
 
-    // Artist/album/playlist pages run their header art up under the status bar themselves.
-    val edgeToEdge = route is LibraryRoute.ArtistDetail || route is LibraryRoute.AlbumDetail || route is LibraryRoute.PlaylistDetail
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(PlayerColors.Background)
-            .then(if (edgeToEdge) Modifier else Modifier.statusBarsPadding()),
-    ) {
-        if (!edgeToEdge) {
-            LibraryHeader(
-                title = when (val r = route) {
-                    LibraryRoute.Home -> "Медиатека"
-                    LibraryRoute.Playlists -> "Плейлисты"
-                    LibraryRoute.Artists -> "Артисты"
-                    LibraryRoute.Albums -> "Альбомы"
-                    LibraryRoute.Songs -> "Треки"
-                    is LibraryRoute.AlbumDetail -> r.album
-                    is LibraryRoute.PlaylistDetail -> r.name
-                    is LibraryRoute.ArtistDetail -> "" // handled by its own hero header
-                },
-                showBack = backStack.size > 1,
-                onBack = { backStack.removeAt(backStack.lastIndex) },
-                trailing = when (route) {
-                    LibraryRoute.Playlists -> {
-                        {
-                            Icon(
-                                imageVector = AppIcons.Add,
-                                contentDescription = "Новый плейлист",
-                                tint = PlayerColors.TextPrimary,
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
-                                        showCreatePlaylist = true
-                                    },
+    // Each page of the Library stack, animated: pushing slides in, going back (arrow or the
+    // predictive back gesture) slides away with the page underneath showing.
+    AnimatedBackStack(stack = backStack, onBack = { backStack.removeAt(backStack.lastIndex) }) { route ->
+        // Artist/album/playlist pages run their header art up under the status bar themselves.
+        val edgeToEdge = route is LibraryRoute.ArtistDetail || route is LibraryRoute.AlbumDetail || route is LibraryRoute.PlaylistDetail
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(PlayerColors.Background)
+                .then(if (edgeToEdge) Modifier else Modifier.statusBarsPadding()),
+        ) {
+            if (!edgeToEdge) {
+                LibraryHeader(
+                    title = when (val r = route) {
+                        LibraryRoute.Home -> "Медиатека"
+                        LibraryRoute.Playlists -> "Плейлисты"
+                        LibraryRoute.Artists -> "Артисты"
+                        LibraryRoute.Albums -> "Альбомы"
+                        LibraryRoute.Songs -> "Треки"
+                        is LibraryRoute.AlbumDetail -> r.album
+                        is LibraryRoute.PlaylistDetail -> r.name
+                        is LibraryRoute.ArtistDetail -> "" // handled by its own hero header
+                    },
+                    showBack = route != LibraryRoute.Home,
+                    onBack = { backStack.removeAt(backStack.lastIndex) },
+                    trailing = when (route) {
+                        LibraryRoute.Playlists -> {
+                            {
+                                Icon(
+                                    imageVector = AppIcons.Add,
+                                    contentDescription = "Новый плейлист",
+                                    tint = PlayerColors.TextPrimary,
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                                            showCreatePlaylist = true
+                                        },
+                                )
+                            }
+                        }
+                        else -> null
+                    },
+                )
+            }
+
+            when {
+                !permissionGranted -> {
+                    Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "Нужен доступ к музыке на устройстве",
+                                color = PlayerColors.TextSecondary,
+                                fontSize = 14.sp,
+                                modifier = Modifier.padding(bottom = 16.dp),
                             )
+                            Button(
+                                onClick = onRequestPermission,
+                                shape = RoundedCornerShape(24.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = PlayerColors.Accent,
+                                    contentColor = PlayerColors.OnAccent,
+                                ),
+                            ) {
+                                Text("Разрешить доступ")
+                            }
                         }
                     }
-                    else -> null
-                },
-            )
-        }
+                }
 
-        when {
-            !permissionGranted -> {
-                Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "Нужен доступ к музыке на устройстве",
-                            color = PlayerColors.TextSecondary,
-                            fontSize = 14.sp,
-                            modifier = Modifier.padding(bottom = 16.dp),
+                songs.isEmpty() -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(text = "Треки не найдены", color = PlayerColors.TextSecondary)
+                    }
+                }
+
+                else -> {
+                    val artistGroups = remember(songs) {
+                        songs.groupBy { it.artist }
+                            .map { (artist, list) -> ArtistGroup(artist, list) }
+                    }
+                    val albumGroups = remember(songs) {
+                        songs.groupBy { it.album to it.artist }
+                            .map { (key, list) -> AlbumGroup(key.first, key.second, list) }
+                    }
+
+                    when (val r = route) {
+                        LibraryRoute.Home -> LibraryHomeList(
+                            playlistCount = playlistsVm.playlists.size,
+                            artistCount = artistGroups.size,
+                            albumCount = albumGroups.size,
+                            songCount = songs.size,
+                            recentSongs = remember(songs) { songs.sortedByDescending { it.dateAddedMs }.take(12) },
+                            onOpenPlaylists = { push(LibraryRoute.Playlists) },
+                            onOpenArtists = { push(LibraryRoute.Artists) },
+                            onOpenAlbums = { push(LibraryRoute.Albums) },
+                            onOpenSongs = { push(LibraryRoute.Songs) },
+                            onSongClick = { song, list -> onSongClick(song, list) },
                         )
-                        Button(
-                            onClick = onRequestPermission,
-                            shape = RoundedCornerShape(24.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = PlayerColors.Accent,
-                                contentColor = PlayerColors.OnAccent,
-                            ),
-                        ) {
-                            Text("Разрешить доступ")
-                        }
-                    }
-                }
-            }
 
-            songs.isEmpty() -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "Треки не найдены", color = PlayerColors.TextSecondary)
-                }
-            }
+                        LibraryRoute.Playlists -> PlaylistsList(
+                            playlists = playlistsVm.playlists,
+                            onPlaylistClick = { p -> push(LibraryRoute.PlaylistDetail(p.id, p.name)) },
+                        )
 
-            else -> {
-                val artistGroups = remember(songs) {
-                    songs.groupBy { it.artist }
-                        .map { (artist, list) -> ArtistGroup(artist, list) }
-                }
-                val albumGroups = remember(songs) {
-                    songs.groupBy { it.album to it.artist }
-                        .map { (key, list) -> AlbumGroup(key.first, key.second, list) }
-                }
-
-                when (val r = route) {
-                    LibraryRoute.Home -> LibraryHomeList(
-                        playlistCount = playlistsVm.playlists.size,
-                        artistCount = artistGroups.size,
-                        albumCount = albumGroups.size,
-                        songCount = songs.size,
-                        recentSongs = remember(songs) { songs.sortedByDescending { it.dateAddedMs }.take(12) },
-                        onOpenPlaylists = { push(LibraryRoute.Playlists) },
-                        onOpenArtists = { push(LibraryRoute.Artists) },
-                        onOpenAlbums = { push(LibraryRoute.Albums) },
-                        onOpenSongs = { push(LibraryRoute.Songs) },
-                        onSongClick = { song, list -> onSongClick(song, list) },
-                    )
-
-                    LibraryRoute.Playlists -> PlaylistsList(
-                        playlists = playlistsVm.playlists,
-                        onPlaylistClick = { p -> push(LibraryRoute.PlaylistDetail(p.id, p.name)) },
-                    )
-
-                    LibraryRoute.Artists -> {
-                        val filtered = remember(artistGroups, artistQuery, artistSort) {
-                            artistGroups
-                                .filter { it.name.contains(artistQuery, ignoreCase = true) }
-                                .let { list ->
-                                    when (artistSort) {
-                                        ArtistSort.NAME -> list.sortedBy { it.name.lowercase() }
-                                        ArtistSort.COUNT -> list.sortedByDescending { it.songs.size }
-                                        ArtistSort.RECENT -> list.sortedByDescending { g -> g.songs.maxOf { it.dateAddedMs } }
+                        LibraryRoute.Artists -> {
+                            val filtered = remember(artistGroups, artistQuery, artistSort) {
+                                artistGroups
+                                    .filter { it.name.contains(artistQuery, ignoreCase = true) }
+                                    .let { list ->
+                                        when (artistSort) {
+                                            ArtistSort.NAME -> list.sortedBy { it.name.lowercase() }
+                                            ArtistSort.COUNT -> list.sortedByDescending { it.songs.size }
+                                            ArtistSort.RECENT -> list.sortedByDescending { g -> g.songs.maxOf { it.dateAddedMs } }
+                                        }
                                     }
+                            }
+                            Column(modifier = Modifier.fillMaxSize()) {
+                                ListToolbar(
+                                    query = artistQuery,
+                                    onQueryChange = { artistQuery = it },
+                                    placeholder = "Поиск по артистам",
+                                    sortOptions = ArtistSort.entries,
+                                    sortOptionLabel = { it.label },
+                                    currentSort = artistSort.label,
+                                    onSortSelect = { artistSort = it },
+                                    viewMode = artistViewMode,
+                                    onViewModeCycle = { settingsVm.setViewMode("artists", LibraryViewMode.valueOf(artistViewMode.next().name)) },
+                                )
+                                when (artistViewMode) {
+                                    ViewMode.LIST -> ArtistsList(
+                                        groups = filtered,
+                                        state = artistsListState,
+                                        onArtistClick = { push(LibraryRoute.ArtistDetail(it.name)) },
+                                    )
+                                    ViewMode.GRID_2, ViewMode.GRID_3 -> ArtistsGrid(
+                                        groups = filtered,
+                                        columns = if (artistViewMode == ViewMode.GRID_2) 2 else 3,
+                                        state = artistsGridState,
+                                        onArtistClick = { push(LibraryRoute.ArtistDetail(it.name)) },
+                                    )
                                 }
-                        }
-                        Column(modifier = Modifier.fillMaxSize()) {
-                            ListToolbar(
-                                query = artistQuery,
-                                onQueryChange = { artistQuery = it },
-                                placeholder = "Поиск по артистам",
-                                sortOptions = ArtistSort.entries,
-                                sortOptionLabel = { it.label },
-                                currentSort = artistSort.label,
-                                onSortSelect = { artistSort = it },
-                                viewMode = artistViewMode,
-                                onViewModeCycle = { settingsVm.setViewMode("artists", LibraryViewMode.valueOf(artistViewMode.next().name)) },
-                            )
-                            when (artistViewMode) {
-                                ViewMode.LIST -> ArtistsList(
-                                    groups = filtered,
-                                    state = artistsListState,
-                                    onArtistClick = { push(LibraryRoute.ArtistDetail(it.name)) },
-                                )
-                                ViewMode.GRID_2, ViewMode.GRID_3 -> ArtistsGrid(
-                                    groups = filtered,
-                                    columns = if (artistViewMode == ViewMode.GRID_2) 2 else 3,
-                                    state = artistsGridState,
-                                    onArtistClick = { push(LibraryRoute.ArtistDetail(it.name)) },
-                                )
                             }
                         }
-                    }
 
-                    LibraryRoute.Albums -> {
-                        val filtered = remember(albumGroups, albumQuery, albumSort) {
-                            albumGroups
-                                .filter {
-                                    it.album.contains(albumQuery, ignoreCase = true) ||
-                                        it.artist.contains(albumQuery, ignoreCase = true)
-                                }
-                                .let { list ->
-                                    when (albumSort) {
-                                        AlbumSort.NAME -> list.sortedBy { it.album.lowercase() }
-                                        AlbumSort.COUNT -> list.sortedByDescending { it.songs.size }
-                                        AlbumSort.ARTIST -> list.sortedBy { it.artist.lowercase() }
-                                        AlbumSort.RECENT -> list.sortedByDescending { g -> g.songs.maxOf { it.dateAddedMs } }
+                        LibraryRoute.Albums -> {
+                            val filtered = remember(albumGroups, albumQuery, albumSort) {
+                                albumGroups
+                                    .filter {
+                                        it.album.contains(albumQuery, ignoreCase = true) ||
+                                            it.artist.contains(albumQuery, ignoreCase = true)
                                     }
+                                    .let { list ->
+                                        when (albumSort) {
+                                            AlbumSort.NAME -> list.sortedBy { it.album.lowercase() }
+                                            AlbumSort.COUNT -> list.sortedByDescending { it.songs.size }
+                                            AlbumSort.ARTIST -> list.sortedBy { it.artist.lowercase() }
+                                            AlbumSort.RECENT -> list.sortedByDescending { g -> g.songs.maxOf { it.dateAddedMs } }
+                                        }
+                                    }
+                            }
+                            Column(modifier = Modifier.fillMaxSize()) {
+                                ListToolbar(
+                                    query = albumQuery,
+                                    onQueryChange = { albumQuery = it },
+                                    placeholder = "Поиск по альбомам",
+                                    sortOptions = AlbumSort.entries,
+                                    sortOptionLabel = { it.label },
+                                    currentSort = albumSort.label,
+                                    onSortSelect = { albumSort = it },
+                                    viewMode = albumViewMode,
+                                    onViewModeCycle = { settingsVm.setViewMode("albums", LibraryViewMode.valueOf(albumViewMode.next().name)) },
+                                )
+                                when (albumViewMode) {
+                                    ViewMode.LIST -> AlbumsList(
+                                        groups = filtered,
+                                        state = albumsListState,
+                                        onAlbumClick = { push(LibraryRoute.AlbumDetail(it.album, it.artist)) },
+                                    )
+                                    ViewMode.GRID_2, ViewMode.GRID_3 -> AlbumsGrid(
+                                        groups = filtered,
+                                        columns = if (albumViewMode == ViewMode.GRID_2) 2 else 3,
+                                        state = albumsGridState,
+                                        onAlbumClick = { push(LibraryRoute.AlbumDetail(it.album, it.artist)) },
+                                    )
                                 }
-                        }
-                        Column(modifier = Modifier.fillMaxSize()) {
-                            ListToolbar(
-                                query = albumQuery,
-                                onQueryChange = { albumQuery = it },
-                                placeholder = "Поиск по альбомам",
-                                sortOptions = AlbumSort.entries,
-                                sortOptionLabel = { it.label },
-                                currentSort = albumSort.label,
-                                onSortSelect = { albumSort = it },
-                                viewMode = albumViewMode,
-                                onViewModeCycle = { settingsVm.setViewMode("albums", LibraryViewMode.valueOf(albumViewMode.next().name)) },
-                            )
-                            when (albumViewMode) {
-                                ViewMode.LIST -> AlbumsList(
-                                    groups = filtered,
-                                    state = albumsListState,
-                                    onAlbumClick = { push(LibraryRoute.AlbumDetail(it.album, it.artist)) },
-                                )
-                                ViewMode.GRID_2, ViewMode.GRID_3 -> AlbumsGrid(
-                                    groups = filtered,
-                                    columns = if (albumViewMode == ViewMode.GRID_2) 2 else 3,
-                                    state = albumsGridState,
-                                    onAlbumClick = { push(LibraryRoute.AlbumDetail(it.album, it.artist)) },
-                                )
                             }
                         }
-                    }
 
-                    LibraryRoute.Songs -> {
-                        val filtered = remember(songs, songQuery, songSort) {
-                            songs
-                                .filter {
-                                    it.title.contains(songQuery, ignoreCase = true) ||
-                                        it.artist.contains(songQuery, ignoreCase = true)
+                        LibraryRoute.Songs -> {
+                            val filtered = remember(songs, songQuery, songSort) {
+                                songs
+                                    .filter {
+                                        it.title.contains(songQuery, ignoreCase = true) ||
+                                            it.artist.contains(songQuery, ignoreCase = true)
+                                    }
+                                    .let { list ->
+                                        when (songSort) {
+                                            SongSort.TITLE -> list.sortedBy { it.title.lowercase() }
+                                            SongSort.ARTIST -> list.sortedBy { it.artist.lowercase() }
+                                            SongSort.RECENT -> list.sortedByDescending { it.dateAddedMs }
+                                            SongSort.RELEASE_DATE -> list.sortedByDescending { it.year ?: -1 }
+                                        }
+                                    }
+                            }
+                            Column(modifier = Modifier.fillMaxSize()) {
+                                ListToolbar(
+                                    query = songQuery,
+                                    onQueryChange = { songQuery = it },
+                                    placeholder = "Поиск по трекам",
+                                    sortOptions = SongSort.entries,
+                                    sortOptionLabel = { it.label },
+                                    currentSort = songSort.label,
+                                    onSortSelect = { songSort = it },
+                                    viewMode = songViewMode,
+                                    onViewModeCycle = { settingsVm.setViewMode("songs", LibraryViewMode.valueOf(songViewMode.next().name)) },
+                                )
+                                if (filtered.isNotEmpty()) {
+                                    PlayShuffleRow(
+                                        onPlay = { onSongClick(filtered.first(), filtered) },
+                                        onShuffle = { filtered.shuffled().let { onSongClick(it.first(), it) } },
+                                    )
                                 }
-                                .let { list ->
-                                    when (songSort) {
-                                        SongSort.TITLE -> list.sortedBy { it.title.lowercase() }
-                                        SongSort.ARTIST -> list.sortedBy { it.artist.lowercase() }
-                                        SongSort.RECENT -> list.sortedByDescending { it.dateAddedMs }
-                                        SongSort.RELEASE_DATE -> list.sortedByDescending { it.year ?: -1 }
+                                when (songViewMode) {
+                                    ViewMode.LIST -> SongList(
+                                        songs = filtered,
+                                        state = songsListState,
+                                        onSongClick = { song -> onSongClick(song, filtered) },
+                                        onPlayNext = onPlayNext,
+                                        onAddToQueue = onAddToQueue,
+                                        onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
+                                        onGoToAlbum = onGoToAlbum,
+                                        onGoToArtist = onGoToArtist,
+                                    )
+                                    ViewMode.GRID_2, ViewMode.GRID_3 -> SongsGrid(
+                                        songs = filtered,
+                                        columns = if (songViewMode == ViewMode.GRID_2) 2 else 3,
+                                        state = songsGridState,
+                                        onSongClick = { song -> onSongClick(song, filtered) },
+                                        onPlayNext = onPlayNext,
+                                        onAddToQueue = onAddToQueue,
+                                        onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
+                                        onGoToAlbum = onGoToAlbum,
+                                        onGoToArtist = onGoToArtist,
+                                    )
+                                }
+                            }
+                        }
+
+                        is LibraryRoute.ArtistDetail -> {
+                            val artistSongs = artistGroups.firstOrNull { it.name == r.artist }?.songs ?: emptyList()
+                            val artistAlbums = remember(artistSongs) {
+                                artistSongs.groupBy { it.album }
+                                    .map { (album, list) -> album to list }
+                                    .sortedBy { it.first.lowercase() }
+                            }
+                            ArtistDetailScreen(
+                                artist = r.artist,
+                                songs = artistSongs,
+                                albums = artistAlbums,
+                                onBack = { backStack.removeAt(backStack.lastIndex) },
+                                onPlayAll = { list -> if (list.isNotEmpty()) onSongClick(list.first(), list) },
+                                onShuffleAll = { list ->
+                                    if (list.isNotEmpty()) {
+                                        val shuffled = list.shuffled()
+                                        onSongClick(shuffled.first(), shuffled)
+                                    }
+                                },
+                                onSongClick = { song, list -> onSongClick(song, list) },
+                                onAlbumClick = { album ->
+                                    push(LibraryRoute.AlbumDetail(album, r.artist))
+                                },
+                                onPlayNext = onPlayNext,
+                                onAddToQueue = onAddToQueue,
+                                onAddAllToQueue = onAddAllToQueue,
+                                onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
+                                onGoToAlbum = onGoToAlbum,
+                            )
+                        }
+
+                        is LibraryRoute.AlbumDetail -> {
+                            val albumSongs = albumGroups
+                                .firstOrNull { it.album == r.album && it.artist == r.artist }
+                                ?.songs ?: emptyList()
+                            AlbumDetailScreen(
+                                album = r.album,
+                                artist = r.artist,
+                                songs = albumSongs,
+                                onBack = { backStack.removeAt(backStack.lastIndex) },
+                                onPlayAll = { list -> if (list.isNotEmpty()) onSongClick(list.first(), list) },
+                                onShuffleAll = { list ->
+                                    if (list.isNotEmpty()) {
+                                        val shuffled = list.shuffled()
+                                        onSongClick(shuffled.first(), shuffled)
+                                    }
+                                },
+                                onSongClick = { song, list -> onSongClick(song, list) },
+                                onAddAllClick = { list -> onAddToPlaylist(list) },
+                                onPlayNext = onPlayNext,
+                                onAddToQueue = onAddToQueue,
+                                onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
+                                onGoToArtist = onGoToArtist,
+                            )
+                        }
+
+                        is LibraryRoute.PlaylistDetail -> {
+                            var playlistSongs by remember(r.playlistId) { mutableStateOf<List<Song>>(emptyList()) }
+                            // playlistsVm.playlists changes after every add/remove, so this re-reads
+                            // the playlist right after a song is taken out of it.
+                            LaunchedEffect(r.playlistId, songs, playlistsVm.playlists) {
+                                playlistSongs = playlistsVm.getSongsForPlaylist(r.playlistId, songs)
+                            }
+                            var playlistQuery by remember(r.playlistId) { mutableStateOf("") }
+                            var playlistSort by remember(r.playlistId) { mutableStateOf(PlaylistSongSort.ORDER) }
+                            val playlistListState = rememberLazyListState()
+                            val playlistGridState = rememberLazyGridState()
+                            val removeFromPlaylist: (Song) -> Unit = { song -> playlistsVm.removeSongFromPlaylist(r.playlistId, song.id) }
+                            val filtered = remember(playlistSongs, playlistQuery, playlistSort) {
+                                playlistSongs
+                                    .filter {
+                                        it.title.contains(playlistQuery, ignoreCase = true) ||
+                                            it.artist.contains(playlistQuery, ignoreCase = true)
+                                    }
+                                    .let { list ->
+                                        when (playlistSort) {
+                                            PlaylistSongSort.ORDER -> list
+                                            PlaylistSongSort.TITLE -> list.sortedBy { it.title.lowercase() }
+                                            PlaylistSongSort.ARTIST -> list.sortedBy { it.artist.lowercase() }
+                                            PlaylistSongSort.RECENT -> list.sortedByDescending { it.dateAddedMs }
+                                        }
+                                    }
+                            }
+                            val collage = rememberBlurredCollage(playlistSongs)
+                            // Header, then search/sort — all scrolling away together with the songs.
+                            val header: @Composable () -> Unit = {
+                                Column {
+                                    PlaylistHero(
+                                        name = r.name,
+                                        songCount = playlistSongs.size,
+                                        collage = collage,
+                                        onBack = { backStack.removeAt(backStack.lastIndex) },
+                                        onPlay = { if (filtered.isNotEmpty()) onSongClick(filtered.first(), filtered) },
+                                        onShuffle = { if (filtered.isNotEmpty()) filtered.shuffled().let { onSongClick(it.first(), it) } },
+                                        onRename = { showRenamePlaylist = true },
+                                        onDelete = { showDeletePlaylist = true },
+                                    )
+                                    if (playlistSongs.isEmpty()) {
+                                        Text(
+                                            text = "В плейлисте пока нет треков",
+                                            color = PlayerColors.TextSecondary,
+                                            fontSize = 14.sp,
+                                            modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+                                            textAlign = TextAlign.Center,
+                                        )
+                                    } else {
+                                        ListToolbar(
+                                            query = playlistQuery,
+                                            onQueryChange = { playlistQuery = it },
+                                            placeholder = "Поиск в плейлисте",
+                                            sortOptions = PlaylistSongSort.entries,
+                                            sortOptionLabel = { it.label },
+                                            currentSort = playlistSort.label,
+                                            onSortSelect = { playlistSort = it },
+                                            viewMode = playlistViewMode,
+                                            onViewModeCycle = { settingsVm.setViewMode("playlist", LibraryViewMode.valueOf(playlistViewMode.next().name)) },
+                                        )
                                     }
                                 }
-                        }
-                        Column(modifier = Modifier.fillMaxSize()) {
-                            ListToolbar(
-                                query = songQuery,
-                                onQueryChange = { songQuery = it },
-                                placeholder = "Поиск по трекам",
-                                sortOptions = SongSort.entries,
-                                sortOptionLabel = { it.label },
-                                currentSort = songSort.label,
-                                onSortSelect = { songSort = it },
-                                viewMode = songViewMode,
-                                onViewModeCycle = { settingsVm.setViewMode("songs", LibraryViewMode.valueOf(songViewMode.next().name)) },
-                            )
-                            if (filtered.isNotEmpty()) {
-                                PlayShuffleRow(
-                                    onPlay = { onSongClick(filtered.first(), filtered) },
-                                    onShuffle = { filtered.shuffled().let { onSongClick(it.first(), it) } },
-                                )
                             }
-                            when (songViewMode) {
+                            when (playlistViewMode) {
                                 ViewMode.LIST -> SongList(
                                     songs = filtered,
-                                    state = songsListState,
+                                    state = playlistListState,
                                     onSongClick = { song -> onSongClick(song, filtered) },
                                     onPlayNext = onPlayNext,
                                     onAddToQueue = onAddToQueue,
                                     onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
                                     onGoToAlbum = onGoToAlbum,
                                     onGoToArtist = onGoToArtist,
+                                    onRemoveFromPlaylist = removeFromPlaylist,
+                                    header = header,
                                 )
                                 ViewMode.GRID_2, ViewMode.GRID_3 -> SongsGrid(
                                     songs = filtered,
-                                    columns = if (songViewMode == ViewMode.GRID_2) 2 else 3,
-                                    state = songsGridState,
+                                    columns = if (playlistViewMode == ViewMode.GRID_2) 2 else 3,
+                                    state = playlistGridState,
                                     onSongClick = { song -> onSongClick(song, filtered) },
                                     onPlayNext = onPlayNext,
                                     onAddToQueue = onAddToQueue,
                                     onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
                                     onGoToAlbum = onGoToAlbum,
                                     onGoToArtist = onGoToArtist,
+                                    onRemoveFromPlaylist = removeFromPlaylist,
+                                    header = header,
                                 )
                             }
-                        }
-                    }
-
-                    is LibraryRoute.ArtistDetail -> {
-                        val artistSongs = artistGroups.firstOrNull { it.name == r.artist }?.songs ?: emptyList()
-                        val artistAlbums = remember(artistSongs) {
-                            artistSongs.groupBy { it.album }
-                                .map { (album, list) -> album to list }
-                                .sortedBy { it.first.lowercase() }
-                        }
-                        ArtistDetailScreen(
-                            artist = r.artist,
-                            songs = artistSongs,
-                            albums = artistAlbums,
-                            onBack = { backStack.removeAt(backStack.lastIndex) },
-                            onPlayAll = { list -> if (list.isNotEmpty()) onSongClick(list.first(), list) },
-                            onShuffleAll = { list ->
-                                if (list.isNotEmpty()) {
-                                    val shuffled = list.shuffled()
-                                    onSongClick(shuffled.first(), shuffled)
-                                }
-                            },
-                            onSongClick = { song, list -> onSongClick(song, list) },
-                            onAlbumClick = { album ->
-                                push(LibraryRoute.AlbumDetail(album, r.artist))
-                            },
-                            onPlayNext = onPlayNext,
-                            onAddToQueue = onAddToQueue,
-                            onAddAllToQueue = onAddAllToQueue,
-                            onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
-                            onGoToAlbum = onGoToAlbum,
-                        )
-                    }
-
-                    is LibraryRoute.AlbumDetail -> {
-                        val albumSongs = albumGroups
-                            .firstOrNull { it.album == r.album && it.artist == r.artist }
-                            ?.songs ?: emptyList()
-                        AlbumDetailScreen(
-                            album = r.album,
-                            artist = r.artist,
-                            songs = albumSongs,
-                            onBack = { backStack.removeAt(backStack.lastIndex) },
-                            onPlayAll = { list -> if (list.isNotEmpty()) onSongClick(list.first(), list) },
-                            onShuffleAll = { list ->
-                                if (list.isNotEmpty()) {
-                                    val shuffled = list.shuffled()
-                                    onSongClick(shuffled.first(), shuffled)
-                                }
-                            },
-                            onSongClick = { song, list -> onSongClick(song, list) },
-                            onAddAllClick = { list -> onAddToPlaylist(list) },
-                            onPlayNext = onPlayNext,
-                            onAddToQueue = onAddToQueue,
-                            onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
-                            onGoToArtist = onGoToArtist,
-                        )
-                    }
-
-                    is LibraryRoute.PlaylistDetail -> {
-                        var playlistSongs by remember(r.playlistId) { mutableStateOf<List<Song>>(emptyList()) }
-                        // playlistsVm.playlists changes after every add/remove, so this re-reads
-                        // the playlist right after a song is taken out of it.
-                        LaunchedEffect(r.playlistId, songs, playlistsVm.playlists) {
-                            playlistSongs = playlistsVm.getSongsForPlaylist(r.playlistId, songs)
-                        }
-                        var playlistQuery by remember(r.playlistId) { mutableStateOf("") }
-                        var playlistSort by remember(r.playlistId) { mutableStateOf(PlaylistSongSort.ORDER) }
-                        val playlistListState = rememberLazyListState()
-                        val playlistGridState = rememberLazyGridState()
-                        val removeFromPlaylist: (Song) -> Unit = { song -> playlistsVm.removeSongFromPlaylist(r.playlistId, song.id) }
-                        val filtered = remember(playlistSongs, playlistQuery, playlistSort) {
-                            playlistSongs
-                                .filter {
-                                    it.title.contains(playlistQuery, ignoreCase = true) ||
-                                        it.artist.contains(playlistQuery, ignoreCase = true)
-                                }
-                                .let { list ->
-                                    when (playlistSort) {
-                                        PlaylistSongSort.ORDER -> list
-                                        PlaylistSongSort.TITLE -> list.sortedBy { it.title.lowercase() }
-                                        PlaylistSongSort.ARTIST -> list.sortedBy { it.artist.lowercase() }
-                                        PlaylistSongSort.RECENT -> list.sortedByDescending { it.dateAddedMs }
-                                    }
-                                }
-                        }
-                        val collage = rememberBlurredCollage(playlistSongs)
-                        // Header, then search/sort — all scrolling away together with the songs.
-                        val header: @Composable () -> Unit = {
-                            Column {
-                                PlaylistHero(
-                                    name = r.name,
-                                    songCount = playlistSongs.size,
-                                    collage = collage,
-                                    onBack = { backStack.removeAt(backStack.lastIndex) },
-                                    onPlay = { if (filtered.isNotEmpty()) onSongClick(filtered.first(), filtered) },
-                                    onShuffle = { if (filtered.isNotEmpty()) filtered.shuffled().let { onSongClick(it.first(), it) } },
-                                    onRename = { showRenamePlaylist = true },
-                                    onDelete = { showDeletePlaylist = true },
-                                )
-                                if (playlistSongs.isEmpty()) {
-                                    Text(
-                                        text = "В плейлисте пока нет треков",
-                                        color = PlayerColors.TextSecondary,
-                                        fontSize = 14.sp,
-                                        modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
-                                        textAlign = TextAlign.Center,
-                                    )
-                                } else {
-                                    ListToolbar(
-                                        query = playlistQuery,
-                                        onQueryChange = { playlistQuery = it },
-                                        placeholder = "Поиск в плейлисте",
-                                        sortOptions = PlaylistSongSort.entries,
-                                        sortOptionLabel = { it.label },
-                                        currentSort = playlistSort.label,
-                                        onSortSelect = { playlistSort = it },
-                                        viewMode = playlistViewMode,
-                                        onViewModeCycle = { settingsVm.setViewMode("playlist", LibraryViewMode.valueOf(playlistViewMode.next().name)) },
-                                    )
-                                }
-                            }
-                        }
-                        when (playlistViewMode) {
-                            ViewMode.LIST -> SongList(
-                                songs = filtered,
-                                state = playlistListState,
-                                onSongClick = { song -> onSongClick(song, filtered) },
-                                onPlayNext = onPlayNext,
-                                onAddToQueue = onAddToQueue,
-                                onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
-                                onGoToAlbum = onGoToAlbum,
-                                onGoToArtist = onGoToArtist,
-                                onRemoveFromPlaylist = removeFromPlaylist,
-                                header = header,
-                            )
-                            ViewMode.GRID_2, ViewMode.GRID_3 -> SongsGrid(
-                                songs = filtered,
-                                columns = if (playlistViewMode == ViewMode.GRID_2) 2 else 3,
-                                state = playlistGridState,
-                                onSongClick = { song -> onSongClick(song, filtered) },
-                                onPlayNext = onPlayNext,
-                                onAddToQueue = onAddToQueue,
-                                onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
-                                onGoToAlbum = onGoToAlbum,
-                                onGoToArtist = onGoToArtist,
-                                onRemoveFromPlaylist = removeFromPlaylist,
-                                header = header,
-                            )
                         }
                     }
                 }

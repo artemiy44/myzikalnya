@@ -4,6 +4,7 @@ import com.artemiy.player.ui.icons.AppIcons
 import android.content.Intent
 import android.media.audiofx.AudioEffect
 import androidx.activity.compose.BackHandler
+import com.artemiy.player.ui.components.AnimatedBackStack
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.CircleShape
@@ -114,81 +115,82 @@ fun SettingsScreen(
     val context = LocalContext.current
     var route by remember { mutableStateOf(SettingsRoute.Main) }
 
-    BackHandler(enabled = route != SettingsRoute.Main) {
-        route = route.parent ?: SettingsRoute.Main
-    }
+    // The page and all its parents, top-most last — what the back gesture walks through.
+    val stack = generateSequence(route) { it.parent }.toList().reversed()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(PlayerColors.Background)
-            .statusBarsPadding(),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(20.dp, 20.dp, 20.dp, 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
+    AnimatedBackStack(stack = stack, onBack = { route = route.parent ?: SettingsRoute.Main }) { page ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(PlayerColors.Background)
+                .statusBarsPadding(),
         ) {
-            Icon(
-                imageVector = AppIcons.Back,
-                contentDescription = "Назад",
-                tint = PlayerColors.TextPrimary,
-                modifier = Modifier
-                    .size(24.dp)
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
-                        route.parent?.let { route = it } ?: onBack()
-                    }
-                    .padding(end = 12.dp),
-            )
-            Text(
-                text = route.title,
-                color = PlayerColors.TextPrimary,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.ExtraBold,
-            )
-        }
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(20.dp, 20.dp, 20.dp, 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = AppIcons.Back,
+                    contentDescription = "Назад",
+                    tint = PlayerColors.TextPrimary,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                            page.parent?.let { route = it } ?: onBack()
+                        }
+                        .padding(end = 12.dp),
+                )
+                Text(
+                    text = page.title,
+                    color = PlayerColors.TextPrimary,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                )
+            }
 
-        when (route) {
-            SettingsRoute.Main -> SettingsCategories(onOpen = { route = it })
-            SettingsRoute.General -> GeneralContent(startTab = startTab, onStartTabChange = onStartTabChange)
-            SettingsRoute.Appearance, SettingsRoute.Library, SettingsRoute.Playback,
-            SettingsRoute.Mood, SettingsRoute.Player -> SettingsSectionContent(
-                section = route,
-                fontScale = fontScale,
-                onFontScaleChange = onFontScaleChange,
-                songCount = songCount,
-                onRescanLibrary = onRescanLibrary,
-                availableFolders = availableFolders,
-                moodFolders = moodFolders,
-                onToggleMoodFolder = onToggleMoodFolder,
-                availableScanFolders = availableScanFolders,
-                scanFolders = scanFolders,
-                onToggleScanFolder = onToggleScanFolder,
-                infinitePlayMode = infinitePlayMode,
-                onInfinitePlayModeChange = onInfinitePlayModeChange,
-                context = context,
-                onOpenNowPlayingBackground = { route = SettingsRoute.NowPlayingBackground },
-                lyricsTapPlays = lyricsTapPlays,
-                onLyricsTapPlaysChange = onLyricsTapPlaysChange,
-                playerStyle = playerStyle,
-                onPlayerStyleChange = onPlayerStyleChange,
-                themeMode = themeMode,
-                onThemeModeChange = onThemeModeChange,
-                lightVariant = lightVariant,
-                onLightVariantChange = onLightVariantChange,
-                darkVariant = darkVariant,
-                onDarkVariantChange = onDarkVariantChange,
-                accent = accent,
-                onAccentChange = onAccentChange,
-                iconSet = iconSet,
-                onIconSetChange = onIconSetChange,
-            )
-            SettingsRoute.NowPlayingBackground -> NowPlayingBackgroundContent(
-                mode = nowPlayingBackgroundMode,
-                onModeChange = onNowPlayingBackgroundModeChange,
-                intensity = liveBlurIntensity,
-                onIntensityChange = onLiveBlurIntensityChange,
-            )
-            SettingsRoute.About -> AboutContent()
+            when (page) {
+                SettingsRoute.Main -> SettingsCategories(onOpen = { route = it })
+                SettingsRoute.General -> GeneralContent(startTab = startTab, onStartTabChange = onStartTabChange)
+                SettingsRoute.Appearance, SettingsRoute.Library, SettingsRoute.Playback,
+                SettingsRoute.Mood, SettingsRoute.Player -> SettingsSectionContent(
+                    section = page,
+                    fontScale = fontScale,
+                    onFontScaleChange = onFontScaleChange,
+                    songCount = songCount,
+                    onRescanLibrary = onRescanLibrary,
+                    availableFolders = availableFolders,
+                    moodFolders = moodFolders,
+                    onToggleMoodFolder = onToggleMoodFolder,
+                    availableScanFolders = availableScanFolders,
+                    scanFolders = scanFolders,
+                    onToggleScanFolder = onToggleScanFolder,
+                    infinitePlayMode = infinitePlayMode,
+                    onInfinitePlayModeChange = onInfinitePlayModeChange,
+                    context = context,
+                    onOpenNowPlayingBackground = { route = SettingsRoute.NowPlayingBackground },
+                    lyricsTapPlays = lyricsTapPlays,
+                    onLyricsTapPlaysChange = onLyricsTapPlaysChange,
+                    playerStyle = playerStyle,
+                    onPlayerStyleChange = onPlayerStyleChange,
+                    themeMode = themeMode,
+                    onThemeModeChange = onThemeModeChange,
+                    lightVariant = lightVariant,
+                    onLightVariantChange = onLightVariantChange,
+                    darkVariant = darkVariant,
+                    onDarkVariantChange = onDarkVariantChange,
+                    accent = accent,
+                    onAccentChange = onAccentChange,
+                    iconSet = iconSet,
+                    onIconSetChange = onIconSetChange,
+                )
+                SettingsRoute.NowPlayingBackground -> NowPlayingBackgroundContent(
+                    mode = nowPlayingBackgroundMode,
+                    onModeChange = onNowPlayingBackgroundModeChange,
+                    intensity = liveBlurIntensity,
+                    onIntensityChange = onLiveBlurIntensityChange,
+                )
+                SettingsRoute.About -> AboutContent()
+            }
         }
     }
 }
@@ -769,7 +771,7 @@ private fun AboutContent() {
     ) {
         SectionTitle("Приложение")
         SettingsCard {
-            Text(text = "Плеер", color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(text = "Lumine", color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
             Text(text = "Версия $version", color = PlayerColors.TextSecondary, fontSize = 12.sp)
         }
         SectionTitle("Сторонние компоненты")

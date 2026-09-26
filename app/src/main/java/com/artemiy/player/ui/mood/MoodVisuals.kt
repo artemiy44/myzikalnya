@@ -2,6 +2,7 @@ package com.artemiy.player.ui.mood
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -11,6 +12,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.ui.graphics.vector.PathNode
 import androidx.compose.ui.graphics.vector.PathParser
 import com.artemiy.player.data.Mood
@@ -204,6 +206,37 @@ private fun DrawScope.drawMoodParts(mood: Mood, parts: List<Path>, t: Float, col
                 translate(-0.5f * along, 0.866f * along) {
                     drawPath(parts[i], color.copy(alpha = color.alpha * sin(PI.toFloat() * phase)))
                 }
+            }
+        }
+    }
+}
+
+/** The happy burst as a loading mark: spinning slowly with its rays playing, round and round. */
+@Composable
+fun LoadingBurst(color: Color, modifier: Modifier = Modifier) {
+    val transition = androidx.compose.animation.core.rememberInfiniteTransition(label = "loadingBurst")
+    val t by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+            androidx.compose.animation.core.tween(2400, easing = androidx.compose.animation.core.LinearEasing),
+        ),
+        label = "burstPlay",
+    )
+    val spin by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+            androidx.compose.animation.core.tween(9000, easing = androidx.compose.animation.core.LinearEasing),
+        ),
+        label = "burstSpin",
+    )
+    Canvas(modifier = modifier) {
+        val k = size.minDimension / 56f
+        val pivot = Offset(28f, 28.8f)
+        translate((size.width - 56f * k) / 2, (size.height - 56f * k) / 2) {
+            scale(k, k, pivot = Offset.Zero) {
+                rotate(spin, pivot) { drawPath(warpedBurst(pivot, t, 0.14f), color) }
             }
         }
     }

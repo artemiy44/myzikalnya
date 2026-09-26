@@ -39,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -59,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.artemiy.player.data.Mood
 import com.artemiy.player.data.Song
+import com.artemiy.player.ui.components.AnimatedBackStack
 import com.artemiy.player.playback.PlayOrigin
 import com.artemiy.player.playback.SourceArt
 import com.artemiy.player.playback.SourcePlace
@@ -97,94 +99,95 @@ fun HomeScreen(
     onGoToArtist: (Song) -> Unit,
 ) {
     var route by remember { mutableStateOf<HomeRoute>(HomeRoute.Main) }
-    BackHandler(enabled = route != HomeRoute.Main) { route = HomeRoute.Main }
     val back = { route = HomeRoute.Main }
 
-    when (val r = route) {
-        is HomeRoute.OpenMix -> {
-            val mix = mixes.firstOrNull { it.id == r.id }
-            if (mix == null) {
-                route = HomeRoute.Main
-            } else {
-                MixScreen(mix, back, { song, list -> onSongClick(song, list, PlayOrigin(mix.title, SourceArt.MixCard(mix.colorIndex, mix.motif))) }, onSaveMix, onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
-            }
-            return
-        }
-        HomeRoute.RecentlyAddedAll -> {
-            RecentlyAddedScreen(recentlyAddedAll, back, { song, list -> onSongClick(song, list, PlayOrigin("Недавно добавленные", SourceArt.Place(SourcePlace.RECENTLY_ADDED))) }, onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
-            return
-        }
-        HomeRoute.WeekRecap -> {
-            if (recap == null) route = HomeRoute.Main else RecapScreen(recap, back) { song, list -> onSongClick(song, list, PlayOrigin("Итоги недели", SourceArt.Place(SourcePlace.RECAP))) }
-            return
-        }
-        HomeRoute.Main -> Unit
-    }
-
-    // The header scrolls away with the page instead of being pinned under the status bar, and the
-    // page runs edge-to-edge behind the status bar — only a soft fade keeps its icons readable.
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(PlayerColors.Background),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .statusBarsPadding()
-                .padding(bottom = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(22.dp),
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp, 20.dp, 20.dp, 0.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "Главная",
-                    color = PlayerColors.TextPrimary,
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                )
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(PlayerColors.Surface)
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onSettingsClick() },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = AppIcons.Settings,
-                        contentDescription = "Настройки",
-                        tint = PlayerColors.TextSecondary,
-                        modifier = Modifier.size(20.dp),
-                    )
+    // Kept out here so the page's scroll position survives opening a mix and coming back.
+    val mainScroll = rememberScrollState()
+    val stack = if (route == HomeRoute.Main) listOf<HomeRoute>(HomeRoute.Main) else listOf(HomeRoute.Main, route)
+    AnimatedBackStack(stack = stack, onBack = back) { r ->
+        when (r) {
+            is HomeRoute.OpenMix -> {
+                val mix = mixes.firstOrNull { it.id == r.id }
+                if (mix == null) {
+                    LaunchedEffect(Unit) { route = HomeRoute.Main }
+                } else {
+                    MixScreen(mix, back, { song, list -> onSongClick(song, list, PlayOrigin(mix.title, SourceArt.MixCard(mix.colorIndex, mix.motif))) }, onSaveMix, onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
                 }
             }
-            val menuActions = SongMenuActions(onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
-            MixesSection(mixes = mixes, statDays = statDays, onOpen = { route = HomeRoute.OpenMix(it.id) })
-            SongRowSection(
-                title = "Quick picks",
-                songs = quickPicks,
-                emptyHint = "Здесь появятся часто прослушиваемые треки",
-                onSongClick = { song -> onSongClick(song, quickPicks, PlayOrigin("Quick picks", SourceArt.Place(SourcePlace.QUICK_PICKS))) },
-                menuActions = menuActions,
-            )
-            SongRowSection(
-                title = "Recently added",
-                songs = recentlyAdded,
-                emptyHint = null,
-                onSongClick = { song -> onSongClick(song, recentlyAdded, PlayOrigin("Недавно добавленные", SourceArt.Place(SourcePlace.RECENTLY_ADDED))) },
-                menuActions = menuActions,
-                onSeeAll = { route = HomeRoute.RecentlyAddedAll },
-            )
-            RecapCard(recap = recap, onOpen = { route = HomeRoute.WeekRecap })
+            HomeRoute.RecentlyAddedAll -> {
+                RecentlyAddedScreen(recentlyAddedAll, back, { song, list -> onSongClick(song, list, PlayOrigin("Недавно добавленные", SourceArt.Place(SourcePlace.RECENTLY_ADDED))) }, onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
+            }
+            HomeRoute.WeekRecap -> {
+                if (recap == null) LaunchedEffect(Unit) { route = HomeRoute.Main } else RecapScreen(recap, back) { song, list -> onSongClick(song, list, PlayOrigin("Итоги недели", SourceArt.Place(SourcePlace.RECAP))) }
+            }
+            HomeRoute.Main -> {
+                // The header scrolls away with the page instead of being pinned under the status bar, and the
+                // page runs edge-to-edge behind the status bar — only a soft fade keeps its icons readable.
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(PlayerColors.Background),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(mainScroll)
+                            .statusBarsPadding()
+                            .padding(bottom = 20.dp),
+                        verticalArrangement = Arrangement.spacedBy(22.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp, 20.dp, 20.dp, 0.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = "Главная",
+                                color = PlayerColors.TextPrimary,
+                                fontSize = 28.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(PlayerColors.Surface)
+                                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onSettingsClick() },
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    imageVector = AppIcons.Settings,
+                                    contentDescription = "Настройки",
+                                    tint = PlayerColors.TextSecondary,
+                                    modifier = Modifier.size(20.dp),
+                                )
+                            }
+                        }
+                        val menuActions = SongMenuActions(onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
+                        MixesSection(mixes = mixes, statDays = statDays, onOpen = { route = HomeRoute.OpenMix(it.id) })
+                        SongRowSection(
+                            title = "Quick picks",
+                            songs = quickPicks,
+                            emptyHint = "Здесь появятся часто прослушиваемые треки",
+                            onSongClick = { song -> onSongClick(song, quickPicks, PlayOrigin("Quick picks", SourceArt.Place(SourcePlace.QUICK_PICKS))) },
+                            menuActions = menuActions,
+                        )
+                        SongRowSection(
+                            title = "Recently added",
+                            songs = recentlyAdded,
+                            emptyHint = null,
+                            onSongClick = { song -> onSongClick(song, recentlyAdded, PlayOrigin("Недавно добавленные", SourceArt.Place(SourcePlace.RECENTLY_ADDED))) },
+                            menuActions = menuActions,
+                            onSeeAll = { route = HomeRoute.RecentlyAddedAll },
+                        )
+                        RecapCard(recap = recap, onOpen = { route = HomeRoute.WeekRecap })
+                    }
+                    StatusBarFade()
+                }
+            }
         }
-        StatusBarFade()
     }
 }
 

@@ -6,6 +6,23 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.size
+import com.artemiy.player.ui.mood.LoadingBurst
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.enableEdgeToEdge
@@ -177,18 +194,37 @@ private fun PlayerApp(settings: SettingsViewModel) {
         }
     }
 
+    // The launch cover (see the end of this function) stays up until the library is in.
+    var libraryLoaded by remember { mutableStateOf(false) }
+    var appReady by rememberSaveable { mutableStateOf(false) }
+
     LaunchedEffect(permissionGranted, settings.scanFolders) {
         if (permissionGranted) {
-            val fresh = querySongs(context, settings.scanFolders)
+            // Off the main thread — it's what made the launch animation stutter.
+            val fresh = withContext(Dispatchers.IO) { querySongs(context, settings.scanFolders) }
             songs.clear()
             songs.addAll(fresh)
+            libraryLoaded = true
             lyricsSearch.sync(fresh, isPlaying = { playback.isPlaying })
         }
+    }
+    LaunchedEffect(libraryLoaded, permissionGranted) {
+        if (!appReady && (libraryLoaded || !permissionGranted)) {
+            // A moment more for Home to put its mixes and rows together.
+            delay(300)
+            appReady = true
+        }
+    }
+    LaunchedEffect(Unit) {
+        // Never keep the cover up for long, whatever happens.
+        delay(4000)
+        appReady = true
     }
 
     LaunchedEffect(rescanTrigger) {
         if (rescanTrigger > 0 && permissionGranted) {
-            val fresh = querySongs(context, settings.scanFolders)
+            // Off the main thread — it's what made the launch animation stutter.
+            val fresh = withContext(Dispatchers.IO) { querySongs(context, settings.scanFolders) }
             songs.clear()
             songs.addAll(fresh)
             lyricsSearch.sync(fresh, isPlaying = { playback.isPlaying })
@@ -257,67 +293,80 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 .fillMaxSize()
                 .padding(bottom = innerPadding.calculateBottomPadding()),
         ) {
-            when (selectedTab) {
-                AppTab.Mood -> {
-                    val genresByMood = remember(songs.size, settings.moodFolders) {
-                        Mood.entries.associateWith { mood -> topGenres(songsForMood(songs, mood, settings.moodFolders[mood] ?: emptySet())) }
+            // Switching tabs: the old one fades out quickly, the new one fades in rising slightly
+            // from 96% — Material's "fade through".
+            AnimatedContent(
+                targetState = selectedTab,
+                transitionSpec = {
+                    (fadeIn(tween(220, delayMillis = 70)) + scaleIn(tween(220, delayMillis = 70), initialScale = 0.96f))
+                        .togetherWith(fadeOut(tween(90)))
+                },
+                label = "tabs",
+            ) { tab ->
+                Box(modifier = Modifier.fillMaxSize().background(PlayerColors.Background)) {
+                    when (tab) {
+                        AppTab.Mood -> {
+                            val genresByMood = remember(songs.size, settings.moodFolders) {
+                                Mood.entries.associateWith { mood -> topGenres(songsForMood(songs, mood, settings.moodFolders[mood] ?: emptySet())) }
+                            }
+                            MoodScreen(onPlayMood = ::playMood, genresFor = { genresByMood[it].orEmpty() })
+                        }
+                        AppTab.Home -> HomeScreen(
+                            mixes = home.mixes,
+                            statDays = home.statDays,
+                            quickPicks = home.quickPicks,
+                            recentlyAdded = home.recentlyAdded,
+                            recentlyAddedAll = home.recentlyAddedAll,
+                            recap = home.recap,
+                            onSongClick = { song, list, origin ->
+                                playback.play(song, list, origin)
+                                showNowPlaying = true
+                            },
+                            onSaveMix = { mix ->
+                                // A snapshot: the mix itself changes daily, the saved playlist doesn't.
+                                val date = java.text.SimpleDateFormat("dd.MM", java.util.Locale("ru")).format(java.util.Date())
+                                playlistsVm.createPlaylistWithSongs("${mix.title} · $date", mix.songs.map { it.id })
+                                android.widget.Toast.makeText(context, "Сохранено в плейлисты", android.widget.Toast.LENGTH_SHORT).show()
+                            },
+                            onSettingsClick = { showSettings = true },
+                            onPlayNext = { song -> playback.playNext(song) },
+                            onAddToQueue = { song -> playback.addToQueue(song) },
+                            onAddToPlaylist = { song -> addToPlaylistSongs = listOf(song) },
+                            onGoToAlbum = ::goToAlbum,
+                            onGoToArtist = ::goToArtist,
+                        )
+                        AppTab.Library -> LibraryScreen(
+                            permissionGranted = permissionGranted,
+                            songs = songs,
+                            backStack = libraryBackStack,
+                            onRequestPermission = { permissionLauncher.launch(audioPermission) },
+                            onSongClick = { song, list ->
+                                playback.play(song, list, libraryBackStack.lastOrNull()?.let { libraryOrigin(it, list) })
+                                showNowPlaying = true
+                            },
+                            onPlayNext = { song -> playback.playNext(song) },
+                            onAddToQueue = { song -> playback.addToQueue(song) },
+                            onAddAllToQueue = { list -> playback.addAllToQueue(list) },
+                            onAddToPlaylist = { list -> addToPlaylistSongs = list },
+                            onGoToAlbum = ::goToAlbum,
+                            onGoToArtist = ::goToArtist,
+                        )
+                        AppTab.Search -> SearchScreen(
+                            songs = songs,
+                            onSongClick = { song, list ->
+                                playback.play(song, list, PlayOrigin("Поиск", SourceArt.Place(SourcePlace.SEARCH)))
+                                showNowPlaying = true
+                            },
+                            onPlayNext = { song -> playback.playNext(song) },
+                            onAddToQueue = { song -> playback.addToQueue(song) },
+                            onAddToPlaylist = { song -> addToPlaylistSongs = listOf(song) },
+                            onGoToAlbum = ::goToAlbum,
+                            onGoToArtist = ::goToArtist,
+                            searchLyrics = { query -> lyricsSearch.search(query, songs.toList()) },
+                            lyricsIndexProgress = lyricsSearch.indexProgress,
+                        )
                     }
-                    MoodScreen(onPlayMood = ::playMood, genresFor = { genresByMood[it].orEmpty() })
                 }
-                AppTab.Home -> HomeScreen(
-                    mixes = home.mixes,
-                    statDays = home.statDays,
-                    quickPicks = home.quickPicks,
-                    recentlyAdded = home.recentlyAdded,
-                    recentlyAddedAll = home.recentlyAddedAll,
-                    recap = home.recap,
-                    onSongClick = { song, list, origin ->
-                        playback.play(song, list, origin)
-                        showNowPlaying = true
-                    },
-                    onSaveMix = { mix ->
-                        // A snapshot: the mix itself changes daily, the saved playlist doesn't.
-                        val date = java.text.SimpleDateFormat("dd.MM", java.util.Locale("ru")).format(java.util.Date())
-                        playlistsVm.createPlaylistWithSongs("${mix.title} · $date", mix.songs.map { it.id })
-                        android.widget.Toast.makeText(context, "Сохранено в плейлисты", android.widget.Toast.LENGTH_SHORT).show()
-                    },
-                    onSettingsClick = { showSettings = true },
-                    onPlayNext = { song -> playback.playNext(song) },
-                    onAddToQueue = { song -> playback.addToQueue(song) },
-                    onAddToPlaylist = { song -> addToPlaylistSongs = listOf(song) },
-                    onGoToAlbum = ::goToAlbum,
-                    onGoToArtist = ::goToArtist,
-                )
-                AppTab.Library -> LibraryScreen(
-                    permissionGranted = permissionGranted,
-                    songs = songs,
-                    backStack = libraryBackStack,
-                    onRequestPermission = { permissionLauncher.launch(audioPermission) },
-                    onSongClick = { song, list ->
-                        playback.play(song, list, libraryBackStack.lastOrNull()?.let { libraryOrigin(it, list) })
-                        showNowPlaying = true
-                    },
-                    onPlayNext = { song -> playback.playNext(song) },
-                    onAddToQueue = { song -> playback.addToQueue(song) },
-                    onAddAllToQueue = { list -> playback.addAllToQueue(list) },
-                    onAddToPlaylist = { list -> addToPlaylistSongs = list },
-                    onGoToAlbum = ::goToAlbum,
-                    onGoToArtist = ::goToArtist,
-                )
-                AppTab.Search -> SearchScreen(
-                    songs = songs,
-                    onSongClick = { song, list ->
-                        playback.play(song, list, PlayOrigin("Поиск", SourceArt.Place(SourcePlace.SEARCH)))
-                        showNowPlaying = true
-                    },
-                    onPlayNext = { song -> playback.playNext(song) },
-                    onAddToQueue = { song -> playback.addToQueue(song) },
-                    onAddToPlaylist = { song -> addToPlaylistSongs = listOf(song) },
-                    onGoToAlbum = ::goToAlbum,
-                    onGoToArtist = ::goToArtist,
-                    searchLyrics = { query -> lyricsSearch.search(query, songs.toList()) },
-                    lyricsIndexProgress = lyricsSearch.indexProgress,
-                )
             }
         }
     }
@@ -371,7 +420,12 @@ private fun PlayerApp(settings: SettingsViewModel) {
         }
     }
 
-    if (showSettings) {
+    // Settings slide in over everything from the right, and back out.
+    AnimatedVisibility(
+        visible = showSettings,
+        enter = slideInHorizontally(tween(300)) { it / 3 } + fadeIn(tween(300)),
+        exit = slideOutHorizontally(tween(250)) { it / 3 } + fadeOut(tween(250)),
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -418,6 +472,24 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 onIconSetChange = { settings.updateIconSet(it) },
                 onBack = { showSettings = false },
             )
+        }
+    }
+
+    // Launch cover: the app's background with the "happy" burst playing, instead of watching the
+    // screens fill in; it fades out (growing a touch) once everything's there.
+    AnimatedVisibility(
+        visible = !appReady,
+        enter = EnterTransition.None,
+        exit = fadeOut(tween(380)) + scaleOut(tween(380), targetScale = 1.08f),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(PlayerColors.Background)
+                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {},
+            contentAlignment = Alignment.Center,
+        ) {
+            LoadingBurst(color = PlayerColors.AccentStandalone, modifier = Modifier.size(96.dp))
         }
     }
 
