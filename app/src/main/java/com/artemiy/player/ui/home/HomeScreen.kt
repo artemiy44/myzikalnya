@@ -1,9 +1,9 @@
 package com.artemiy.player.ui.home
 
+import com.artemiy.player.ui.icons.AppIcons
 import com.artemiy.player.data.Recap
 import com.artemiy.player.data.Mix
 import com.artemiy.player.data.MIX_MIN_STAT_DAYS
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.layout.statusBars
@@ -34,8 +34,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -156,7 +154,7 @@ fun HomeScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Settings,
+                        imageVector = AppIcons.Settings,
                         contentDescription = "Настройки",
                         tint = PlayerColors.TextSecondary,
                         modifier = Modifier.size(20.dp),
@@ -319,7 +317,7 @@ private fun SongRowSection(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = PlayerColors.TextPrimary, modifier = Modifier.size(26.dp))
+                    Icon(imageVector = AppIcons.Forward, contentDescription = null, tint = PlayerColors.TextPrimary, modifier = Modifier.size(26.dp))
                     Text(text = "Все", color = PlayerColors.TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 6.dp))
                 }
             }

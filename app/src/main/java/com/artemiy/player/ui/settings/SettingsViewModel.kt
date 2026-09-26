@@ -15,6 +15,7 @@ import com.artemiy.player.data.NowPlayingBackgroundMode
 import com.artemiy.player.data.SettingsRepository
 import com.artemiy.player.data.discoverAllAudioFolders
 import com.artemiy.player.ui.components.AppTab
+import com.artemiy.player.ui.icons.IconSet
 import com.artemiy.player.ui.theme.AccentChoice
 import com.artemiy.player.ui.theme.DarkVariant
 import com.artemiy.player.ui.theme.LightVariant
@@ -72,6 +73,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     var startTab by mutableStateOf(AppTab.Home)
         private set
 
+    var iconSet by mutableStateOf(IconSet.LUCIDE)
+        private set
+
     /** False until the saved choice has been read — the app waits for it before picking a tab. */
     var startTabLoaded by mutableStateOf(false)
         private set
@@ -124,6 +128,11 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             repository.accent.collect { accent = AccentChoice.fromKey(it) }
+        }
+        viewModelScope.launch {
+            repository.iconSet.collect { value ->
+                iconSet = value?.let { runCatching { IconSet.valueOf(it) }.getOrNull() } ?: IconSet.LUCIDE
+            }
         }
         viewModelScope.launch {
             repository.startTab.collect { value ->
@@ -196,6 +205,11 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     fun updateDarkVariant(variant: DarkVariant) {
         darkVariant = variant
         viewModelScope.launch { repository.setDarkVariant(variant.name) }
+    }
+
+    fun updateIconSet(set: IconSet) {
+        iconSet = set
+        viewModelScope.launch { repository.setIconSet(set.name) }
     }
 
     fun updateStartTab(tab: AppTab) {

@@ -1,5 +1,6 @@
 package com.artemiy.player.ui.components
 
+import com.artemiy.player.ui.icons.AppIcons
 import android.graphics.Bitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,8 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsTopHeight
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
@@ -165,7 +164,7 @@ fun HeroOverArt(
                 .background(Brush.verticalGradient(listOf(Color.Transparent, PlayerColors.Background))),
         )
         Icon(
-            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            imageVector = AppIcons.Back,
             contentDescription = "Назад",
             tint = topTint,
             modifier = Modifier

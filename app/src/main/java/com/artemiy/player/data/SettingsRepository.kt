@@ -38,6 +38,7 @@ class SettingsRepository(private val context: Context) {
         val DARK_VARIANT_KEY = stringPreferencesKey("dark_variant")
         val ACCENT_KEY = stringPreferencesKey("accent")
         val START_TAB_KEY = stringPreferencesKey("start_tab")
+        val ICON_SET_KEY = stringPreferencesKey("icon_set")
         private fun viewModeKey(tab: String) = stringPreferencesKey("view_mode_$tab")
     }
 
@@ -163,6 +164,12 @@ class SettingsRepository(private val context: Context) {
 
     /** Which bottom tab the app opens on; absent = Home. */
     val startTab: Flow<String?> = context.settingsDataStore.data.map { it[START_TAB_KEY] }
+
+    val iconSet: Flow<String?> = context.settingsDataStore.data.map { it[ICON_SET_KEY] }
+
+    suspend fun setIconSet(value: String) {
+        context.settingsDataStore.edit { it[ICON_SET_KEY] = value }
+    }
 
     suspend fun setStartTab(value: String) {
         context.settingsDataStore.edit { it[START_TAB_KEY] = value }

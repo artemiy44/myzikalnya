@@ -1,5 +1,6 @@
 package com.artemiy.player.ui.components
 
+import com.artemiy.player.ui.icons.AppIcons
 import android.content.Intent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -13,17 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Album
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PlaylistAdd
-import androidx.compose.material.icons.filled.QueueMusic
-import androidx.compose.material.icons.filled.QueuePlayNext
-import androidx.compose.material.icons.filled.RemoveCircleOutline
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -76,7 +66,7 @@ fun SongActionsMenu(
     var expanded by remember { mutableStateOf(false) }
     Box(modifier = modifier) {
         Icon(
-            imageVector = Icons.Filled.MoreVert,
+            imageVector = AppIcons.MoreVertical,
             contentDescription = "Действия с треком",
             tint = PlayerColors.TextSecondary,
             modifier = Modifier
@@ -141,43 +131,43 @@ private fun SongActionsMenuItems(
     DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
         DropdownMenuItem(
             text = { Text("Играть следующим") },
-            leadingIcon = { Icon(Icons.Filled.QueuePlayNext, contentDescription = null) },
+            leadingIcon = { Icon(AppIcons.PlayNext, contentDescription = null) },
             onClick = { onDismiss(); onPlayNext(song) },
         )
         DropdownMenuItem(
             text = { Text("Добавить в очередь") },
-            leadingIcon = { Icon(Icons.Filled.QueueMusic, contentDescription = null) },
+            leadingIcon = { Icon(AppIcons.Queue, contentDescription = null) },
             onClick = { onDismiss(); onAddToQueue(song) },
         )
         DropdownMenuItem(
             text = { Text("Добавить в плейлист") },
-            leadingIcon = { Icon(Icons.Filled.PlaylistAdd, contentDescription = null) },
+            leadingIcon = { Icon(AppIcons.AddToPlaylist, contentDescription = null) },
             onClick = { onDismiss(); onAddToPlaylist(song) },
         )
         if (onGoToAlbum != null) {
             DropdownMenuItem(
                 text = { Text("Перейти к альбому") },
-                leadingIcon = { Icon(Icons.Filled.Album, contentDescription = null) },
+                leadingIcon = { Icon(AppIcons.Album, contentDescription = null) },
                 onClick = { onDismiss(); onGoToAlbum(song) },
             )
         }
         if (onGoToArtist != null) {
             DropdownMenuItem(
                 text = { Text("Перейти к исполнителю") },
-                leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null) },
+                leadingIcon = { Icon(AppIcons.Artist, contentDescription = null) },
                 onClick = { onDismiss(); onGoToArtist(song) },
             )
         }
         if (onRemoveFromPlaylist != null) {
             DropdownMenuItem(
                 text = { Text("Убрать из плейлиста") },
-                leadingIcon = { Icon(Icons.Filled.RemoveCircleOutline, contentDescription = null) },
+                leadingIcon = { Icon(AppIcons.RemoveFromPlaylist, contentDescription = null) },
                 onClick = { onDismiss(); onRemoveFromPlaylist(song) },
             )
         }
         DropdownMenuItem(
             text = { Text("Поделиться") },
-            leadingIcon = { Icon(Icons.Filled.Share, contentDescription = null) },
+            leadingIcon = { Icon(AppIcons.Share, contentDescription = null) },
             onClick = {
                 onDismiss()
                 val intent = Intent(Intent.ACTION_SEND).apply {
@@ -190,7 +180,7 @@ private fun SongActionsMenuItems(
         )
         DropdownMenuItem(
             text = { Text("Информация") },
-            leadingIcon = { Icon(Icons.Filled.Info, contentDescription = null) },
+            leadingIcon = { Icon(AppIcons.Info, contentDescription = null) },
             onClick = { onDismiss(); showInfo = true },
         )
     }
@@ -237,7 +227,7 @@ private fun SongInfoDialog(song: Song, onDismiss: () -> Unit) {
                     modifier = Modifier.weight(1f),
                 )
                 Icon(
-                    imageVector = Icons.Filled.Close,
+                    imageVector = AppIcons.Close,
                     contentDescription = "Закрыть",
                     tint = PlayerColors.TextSecondary,
                     modifier = Modifier

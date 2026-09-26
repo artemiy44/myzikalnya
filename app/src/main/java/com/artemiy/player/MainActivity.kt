@@ -57,6 +57,7 @@ import com.artemiy.player.ui.settings.SettingsScreen
 import com.artemiy.player.ui.settings.SettingsViewModel
 import com.artemiy.player.ui.theme.PlayerColors
 import com.artemiy.player.ui.components.LocalStatusBarIconsOverride
+import com.artemiy.player.ui.icons.LocalIconSet
 import com.artemiy.player.ui.theme.LocalPlayerPalette
 import androidx.compose.runtime.CompositionLocalProvider
 import com.artemiy.player.ui.theme.PlayerTheme
@@ -88,8 +89,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
             val palette = appPalette(settings.themeMode, settings.lightVariant, settings.darkVariant, settings.accent, isSystemInDarkTheme())
-            PlayerTheme(palette = palette, appTextScale = settings.fontScale) {
-                PlayerApp(settings)
+            CompositionLocalProvider(LocalIconSet provides settings.iconSet) {
+                PlayerTheme(palette = palette, appTextScale = settings.fontScale) {
+                    PlayerApp(settings)
+                }
             }
         }
     }
@@ -404,6 +407,8 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 onAccentChange = { settings.updateAccent(it) },
                 startTab = settings.startTab,
                 onStartTabChange = { settings.updateStartTab(it) },
+                iconSet = settings.iconSet,
+                onIconSetChange = { settings.updateIconSet(it) },
                 onBack = { showSettings = false },
             )
         }

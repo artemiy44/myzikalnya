@@ -1,5 +1,6 @@
 package com.artemiy.player.ui.library
 
+import com.artemiy.player.ui.icons.AppIcons
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -15,9 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.PlaylistPlay
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -75,7 +73,7 @@ fun AddToPlaylistDialog(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(
-                                imageVector = Icons.Filled.PlaylistPlay,
+                                imageVector = AppIcons.Playlist,
                                 contentDescription = null,
                                 tint = PlayerColors.TextSecondary,
                                 modifier = Modifier.size(20.dp),
@@ -112,7 +110,7 @@ fun AddToPlaylistDialog(
                     )
                 }
                 Icon(
-                    imageVector = Icons.Filled.Add,
+                    imageVector = AppIcons.Add,
                     contentDescription = "Создать плейлист",
                     tint = PlayerColors.TextPrimary,
                     modifier = Modifier

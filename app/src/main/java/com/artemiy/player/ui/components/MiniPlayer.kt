@@ -1,5 +1,6 @@
 package com.artemiy.player.ui.components
 
+import com.artemiy.player.ui.icons.AppIcons
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,9 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -75,16 +73,14 @@ fun MiniPlayer(
             )
         }
 
-        Icon(
-            imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-            contentDescription = if (isPlaying) "Пауза" else "Играть",
+        val playInteraction = remember { MutableInteractionSource() }
+        PlayPauseIcon(
+            isPlaying = isPlaying,
             tint = PlayerColors.TextPrimary,
             modifier = Modifier
                 .size(28.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                ) { onTogglePlayPause() },
+                .pressScale(playInteraction)
+                .clickable(interactionSource = playInteraction, indication = null) { onTogglePlayPause() },
         )
     }
 }

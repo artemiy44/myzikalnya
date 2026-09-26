@@ -1,5 +1,6 @@
 package com.artemiy.player.ui.library
 
+import com.artemiy.player.ui.icons.AppIcons
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -28,25 +29,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Apps
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Album
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.PlaylistAdd
-import androidx.compose.material.icons.filled.QueuePlayNext
-import androidx.compose.material.icons.filled.Shuffle
-import androidx.compose.material.icons.filled.PlaylistPlay
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Sort
-import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -95,10 +77,18 @@ private data class ArtistGroup(val name: String, val songs: List<Song>)
 private data class AlbumGroup(val album: String, val artist: String, val songs: List<Song>)
 
 /** Cycled by a single toolbar icon, in this order: list rows, then 2-wide grid, then 3-wide. */
-internal enum class ViewMode(val icon: ImageVector, val description: String) {
-    LIST(Icons.Filled.ViewList, "Список"),
-    GRID_2(Icons.Filled.GridView, "Сетка (2)"),
-    GRID_3(Icons.Filled.Apps, "Сетка (3)");
+internal enum class ViewMode(val description: String) {
+    LIST("Список"),
+    GRID_2("Сетка (2)"),
+    GRID_3("Сетка (3)");
+
+    /** Read at draw time — the icon depends on the chosen icon set. */
+    val icon: ImageVector
+        @Composable get() = when (this) {
+            LIST -> AppIcons.ViewList
+            GRID_2 -> AppIcons.ViewGrid
+            GRID_3 -> AppIcons.ViewGridDense
+        }
 
     fun next(): ViewMode = entries[(ordinal + 1) % entries.size]
 }
@@ -185,7 +175,7 @@ fun LibraryScreen(
                     LibraryRoute.Playlists -> {
                         {
                             Icon(
-                                imageVector = Icons.Filled.Add,
+                                imageVector = AppIcons.Add,
                                 contentDescription = "Новый плейлист",
                                 tint = PlayerColors.TextPrimary,
                                 modifier = Modifier
@@ -599,7 +589,7 @@ private fun PlaylistMenuButton(onRename: () -> Unit, onDelete: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Box {
         Icon(
-            imageVector = Icons.Filled.MoreVert,
+            imageVector = AppIcons.MoreVertical,
             contentDescription = "Действия с плейлистом",
             tint = PlayerColors.TextPrimary,
             modifier = Modifier
@@ -609,12 +599,12 @@ private fun PlaylistMenuButton(onRename: () -> Unit, onDelete: () -> Unit) {
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             DropdownMenuItem(
                 text = { Text("Переименовать") },
-                leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = null) },
+                leadingIcon = { Icon(AppIcons.Edit, contentDescription = null) },
                 onClick = { expanded = false; onRename() },
             )
             DropdownMenuItem(
                 text = { Text("Удалить плейлист") },
-                leadingIcon = { Icon(Icons.Filled.Delete, contentDescription = null) },
+                leadingIcon = { Icon(AppIcons.Delete, contentDescription = null) },
                 onClick = { expanded = false; onDelete() },
             )
         }
@@ -672,7 +662,7 @@ internal fun LibraryHeader(
     ) {
         if (showBack) {
             Icon(
-                imageVector = Icons.Filled.ArrowBack,
+                imageVector = AppIcons.Back,
                 contentDescription = "Назад",
                 tint = PlayerColors.TextPrimary,
                 modifier = Modifier
@@ -714,10 +704,10 @@ private fun LibraryHomeList(
             .padding(bottom = 20.dp),
     ) {
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-            LibraryRow("Плейлисты", playlistCount, Icons.Filled.PlaylistPlay, onOpenPlaylists)
-            LibraryRow("Артисты", artistCount, Icons.Filled.Person, onOpenArtists)
-            LibraryRow("Альбомы", albumCount, Icons.Filled.Album, onOpenAlbums)
-            LibraryRow("Треки", songCount, Icons.Filled.MusicNote, onOpenSongs)
+            LibraryRow("Плейлисты", playlistCount, AppIcons.Playlist, onOpenPlaylists)
+            LibraryRow("Артисты", artistCount, AppIcons.Artist, onOpenArtists)
+            LibraryRow("Альбомы", albumCount, AppIcons.Album, onOpenAlbums)
+            LibraryRow("Треки", songCount, AppIcons.Songs, onOpenSongs)
         }
 
         if (recentSongs.isNotEmpty()) {
@@ -833,7 +823,7 @@ internal fun <T> ListToolbar(
                 .padding(horizontal = 12.dp, vertical = 9.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(imageVector = Icons.Filled.Search, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(16.dp))
+            Icon(imageVector = AppIcons.Search, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(16.dp))
             Box(modifier = Modifier.weight(1f).padding(start = 8.dp)) {
                 if (query.isEmpty()) {
                     Text(text = placeholder, color = PlayerColors.TextTertiary, fontSize = 13.sp)
@@ -860,7 +850,7 @@ internal fun <T> ListToolbar(
         // No sort options (a list with a fixed order) = no sort button at all.
         if (sortOptions.isNotEmpty()) Box {
             Icon(
-                imageVector = Icons.Filled.Sort,
+                imageVector = AppIcons.Sort,
                 contentDescription = "Сортировка: $currentSort",
                 tint = PlayerColors.TextSecondary,
                 modifier = Modifier
@@ -1178,8 +1168,8 @@ internal fun PlayShuffleRow(onPlay: () -> Unit, onShuffle: () -> Unit) {
         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        PlayShuffleButton(icon = Icons.Filled.PlayArrow, label = "Слушать", onClick = onPlay, modifier = Modifier.weight(1f))
-        PlayShuffleButton(icon = Icons.Filled.Shuffle, label = "Перемешать", onClick = onShuffle, modifier = Modifier.weight(1f))
+        PlayShuffleButton(icon = AppIcons.Play, label = "Слушать", onClick = onPlay, modifier = Modifier.weight(1f))
+        PlayShuffleButton(icon = AppIcons.Shuffle, label = "Перемешать", onClick = onShuffle, modifier = Modifier.weight(1f))
     }
 }
 
@@ -1227,7 +1217,7 @@ private fun PlaylistsList(playlists: List<PlaylistWithCount>, onPlaylistClick: (
                         .background(PlayerColors.Surface),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(imageVector = Icons.Filled.PlaylistPlay, contentDescription = null, tint = PlayerColors.TextPrimary, modifier = Modifier.size(24.dp))
+                    Icon(imageVector = AppIcons.Playlist, contentDescription = null, tint = PlayerColors.TextPrimary, modifier = Modifier.size(24.dp))
                 }
                 Text(
                     text = playlist.name,

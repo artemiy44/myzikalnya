@@ -1,5 +1,6 @@
 package com.artemiy.player.ui.library
 
+import com.artemiy.player.ui.icons.AppIcons
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -20,11 +21,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.QueueMusic
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -52,6 +48,7 @@ import com.artemiy.player.ui.components.rememberAlbumArtBitmap
 import com.artemiy.player.ui.components.HeroTextShadow
 import com.artemiy.player.ui.components.rememberArrowTint
 import com.artemiy.player.ui.components.CircleIconButton
+import com.artemiy.player.ui.components.rememberCheckFlash
 import com.artemiy.player.ui.components.SongActionsMenuPopup
 import com.artemiy.player.ui.components.songLongPressTrigger
 import com.artemiy.player.ui.theme.PlayerColors
@@ -72,6 +69,7 @@ fun ArtistDetailScreen(
     onAddToPlaylist: (Song) -> Unit,
     onGoToAlbum: (Song) -> Unit,
 ) {
+    val queuedFlash = rememberCheckFlash()
     var showAddToQueueDialog by remember { mutableStateOf(false) }
     val heroArts = remember(songs) {
         val distinct = songs.groupBy { it.album }.values.map { it.first() }
@@ -132,7 +130,7 @@ fun ArtistDetailScreen(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                CircleIconButton(icon = Icons.Filled.Shuffle, description = "Перемешать") { onShuffleAll(songs) }
+                CircleIconButton(icon = AppIcons.Shuffle, description = "Перемешать") { onShuffleAll(songs) }
                 Row(
                     modifier = Modifier
                         .padding(horizontal = 14.dp)
@@ -142,10 +140,10 @@ fun ArtistDetailScreen(
                         .padding(horizontal = 28.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null, tint = PlayerColors.OnAccent, modifier = Modifier.size(16.dp))
+                    Icon(imageVector = AppIcons.Play, contentDescription = null, tint = PlayerColors.OnAccent, modifier = Modifier.size(16.dp))
                     Text(text = "Слушать", color = PlayerColors.OnAccent, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 6.dp))
                 }
-                CircleIconButton(icon = Icons.AutoMirrored.Filled.QueueMusic, description = "Добавить в очередь проигрывания") {
+                CircleIconButton(icon = AppIcons.AddToQueue, description = "Добавить в очередь проигрывания", showCheck = queuedFlash.visible) {
                     showAddToQueueDialog = true
                 }
             }
@@ -158,6 +156,7 @@ fun ArtistDetailScreen(
                 onConfirm = {
                     showAddToQueueDialog = false
                     onAddAllToQueue(songs)
+                    queuedFlash.flash()
                 },
             )
         }

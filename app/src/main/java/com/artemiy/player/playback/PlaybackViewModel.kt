@@ -46,7 +46,7 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
     private var songsById: Map<Long, Song> = emptyMap()
     private var pendingQueue: List<Song>? = null
     private var pendingStartIndex: Int = 0
-    /** Song IDs inserted via [playNext], in play order, not yet reached — the "Queue" section.
+    /** Song IDs inserted via [addToQueue], in play order, not yet reached — the "Queue" section.
      * Everything else upcoming in the controller's own playlist is the "Continue Playing"
      * section; see [refreshDerivedQueues]. */
     private val manualQueueIds = mutableListOf<Long>()
@@ -287,37 +287,31 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
         infinitePlayEnabled = !infinitePlayEnabled
     }
 
-    /** Inserts right after whatever's already manually queued, so several "play next" taps stack
-     * in the order they were tapped rather than each jumping to the very front. */
+    /** Puts the song at the top of "continue playing" — right under the "Queue" section, which
+     * is only for songs added via [addToQueue]. */
     fun playNext(song: Song) {
         val c = controller ?: return
         songsById = songsById + (song.id to song)
         val insertAt = (c.currentMediaItemIndex + 1 + manualQueueIds.size).coerceAtMost(c.mediaItemCount)
         c.addMediaItem(insertAt, toMediaItem(song))
-        manualQueueIds.add(song.id)
         refreshDerivedQueues()
     }
 
-    /** Unlike [playNext], this goes at the very end of the timeline — "add to queue", not "play
-     * next": it doesn't jump the line ahead of whatever's already lined up. */
-    fun addToQueue(song: Song) {
-        val c = controller ?: return
-        songsById = songsById + (song.id to song)
-        c.addMediaItem(toMediaItem(song))
-        refreshDerivedQueues()
-    }
+    /** Adds to the end of the "Queue" section (the one above "continue playing"). The same song
+     * can be queued more than once on purpose. */
+    fun addToQueue(song: Song) = addAllToQueue(listOf(song))
 
-    /** Batch version of [addToQueue] for "add the whole artist" — skips the song playing right now
-     * and anything already lined up, so tapping it twice (or over an artist already queued via
-     * infinite play) doesn't stack duplicates. */
+    /** Batch version of [addToQueue], e.g. a whole artist — lined up in order at the end of the
+     * "Queue" section, duplicates and all. */
     fun addAllToQueue(songs: List<Song>) {
         val c = controller ?: return
-        val skip = (manualQueue + continueQueue).mapTo(mutableSetOf()) { it.id } + setOfNotNull(currentSong?.id)
-        val toAdd = songs.distinctBy { it.id }.filterNot { it.id in skip }
-        if (toAdd.isEmpty()) return
-        songsById = songsById + toAdd.associateBy { it.id }
-        c.addMediaItems(toAdd.map { toMediaItem(it) })
+        if (songs.isEmpty()) return
+        songsById = songsById + songs.associateBy { it.id }
+        val insertAt = (c.currentMediaItemIndex + 1 + manualQueueIds.size).coerceAtMost(c.mediaItemCount)
+        c.addMediaItems(insertAt, songs.map { toMediaItem(it) })
+        manualQueueIds.addAll(songs.map { it.id })
         refreshDerivedQueues()
+        Log.d(TAG, "Queued ${songs.size} at $insertAt -> manual=${manualQueue.size}, continue=${continueQueue.size}")
     }
 
     fun clearManualQueue() {

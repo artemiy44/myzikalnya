@@ -1,5 +1,6 @@
 package com.artemiy.player.ui.settings
 
+import com.artemiy.player.ui.icons.AppIcons
 import android.content.Intent
 import android.media.audiofx.AudioEffect
 import androidx.activity.compose.BackHandler
@@ -25,19 +26,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.BlurOn
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Equalizer
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.LibraryMusic
-import androidx.compose.material.icons.filled.EmojiEmotions
-import androidx.compose.material.icons.filled.PlayCircle
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.TextFields
-import androidx.compose.material.icons.filled.TouchApp
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -61,6 +49,7 @@ import com.artemiy.player.data.NowPlayingBackgroundMode
 import com.artemiy.player.data.SettingsRepository
 import com.artemiy.player.ui.components.MinimalSlider
 import com.artemiy.player.ui.components.AppTab
+import com.artemiy.player.ui.icons.IconSet
 import com.artemiy.player.ui.theme.AccentChoice
 import com.artemiy.player.ui.theme.AccentFamily
 import com.artemiy.player.ui.theme.LightVariant
@@ -115,6 +104,8 @@ fun SettingsScreen(
     onAccentChange: (AccentChoice?) -> Unit,
     startTab: AppTab,
     onStartTabChange: (AppTab) -> Unit,
+    iconSet: IconSet,
+    onIconSetChange: (IconSet) -> Unit,
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -135,7 +126,7 @@ fun SettingsScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                imageVector = Icons.Filled.ArrowBack,
+                imageVector = AppIcons.Back,
                 contentDescription = "Назад",
                 tint = PlayerColors.TextPrimary,
                 modifier = Modifier
@@ -183,6 +174,8 @@ fun SettingsScreen(
                 onDarkVariantChange = onDarkVariantChange,
                 accent = accent,
                 onAccentChange = onAccentChange,
+                iconSet = iconSet,
+                onIconSetChange = onIconSetChange,
             )
             SettingsRoute.NowPlayingBackground -> NowPlayingBackgroundContent(
                 mode = nowPlayingBackgroundMode,
@@ -205,21 +198,21 @@ private fun SettingsCategories(onOpen: (SettingsRoute) -> Unit) {
     ) {
         Spacer(modifier = Modifier.height(12.dp))
         SettingsCard {
-            SettingsRow(Icons.Filled.Tune, "Общие", "С какой вкладки открывается приложение", { onOpen(SettingsRoute.General) }, showChevron = true)
+            SettingsRow(AppIcons.General, "Общие", "С какой вкладки открывается приложение", { onOpen(SettingsRoute.General) }, showChevron = true)
             CategoryDivider()
-            SettingsRow(Icons.Filled.TextFields, "Внешний вид", "Тема, акцентный цвет, размер текста", { onOpen(SettingsRoute.Appearance) }, showChevron = true)
+            SettingsRow(AppIcons.TextSize, "Внешний вид", "Тема, акцент, иконки, размер текста", { onOpen(SettingsRoute.Appearance) }, showChevron = true)
             CategoryDivider()
-            SettingsRow(Icons.Filled.LibraryMusic, "Библиотека", "Сканирование и папки с музыкой", { onOpen(SettingsRoute.Library) }, showChevron = true)
+            SettingsRow(AppIcons.Library, "Библиотека", "Сканирование и папки с музыкой", { onOpen(SettingsRoute.Library) }, showChevron = true)
             CategoryDivider()
-            SettingsRow(Icons.Filled.Equalizer, "Воспроизведение", "Эквалайзер, «бесконечное» воспроизведение", { onOpen(SettingsRoute.Playback) }, showChevron = true)
+            SettingsRow(AppIcons.Equalizer, "Воспроизведение", "Эквалайзер, «бесконечное» воспроизведение", { onOpen(SettingsRoute.Playback) }, showChevron = true)
             CategoryDivider()
-            SettingsRow(Icons.Filled.EmojiEmotions, "Настроение", "Какие папки считать каким настроением", { onOpen(SettingsRoute.Mood) }, showChevron = true)
+            SettingsRow(AppIcons.MoodSettings, "Настроение", "Какие папки считать каким настроением", { onOpen(SettingsRoute.Mood) }, showChevron = true)
             CategoryDivider()
-            SettingsRow(Icons.Filled.PlayCircle, "Плеер", "Фон плеера, текст песни", { onOpen(SettingsRoute.Player) }, showChevron = true)
+            SettingsRow(AppIcons.Player, "Плеер", "Фон плеера, текст песни", { onOpen(SettingsRoute.Player) }, showChevron = true)
         }
         Spacer(modifier = Modifier.height(12.dp))
         SettingsCard {
-            SettingsRow(Icons.Filled.Info, "О приложении", "Версия и лицензии сторонних компонентов", { onOpen(SettingsRoute.About) }, showChevron = true)
+            SettingsRow(AppIcons.Info, "О приложении", "Версия и лицензии сторонних компонентов", { onOpen(SettingsRoute.About) }, showChevron = true)
         }
         Spacer(modifier = Modifier.height(20.dp))
     }
@@ -396,6 +389,8 @@ private fun SettingsSectionContent(
     onDarkVariantChange: (DarkVariant) -> Unit,
     accent: AccentChoice?,
     onAccentChange: (AccentChoice?) -> Unit,
+    iconSet: IconSet,
+    onIconSetChange: (IconSet) -> Unit,
 ) {
         Column(
             modifier = Modifier
@@ -417,10 +412,25 @@ private fun SettingsSectionContent(
                     onAccentChange = onAccentChange,
                 )
                 Spacer(modifier = Modifier.height(12.dp))
+                SettingsCard {
+                    SettingsLabel("Иконки")
+                    Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                        IconSet.entries.forEach { set ->
+                            InfinitePlayModeChip(set.label, set == iconSet) { onIconSetChange(set) }
+                        }
+                    }
+                    Text(
+                        text = if (iconSet == IconSet.LUCIDE) "Мягкие и скруглённые — ближе к GNOME" else "Тоньше и чётче — ближе к Apple Music",
+                        color = PlayerColors.TextSecondary,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 10.dp),
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
             }
             if (section == SettingsRoute.Appearance) SettingsCard {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Filled.TextFields, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(20.dp))
+                    Icon(imageVector = AppIcons.TextSize, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(20.dp))
                     Text(
                         text = "Размер текста",
                         color = PlayerColors.TextPrimary,
@@ -444,7 +454,7 @@ private fun SettingsSectionContent(
 
             if (section == SettingsRoute.Library) SettingsCard {
                 SettingsRow(
-                    icon = Icons.Filled.Refresh,
+                    icon = AppIcons.Refresh,
                     title = "Пересканировать медиатеку",
                     subtitle = "Треков найдено: $songCount",
                     onClick = onRescanLibrary,
@@ -484,7 +494,7 @@ private fun SettingsSectionContent(
 
             if (section == SettingsRoute.Playback) SettingsCard {
                 SettingsRow(
-                    icon = Icons.Filled.Equalizer,
+                    icon = AppIcons.Equalizer,
                     title = "Эквалайзер",
                     subtitle = "Открыть системный или установленный",
                     onClick = {
@@ -553,14 +563,14 @@ private fun SettingsSectionContent(
 
             if (section == SettingsRoute.Player) SettingsCard {
                 SettingsRow(
-                    icon = Icons.Filled.BlurOn,
+                    icon = AppIcons.Background,
                     title = "Фон плеера",
                     subtitle = "Живой блюр, статичный блюр или без блюра",
                     onClick = onOpenNowPlayingBackground,
                     showChevron = true,
                 )
                 SettingsSwitchRow(
-                    icon = Icons.Filled.TouchApp,
+                    icon = AppIcons.Tap,
                     title = "Нажатие на строку текста включает музыку",
                     subtitle = "Если песня на паузе: перемотать к строке и сразу продолжить воспроизведение",
                     checked = lyricsTapPlays,
@@ -618,7 +628,7 @@ private fun SettingsRow(
         }
         if (showChevron) {
             Icon(
-                imageVector = Icons.Filled.ChevronRight,
+                imageVector = AppIcons.ChevronRight,
                 contentDescription = null,
                 tint = PlayerColors.TextTertiary,
                 modifier = Modifier.size(20.dp),
@@ -677,6 +687,18 @@ private val THIRD_PARTY = listOf(
         authors = "Atilika Inc. and contributors; Nara Institute of Science and Technology (NAIST)",
         license = "Apache License 2.0 + уведомление NAIST/ICOT",
         files = listOf("kuromoji-notice.txt", "apache-2.0.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Lucide Icons",
+        authors = "Lucide Icons and Contributors; portions from Feather by Cole Bemis",
+        license = "ISC",
+        files = listOf("lucide-isc.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Tabler Icons",
+        authors = "Paweł Kuna",
+        license = "MIT",
+        files = listOf("tabler-mit.txt"),
     ),
     ThirdPartyComponent(
         name = "Reorderable",

@@ -1,5 +1,6 @@
 package com.artemiy.player.ui.nowplaying
 
+import com.artemiy.player.ui.icons.AppIcons
 import android.content.Intent
 import android.media.AudioManager
 import android.os.Build
@@ -17,6 +18,8 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -54,26 +57,6 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.DragHandle
-import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material.icons.filled.Translate
-import androidx.compose.material.icons.filled.AllInclusive
-import androidx.compose.material.icons.filled.Cast
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.FormatQuote
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.QueueMusic
-import androidx.compose.material.icons.filled.Repeat
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Shuffle
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material.icons.filled.VolumeDown
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
@@ -137,6 +120,11 @@ import com.artemiy.player.ui.components.ART_SIZE_THUMB
 import com.artemiy.player.ui.components.AlbumArt
 import com.artemiy.player.ui.components.MinimalSlider
 import com.artemiy.player.ui.components.SongActionsMenuPopup
+import com.artemiy.player.playback.OutputKind
+import com.artemiy.player.ui.components.PlayPauseIcon
+import com.artemiy.player.ui.components.pressScale
+import com.artemiy.player.playback.openOutputSwitcher
+import com.artemiy.player.playback.rememberOutputDevice
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import com.artemiy.player.ui.components.rememberAlbumArtBitmap
@@ -614,39 +602,35 @@ fun NowPlayingScreen(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
+                        val skipPreviousInteraction = remember { MutableInteractionSource() }
                         Icon(
-                            imageVector = Icons.Filled.SkipPrevious,
+                            imageVector = AppIcons.SkipPrevious,
                             contentDescription = "Предыдущий трек",
                             tint = PlayerColors.TextPrimary,
                             modifier = Modifier
                                 .size(40.dp)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null,
-                                ) { onSkipPrevious() },
+                                .pressScale(skipPreviousInteraction)
+                                .clickable(interactionSource = skipPreviousInteraction, indication = null) { onSkipPrevious() },
                         )
-                        Icon(
-                            imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                            contentDescription = if (isPlaying) "Пауза" else "Играть",
+                        val playInteraction = remember { MutableInteractionSource() }
+                        PlayPauseIcon(
+                            isPlaying = isPlaying,
                             tint = PlayerColors.TextPrimary,
                             modifier = Modifier
                                 .padding(horizontal = 40.dp)
                                 .size(58.dp)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null,
-                                ) { onTogglePlayPause() },
+                                .pressScale(playInteraction)
+                                .clickable(interactionSource = playInteraction, indication = null) { onTogglePlayPause() },
                         )
+                        val skipNextInteraction = remember { MutableInteractionSource() }
                         Icon(
-                            imageVector = Icons.Filled.SkipNext,
+                            imageVector = AppIcons.SkipNext,
                             contentDescription = "Следующий трек",
                             tint = PlayerColors.TextPrimary,
                             modifier = Modifier
                                 .size(40.dp)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null,
-                                ) { onSkipNext() },
+                                .pressScale(skipNextInteraction)
+                                .clickable(interactionSource = skipNextInteraction, indication = null) { onSkipNext() },
                         )
                     }
 
@@ -656,6 +640,9 @@ fun NowPlayingScreen(
                         modifier = Modifier.padding(top = 30.dp),
                         lyricsActive = centerMode == CenterMode.Lyrics,
                         queueActive = centerMode == CenterMode.Queue,
+                        shuffleEnabled = shuffleEnabled,
+                        repeatEnabled = repeatEnabled,
+                        infinitePlayEnabled = infinitePlayEnabled,
                         onLyricsClick = {
                             centerMode = if (centerMode == CenterMode.Lyrics) CenterMode.Art else CenterMode.Lyrics
                         },
@@ -1586,7 +1573,7 @@ private fun CurrentSongMenuButton(
     var menuExpanded by remember { mutableStateOf(false) }
     Box(modifier = Modifier.padding(start = 12.dp)) {
         Icon(
-            imageVector = Icons.Filled.MoreHoriz,
+            imageVector = AppIcons.More,
             contentDescription = "Действия с треком",
             tint = PlayerColors.TextPrimary,
             modifier = Modifier
@@ -1619,7 +1606,7 @@ private fun RomanizationToggle(enabled: Boolean, onToggle: () -> Unit) {
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            imageVector = Icons.Filled.Translate,
+            imageVector = AppIcons.Romanization,
             contentDescription = if (enabled) "Скрыть романизацию" else "Показать романизацию",
             tint = if (enabled) PlayerColors.OnAccent else PlayerColors.TextPrimary,
             modifier = Modifier.size(18.dp),
@@ -1872,7 +1859,7 @@ private fun AddSongsToQueueRow(onClick: () -> Unit, modifier: Modifier = Modifie
                 .background(PlayerColors.Surface.copy(alpha = 0.4f)),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(imageVector = Icons.Filled.Add, contentDescription = null, tint = PlayerColors.TextPrimary, modifier = Modifier.size(22.dp))
+            Icon(imageVector = AppIcons.Add, contentDescription = null, tint = PlayerColors.TextPrimary, modifier = Modifier.size(22.dp))
         }
         Text(
             text = "Добавить треки в очередь",
@@ -1896,6 +1883,9 @@ private fun QueueRow(
     val liftFill = PlayerColors.Surface.copy(alpha = 0.55f)
     var menuExpanded by remember { mutableStateOf(false) }
     val haptics = LocalHapticFeedback.current
+    // Holding still on the row long enough before dragging also counts as a long press — once
+    // the row actually starts moving, that menu is clearly not what was meant.
+    LaunchedEffect(isDragging) { if (isDragging) menuExpanded = false }
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -1917,8 +1907,10 @@ private fun QueueRow(
                 indication = null,
                 onClick = onClick,
                 onLongClick = {
-                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                    menuExpanded = true
+                    if (!isDragging) {
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        menuExpanded = true
+                    }
                 },
             )
             .padding(vertical = 8.dp),
@@ -1934,7 +1926,7 @@ private fun QueueRow(
             )
             SongActionsMenuPopup(
                 song = item,
-                expanded = menuExpanded,
+                expanded = menuExpanded && !isDragging,
                 onDismiss = { menuExpanded = false },
                 onPlayNext = songActions.onPlayNext,
                 onAddToQueue = songActions.onAddToQueue,
@@ -1961,7 +1953,7 @@ private fun QueueRow(
             )
         }
         Icon(
-            imageVector = Icons.Filled.DragHandle,
+            imageVector = AppIcons.DragHandle,
             contentDescription = "Перетащить",
             tint = LocalAdaptiveSecondaryColor.current,
             modifier = dragHandleModifier
@@ -1985,21 +1977,21 @@ private fun QueueToggleRow(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         QueueToggleButton(
-            icon = Icons.Filled.Shuffle,
+            icon = AppIcons.Shuffle,
             description = "Перемешать",
             active = shuffleEnabled,
             onClick = onToggleShuffle,
             modifier = Modifier.weight(1f),
         )
         QueueToggleButton(
-            icon = Icons.Filled.Repeat,
+            icon = AppIcons.Repeat,
             description = "Повтор",
             active = repeatEnabled,
             onClick = onToggleRepeat,
             modifier = Modifier.weight(1f),
         )
         QueueToggleButton(
-            icon = Icons.Filled.AllInclusive,
+            icon = AppIcons.Infinite,
             description = "Бесконечное воспроизведение",
             active = infinitePlayEnabled,
             onClick = onToggleInfinitePlay,
@@ -2016,12 +2008,19 @@ private fun QueueToggleButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val interaction = remember { MutableInteractionSource() }
+    val background by animateColorAsState(
+        targetValue = (if (active) PlayerColors.Accent else PlayerColors.Surface).copy(alpha = 0.4f),
+        animationSpec = tween(180),
+        label = "queueToggleBg",
+    )
     Box(
         modifier = modifier
             .height(52.dp)
+            .pressScale(interaction, pressedScale = 0.92f)
             .clip(RoundedCornerShape(14.dp))
-            .background((if (active) PlayerColors.Accent else PlayerColors.Surface).copy(alpha = 0.4f))
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick),
+            .background(background)
+            .clickable(interactionSource = interaction, indication = null, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
@@ -2064,7 +2063,7 @@ private fun AddToQueuePicker(songs: List<Song>, onAdd: (Song) -> Unit, onDismiss
             ) {
                 Text(text = "Добавить в очередь", color = PlayerColors.TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
                 Icon(
-                    imageVector = Icons.Filled.Close,
+                    imageVector = AppIcons.Close,
                     contentDescription = "Закрыть",
                     tint = PlayerColors.TextSecondary,
                     modifier = Modifier
@@ -2081,7 +2080,7 @@ private fun AddToQueuePicker(songs: List<Song>, onAdd: (Song) -> Unit, onDismiss
                     .padding(horizontal = 14.dp, vertical = 11.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(imageVector = Icons.Filled.Search, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(18.dp))
+                Icon(imageVector = AppIcons.Search, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(18.dp))
                 Box(modifier = Modifier.weight(1f).padding(horizontal = 10.dp)) {
                     if (query.isEmpty()) {
                         Text(text = "Название, исполнитель, альбом", color = PlayerColors.TextTertiary, fontSize = 15.sp)
@@ -2111,7 +2110,7 @@ private fun AddToQueuePicker(songs: List<Song>, onAdd: (Song) -> Unit, onDismiss
                             Text(text = song.artist, color = PlayerColors.TextSecondary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                         Icon(
-                            imageVector = if (added) Icons.Filled.Check else Icons.Filled.Add,
+                            imageVector = if (added) AppIcons.Check else AppIcons.Add,
                             contentDescription = if (added) "Добавлено" else "Добавить",
                             tint = if (added) PlayerColors.TextSecondary else PlayerColors.TextPrimary,
                             modifier = Modifier
@@ -2141,7 +2140,7 @@ private fun VolumeRow(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(imageVector = Icons.Filled.VolumeDown, contentDescription = null, tint = LocalAdaptiveSecondaryColor.current, modifier = Modifier.size(18.dp))
+        Icon(imageVector = AppIcons.VolumeDown, contentDescription = null, tint = LocalAdaptiveSecondaryColor.current, modifier = Modifier.size(18.dp))
         MinimalSlider(
             value = volume,
             onValueChange = {
@@ -2151,7 +2150,7 @@ private fun VolumeRow(modifier: Modifier = Modifier) {
             valueRange = 0f..maxVolume.toFloat(),
             modifier = Modifier.weight(1f).padding(horizontal = 10.dp),
         )
-        Icon(imageVector = Icons.Filled.VolumeUp, contentDescription = null, tint = LocalAdaptiveSecondaryColor.current, modifier = Modifier.size(20.dp))
+        Icon(imageVector = AppIcons.VolumeUp, contentDescription = null, tint = LocalAdaptiveSecondaryColor.current, modifier = Modifier.size(20.dp))
     }
 }
 
@@ -2160,6 +2159,9 @@ private fun BottomQuickActionsRow(
     modifier: Modifier = Modifier,
     lyricsActive: Boolean,
     queueActive: Boolean,
+    shuffleEnabled: Boolean,
+    repeatEnabled: Boolean,
+    infinitePlayEnabled: Boolean,
     onLyricsClick: () -> Unit,
     onDeviceClick: () -> Unit,
     onQueueClick: () -> Unit,
@@ -2170,7 +2172,8 @@ private fun BottomQuickActionsRow(
         verticalAlignment = Alignment.Top,
     ) {
         Icon(
-            imageVector = Icons.Filled.FormatQuote,
+            // Filled while the lyrics are open, outline otherwise.
+            imageVector = if (lyricsActive) AppIcons.LyricsFilled else AppIcons.Lyrics,
             contentDescription = "Текст песни",
             tint = if (lyricsActive) PlayerColors.TextPrimary else LocalAdaptiveSecondaryColor.current,
             modifier = Modifier
@@ -2183,42 +2186,81 @@ private fun BottomQuickActionsRow(
                 .width(120.dp)
                 .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onDeviceClick() },
         ) {
+            val output = rememberOutputDevice()
             Icon(
-                imageVector = Icons.Filled.Cast,
+                imageVector = when (output.kind) {
+                    OutputKind.PHONE -> AppIcons.DevicePhone
+                    OutputKind.HEADPHONES -> AppIcons.DeviceHeadphones
+                    OutputKind.SPEAKER -> AppIcons.DeviceSpeaker
+                    OutputKind.BLUETOOTH -> AppIcons.DeviceBluetooth
+                    OutputKind.USB -> AppIcons.DeviceUsb
+                    OutputKind.TV -> AppIcons.DeviceTv
+                },
                 contentDescription = "Устройство воспроизведения",
-                tint = LocalAdaptiveSecondaryColor.current,
+                // Lit up while playing through something other than the phone itself.
+                tint = if (output.kind == OutputKind.PHONE) LocalAdaptiveSecondaryColor.current else PlayerColors.TextPrimary,
                 modifier = Modifier.size(24.dp),
             )
             Text(
-                text = "Это устройство",
-                color = LocalAdaptiveSecondaryColor.current,
+                text = output.name ?: "Это устройство",
+                color = if (output.kind == OutputKind.PHONE) LocalAdaptiveSecondaryColor.current else PlayerColors.TextPrimary,
                 fontSize = 10.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(top = 5.dp),
             )
         }
-        Icon(
-            imageVector = Icons.Filled.QueueMusic,
-            contentDescription = "Очередь",
-            tint = if (queueActive) PlayerColors.TextPrimary else LocalAdaptiveSecondaryColor.current,
-            modifier = Modifier
-                .size(24.dp)
-                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onQueueClick() },
-        )
+        Box(
+            modifier = Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onQueueClick() },
+        ) {
+            Icon(
+                imageVector = AppIcons.Queue,
+                contentDescription = "Очередь",
+                tint = if (queueActive) PlayerColors.TextPrimary else LocalAdaptiveSecondaryColor.current,
+                modifier = Modifier.size(24.dp),
+            )
+            QueueModesBadge(
+                shuffle = shuffleEnabled,
+                repeat = repeatEnabled,
+                infinite = infinitePlayEnabled,
+                modifier = Modifier.align(Alignment.TopEnd).offset(x = 7.dp, y = (-6).dp),
+            )
+        }
     }
 }
 
-private fun openOutputSwitcher(context: android.content.Context) {
-    runCatching {
-        if (Build.VERSION.SDK_INT >= 31) {
-            context.startActivity(Intent("android.settings.panel.action.media_output").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-        } else {
-            context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-        }
-    }.onFailure {
-        runCatching {
-            context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+/**
+ * A little accent dot on the queue icon showing which play modes are on: the mode's own tiny
+ * icon when it's just one, the count when there are more. Pops in and out.
+ */
+@Composable
+private fun QueueModesBadge(shuffle: Boolean, repeat: Boolean, infinite: Boolean, modifier: Modifier = Modifier) {
+    val active = listOfNotNull(
+        AppIcons.Shuffle.takeIf { shuffle },
+        AppIcons.Repeat.takeIf { repeat },
+        AppIcons.Infinite.takeIf { infinite },
+    )
+    // Keeps showing the last content while the badge shrinks away, instead of going blank.
+    var shown by remember { mutableStateOf(active) }
+    if (active.isNotEmpty()) shown = active
+    AnimatedVisibility(
+        visible = active.isNotEmpty(),
+        enter = scaleIn(tween(180)) + fadeIn(tween(180)),
+        exit = scaleOut(tween(150)) + fadeOut(tween(150)),
+        modifier = modifier,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(15.dp)
+                .clip(CircleShape)
+                .background(PlayerColors.Accent),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (shown.size == 1) {
+                Icon(imageVector = shown.first(), contentDescription = null, tint = PlayerColors.OnAccent, modifier = Modifier.size(10.dp))
+            } else {
+                Text(text = "${shown.size}", color = PlayerColors.OnAccent, fontSize = 9.sp, fontWeight = FontWeight.Bold, lineHeight = 9.sp)
+            }
         }
     }
 }

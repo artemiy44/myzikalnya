@@ -1,5 +1,6 @@
 package com.artemiy.player.ui.library
 
+import com.artemiy.player.ui.icons.AppIcons
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -15,11 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -105,7 +101,7 @@ fun AlbumDetailScreen(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                CircleIconButton(icon = Icons.Filled.Shuffle, description = "Перемешать") { onShuffleAll(songs) }
+                CircleIconButton(icon = AppIcons.Shuffle, description = "Перемешать") { onShuffleAll(songs) }
                 Row(
                     modifier = Modifier
                         .padding(horizontal = 14.dp)
@@ -115,10 +111,10 @@ fun AlbumDetailScreen(
                         .padding(horizontal = 28.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null, tint = PlayerColors.OnAccent, modifier = Modifier.size(16.dp))
+                    Icon(imageVector = AppIcons.Play, contentDescription = null, tint = PlayerColors.OnAccent, modifier = Modifier.size(16.dp))
                     Text(text = "Слушать", color = PlayerColors.OnAccent, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 6.dp))
                 }
-                CircleIconButton(icon = Icons.Filled.Add, description = "Добавить в плейлист") { onAddAllClick(songs) }
+                CircleIconButton(icon = AppIcons.Add, description = "Добавить в плейлист") { onAddAllClick(songs) }
             }
         }
 

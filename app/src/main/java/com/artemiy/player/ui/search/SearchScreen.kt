@@ -1,5 +1,6 @@
 package com.artemiy.player.ui.search
 
+import com.artemiy.player.ui.icons.AppIcons
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -15,9 +16,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -104,7 +102,7 @@ fun SearchScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                imageVector = Icons.Filled.Search,
+                imageVector = AppIcons.Search,
                 contentDescription = null,
                 tint = PlayerColors.TextSecondary,
                 modifier = Modifier.size(18.dp),
@@ -128,7 +126,7 @@ fun SearchScreen(
             }
             if (query.isNotEmpty()) {
                 Icon(
-                    imageVector = Icons.Filled.Clear,
+                    imageVector = AppIcons.Close,
                     contentDescription = "Очистить",
                     tint = PlayerColors.TextSecondary,
                     modifier = Modifier

@@ -1,5 +1,6 @@
 package com.artemiy.player.ui.home
 
+import com.artemiy.player.ui.icons.AppIcons
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -16,10 +17,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,6 +37,7 @@ import com.artemiy.player.data.Mix
 import com.artemiy.player.data.Song
 import com.artemiy.player.ui.components.AlbumArt
 import com.artemiy.player.ui.components.CircleIconButton
+import com.artemiy.player.ui.components.rememberCheckFlash
 import com.artemiy.player.ui.components.HeroOverArt
 import com.artemiy.player.ui.components.HeroTextShadow
 import com.artemiy.player.ui.components.SongActionsMenu
@@ -102,6 +100,7 @@ fun MixScreen(
     onGoToAlbum: (Song) -> Unit,
     onGoToArtist: (Song) -> Unit,
 ) {
+    val savedFlash = rememberCheckFlash()
     Column(modifier = Modifier.fillMaxSize().background(PlayerColors.Background).verticalScroll(rememberScrollState())) {
         HeroOverArt(
             topTint = Color.White,
@@ -130,7 +129,7 @@ fun MixScreen(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                CircleIconButton(icon = Icons.Filled.Shuffle, description = "Перемешать") {
+                CircleIconButton(icon = AppIcons.Shuffle, description = "Перемешать") {
                     mix.songs.shuffled().let { onPlay(it.first(), it) }
                 }
                 Row(
@@ -144,10 +143,13 @@ fun MixScreen(
                         .padding(horizontal = 28.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null, tint = PlayerColors.OnAccent, modifier = Modifier.size(16.dp))
+                    Icon(imageVector = AppIcons.Play, contentDescription = null, tint = PlayerColors.OnAccent, modifier = Modifier.size(16.dp))
                     Text(text = "Слушать", color = PlayerColors.OnAccent, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 6.dp))
                 }
-                CircleIconButton(icon = Icons.Filled.Add, description = "Сохранить в мои плейлисты") { onSaveAsPlaylist(mix) }
+                CircleIconButton(icon = AppIcons.Add, description = "Сохранить в мои плейлисты", showCheck = savedFlash.visible) {
+                    onSaveAsPlaylist(mix)
+                    savedFlash.flash()
+                }
             }
         }
 
