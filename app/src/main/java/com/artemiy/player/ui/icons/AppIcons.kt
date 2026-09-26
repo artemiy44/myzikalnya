@@ -107,9 +107,10 @@ private fun pick(lucide: ImageVector, tabler: ImageVector): ImageVector =
 internal const val LUCIDE_SCALE = 0.97f
 
 /** Both sets are drawn on a 24×24 grid. Colors here are placeholders — Icon() tints them. */
-internal fun iconVector(name: String, scale: Float = 1f, block: ImageVector.Builder.() -> Unit): ImageVector =
+/** [shiftX] nudges a drawing sideways (in 24-grid units) so it looks centered. */
+internal fun iconVector(name: String, scale: Float = 1f, shiftX: Float = 0f, block: ImageVector.Builder.() -> Unit): ImageVector =
     ImageVector.Builder(name = name, defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 24f, viewportHeight = 24f)
-        .addGroup(scaleX = scale, scaleY = scale, pivotX = 12f, pivotY = 12f)
+        .addGroup(scaleX = scale, scaleY = scale, pivotX = 12f, pivotY = 12f, translationX = shiftX)
         .apply(block)
         .clearGroup()
         .build()

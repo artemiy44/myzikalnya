@@ -136,6 +136,8 @@ import com.artemiy.player.ui.theme.PlayerColors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.max
+import kotlin.math.roundToInt
+import androidx.compose.runtime.DisposableEffect
 
 private enum class CenterMode { Art, Lyrics, Queue }
 
@@ -618,7 +620,7 @@ fun NowPlayingScreen(
                             isPlaying = isPlaying,
                             tint = PlayerColors.TextPrimary,
                             modifier = Modifier
-                                .padding(horizontal = 40.dp)
+                                .padding(horizontal = 46.dp)
                                 .size(58.dp)
                                 .pressScale(playInteraction)
                                 .clickable(interactionSource = playInteraction, indication = null) { onTogglePlayPause() },
@@ -2021,8 +2023,27 @@ private fun VolumeRow(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val audioManager = remember { context.getSystemService<AudioManager>() }
     val maxVolume = remember { audioManager?.getStreamMaxVolume(AudioManager.STREAM_MUSIC) ?: 1 }
-    var volume by remember {
-        mutableFloatStateOf((audioManager?.getStreamVolume(AudioManager.STREAM_MUSIC) ?: 0).toFloat())
+    fun systemVolume() = (audioManager?.getStreamVolume(AudioManager.STREAM_MUSIC) ?: 0).toFloat()
+    var volume by remember { mutableFloatStateOf(systemVolume()) }
+    var dragging by remember { mutableStateOf(false) }
+    // A step we asked for but Android didn't apply — the "listening at high volume" guard with
+    // headphones. Asked once per drag through the system UI so its warning dialog shows up.
+    var warnedThisDrag by remember { mutableStateOf(false) }
+
+    // Follows the phone's own volume buttons (and anything else that changes it) while open.
+    DisposableEffect(audioManager) {
+        val receiver = object : android.content.BroadcastReceiver() {
+            override fun onReceive(c: android.content.Context?, intent: Intent?) {
+                if (!dragging) volume = systemVolume()
+            }
+        }
+        androidx.core.content.ContextCompat.registerReceiver(
+            context,
+            receiver,
+            android.content.IntentFilter("android.media.VOLUME_CHANGED_ACTION"),
+            androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
+        onDispose { context.unregisterReceiver(receiver) }
     }
 
     Row(
@@ -2033,8 +2054,19 @@ private fun VolumeRow(modifier: Modifier = Modifier) {
         MinimalSlider(
             value = volume,
             onValueChange = {
+                dragging = true
                 volume = it
-                audioManager?.setStreamVolume(AudioManager.STREAM_MUSIC, it.toInt(), 0)
+                val target = it.roundToInt()
+                audioManager?.setStreamVolume(AudioManager.STREAM_MUSIC, target, 0)
+                if (!warnedThisDrag && systemVolume() < target) {
+                    warnedThisDrag = true
+                    audioManager?.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI)
+                }
+            },
+            onValueChangeFinished = {
+                dragging = false
+                warnedThisDrag = false
+                volume = systemVolume()
             },
             valueRange = 0f..maxVolume.toFloat(),
             modifier = Modifier.weight(1f).padding(horizontal = 10.dp),
@@ -2056,7 +2088,8 @@ private fun BottomQuickActionsRow(
     onQueueClick: () -> Unit,
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(),
+        // Side buttons pulled in a little toward the middle one.
+        modifier = modifier.fillMaxWidth().padding(horizontal = 22.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.Top,
     ) {

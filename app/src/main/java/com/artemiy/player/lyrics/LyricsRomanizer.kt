@@ -56,21 +56,48 @@ object LyricsRomanizer {
      * other lines get cut into word-sized pieces here. */
     private fun romanizeLine(line: LyricLine, japaneseSong: Boolean): LyricLine {
         if (!needsRomanization(line.text)) return line
-        val words = line.words
+        val language = languageOf(line.text, japaneseSong)
+        val words = line.words?.let { if (language == Language.JAPANESE) splitJapaneseWords(it, line.endTimeMs) else it }
         return if (words != null) {
-            val language = languageOf(line.text, japaneseSong)
             val readings = words.map { word -> reading(word.text, runCatching { readingOf(word.text.trim(), language) }.getOrNull()) }
-            if (readings.all { it == null }) line else line.copy(wordReadings = readings)
+            if (readings.all { it == null }) line else line.copy(words = words, wordReadings = readings)
         } else {
             line.copy(ruby = rubyFor(line.text, japaneseSong))
         }
+    }
+
+    /**
+     * Some files time Japanese in big chunks (half a line or more at once) rather than word by
+     * word, which would leave one long reading hanging over the chunk's start. Such chunks are cut
+     * into their words here, the chunk's time shared out between them by length — so every word
+     * gets its own reading right above it, like word-timed files.
+     */
+    private fun splitJapaneseWords(words: List<LyricWord>, lineEndMs: Long?): List<LyricWord> {
+        val out = mutableListOf<LyricWord>()
+        words.forEachIndexed { i, word ->
+            val pieces = runCatching { japaneseSegments(word.text) }.getOrNull()
+            if (pieces == null || pieces.size <= 1) {
+                out += word
+                return@forEachIndexed
+            }
+            val end = words.getOrNull(i + 1)?.timeMs ?: lineEndMs ?: (word.timeMs + word.text.length * 250L)
+            val span = (end - word.timeMs).coerceAtLeast(0L)
+            val total = pieces.sumOf { it.text.length }.coerceAtLeast(1)
+            var before = 0
+            pieces.forEach { piece ->
+                out += LyricWord(word.timeMs + span * before / total, piece.text)
+                before += piece.text.length
+            }
+        }
+        return out
     }
 
     /** Reading for one timed word. Latin/Cyrillic words glued into the same timed chunk (e.g.
      * "클락션 Don't even") are left out — they're already readable right below. */
     private fun readingOf(text: String, language: Language): String? {
         if (language == Language.JAPANESE) {
-            return japaneseSegments(text).mapNotNull { segment -> segment.reading?.takeIf { needsRomanization(segment.text) } }.joinToString("")
+            // Words spaced apart like normal romaji — a timed chunk can be a whole line.
+            return japaneseSegments(text).mapNotNull { segment -> segment.reading?.takeIf { it.isNotBlank() && needsRomanization(segment.text) } }.joinToString(" ")
         }
         val foreignPart = WORD.findAll(text).map { it.value.trim() }.filter { needsRomanization(it) }.joinToString(" ")
         return when (language) {
@@ -157,7 +184,9 @@ object LyricsRomanizer {
                 else -> {
                     val reading = token.reading?.takeIf { it.isNotEmpty() && it != "*" } ?: surface
                     val next = tokens.getOrNull(i + 1)?.reading?.takeIf { it != "*" }
-                    kanaToRomaji(reading, next)
+                    // A kanji the dictionary has no reading for stays out of the romaji rather than
+                    // showing up in it as itself.
+                    kanaToRomaji(reading, next).replace(HAN, "")
                 }
             }
             // Verb/adjective endings, suffixes and punctuation read as part of the word before
@@ -175,6 +204,8 @@ object LyricsRomanizer {
         }
         return segments
     }
+
+    private val HAN = Regex("\\p{IsHan}+")
 
     private val JAPANESE_PUNCTUATION = mapOf(
         "、" to ",", "。" to ".", "！" to "!", "？" to "?", "「" to "\"", "」" to "\"",
