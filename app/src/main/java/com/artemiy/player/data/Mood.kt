@@ -55,3 +55,13 @@ fun songsForMood(allSongs: List<Song>, mood: Mood, folderWhitelist: Set<String> 
     }
     return matched.ifEmpty { allSongs }.shuffled()
 }
+
+/** The most common genres among [songs] (first genre of each tag, e.g. "Rock" of "Rock/Pop"),
+ * spelled the way they appear most often in the tags. */
+fun topGenres(songs: List<Song>, count: Int = 3): List<String> =
+    songs.mapNotNull { song -> song.genre?.split('/', ';', ',')?.firstOrNull()?.trim()?.takeIf { it.isNotEmpty() } }
+        .groupBy { it.lowercase() }
+        .entries
+        .sortedByDescending { it.value.size }
+        .take(count)
+        .map { (_, spellings) -> spellings.groupingBy { it }.eachCount().maxBy { it.value }.key }

@@ -37,6 +37,7 @@ class SettingsRepository(private val context: Context) {
         val LIGHT_VARIANT_KEY = stringPreferencesKey("light_variant")
         val DARK_VARIANT_KEY = stringPreferencesKey("dark_variant")
         val ACCENT_KEY = stringPreferencesKey("accent")
+        val START_TAB_KEY = stringPreferencesKey("start_tab")
         private fun viewModeKey(tab: String) = stringPreferencesKey("view_mode_$tab")
     }
 
@@ -158,6 +159,13 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setDarkVariant(value: String) {
         context.settingsDataStore.edit { it[DARK_VARIANT_KEY] = value }
+    }
+
+    /** Which bottom tab the app opens on; absent = Home. */
+    val startTab: Flow<String?> = context.settingsDataStore.data.map { it[START_TAB_KEY] }
+
+    suspend fun setStartTab(value: String) {
+        context.settingsDataStore.edit { it[START_TAB_KEY] = value }
     }
 
     suspend fun setAccent(value: String) {

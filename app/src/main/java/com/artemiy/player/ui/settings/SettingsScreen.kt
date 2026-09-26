@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -59,6 +60,7 @@ import com.artemiy.player.data.Mood
 import com.artemiy.player.data.NowPlayingBackgroundMode
 import com.artemiy.player.data.SettingsRepository
 import com.artemiy.player.ui.components.MinimalSlider
+import com.artemiy.player.ui.components.AppTab
 import com.artemiy.player.ui.theme.AccentChoice
 import com.artemiy.player.ui.theme.AccentFamily
 import com.artemiy.player.ui.theme.LightVariant
@@ -73,6 +75,7 @@ import com.artemiy.player.ui.theme.lightPalette
 /** Settings pages. [parent] is where "back" goes from each one. */
 private enum class SettingsRoute(val title: String, val parent: SettingsRoute?) {
     Main("Настройки", null),
+    General("Общие", Main),
     Appearance("Внешний вид", Main),
     Library("Библиотека", Main),
     Playback("Воспроизведение", Main),
@@ -110,6 +113,8 @@ fun SettingsScreen(
     onDarkVariantChange: (DarkVariant) -> Unit,
     accent: AccentChoice?,
     onAccentChange: (AccentChoice?) -> Unit,
+    startTab: AppTab,
+    onStartTabChange: (AppTab) -> Unit,
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -150,6 +155,7 @@ fun SettingsScreen(
 
         when (route) {
             SettingsRoute.Main -> SettingsCategories(onOpen = { route = it })
+            SettingsRoute.General -> GeneralContent(startTab = startTab, onStartTabChange = onStartTabChange)
             SettingsRoute.Appearance, SettingsRoute.Library, SettingsRoute.Playback,
             SettingsRoute.Mood, SettingsRoute.Player -> SettingsSectionContent(
                 section = route,
@@ -199,6 +205,8 @@ private fun SettingsCategories(onOpen: (SettingsRoute) -> Unit) {
     ) {
         Spacer(modifier = Modifier.height(12.dp))
         SettingsCard {
+            SettingsRow(Icons.Filled.Tune, "Общие", "С какой вкладки открывается приложение", { onOpen(SettingsRoute.General) }, showChevron = true)
+            CategoryDivider()
             SettingsRow(Icons.Filled.TextFields, "Внешний вид", "Тема, акцентный цвет, размер текста", { onOpen(SettingsRoute.Appearance) }, showChevron = true)
             CategoryDivider()
             SettingsRow(Icons.Filled.LibraryMusic, "Библиотека", "Сканирование и папки с музыкой", { onOpen(SettingsRoute.Library) }, showChevron = true)
@@ -328,6 +336,26 @@ private fun ColorSwatch(color: androidx.compose.ui.graphics.Color, selected: Boo
             .background(color)
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick),
     )
+}
+
+@Composable
+private fun GeneralContent(startTab: AppTab, onStartTabChange: (AppTab) -> Unit) {
+    Column(
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp)
+            .navigationBarsPadding(),
+    ) {
+        Spacer(modifier = Modifier.height(12.dp))
+        SettingsCard {
+            SettingsLabel("Открывать при запуске")
+            Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                listOf(AppTab.Home, AppTab.Library, AppTab.Mood).forEach { tab ->
+                    InfinitePlayModeChip(tab.label, tab == startTab) { onStartTabChange(tab) }
+                }
+            }
+        }
+    }
 }
 
 @Composable

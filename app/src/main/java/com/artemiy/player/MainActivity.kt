@@ -33,10 +33,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.artemiy.player.data.Mood
 import com.artemiy.player.data.NowPlayingBackgroundMode
 import com.artemiy.player.data.Song
 import com.artemiy.player.data.querySongs
 import com.artemiy.player.data.songsForMood
+import com.artemiy.player.data.topGenres
 import com.artemiy.player.playback.PlaybackViewModel
 import com.artemiy.player.ui.components.AppTab
 import com.artemiy.player.ui.components.MiniPlayer
@@ -48,6 +50,7 @@ import com.artemiy.player.ui.library.LibraryRoute
 import com.artemiy.player.ui.library.LibraryScreen
 import com.artemiy.player.ui.library.PlaylistsViewModel
 import com.artemiy.player.ui.nowplaying.NowPlayingScreen
+import com.artemiy.player.ui.mood.MoodScreen
 import com.artemiy.player.ui.search.LyricsSearchViewModel
 import com.artemiy.player.ui.search.SearchScreen
 import com.artemiy.player.ui.settings.SettingsScreen
@@ -60,6 +63,7 @@ import com.artemiy.player.ui.theme.PlayerTheme
 import com.artemiy.player.ui.theme.appPalette
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalView
 
 class MainActivity : ComponentActivity() {
@@ -83,6 +87,15 @@ private val audioPermission =
 @Composable
 private fun PlayerApp(settings: SettingsViewModel) {
     var selectedTab by remember { mutableStateOf(AppTab.Home) }
+    // Jump to the chosen start tab once, as soon as the saved choice has been read — later changes
+    // to the setting only apply to the next launch, not to the tab you're on right now.
+    var startTabApplied by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(settings.startTabLoaded) {
+        if (settings.startTabLoaded && !startTabApplied) {
+            selectedTab = settings.startTab
+            startTabApplied = true
+        }
+    }
     var showNowPlaying by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
     var rescanTrigger by remember { mutableStateOf(0) }
@@ -117,6 +130,15 @@ private fun PlayerApp(settings: SettingsViewModel) {
         )
     }
     val songs = remember { mutableStateListOf<Song>() }
+
+    fun playMood(mood: Mood) {
+        val pool = songsForMood(songs, mood, settings.moodFolders[mood] ?: emptySet())
+        if (pool.isNotEmpty()) {
+            playback.play(pool.first(), pool)
+            showNowPlaying = true
+        }
+    }
+
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -215,6 +237,12 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 .padding(bottom = innerPadding.calculateBottomPadding()),
         ) {
             when (selectedTab) {
+                AppTab.Mood -> {
+                    val genresByMood = remember(songs.size, settings.moodFolders) {
+                        Mood.entries.associateWith { mood -> topGenres(songsForMood(songs, mood, settings.moodFolders[mood] ?: emptySet())) }
+                    }
+                    MoodScreen(onPlayMood = ::playMood, genresFor = { genresByMood[it].orEmpty() })
+                }
                 AppTab.Home -> HomeScreen(
                     quickPicks = home.quickPicks,
                     keepListening = home.keepListening,
@@ -223,13 +251,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                         playback.play(song, list)
                         showNowPlaying = true
                     },
-                    onMoodClick = { mood ->
-                        val pool = songsForMood(songs, mood, settings.moodFolders[mood] ?: emptySet())
-                        if (pool.isNotEmpty()) {
-                            playback.play(pool.first(), pool)
-                            showNowPlaying = true
-                        }
-                    },
+                    onMoodClick = ::playMood,
                     onSettingsClick = { showSettings = true },
                     onPlayNext = { song -> playback.playNext(song) },
                     onAddToQueue = { song -> playback.addToQueue(song) },
@@ -357,6 +379,8 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 onDarkVariantChange = { settings.updateDarkVariant(it) },
                 accent = settings.accent,
                 onAccentChange = { settings.updateAccent(it) },
+                startTab = settings.startTab,
+                onStartTabChange = { settings.updateStartTab(it) },
                 onBack = { showSettings = false },
             )
         }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Waves
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import com.artemiy.player.ui.theme.PlayerColors
 
 enum class AppTab(val label: String) {
+    Mood("Настроение"),
     Home("Главная"),
     Library("Медиатека"),
     Search("Поиск"),
@@ -55,6 +57,7 @@ fun PlayerBottomBar(selected: AppTab, onSelect: (AppTab) -> Unit) {
             ) {
                 Icon(
                     imageVector = when (tab) {
+                        AppTab.Mood -> Icons.Filled.Waves
                         AppTab.Home -> Icons.Filled.Home
                         AppTab.Library -> Icons.Filled.GridView
                         AppTab.Search -> Icons.Filled.Search

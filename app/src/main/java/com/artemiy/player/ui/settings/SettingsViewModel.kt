@@ -14,6 +14,7 @@ import com.artemiy.player.data.Mood
 import com.artemiy.player.data.NowPlayingBackgroundMode
 import com.artemiy.player.data.SettingsRepository
 import com.artemiy.player.data.discoverAllAudioFolders
+import com.artemiy.player.ui.components.AppTab
 import com.artemiy.player.ui.theme.AccentChoice
 import com.artemiy.player.ui.theme.DarkVariant
 import com.artemiy.player.ui.theme.LightVariant
@@ -68,6 +69,13 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     var accent by mutableStateOf<AccentChoice?>(null)
         private set
 
+    var startTab by mutableStateOf(AppTab.Home)
+        private set
+
+    /** False until the saved choice has been read — the app waits for it before picking a tab. */
+    var startTabLoaded by mutableStateOf(false)
+        private set
+
     private var artistViewMode by mutableStateOf(LibraryViewMode.LIST)
     private var albumViewMode by mutableStateOf(LibraryViewMode.GRID_2)
     private var songViewMode by mutableStateOf(LibraryViewMode.GRID_2)
@@ -115,6 +123,12 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             repository.accent.collect { accent = AccentChoice.fromKey(it) }
+        }
+        viewModelScope.launch {
+            repository.startTab.collect { value ->
+                startTab = value?.let { runCatching { AppTab.valueOf(it) }.getOrNull() }?.takeIf { it != AppTab.Search } ?: AppTab.Home
+                startTabLoaded = true
+            }
         }
         viewModelScope.launch {
             repository.viewMode("artists", LibraryViewMode.LIST).collect { artistViewMode = it }
@@ -176,6 +190,11 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     fun updateDarkVariant(variant: DarkVariant) {
         darkVariant = variant
         viewModelScope.launch { repository.setDarkVariant(variant.name) }
+    }
+
+    fun updateStartTab(tab: AppTab) {
+        startTab = tab
+        viewModelScope.launch { repository.setStartTab(tab.name) }
     }
 
     fun updateAccent(choice: AccentChoice?) {
