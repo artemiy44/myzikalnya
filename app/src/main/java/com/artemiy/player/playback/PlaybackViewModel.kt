@@ -19,6 +19,7 @@ import com.artemiy.player.data.AppDatabase
 import com.artemiy.player.data.InfinitePlayMode
 import com.artemiy.player.data.PlayHistoryEntity
 import com.artemiy.player.data.SettingsRepository
+import com.artemiy.player.data.SkipEventEntity
 import com.artemiy.player.data.Song
 import com.artemiy.player.lyrics.LyricsExtractor
 import com.artemiy.player.lyrics.LyricsRomanizer
@@ -33,6 +34,7 @@ import kotlinx.coroutines.withContext
 private const val TAG = "PlaybackViewModel"
 private const val INFINITE_PLAY_TOPUP_THRESHOLD = 5
 private const val INFINITE_PLAY_BATCH_SIZE = 20
+private const val SKIP_WINDOW_MS = 30_000L
 
 class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
 
@@ -158,6 +160,12 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
                 }
 
                 override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                    // Switched away by hand (next, or picking another song) within the first
+                    // seconds: a skip — "not this one now". A song that just ended isn't one.
+                    val previous = currentSong
+                    if (previous != null && reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK && positionMs in 1..SKIP_WINDOW_MS) {
+                        logSkip(previous.id)
+                    }
                     durationMs = 0L
                     positionMs = 0L
                     val id = mediaItem?.mediaId?.toLongOrNull()
@@ -472,6 +480,12 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
                     .build()
             )
             .build()
+
+    private fun logSkip(songId: Long) {
+        viewModelScope.launch {
+            playHistoryDao.insertSkip(SkipEventEntity(songId = songId, skippedAt = System.currentTimeMillis()))
+        }
+    }
 
     private fun logPlay(songId: Long) {
         viewModelScope.launch {

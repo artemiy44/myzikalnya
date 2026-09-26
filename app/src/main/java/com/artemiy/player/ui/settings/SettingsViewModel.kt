@@ -80,6 +80,7 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     private var albumViewMode by mutableStateOf(LibraryViewMode.GRID_2)
     private var songViewMode by mutableStateOf(LibraryViewMode.GRID_2)
     private var playlistViewMode by mutableStateOf(LibraryViewMode.LIST)
+    private var recentViewMode by mutableStateOf(LibraryViewMode.LIST)
 
     init {
         viewModelScope.launch {
@@ -142,6 +143,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             repository.viewMode("playlist", LibraryViewMode.LIST).collect { playlistViewMode = it }
         }
+        viewModelScope.launch {
+            repository.viewMode("recent", LibraryViewMode.LIST).collect { recentViewMode = it }
+        }
         loadAvailableScanFolders()
     }
 
@@ -149,6 +153,7 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         "artists" -> artistViewMode
         "albums" -> albumViewMode
         "playlist" -> playlistViewMode
+        "recent" -> recentViewMode
         else -> songViewMode
     }
 
@@ -157,6 +162,7 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
             "artists" -> artistViewMode = mode
             "albums" -> albumViewMode = mode
             "playlist" -> playlistViewMode = mode
+            "recent" -> recentViewMode = mode
             else -> songViewMode = mode
         }
         viewModelScope.launch { repository.setViewMode(tab, mode) }

@@ -61,6 +61,8 @@ import com.artemiy.player.ui.theme.LocalPlayerPalette
 import androidx.compose.runtime.CompositionLocalProvider
 import com.artemiy.player.ui.theme.PlayerTheme
 import com.artemiy.player.ui.theme.appPalette
+import com.artemiy.player.ui.theme.ThemeMode
+import android.app.UiModeManager
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -72,6 +74,19 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val settings: SettingsViewModel = viewModel()
+            // Tell the system the app's own light/dark choice, so the next launch splash (drawn
+            // before any of our code runs) matches it instead of flashing dark on a light theme.
+            LaunchedEffect(settings.themeMode) {
+                if (Build.VERSION.SDK_INT >= 31) {
+                    getSystemService(UiModeManager::class.java)?.setApplicationNightMode(
+                        when (settings.themeMode) {
+                            ThemeMode.LIGHT -> UiModeManager.MODE_NIGHT_NO
+                            ThemeMode.DARK -> UiModeManager.MODE_NIGHT_YES
+                            ThemeMode.SYSTEM -> UiModeManager.MODE_NIGHT_AUTO
+                        },
+                    )
+                }
+            }
             val palette = appPalette(settings.themeMode, settings.lightVariant, settings.darkVariant, settings.accent, isSystemInDarkTheme())
             PlayerTheme(palette = palette, appTextScale = settings.fontScale) {
                 PlayerApp(settings)
@@ -244,14 +259,22 @@ private fun PlayerApp(settings: SettingsViewModel) {
                     MoodScreen(onPlayMood = ::playMood, genresFor = { genresByMood[it].orEmpty() })
                 }
                 AppTab.Home -> HomeScreen(
+                    mixes = home.mixes,
+                    statDays = home.statDays,
                     quickPicks = home.quickPicks,
-                    keepListening = home.keepListening,
                     recentlyAdded = home.recentlyAdded,
+                    recentlyAddedAll = home.recentlyAddedAll,
+                    recap = home.recap,
                     onSongClick = { song, list ->
                         playback.play(song, list)
                         showNowPlaying = true
                     },
-                    onMoodClick = ::playMood,
+                    onSaveMix = { mix ->
+                        // A snapshot: the mix itself changes daily, the saved playlist doesn't.
+                        val date = java.text.SimpleDateFormat("dd.MM", java.util.Locale("ru")).format(java.util.Date())
+                        playlistsVm.createPlaylistWithSongs("${mix.title} · $date", mix.songs.map { it.id })
+                        android.widget.Toast.makeText(context, "Сохранено в плейлисты", android.widget.Toast.LENGTH_SHORT).show()
+                    },
                     onSettingsClick = { showSettings = true },
                     onPlayNext = { song -> playback.playNext(song) },
                     onAddToQueue = { song -> playback.addToQueue(song) },

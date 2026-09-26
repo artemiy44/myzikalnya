@@ -4,10 +4,21 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+
+/** Adds skip tracking; everything already stored stays untouched. */
+private val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `skip_events` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `songId` INTEGER NOT NULL, `skippedAt` INTEGER NOT NULL)",
+        )
+    }
+}
 
 @Database(
-    entities = [PlayHistoryEntity::class, PlaylistEntity::class, PlaylistSongEntity::class],
-    version = 2,
+    entities = [PlayHistoryEntity::class, PlaylistEntity::class, PlaylistSongEntity::class, SkipEventEntity::class],
+    version = 3,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -24,9 +35,9 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "player.db",
                 )
-                    // Early development: no real user data to preserve yet. Revisit with
-                    // a proper Migration once the schema settles.
-                    .fallbackToDestructiveMigration()
+                    // Real data lives here now (play history, playlists): schema changes get a
+                    // proper migration, never a wipe.
+                    .addMigrations(MIGRATION_2_3)
                     .build().also { instance = it }
             }
     }

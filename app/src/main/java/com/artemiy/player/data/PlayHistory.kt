@@ -13,6 +13,17 @@ data class PlayHistoryEntity(
     val playedAt: Long,
 )
 
+/** A song switched away from within its first seconds — "not in the mood for this one". */
+@Entity(tableName = "skip_events")
+data class SkipEventEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val songId: Long,
+    val skippedAt: Long,
+)
+
+/** One play or skip: which song and when. */
+data class SongEvent(val songId: Long, val at: Long)
+
 data class SongPlayCount(
     val songId: Long,
     val playCount: Int,
@@ -33,4 +44,14 @@ interface PlayHistoryDao {
         "SELECT songId FROM play_history GROUP BY songId ORDER BY MAX(playedAt) DESC LIMIT :limit"
     )
     suspend fun recentlyPlayed(limit: Int): List<Long>
+
+    /** Every play ever — the raw material for mixes and the weekly recap. */
+    @Query("SELECT songId, playedAt AS at FROM play_history")
+    suspend fun allPlays(): List<SongEvent>
+
+    @Insert
+    suspend fun insertSkip(entry: SkipEventEntity)
+
+    @Query("SELECT songId, skippedAt AS at FROM skip_events")
+    suspend fun allSkips(): List<SongEvent>
 }

@@ -9,10 +9,11 @@
 
     <application
         android:label="Player"
-        android:theme="@android:style/Theme.Material.NoActionBar"
+        android:theme="@style/Theme.Player"
         android:enableOnBackInvokedCallback="true">
         <activity
             android:name=".MainActivity"
+            android:configChanges="uiMode"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -38,6 +38,19 @@ class PlaylistsViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** Creates a playlist already holding [songIds], in that order. */
+    fun createPlaylistWithSongs(name: String, songIds: List<Long>) {
+        val trimmed = name.trim()
+        if (trimmed.isEmpty()) return
+        viewModelScope.launch {
+            val id = dao.insertPlaylist(PlaylistEntity(name = trimmed, createdAt = System.currentTimeMillis()))
+            songIds.distinct().forEachIndexed { position, songId ->
+                dao.insertPlaylistSong(PlaylistSongEntity(id, songId, position))
+            }
+            refresh()
+        }
+    }
+
     fun addSongToPlaylist(playlistId: Long, songId: Long, onDone: () -> Unit = {}) {
         viewModelScope.launch {
             val position = dao.nextPosition(playlistId)

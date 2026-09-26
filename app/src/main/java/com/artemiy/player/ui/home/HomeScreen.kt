@@ -1,5 +1,10 @@
 package com.artemiy.player.ui.home
 
+import com.artemiy.player.data.Recap
+import com.artemiy.player.data.Mix
+import com.artemiy.player.data.MIX_MIN_STAT_DAYS
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.WindowInsets
@@ -64,13 +69,24 @@ import com.artemiy.player.ui.theme.PlayerColors
 import kotlin.math.cos
 import kotlin.math.sin
 
+/** Home's own little navigation: the main page, or one of the pages opened from it. */
+private sealed interface HomeRoute {
+    data object Main : HomeRoute
+    data class OpenMix(val id: String) : HomeRoute
+    data object RecentlyAddedAll : HomeRoute
+    data object WeekRecap : HomeRoute
+}
+
 @Composable
 fun HomeScreen(
+    mixes: List<Mix>,
+    statDays: Int,
     quickPicks: List<Song>,
-    keepListening: List<Song>,
     recentlyAdded: List<Song>,
+    recentlyAddedAll: List<Song>,
+    recap: Recap?,
     onSongClick: (Song, List<Song>) -> Unit,
-    onMoodClick: (Mood) -> Unit,
+    onSaveMix: (Mix) -> Unit,
     onSettingsClick: () -> Unit,
     onPlayNext: (Song) -> Unit,
     onAddToQueue: (Song) -> Unit,
@@ -78,6 +94,31 @@ fun HomeScreen(
     onGoToAlbum: (Song) -> Unit,
     onGoToArtist: (Song) -> Unit,
 ) {
+    var route by remember { mutableStateOf<HomeRoute>(HomeRoute.Main) }
+    BackHandler(enabled = route != HomeRoute.Main) { route = HomeRoute.Main }
+    val back = { route = HomeRoute.Main }
+
+    when (val r = route) {
+        is HomeRoute.OpenMix -> {
+            val mix = mixes.firstOrNull { it.id == r.id }
+            if (mix == null) {
+                route = HomeRoute.Main
+            } else {
+                MixScreen(mix, back, onSongClick, onSaveMix, onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
+            }
+            return
+        }
+        HomeRoute.RecentlyAddedAll -> {
+            RecentlyAddedScreen(recentlyAddedAll, back, onSongClick, onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
+            return
+        }
+        HomeRoute.WeekRecap -> {
+            if (recap == null) route = HomeRoute.Main else RecapScreen(recap, back, onSongClick)
+            return
+        }
+        HomeRoute.Main -> Unit
+    }
+
     // The header scrolls away with the page instead of being pinned under the status bar, and the
     // page runs edge-to-edge behind the status bar — only a soft fade keeps its icons readable.
     Box(
@@ -123,7 +164,8 @@ fun HomeScreen(
                 }
             }
             val menuActions = SongMenuActions(onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
-            SongGridSection(
+            MixesSection(mixes = mixes, statDays = statDays, onOpen = { route = HomeRoute.OpenMix(it.id) })
+            SongRowSection(
                 title = "Quick picks",
                 songs = quickPicks,
                 emptyHint = "Здесь появятся часто прослушиваемые треки",
@@ -131,25 +173,50 @@ fun HomeScreen(
                 menuActions = menuActions,
             )
             SongRowSection(
-                title = "Keep listening",
-                songs = keepListening,
-                emptyHint = "Здесь появятся недавно прослушанные треки",
-                onSongClick = { song -> onSongClick(song, keepListening) },
-                menuActions = menuActions,
-            )
-            SongRowSection(
                 title = "Recently added",
                 songs = recentlyAdded,
-                small = true,
                 emptyHint = null,
                 onSongClick = { song -> onSongClick(song, recentlyAdded) },
                 menuActions = menuActions,
+                onSeeAll = { route = HomeRoute.RecentlyAddedAll },
             )
+            RecapCard(recap = recap, onOpen = { route = HomeRoute.WeekRecap })
         }
         StatusBarFade()
     }
 }
 
+@Composable
+private fun MixesSection(mixes: List<Mix>, statDays: Int, onOpen: (Mix) -> Unit) {
+    Column {
+        Text(
+            text = "Миксы для тебя",
+            color = PlayerColors.TextPrimary,
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 20.dp).padding(bottom = 10.dp),
+        )
+        val hint = when {
+            statDays < MIX_MIN_STAT_DAYS ->
+                "Собираю статистику прослушиваний: $statDays из $MIX_MIN_STAT_DAYS дней. " +
+                    "Миксы появятся, когда наберётся база."
+            mixes.isEmpty() -> "Пока не из чего собрать миксы — послушай ещё немного."
+            else -> null
+        }
+        if (hint != null) {
+            Text(text = hint, color = PlayerColors.TextSecondary, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 20.dp))
+            return
+        }
+        Row(
+            modifier = Modifier
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            mixes.forEach { mix -> MixCard(mix = mix, onClick = { onOpen(mix) }) }
+        }
+    }
+}
 
 /** Bundles the five "⋮" menu callbacks so they thread through Home's several song sections as
  * one param instead of five. */
@@ -162,101 +229,15 @@ private data class SongMenuActions(
 )
 
 @Composable
-private fun SongGridSection(
-    title: String,
-    songs: List<Song>,
-    emptyHint: String?,
-    onSongClick: (Song) -> Unit,
-    menuActions: SongMenuActions,
-) {
-    Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-        Text(
-            text = title,
-            color = PlayerColors.TextPrimary,
-            fontSize = 17.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 10.dp),
-        )
-        if (songs.isEmpty() && emptyHint != null) {
-            Text(text = emptyHint, color = PlayerColors.TextSecondary, fontSize = 13.sp)
-            return
-        }
-        val rows = (songs.size + 1) / 2
-        val rowHeight = 62.dp
-        val rowGap = 8.dp
-        val gridHeight = rowHeight * rows + rowGap * (rows - 1).coerceAtLeast(0)
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(rowGap),
-            userScrollEnabled = false,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(gridHeight),
-        ) {
-            items(songs) { song ->
-                var menuExpanded by remember { mutableStateOf(false) }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(PlayerColors.Surface)
-                        .songLongPressTrigger(
-                            onClick = { onSongClick(song) },
-                            onLongPress = { menuExpanded = true },
-                        )
-                        .padding(6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    AlbumArt(
-                        uri = song.uri,
-                        modifier = Modifier
-                            .size(50.dp)
-                            .clip(RoundedCornerShape(6.dp)),
-                    )
-                    Column(modifier = Modifier.weight(1f).padding(start = 10.dp)) {
-                        Text(
-                            text = song.title,
-                            color = PlayerColors.TextPrimary,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            text = song.artist,
-                            color = PlayerColors.TextSecondary,
-                            fontSize = 11.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                    SongActionsMenuPopup(
-                        song = song,
-                        expanded = menuExpanded,
-                        onDismiss = { menuExpanded = false },
-                        onPlayNext = menuActions.onPlayNext,
-                        onAddToQueue = menuActions.onAddToQueue,
-                        onAddToPlaylist = menuActions.onAddToPlaylist,
-                        onGoToAlbum = menuActions.onGoToAlbum,
-                        onGoToArtist = menuActions.onGoToArtist,
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun SongRowSection(
     title: String,
     songs: List<Song>,
     emptyHint: String?,
     onSongClick: (Song) -> Unit,
     menuActions: SongMenuActions,
-    small: Boolean = false,
+    onSeeAll: (() -> Unit)? = null,
 ) {
-    val artSize = if (small) 88.dp else 120.dp
+    val artSize = 120.dp
     Column {
         Text(
             text = title,
@@ -280,7 +261,7 @@ private fun SongRowSection(
             modifier = Modifier
                 .horizontalScroll(rememberScrollState())
                 .padding(start = 20.dp, end = 20.dp),
-            horizontalArrangement = Arrangement.spacedBy(if (small) 10.dp else 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             songs.forEach { song ->
                 var menuExpanded by remember { mutableStateOf(false) }
@@ -297,7 +278,7 @@ private fun SongRowSection(
                             uri = song.uri,
                             modifier = Modifier
                                 .size(artSize)
-                                .clip(RoundedCornerShape(if (small) 10.dp else 12.dp)),
+                                .clip(RoundedCornerShape(12.dp)),
                         )
                         SongActionsMenuPopup(
                             song = song,
@@ -313,21 +294,33 @@ private fun SongRowSection(
                     Text(
                         text = song.title,
                         color = PlayerColors.TextPrimary,
-                        fontSize = if (small) 12.sp else 13.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(top = 5.dp),
                     )
-                    if (!small) {
-                        Text(
-                            text = song.artist,
-                            color = PlayerColors.TextSecondary,
-                            fontSize = 11.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
+                    Text(
+                        text = song.artist,
+                        color = PlayerColors.TextSecondary,
+                        fontSize = 11.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+            if (onSeeAll != null) {
+                Column(
+                    modifier = Modifier
+                        .size(artSize)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(PlayerColors.Surface)
+                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onSeeAll),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = PlayerColors.TextPrimary, modifier = Modifier.size(26.dp))
+                    Text(text = "Все", color = PlayerColors.TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 6.dp))
                 }
             }
         }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Player" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#FF222226</item>
+    </style>
+</resources>

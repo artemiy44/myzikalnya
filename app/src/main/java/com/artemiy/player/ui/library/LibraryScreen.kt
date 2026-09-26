@@ -95,7 +95,7 @@ private data class ArtistGroup(val name: String, val songs: List<Song>)
 private data class AlbumGroup(val album: String, val artist: String, val songs: List<Song>)
 
 /** Cycled by a single toolbar icon, in this order: list rows, then 2-wide grid, then 3-wide. */
-private enum class ViewMode(val icon: ImageVector, val description: String) {
+internal enum class ViewMode(val icon: ImageVector, val description: String) {
     LIST(Icons.Filled.ViewList, "Список"),
     GRID_2(Icons.Filled.GridView, "Сетка (2)"),
     GRID_3(Icons.Filled.Apps, "Сетка (3)");
@@ -658,7 +658,7 @@ private fun ConfirmDialog(title: String, message: String, confirmLabel: String, 
 }
 
 @Composable
-private fun LibraryHeader(
+internal fun LibraryHeader(
     title: String,
     showBack: Boolean,
     onBack: () -> Unit,
@@ -807,7 +807,7 @@ private fun LibraryRow(label: String, count: Int, icon: ImageVector, onClick: ()
 }
 
 @Composable
-private fun <T> ListToolbar(
+internal fun <T> ListToolbar(
     query: String,
     onQueryChange: (String) -> Unit,
     placeholder: String,
@@ -857,7 +857,8 @@ private fun <T> ListToolbar(
                 .size(20.dp)
                 .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onViewModeCycle() },
         )
-        Box {
+        // No sort options (a list with a fixed order) = no sort button at all.
+        if (sortOptions.isNotEmpty()) Box {
             Icon(
                 imageVector = Icons.Filled.Sort,
                 contentDescription = "Сортировка: $currentSort",
@@ -1049,7 +1050,7 @@ private fun AlbumsGrid(groups: List<AlbumGroup>, columns: Int, state: LazyGridSt
 }
 
 @Composable
-private fun SongsGrid(
+internal fun SongsGrid(
     songs: List<Song>,
     columns: Int,
     state: LazyGridState,
@@ -1118,7 +1119,7 @@ private fun SongsGrid(
 }
 
 @Composable
-private fun SongList(
+internal fun SongList(
     songs: List<Song>,
     state: LazyListState = rememberLazyListState(),
     onSongClick: (Song) -> Unit,
@@ -1172,7 +1173,7 @@ private fun SongList(
 }
 
 @Composable
-private fun PlayShuffleRow(onPlay: () -> Unit, onShuffle: () -> Unit) {
+internal fun PlayShuffleRow(onPlay: () -> Unit, onShuffle: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
