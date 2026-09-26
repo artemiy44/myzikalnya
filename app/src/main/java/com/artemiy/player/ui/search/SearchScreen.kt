@@ -23,20 +23,26 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.artemiy.player.data.Song
+import com.artemiy.player.data.normalizeForSearch
 import com.artemiy.player.ui.components.AlbumArt
 import com.artemiy.player.ui.components.SongActionsMenu
 import com.artemiy.player.ui.theme.PlayerColors
+import kotlinx.coroutines.delay
 
 @Composable
 fun SearchScreen(
@@ -47,8 +53,21 @@ fun SearchScreen(
     onAddToPlaylist: (Song) -> Unit,
     onGoToAlbum: (Song) -> Unit,
     onGoToArtist: (Song) -> Unit,
+    searchLyrics: suspend (String) -> List<LyricsHit>,
+    lyricsIndexProgress: Pair<Int, Int>?,
 ) {
     var query by remember { mutableStateOf("") }
+
+    // Waits for a pause in typing before hitting the lyrics database.
+    val lyricHits by produceState(emptyList<LyricsHit>(), query, lyricsIndexProgress == null) {
+        val q = query.trim()
+        value = if (q.length < 3) {
+            emptyList()
+        } else {
+            delay(300)
+            searchLyrics(q)
+        }
+    }
 
     val results = remember(query, songs) {
         val q = query.trim()
@@ -92,7 +111,7 @@ fun SearchScreen(
             Box(modifier = Modifier.weight(1f).padding(horizontal = 10.dp)) {
                 if (query.isEmpty()) {
                     Text(
-                        text = "Название, исполнитель, альбом",
+                        text = "Название, исполнитель, строчка из песни",
                         color = PlayerColors.TextTertiary,
                         fontSize = 15.sp,
                     )
@@ -120,18 +139,28 @@ fun SearchScreen(
             }
         }
 
+        if (query.isNotBlank() && lyricsIndexProgress != null) {
+            val (done, total) = lyricsIndexProgress
+            Text(
+                text = "Тексты песен ещё собираются ($done из $total) — по тексту найдётся пока не всё",
+                color = PlayerColors.TextTertiary,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+            )
+        }
+
         when {
             query.isBlank() -> {
                 Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
                     Text(
-                        text = "Начни вводить, чтобы найти трек, исполнителя или альбом",
+                        text = "Начни вводить, чтобы найти трек, исполнителя, альбом или строчку из песни",
                         color = PlayerColors.TextSecondary,
                         fontSize = 13.sp,
                     )
                 }
             }
 
-            results.isEmpty() -> {
+            results.isEmpty() && lyricHits.isEmpty() -> {
                 Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
                     Text(text = "Ничего не найдено", color = PlayerColors.TextSecondary, fontSize = 13.sp)
                 }
@@ -139,7 +168,7 @@ fun SearchScreen(
 
             else -> {
                 LazyColumn(modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
-                    items(results, key = { it.id }) { song ->
+                    items(results, key = { "title-${it.id}" }) { song ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -149,7 +178,7 @@ fun SearchScreen(
                                 .padding(horizontal = 20.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            AlbumArt(uri = song.uri, modifier = Modifier.size(42.dp).clip(RoundedCornerShape(7.dp)))
+                            AlbumArt(uri = song.uri, modifier = Modifier.size(52.dp).clip(RoundedCornerShape(10.dp)))
                             Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
                                 Text(
                                     text = song.title,
@@ -178,8 +207,75 @@ fun SearchScreen(
                             )
                         }
                     }
+                    if (lyricHits.isNotEmpty()) {
+                        item(key = "lyrics-header") {
+                            Text(
+                                text = "В тексте песен",
+                                color = PlayerColors.TextPrimary,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = if (results.isEmpty()) 0.dp else 18.dp, bottom = 4.dp),
+                            )
+                        }
+                        items(lyricHits, key = { "lyrics-${it.song.id}" }) { hit ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                                        onSongClick(hit.song, lyricHits.map { it.song })
+                                    }
+                                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                AlbumArt(uri = hit.song.uri, modifier = Modifier.size(52.dp).clip(RoundedCornerShape(10.dp)))
+                                Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                                    Text(
+                                        text = hit.song.title,
+                                        color = PlayerColors.TextPrimary,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                    Text(
+                                        text = hit.song.artist,
+                                        color = PlayerColors.TextSecondary,
+                                        fontSize = 12.sp,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                    Text(
+                                        text = highlightMatch(hit.line, query.trim()),
+                                        color = PlayerColors.TextSecondary,
+                                        fontSize = 12.sp,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.padding(top = 2.dp),
+                                    )
+                                }
+                                SongActionsMenu(
+                                    song = hit.song,
+                                    onPlayNext = onPlayNext,
+                                    onAddToQueue = onAddToQueue,
+                                    onAddToPlaylist = onAddToPlaylist,
+                                    onGoToAlbum = onGoToAlbum,
+                                    onGoToArtist = onGoToArtist,
+                                    modifier = Modifier.padding(start = 8.dp),
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
+    }
+}
+
+/** The lyric line with the searched-for part in bright bold. */
+private fun highlightMatch(line: String, query: String): AnnotatedString = buildAnnotatedString {
+    append(line)
+    val start = normalizeForSearch(line).indexOf(normalizeForSearch(query))
+    if (start >= 0 && start + query.length <= line.length) {
+        addStyle(SpanStyle(color = PlayerColors.TextPrimary, fontWeight = FontWeight.SemiBold), start, start + query.length)
     }
 }

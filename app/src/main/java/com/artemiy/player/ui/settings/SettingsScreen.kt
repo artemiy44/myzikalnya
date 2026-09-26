@@ -28,9 +28,13 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.BlurOn
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Equalizer
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.TextFields
+import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -52,7 +56,7 @@ import com.artemiy.player.data.SettingsRepository
 import com.artemiy.player.ui.components.MinimalSlider
 import com.artemiy.player.ui.theme.PlayerColors
 
-private enum class SettingsRoute { Main, NowPlayingBackground }
+private enum class SettingsRoute { Main, NowPlayingBackground, About }
 
 @Composable
 fun SettingsScreen(
@@ -72,6 +76,8 @@ fun SettingsScreen(
     onNowPlayingBackgroundModeChange: (NowPlayingBackgroundMode) -> Unit,
     liveBlurIntensity: LiveBlurIntensity,
     onLiveBlurIntensityChange: (LiveBlurIntensity) -> Unit,
+    lyricsTapPlays: Boolean,
+    onLyricsTapPlaysChange: (Boolean) -> Unit,
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -106,6 +112,7 @@ fun SettingsScreen(
                 text = when (route) {
                     SettingsRoute.Main -> "Настройки"
                     SettingsRoute.NowPlayingBackground -> "Фон плеера"
+                    SettingsRoute.About -> "О приложении"
                 },
                 color = PlayerColors.TextPrimary,
                 fontSize = 28.sp,
@@ -129,6 +136,9 @@ fun SettingsScreen(
                 onInfinitePlayModeChange = onInfinitePlayModeChange,
                 context = context,
                 onOpenNowPlayingBackground = { route = SettingsRoute.NowPlayingBackground },
+                lyricsTapPlays = lyricsTapPlays,
+                onLyricsTapPlaysChange = onLyricsTapPlaysChange,
+                onOpenAbout = { route = SettingsRoute.About },
             )
             SettingsRoute.NowPlayingBackground -> NowPlayingBackgroundContent(
                 mode = nowPlayingBackgroundMode,
@@ -136,6 +146,7 @@ fun SettingsScreen(
                 intensity = liveBlurIntensity,
                 onIntensityChange = onLiveBlurIntensityChange,
             )
+            SettingsRoute.About -> AboutContent()
         }
     }
 }
@@ -156,6 +167,9 @@ private fun SettingsMainContent(
     onInfinitePlayModeChange: (InfinitePlayMode) -> Unit,
     context: android.content.Context,
     onOpenNowPlayingBackground: () -> Unit,
+    lyricsTapPlays: Boolean,
+    onLyricsTapPlaysChange: (Boolean) -> Unit,
+    onOpenAbout: () -> Unit,
 ) {
         Column(
             modifier = Modifier
@@ -310,14 +324,33 @@ private fun SettingsMainContent(
                     onClick = onOpenNowPlayingBackground,
                     showChevron = true,
                 )
+                SettingsSwitchRow(
+                    icon = Icons.Filled.TouchApp,
+                    title = "Нажатие на строку текста включает музыку",
+                    subtitle = "Если песня на паузе: перемотать к строке и сразу продолжить воспроизведение",
+                    checked = lyricsTapPlays,
+                    onCheckedChange = onLyricsTapPlaysChange,
+                    modifier = Modifier.padding(top = 16.dp),
+                )
             }
 
             SectionTitle("Скоро")
             SettingsCard {
                 Text(
-                    text = "Цветовая тема (светлая/тёмная), акцентный цвет, поиск по тексту песен — появятся здесь по мере готовности.",
+                    text = "Цветовая тема (светлая/тёмная) и акцентный цвет — появятся здесь по мере готовности.",
                     color = PlayerColors.TextSecondary,
                     fontSize = 12.sp,
+                )
+            }
+
+            SectionTitle("О приложении")
+            SettingsCard {
+                SettingsRow(
+                    icon = Icons.Filled.Info,
+                    title = "О приложении",
+                    subtitle = "Версия и лицензии сторонних компонентов",
+                    onClick = onOpenAbout,
+                    showChevron = true,
                 )
             }
 
@@ -375,6 +408,131 @@ private fun SettingsRow(
                 modifier = Modifier.size(20.dp),
             )
         }
+    }
+}
+
+@Composable
+private fun SettingsSwitchRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onCheckedChange(!checked) },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(imageVector = icon, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(20.dp))
+        Column(modifier = Modifier.padding(start = 10.dp, end = 12.dp).weight(1f)) {
+            Text(text = title, color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(text = subtitle, color = PlayerColors.TextSecondary, fontSize = 12.sp)
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = PlayerColors.AccentText,
+                checkedTrackColor = PlayerColors.AccentOnDark,
+                uncheckedThumbColor = PlayerColors.TextSecondary,
+                uncheckedTrackColor = PlayerColors.SurfaceDim,
+                uncheckedBorderColor = PlayerColors.Border,
+            ),
+        )
+    }
+}
+
+/** Third-party components bundled in the app, each with the license text it requires us to
+ * ship (kept as plain files in assets/licenses). Placeholder layout — to be redesigned. */
+private class ThirdPartyComponent(val name: String, val authors: String, val license: String, val files: List<String>)
+
+private val THIRD_PARTY = listOf(
+    ThirdPartyComponent(
+        name = "ALAC decoder (Java)",
+        authors = "Peter McQuillan; based on the ALAC decoder by David Hammerton",
+        license = "BSD",
+        files = listOf("alac-bsd.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Kuromoji + словарь mecab-ipadic",
+        authors = "Atilika Inc. and contributors; Nara Institute of Science and Technology (NAIST)",
+        license = "Apache License 2.0 + уведомление NAIST/ICOT",
+        files = listOf("kuromoji-notice.txt", "apache-2.0.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Reorderable",
+        authors = "Calvin Liang",
+        license = "Apache License 2.0",
+        files = listOf("apache-2.0.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Android Jetpack (Compose, Media3, Room, DataStore)",
+        authors = "The Android Open Source Project",
+        license = "Apache License 2.0",
+        files = listOf("apache-2.0.txt"),
+    ),
+)
+
+@Composable
+private fun AboutContent() {
+    val context = LocalContext.current
+    val version = remember {
+        runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "?"
+    }
+    var expanded by remember { mutableStateOf<String?>(null) }
+    Column(
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp)
+            .navigationBarsPadding(),
+    ) {
+        SectionTitle("Приложение")
+        SettingsCard {
+            Text(text = "Плеер", color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(text = "Версия $version", color = PlayerColors.TextSecondary, fontSize = 12.sp)
+        }
+        SectionTitle("Сторонние компоненты")
+        THIRD_PARTY.forEach { component ->
+            val isOpen = expanded == component.name
+            Column(
+                modifier = Modifier
+                    .padding(bottom = 10.dp)
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(PlayerColors.Surface)
+                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                        expanded = if (isOpen) null else component.name
+                    }
+                    .padding(16.dp),
+            ) {
+                Text(text = component.name, color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                Text(text = component.authors, color = PlayerColors.TextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 2.dp))
+                Text(
+                    text = if (isOpen) component.license else "${component.license} · нажми, чтобы показать текст",
+                    color = PlayerColors.TextTertiary,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 2.dp),
+                )
+                if (isOpen) {
+                    val text = remember(component.name) {
+                        component.files.joinToString("\n\n") { file ->
+                            runCatching { context.assets.open("licenses/$file").bufferedReader().use { it.readText() } }.getOrDefault("")
+                        }
+                    }
+                    Text(
+                        text = text,
+                        color = PlayerColors.TextSecondary,
+                        fontSize = 11.sp,
+                        lineHeight = 15.sp,
+                        modifier = Modifier.padding(top = 12.dp),
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(20.dp))
     }
 }
 

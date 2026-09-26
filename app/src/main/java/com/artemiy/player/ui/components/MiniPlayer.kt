@@ -49,14 +49,14 @@ fun MiniPlayer(
         AlbumArt(
             uri = albumArtUri,
             modifier = Modifier
-                .size(38.dp)
-                .clip(RoundedCornerShape(7.dp)),
+                .size(52.dp)
+                .clip(RoundedCornerShape(10.dp)),
         )
 
         Column(
             modifier = Modifier
                 .weight(1f)
-                .padding(start = 10.dp),
+                .padding(start = 12.dp),
         ) {
             Text(
                 text = title,

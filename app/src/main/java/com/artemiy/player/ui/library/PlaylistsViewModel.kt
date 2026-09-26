@@ -54,6 +54,22 @@ class PlaylistsViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun renamePlaylist(playlistId: Long, name: String) {
+        val trimmed = name.trim()
+        if (trimmed.isEmpty()) return
+        viewModelScope.launch {
+            dao.renamePlaylist(playlistId, trimmed)
+            refresh()
+        }
+    }
+
+    fun deletePlaylist(playlistId: Long) {
+        viewModelScope.launch {
+            dao.deletePlaylist(playlistId)
+            refresh()
+        }
+    }
+
     suspend fun getSongsForPlaylist(playlistId: Long, allSongs: List<Song>): List<Song> {
         val ids = dao.getSongIds(playlistId)
         val byId = allSongs.associateBy { it.id }

@@ -189,6 +189,7 @@ fun NowPlayingScreen(
     liveBlurIntensity: LiveBlurIntensity = LiveBlurIntensity.NORMAL,
     lyricsRomanization: Boolean = true,
     onToggleLyricsRomanization: () -> Unit = {},
+    lyricsTapPlays: Boolean = false,
 ) {
     var centerMode by remember { mutableStateOf(CenterMode.Art) }
     var controlsVisible by remember { mutableStateOf(true) }
@@ -375,7 +376,10 @@ fun NowPlayingScreen(
                             bottomFadePx = { if (controlsVisible) controlsHeightPx else 0 },
                             anchorTopPx = headerHeightPx,
                             anchorBottomPx = if (controlsVisible) controlsHeightPx else 0,
-                            onLineClick = onSeek,
+                            onLineClick = { timeMs ->
+                                onSeek(timeMs)
+                                if (lyricsTapPlays && !isPlaying) onTogglePlayPause()
+                            },
                             showRomanization = lyricsRomanization,
                             // Extra FADE_SPAN at both ends: otherwise the first/last lines can't
                             // scroll out of the fade zone (nothing above/below them to scroll)

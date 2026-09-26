@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.Insert
 import androidx.room.PrimaryKey
 import androidx.room.Query
+import androidx.room.Transaction
 
 @Entity(tableName = "playlists")
 data class PlaylistEntity(
@@ -49,4 +50,19 @@ interface PlaylistDao {
 
     @Query("DELETE FROM playlist_songs WHERE playlistId = :playlistId AND songId = :songId")
     suspend fun removeSong(playlistId: Long, songId: Long)
+
+    @Query("UPDATE playlists SET name = :name WHERE id = :playlistId")
+    suspend fun renamePlaylist(playlistId: Long, name: String)
+
+    @Query("DELETE FROM playlist_songs WHERE playlistId = :playlistId")
+    suspend fun clearPlaylist(playlistId: Long)
+
+    @Query("DELETE FROM playlists WHERE id = :playlistId")
+    suspend fun deletePlaylistRow(playlistId: Long)
+
+    @Transaction
+    suspend fun deletePlaylist(playlistId: Long) {
+        clearPlaylist(playlistId)
+        deletePlaylistRow(playlistId)
+    }
 }

@@ -16,6 +16,13 @@ private val PlayerDarkColors = darkColorScheme(
     onSurface = androidx.compose.ui.graphics.Color(0xFFFFFFFF),
     primary = androidx.compose.ui.graphics.Color(0xFFFFFFFF),
     onPrimary = androidx.compose.ui.graphics.Color(0xFF000000),
+    // Menus/popups use the surfaceContainer family; left unset they fall back to Material's own
+    // blue-violet tint instead of our neutral grays — one step lighter than the background here.
+    surfaceContainerLowest = androidx.compose.ui.graphics.Color(0xFF1C1C1E),
+    surfaceContainerLow = androidx.compose.ui.graphics.Color(0xFF232325),
+    surfaceContainer = androidx.compose.ui.graphics.Color(0xFF2C2C2E),
+    surfaceContainerHigh = androidx.compose.ui.graphics.Color(0xFF2C2C2E),
+    surfaceContainerHighest = androidx.compose.ui.graphics.Color(0xFF333336),
 )
 
 /** App-wide text scale on top of the system font-scale setting. Adjustable from Settings. */

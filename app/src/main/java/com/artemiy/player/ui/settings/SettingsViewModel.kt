@@ -48,9 +48,13 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     var lyricsRomanization by mutableStateOf(true)
         private set
 
+    var lyricsTapPlays by mutableStateOf(false)
+        private set
+
     private var artistViewMode by mutableStateOf(LibraryViewMode.LIST)
     private var albumViewMode by mutableStateOf(LibraryViewMode.GRID_2)
     private var songViewMode by mutableStateOf(LibraryViewMode.GRID_2)
+    private var playlistViewMode by mutableStateOf(LibraryViewMode.LIST)
 
     init {
         viewModelScope.launch {
@@ -75,6 +79,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
             repository.lyricsRomanization.collect { lyricsRomanization = it }
         }
         viewModelScope.launch {
+            repository.lyricsTapPlays.collect { lyricsTapPlays = it }
+        }
+        viewModelScope.launch {
             repository.viewMode("artists", LibraryViewMode.LIST).collect { artistViewMode = it }
         }
         viewModelScope.launch {
@@ -83,12 +90,16 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             repository.viewMode("songs", LibraryViewMode.GRID_2).collect { songViewMode = it }
         }
+        viewModelScope.launch {
+            repository.viewMode("playlist", LibraryViewMode.LIST).collect { playlistViewMode = it }
+        }
         loadAvailableScanFolders()
     }
 
     fun viewMode(tab: String): LibraryViewMode = when (tab) {
         "artists" -> artistViewMode
         "albums" -> albumViewMode
+        "playlist" -> playlistViewMode
         else -> songViewMode
     }
 
@@ -96,6 +107,7 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         when (tab) {
             "artists" -> artistViewMode = mode
             "albums" -> albumViewMode = mode
+            "playlist" -> playlistViewMode = mode
             else -> songViewMode = mode
         }
         viewModelScope.launch { repository.setViewMode(tab, mode) }
@@ -114,6 +126,11 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     fun updateLiveBlurIntensity(intensity: LiveBlurIntensity) {
         liveBlurIntensity = intensity
         viewModelScope.launch { repository.setLiveBlurIntensity(intensity) }
+    }
+
+    fun updateLyricsTapPlays(enabled: Boolean) {
+        lyricsTapPlays = enabled
+        viewModelScope.launch { repository.setLyricsTapPlays(enabled) }
     }
 
     fun toggleLyricsRomanization() {

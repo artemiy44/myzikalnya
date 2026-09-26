@@ -31,6 +31,8 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.MoreVert
@@ -103,6 +105,7 @@ private enum class ViewMode(val icon: ImageVector, val description: String) {
 
 private enum class ArtistSort(val label: String) { COUNT("По числу треков"), RECENT("Недавно добавленные"), NAME("По алфавиту") }
 private enum class AlbumSort(val label: String) { RECENT("Недавно добавленные"), NAME("По алфавиту"), COUNT("По числу треков"), ARTIST("По артисту") }
+private enum class PlaylistSongSort(val label: String) { ORDER("В порядке добавления"), TITLE("По названию"), ARTIST("По артисту"), RECENT("Недавно добавленные в медиатеку") }
 private enum class SongSort(val label: String) { RECENT("Недавно добавленные"), RELEASE_DATE("По дате выпуска"), TITLE("По названию"), ARTIST("По артисту") }
 
 @Composable
@@ -124,6 +127,8 @@ fun LibraryScreen(
     val settingsVm: SettingsViewModel = viewModel()
 
     var showCreatePlaylist by remember { mutableStateOf(false) }
+    var showRenamePlaylist by remember { mutableStateOf(false) }
+    var showDeletePlaylist by remember { mutableStateOf(false) }
 
     // Hoisted so scroll position survives navigating into a detail screen and back.
     val artistsListState = rememberLazyListState()
@@ -144,6 +149,7 @@ fun LibraryScreen(
     var songQuery by remember { mutableStateOf("") }
     var songSort by remember { mutableStateOf(SongSort.RECENT) }
     val songViewMode = ViewMode.valueOf(settingsVm.viewMode("songs").name)
+    val playlistViewMode = ViewMode.valueOf(settingsVm.viewMode("playlist").name)
 
     BackHandler(enabled = backStack.size > 1) {
         backStack.removeAt(backStack.lastIndex)
@@ -173,20 +179,31 @@ fun LibraryScreen(
                 },
                 showBack = backStack.size > 1,
                 onBack = { backStack.removeAt(backStack.lastIndex) },
-                trailing = if (route == LibraryRoute.Playlists) {
-                    {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = "Новый плейлист",
-                            tint = PlayerColors.TextPrimary,
-                            modifier = Modifier
-                                .size(24.dp)
-                                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
-                                    showCreatePlaylist = true
-                                },
-                        )
+                trailing = when (route) {
+                    LibraryRoute.Playlists -> {
+                        {
+                            Icon(
+                                imageVector = Icons.Filled.Add,
+                                contentDescription = "Новый плейлист",
+                                tint = PlayerColors.TextPrimary,
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                                        showCreatePlaylist = true
+                                    },
+                            )
+                        }
                     }
-                } else null,
+                    is LibraryRoute.PlaylistDetail -> {
+                        {
+                            PlaylistMenuButton(
+                                onRename = { showRenamePlaylist = true },
+                                onDelete = { showDeletePlaylist = true },
+                            )
+                        }
+                    }
+                    else -> null
+                },
             )
         }
 
@@ -451,23 +468,80 @@ fun LibraryScreen(
 
                     is LibraryRoute.PlaylistDetail -> {
                         var playlistSongs by remember(r.playlistId) { mutableStateOf<List<Song>>(emptyList()) }
-                        LaunchedEffect(r.playlistId, songs) {
+                        // playlistsVm.playlists changes after every add/remove, so this re-reads
+                        // the playlist right after a song is taken out of it.
+                        LaunchedEffect(r.playlistId, songs, playlistsVm.playlists) {
                             playlistSongs = playlistsVm.getSongsForPlaylist(r.playlistId, songs)
                         }
+                        var playlistQuery by remember(r.playlistId) { mutableStateOf("") }
+                        var playlistSort by remember(r.playlistId) { mutableStateOf(PlaylistSongSort.ORDER) }
+                        val playlistListState = rememberLazyListState()
+                        val playlistGridState = rememberLazyGridState()
+                        val removeFromPlaylist: (Song) -> Unit = { song -> playlistsVm.removeSongFromPlaylist(r.playlistId, song.id) }
                         if (playlistSongs.isEmpty()) {
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 Text(text = "В плейлисте пока нет треков", color = PlayerColors.TextSecondary)
                             }
                         } else {
-                            SongList(
-                                songs = playlistSongs,
-                                onSongClick = { song -> onSongClick(song, playlistSongs) },
-                                onPlayNext = onPlayNext,
-                                onAddToQueue = onAddToQueue,
-                                onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
-                                onGoToAlbum = onGoToAlbum,
-                                onGoToArtist = onGoToArtist,
-                            )
+                            val filtered = remember(playlistSongs, playlistQuery, playlistSort) {
+                                playlistSongs
+                                    .filter {
+                                        it.title.contains(playlistQuery, ignoreCase = true) ||
+                                            it.artist.contains(playlistQuery, ignoreCase = true)
+                                    }
+                                    .let { list ->
+                                        when (playlistSort) {
+                                            PlaylistSongSort.ORDER -> list
+                                            PlaylistSongSort.TITLE -> list.sortedBy { it.title.lowercase() }
+                                            PlaylistSongSort.ARTIST -> list.sortedBy { it.artist.lowercase() }
+                                            PlaylistSongSort.RECENT -> list.sortedByDescending { it.dateAddedMs }
+                                        }
+                                    }
+                            }
+                            Column(modifier = Modifier.fillMaxSize()) {
+                                ListToolbar(
+                                    query = playlistQuery,
+                                    onQueryChange = { playlistQuery = it },
+                                    placeholder = "Поиск в плейлисте",
+                                    sortOptions = PlaylistSongSort.entries,
+                                    sortOptionLabel = { it.label },
+                                    currentSort = playlistSort.label,
+                                    onSortSelect = { playlistSort = it },
+                                    viewMode = playlistViewMode,
+                                    onViewModeCycle = { settingsVm.setViewMode("playlist", LibraryViewMode.valueOf(playlistViewMode.next().name)) },
+                                )
+                                if (filtered.isNotEmpty()) {
+                                    PlayShuffleRow(
+                                        onPlay = { onSongClick(filtered.first(), filtered) },
+                                        onShuffle = { filtered.shuffled().let { onSongClick(it.first(), it) } },
+                                    )
+                                }
+                                when (playlistViewMode) {
+                                    ViewMode.LIST -> SongList(
+                                        songs = filtered,
+                                        state = playlistListState,
+                                        onSongClick = { song -> onSongClick(song, filtered) },
+                                        onPlayNext = onPlayNext,
+                                        onAddToQueue = onAddToQueue,
+                                        onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
+                                        onGoToAlbum = onGoToAlbum,
+                                        onGoToArtist = onGoToArtist,
+                                        onRemoveFromPlaylist = removeFromPlaylist,
+                                    )
+                                    ViewMode.GRID_2, ViewMode.GRID_3 -> SongsGrid(
+                                        songs = filtered,
+                                        columns = if (playlistViewMode == ViewMode.GRID_2) 2 else 3,
+                                        state = playlistGridState,
+                                        onSongClick = { song -> onSongClick(song, filtered) },
+                                        onPlayNext = onPlayNext,
+                                        onAddToQueue = onAddToQueue,
+                                        onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
+                                        onGoToAlbum = onGoToAlbum,
+                                        onGoToArtist = onGoToArtist,
+                                        onRemoveFromPlaylist = removeFromPlaylist,
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -476,13 +550,108 @@ fun LibraryScreen(
     }
 
     if (showCreatePlaylist) {
-        CreatePlaylistDialog(
+        PlaylistNameDialog(
+            title = "Новый плейлист",
+            initialName = "",
+            confirmLabel = "Создать",
             onDismiss = { showCreatePlaylist = false },
-            onCreate = { name ->
+            onConfirm = { name ->
                 playlistsVm.createPlaylist(name)
                 showCreatePlaylist = false
             },
         )
+    }
+
+    val openPlaylist = route as? LibraryRoute.PlaylistDetail
+    if (showRenamePlaylist && openPlaylist != null) {
+        PlaylistNameDialog(
+            title = "Переименовать плейлист",
+            initialName = openPlaylist.name,
+            confirmLabel = "Сохранить",
+            onDismiss = { showRenamePlaylist = false },
+            onConfirm = { name ->
+                playlistsVm.renamePlaylist(openPlaylist.playlistId, name)
+                // The header title comes from the route itself.
+                backStack[backStack.lastIndex] = openPlaylist.copy(name = name.trim())
+                showRenamePlaylist = false
+            },
+        )
+    }
+    if (showDeletePlaylist && openPlaylist != null) {
+        ConfirmDialog(
+            title = "Удалить плейлист «${openPlaylist.name}»?",
+            message = "Сами треки останутся в медиатеке.",
+            confirmLabel = "Удалить",
+            onDismiss = { showDeletePlaylist = false },
+            onConfirm = {
+                playlistsVm.deletePlaylist(openPlaylist.playlistId)
+                showDeletePlaylist = false
+                backStack.removeAt(backStack.lastIndex)
+            },
+        )
+    }
+}
+
+@Composable
+private fun PlaylistMenuButton(onRename: () -> Unit, onDelete: () -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        Icon(
+            imageVector = Icons.Filled.MoreVert,
+            contentDescription = "Действия с плейлистом",
+            tint = PlayerColors.TextPrimary,
+            modifier = Modifier
+                .size(24.dp)
+                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { expanded = true },
+        )
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(
+                text = { Text("Переименовать") },
+                leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = null) },
+                onClick = { expanded = false; onRename() },
+            )
+            DropdownMenuItem(
+                text = { Text("Удалить плейлист") },
+                leadingIcon = { Icon(Icons.Filled.Delete, contentDescription = null) },
+                onClick = { expanded = false; onDelete() },
+            )
+        }
+    }
+}
+
+@Composable
+private fun ConfirmDialog(title: String, message: String, confirmLabel: String, onDismiss: () -> Unit, onConfirm: () -> Unit) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(18.dp))
+                .background(PlayerColors.SurfaceDim)
+                .padding(20.dp),
+        ) {
+            Text(text = title, color = PlayerColors.TextPrimary, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+            Text(text = message, color = PlayerColors.TextSecondary, fontSize = 13.sp, modifier = Modifier.padding(top = 8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 18.dp),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                Text(
+                    text = "Отмена",
+                    color = PlayerColors.TextSecondary,
+                    fontSize = 13.sp,
+                    modifier = Modifier
+                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onDismiss() }
+                        .padding(end = 20.dp),
+                )
+                Text(
+                    text = confirmLabel,
+                    color = PlayerColors.TextPrimary,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onConfirm() },
+                )
+            }
+        }
     }
 }
 
@@ -617,12 +786,12 @@ private fun LibraryRow(label: String, count: Int, icon: ImageVector, onClick: ()
     ) {
         Box(
             modifier = Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(9.dp))
+                .size(52.dp)
+                .clip(RoundedCornerShape(10.dp))
                 .background(PlayerColors.Surface),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(imageVector = icon, contentDescription = null, tint = PlayerColors.TextPrimary, modifier = Modifier.size(19.dp))
+            Icon(imageVector = icon, contentDescription = null, tint = PlayerColors.TextPrimary, modifier = Modifier.size(24.dp))
         }
         Text(
             text = label,
@@ -726,8 +895,8 @@ private fun ArtistsList(groups: List<ArtistGroup>, state: LazyListState, onArtis
                 AlbumArt(
                     uri = coverUri,
                     modifier = Modifier
-                        .size(42.dp)
-                        .clip(RoundedCornerShape(21.dp)),
+                        .size(52.dp)
+                        .clip(RoundedCornerShape(26.dp)),
                 )
                 Text(
                     text = group.name,
@@ -805,8 +974,8 @@ private fun AlbumsList(groups: List<AlbumGroup>, state: LazyListState, onAlbumCl
                 AlbumArt(
                     uri = group.songs.firstOrNull()?.uri,
                     modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(8.dp)),
+                        .size(52.dp)
+                        .clip(RoundedCornerShape(10.dp)),
                 )
                 Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
                     Text(
@@ -888,6 +1057,7 @@ private fun SongsGrid(
     onAddToPlaylist: (Song) -> Unit,
     onGoToAlbum: (Song) -> Unit,
     onGoToArtist: (Song) -> Unit,
+    onRemoveFromPlaylist: ((Song) -> Unit)? = null,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
@@ -921,6 +1091,7 @@ private fun SongsGrid(
                         onAddToPlaylist = onAddToPlaylist,
                         onGoToAlbum = onGoToAlbum,
                         onGoToArtist = onGoToArtist,
+                        onRemoveFromPlaylist = onRemoveFromPlaylist,
                     )
                 }
                 Text(
@@ -954,6 +1125,7 @@ private fun SongList(
     onAddToPlaylist: (Song) -> Unit,
     onGoToAlbum: (Song) -> Unit,
     onGoToArtist: (Song) -> Unit,
+    onRemoveFromPlaylist: ((Song) -> Unit)? = null,
 ) {
     LazyColumn(modifier = Modifier.fillMaxWidth(), state = state) {
         items(songs, key = { it.id }) { song ->
@@ -988,6 +1160,7 @@ private fun SongList(
                     onAddToPlaylist = onAddToPlaylist,
                     onGoToAlbum = onGoToAlbum,
                     onGoToArtist = onGoToArtist,
+                    onRemoveFromPlaylist = onRemoveFromPlaylist,
                     iconSize = 20.dp,
                     modifier = Modifier.padding(start = 10.dp),
                 )
@@ -1046,12 +1219,12 @@ private fun PlaylistsList(playlists: List<PlaylistWithCount>, onPlaylistClick: (
             ) {
                 Box(
                     modifier = Modifier
-                        .size(42.dp)
-                        .clip(RoundedCornerShape(9.dp))
+                        .size(52.dp)
+                        .clip(RoundedCornerShape(10.dp))
                         .background(PlayerColors.Surface),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(imageVector = Icons.Filled.PlaylistPlay, contentDescription = null, tint = PlayerColors.TextPrimary, modifier = Modifier.size(20.dp))
+                    Icon(imageVector = Icons.Filled.PlaylistPlay, contentDescription = null, tint = PlayerColors.TextPrimary, modifier = Modifier.size(24.dp))
                 }
                 Text(
                     text = playlist.name,
@@ -1069,8 +1242,14 @@ private fun PlaylistsList(playlists: List<PlaylistWithCount>, onPlaylistClick: (
 }
 
 @Composable
-private fun CreatePlaylistDialog(onDismiss: () -> Unit, onCreate: (String) -> Unit) {
-    var name by remember { mutableStateOf("") }
+private fun PlaylistNameDialog(
+    title: String,
+    initialName: String,
+    confirmLabel: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+) {
+    var name by remember { mutableStateOf(initialName) }
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
@@ -1080,7 +1259,7 @@ private fun CreatePlaylistDialog(onDismiss: () -> Unit, onCreate: (String) -> Un
                 .padding(20.dp),
         ) {
             Text(
-                text = "Новый плейлист",
+                text = title,
                 color = PlayerColors.TextPrimary,
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
@@ -1118,13 +1297,13 @@ private fun CreatePlaylistDialog(onDismiss: () -> Unit, onCreate: (String) -> Un
                         .padding(end = 20.dp),
                 )
                 Text(
-                    text = "Создать",
+                    text = confirmLabel,
                     color = PlayerColors.TextPrimary,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
                         .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
-                            if (name.isNotBlank()) onCreate(name)
+                            if (name.isNotBlank()) onConfirm(name)
                         },
                 )
             }

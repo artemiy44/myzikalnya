@@ -47,6 +47,7 @@ import com.artemiy.player.ui.library.LibraryRoute
 import com.artemiy.player.ui.library.LibraryScreen
 import com.artemiy.player.ui.library.PlaylistsViewModel
 import com.artemiy.player.ui.nowplaying.NowPlayingScreen
+import com.artemiy.player.ui.search.LyricsSearchViewModel
 import com.artemiy.player.ui.search.SearchScreen
 import com.artemiy.player.ui.settings.SettingsScreen
 import com.artemiy.player.ui.settings.SettingsViewModel
@@ -86,6 +87,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
     val playback: PlaybackViewModel = viewModel()
     val home: HomeViewModel = viewModel()
     val playlistsVm: PlaylistsViewModel = viewModel()
+    val lyricsSearch: LyricsSearchViewModel = viewModel()
 
     // Hoisted above the Library tab (rather than owned by LibraryScreen itself) for two reasons:
     // it survives switching tabs and back instead of resetting to the Library home every time,
@@ -134,6 +136,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
             val fresh = querySongs(context, settings.scanFolders)
             songs.clear()
             songs.addAll(fresh)
+            lyricsSearch.sync(fresh, isPlaying = { playback.isPlaying })
         }
     }
 
@@ -142,6 +145,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
             val fresh = querySongs(context, settings.scanFolders)
             songs.clear()
             songs.addAll(fresh)
+            lyricsSearch.sync(fresh, isPlaying = { playback.isPlaying })
         }
     }
 
@@ -239,6 +243,8 @@ private fun PlayerApp(settings: SettingsViewModel) {
                     onAddToPlaylist = { song -> addToPlaylistSongs = listOf(song) },
                     onGoToAlbum = ::goToAlbum,
                     onGoToArtist = ::goToArtist,
+                    searchLyrics = { query -> lyricsSearch.search(query, songs.toList()) },
+                    lyricsIndexProgress = lyricsSearch.indexProgress,
                 )
             }
         }
@@ -286,6 +292,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 liveBlurIntensity = settings.liveBlurIntensity,
                 lyricsRomanization = settings.lyricsRomanization,
                 onToggleLyricsRomanization = { settings.toggleLyricsRomanization() },
+                lyricsTapPlays = settings.lyricsTapPlays,
             )
         }
     }
@@ -319,6 +326,8 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 onNowPlayingBackgroundModeChange = { settings.updateNowPlayingBackgroundMode(it) },
                 liveBlurIntensity = settings.liveBlurIntensity,
                 onLiveBlurIntensityChange = { settings.updateLiveBlurIntensity(it) },
+                lyricsTapPlays = settings.lyricsTapPlays,
+                onLyricsTapPlaysChange = { settings.updateLyricsTapPlays(it) },
                 onBack = { showSettings = false },
             )
         }

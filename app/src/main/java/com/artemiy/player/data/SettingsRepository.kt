@@ -32,6 +32,7 @@ class SettingsRepository(private val context: Context) {
         val NOW_PLAYING_BACKGROUND_MODE_KEY = stringPreferencesKey("now_playing_background_mode")
         val LIVE_BLUR_INTENSITY_KEY = stringPreferencesKey("live_blur_intensity")
         val LYRICS_ROMANIZATION_KEY = booleanPreferencesKey("lyrics_romanization")
+        val LYRICS_TAP_PLAYS_KEY = booleanPreferencesKey("lyrics_tap_plays")
         private fun viewModeKey(tab: String) = stringPreferencesKey("view_mode_$tab")
     }
 
@@ -121,6 +122,17 @@ class SettingsRepository(private val context: Context) {
     suspend fun setLyricsRomanization(enabled: Boolean) {
         context.settingsDataStore.edit { prefs ->
             prefs[LYRICS_ROMANIZATION_KEY] = enabled
+        }
+    }
+
+    /** Whether tapping a lyric line while paused also starts playback (not just seeks). */
+    val lyricsTapPlays: Flow<Boolean> = context.settingsDataStore.data.map { prefs ->
+        prefs[LYRICS_TAP_PLAYS_KEY] ?: false
+    }
+
+    suspend fun setLyricsTapPlays(enabled: Boolean) {
+        context.settingsDataStore.edit { prefs ->
+            prefs[LYRICS_TAP_PLAYS_KEY] = enabled
         }
     }
 }

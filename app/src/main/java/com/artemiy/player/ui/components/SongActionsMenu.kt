@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.filled.QueuePlayNext
+import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -68,6 +69,7 @@ fun SongActionsMenu(
     onAddToPlaylist: (Song) -> Unit,
     onGoToAlbum: ((Song) -> Unit)? = null,
     onGoToArtist: ((Song) -> Unit)? = null,
+    onRemoveFromPlaylist: ((Song) -> Unit)? = null,
     modifier: Modifier = Modifier,
     iconSize: Dp = 20.dp,
 ) {
@@ -90,6 +92,7 @@ fun SongActionsMenu(
             onAddToPlaylist = onAddToPlaylist,
             onGoToAlbum = onGoToAlbum,
             onGoToArtist = onGoToArtist,
+            onRemoveFromPlaylist = onRemoveFromPlaylist,
         )
     }
 }
@@ -105,6 +108,7 @@ fun SongActionsMenuPopup(
     onAddToPlaylist: (Song) -> Unit,
     onGoToAlbum: ((Song) -> Unit)? = null,
     onGoToArtist: ((Song) -> Unit)? = null,
+    onRemoveFromPlaylist: ((Song) -> Unit)? = null,
 ) {
     SongActionsMenuItems(
         song = song,
@@ -115,6 +119,7 @@ fun SongActionsMenuPopup(
         onAddToPlaylist = onAddToPlaylist,
         onGoToAlbum = onGoToAlbum,
         onGoToArtist = onGoToArtist,
+        onRemoveFromPlaylist = onRemoveFromPlaylist,
     )
 }
 
@@ -128,6 +133,7 @@ private fun SongActionsMenuItems(
     onAddToPlaylist: (Song) -> Unit,
     onGoToAlbum: ((Song) -> Unit)?,
     onGoToArtist: ((Song) -> Unit)?,
+    onRemoveFromPlaylist: ((Song) -> Unit)?,
 ) {
     var showInfo by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -160,6 +166,13 @@ private fun SongActionsMenuItems(
                 text = { Text("Перейти к исполнителю") },
                 leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null) },
                 onClick = { onDismiss(); onGoToArtist(song) },
+            )
+        }
+        if (onRemoveFromPlaylist != null) {
+            DropdownMenuItem(
+                text = { Text("Убрать из плейлиста") },
+                leadingIcon = { Icon(Icons.Filled.RemoveCircleOutline, contentDescription = null) },
+                onClick = { onDismiss(); onRemoveFromPlaylist(song) },
             )
         }
         DropdownMenuItem(

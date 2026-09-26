@@ -25,6 +25,10 @@ data class Song(
     /** Release year from the file's own tag, when present — distinct from [dateAddedMs] (when
      * the file was scanned into the library), used for the "по дате выпуска" sort. */
     val year: Int? = null,
+    /** File's last-modified time (seconds) and size — together a cheap "has this file changed"
+     * fingerprint, e.g. for knowing when its cached lyrics need re-reading. */
+    val modifiedAtS: Long = 0,
+    val sizeBytes: Long = 0,
 )
 
 /**
@@ -50,6 +54,8 @@ fun querySongs(context: Context, scanFolders: Set<String> = emptySet()): List<So
         add(MediaStore.Audio.Media.ALBUM)
         add(MediaStore.Audio.Media.DURATION)
         add(MediaStore.Audio.Media.DATE_ADDED)
+        add(MediaStore.Audio.Media.DATE_MODIFIED)
+        add(MediaStore.Audio.Media.SIZE)
         add(MediaStore.Audio.Media.YEAR)
         if (readGenreDirectly) add(MediaStore.Audio.Media.GENRE)
         if (readRelativePath) add(MediaStore.Audio.Media.RELATIVE_PATH) else add(MediaStore.Audio.Media.DATA)
@@ -67,6 +73,8 @@ fun querySongs(context: Context, scanFolders: Set<String> = emptySet()): List<So
         val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
         val dateAddedCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
         val yearCol = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR)
+        val modifiedCol = cursor.getColumnIndex(MediaStore.Audio.Media.DATE_MODIFIED)
+        val sizeCol = cursor.getColumnIndex(MediaStore.Audio.Media.SIZE)
         val genreCol = if (readGenreDirectly) cursor.getColumnIndex(MediaStore.Audio.Media.GENRE) else -1
         val pathCol = cursor.getColumnIndex(if (readRelativePath) MediaStore.Audio.Media.RELATIVE_PATH else MediaStore.Audio.Media.DATA)
 
@@ -88,6 +96,8 @@ fun querySongs(context: Context, scanFolders: Set<String> = emptySet()): List<So
                 folder = segments.lastOrNull(),
                 pathSegments = segments,
                 year = (if (yearCol >= 0) cursor.getInt(yearCol) else 0).takeIf { it > 0 },
+                modifiedAtS = if (modifiedCol >= 0) cursor.getLong(modifiedCol) else 0,
+                sizeBytes = if (sizeCol >= 0) cursor.getLong(sizeCol) else 0,
             )
         }
     }
