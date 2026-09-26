@@ -5,7 +5,6 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -173,14 +172,15 @@ private fun DrawScope.drawDepthWaves(seed: Int) {
         val amp = s * (0.035f + random.nextFloat() * 0.03f)
         val phase = random.nextFloat() * 2f * PI.toFloat()
         val period = w * (0.7f + random.nextFloat() * 0.5f)
+        // Reaching well past every edge: on the mix page the picture drifts around.
         val path = Path().apply {
-            moveTo(0f, h)
-            var x = 0f
-            while (x <= w + 4f) {
+            moveTo(-w * 0.15f, h * 1.15f)
+            var x = -w * 0.15f
+            while (x <= w * 1.15f) {
                 lineTo(x, top + amp * sin(2f * PI.toFloat() * x / period + phase))
                 x += 4f
             }
-            lineTo(w, h)
+            lineTo(w * 1.15f, h * 1.15f)
             close()
         }
         drawPath(path, ink(0.09f))
@@ -237,15 +237,34 @@ private fun DrawScope.drawSunset() {
     }
 }
 
+/**
+ * A crescent: the circle ([center], [radius]) minus a second circle shifted by [shift] with
+ * [cutRadius]. Built from the two arcs between the circles' crossing points rather than with a
+ * path boolean operation — that one cut the curve off with a straight line on the big mix header.
+ */
+private fun crescentPath(center: Offset, radius: Float, shift: Offset, cutRadius: Float): Path {
+    val d = shift.getDistance()
+    val u = shift / d
+    val phi = Math.toDegrees(kotlin.math.atan2(u.y, u.x).toDouble()).toFloat()
+    // Distance along the shift from the first center to the chord through both crossing points.
+    val a = (radius * radius - cutRadius * cutRadius + d * d) / (2 * d)
+    val chordHalf = kotlin.math.sqrt((radius * radius - a * a).coerceAtLeast(0f))
+    val alpha = Math.toDegrees(kotlin.math.atan2(chordHalf, a).toDouble()).toFloat()
+    val beta = Math.toDegrees(kotlin.math.atan2(chordHalf, a - d).toDouble()).toFloat()
+    val cutCenter = center + shift
+    return Path().apply {
+        // The lit outer edge: the long way round the first circle, away from the cut...
+        arcTo(Rect(center, radius), phi + alpha, 360f - 2 * alpha, forceMoveTo = true)
+        // ...then back along the cut circle's edge, the part that lies inside the first one.
+        arcTo(Rect(cutCenter, cutRadius), phi - beta, -(360f - 2 * beta), forceMoveTo = false)
+        close()
+    }
+}
+
 private fun DrawScope.drawMoon(seed: Int) {
     val c = Offset(w * 0.7f, h * 0.55f)
     val r = s * 0.3f
-    val crescent = Path.combine(
-        PathOperation.Difference,
-        Path().apply { addOval(Rect(c, r)) },
-        Path().apply { addOval(Rect(c + Offset(r * 0.45f, -r * 0.3f), r * 0.85f)) },
-    )
-    drawPath(crescent, ink(0.3f))
+    drawPath(crescentPath(c, r, Offset(r * 0.45f, -r * 0.3f), r * 0.85f), ink(0.3f))
     val random = Random(seed)
     repeat(16) {
         val p = Offset(random.nextFloat() * w, h * 0.3f + random.nextFloat() * h * 0.6f)
@@ -348,7 +367,7 @@ private fun DrawScope.drawBubbles(seed: Int) {
 private fun DrawScope.drawSquareWaves() {
     fun wave(y: Float, amp: Float, period: Float, width: Float, alpha: Float, shift: Float) {
         val path = Path().apply {
-            var x = -shift
+            var x = -shift - period
             var high = true
             moveTo(x, y + amp)
             while (x < w + period) {
@@ -419,11 +438,11 @@ private fun DrawScope.drawHills() {
     for (i in 0 until 3) {
         val base = h * (0.62f + i * 0.1f)
         val path = Path().apply {
-            moveTo(0f, h)
-            lineTo(0f, base)
+            moveTo(-w * 0.15f, h * 1.15f)
+            lineTo(-w * 0.15f, base + h * 0.03f)
             cubicTo(w * (0.2f + i * 0.1f), base - h * 0.16f, w * (0.5f - i * 0.05f), base + h * 0.08f, w * 0.75f, base - h * 0.06f)
-            quadraticTo(w * 0.9f, base - h * 0.12f, w, base - h * 0.02f)
-            lineTo(w, h)
+            quadraticTo(w * 0.9f, base - h * 0.12f, w * 1.15f, base)
+            lineTo(w * 1.15f, h * 1.15f)
             close()
         }
         drawPath(path, ink(0.1f + i * 0.04f))
@@ -448,8 +467,8 @@ private fun DrawScope.drawTriangles(seed: Int) {
     var row = 0
     var y = h * 0.3f
     while (y < h) {
-        var x = if (row % 2 == 0) 0f else -side / 2
-        while (x < w) {
+        var x = if (row % 2 == 0) -side else -side * 1.5f
+        while (x < w + side) {
             val path = Path().apply {
                 moveTo(x, y + rowH)
                 lineTo(x + side / 2, y)

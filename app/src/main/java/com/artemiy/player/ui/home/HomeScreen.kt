@@ -59,6 +59,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.artemiy.player.data.Mood
 import com.artemiy.player.data.Song
+import com.artemiy.player.playback.PlayOrigin
+import com.artemiy.player.playback.SourceArt
+import com.artemiy.player.playback.SourcePlace
 import com.artemiy.player.ui.components.AlbumArt
 import com.artemiy.player.ui.components.SongActionsMenuPopup
 import com.artemiy.player.ui.components.songLongPressTrigger
@@ -83,7 +86,8 @@ fun HomeScreen(
     recentlyAdded: List<Song>,
     recentlyAddedAll: List<Song>,
     recap: Recap?,
-    onSongClick: (Song, List<Song>) -> Unit,
+    /** The third value says where the songs came from, for Now Playing's "Играет из". */
+    onSongClick: (Song, List<Song>, PlayOrigin) -> Unit,
     onSaveMix: (Mix) -> Unit,
     onSettingsClick: () -> Unit,
     onPlayNext: (Song) -> Unit,
@@ -102,16 +106,16 @@ fun HomeScreen(
             if (mix == null) {
                 route = HomeRoute.Main
             } else {
-                MixScreen(mix, back, onSongClick, onSaveMix, onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
+                MixScreen(mix, back, { song, list -> onSongClick(song, list, PlayOrigin(mix.title, SourceArt.MixCard(mix.colorIndex, mix.motif))) }, onSaveMix, onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
             }
             return
         }
         HomeRoute.RecentlyAddedAll -> {
-            RecentlyAddedScreen(recentlyAddedAll, back, onSongClick, onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
+            RecentlyAddedScreen(recentlyAddedAll, back, { song, list -> onSongClick(song, list, PlayOrigin("Недавно добавленные", SourceArt.Place(SourcePlace.RECENTLY_ADDED))) }, onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
             return
         }
         HomeRoute.WeekRecap -> {
-            if (recap == null) route = HomeRoute.Main else RecapScreen(recap, back, onSongClick)
+            if (recap == null) route = HomeRoute.Main else RecapScreen(recap, back) { song, list -> onSongClick(song, list, PlayOrigin("Итоги недели", SourceArt.Place(SourcePlace.RECAP))) }
             return
         }
         HomeRoute.Main -> Unit
@@ -167,14 +171,14 @@ fun HomeScreen(
                 title = "Quick picks",
                 songs = quickPicks,
                 emptyHint = "Здесь появятся часто прослушиваемые треки",
-                onSongClick = { song -> onSongClick(song, quickPicks) },
+                onSongClick = { song -> onSongClick(song, quickPicks, PlayOrigin("Quick picks", SourceArt.Place(SourcePlace.QUICK_PICKS))) },
                 menuActions = menuActions,
             )
             SongRowSection(
                 title = "Recently added",
                 songs = recentlyAdded,
                 emptyHint = null,
-                onSongClick = { song -> onSongClick(song, recentlyAdded) },
+                onSongClick = { song -> onSongClick(song, recentlyAdded, PlayOrigin("Недавно добавленные", SourceArt.Place(SourcePlace.RECENTLY_ADDED))) },
                 menuActions = menuActions,
                 onSeeAll = { route = HomeRoute.RecentlyAddedAll },
             )

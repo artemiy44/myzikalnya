@@ -1041,3 +1041,47 @@ internal val TablerDeviceTv: ImageVector by lazy {
         path("M16 3l-4 4l-4 -4", fill = false, stroke = true)
     }
 }
+
+internal val LucideSkipBack: ImageVector by lazy {
+    iconVector("LucideSkipBack", scale = LUCIDE_SCALE) {
+        path("M17.971 4.285A2 2 0 0 1 21 6v12a2 2 0 0 1-3.029 1.715l-9.997-5.998a2 2 0 0 1-.003-3.432z", fill = true, stroke = true)
+        path("M3 20V4", fill = true, stroke = true)
+    }
+}
+
+internal val TablerSkipBack: ImageVector by lazy {
+    iconVector("TablerSkipBack") {
+        path("M19.496 4.136l-12 7a1 1 0 0 0 0 1.728l12 7a1 1 0 0 0 1.504 -.864v-14a1 1 0 0 0 -1.504 -.864z", fill = true, stroke = false)
+        path("M4 4a1 1 0 0 1 .993 .883l.007 .117v14a1 1 0 0 1 -1.993 .117l-.007 -.117v-14a1 1 0 0 1 1 -1z", fill = true, stroke = false)
+    }
+}
+
+internal val LucideSkipForward: ImageVector by lazy {
+    iconVector("LucideSkipForward", scale = LUCIDE_SCALE) {
+        path("M21 4v16", fill = true, stroke = true)
+        path("M6.029 4.285A2 2 0 0 0 3 6v12a2 2 0 0 0 3.029 1.715l9.997-5.998a2 2 0 0 0 .003-3.432z", fill = true, stroke = true)
+    }
+}
+
+internal val TablerSkipForward: ImageVector by lazy {
+    iconVector("TablerSkipForward") {
+        path("M3 5v14a1 1 0 0 0 1.504 .864l12 -7a1 1 0 0 0 0 -1.728l-12 -7a1 1 0 0 0 -1.504 .864z", fill = true, stroke = false)
+        path("M20 4a1 1 0 0 1 .993 .883l.007 .117v14a1 1 0 0 1 -1.993 .117l-.007 -.117v-14a1 1 0 0 1 1 -1z", fill = true, stroke = false)
+    }
+}
+
+internal val LucideLyricsBubble: ImageVector by lazy {
+    iconVector("LucideLyricsBubble", scale = LUCIDE_SCALE) {
+        path("M14 14a2 2 0 0 0 2-2V8h-2", fill = false, stroke = true)
+        path("M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z", fill = false, stroke = true)
+        path("M8 14a2 2 0 0 0 2-2V8H8", fill = false, stroke = true)
+    }
+}
+
+internal val TablerLyricsBubble: ImageVector by lazy {
+    iconVector("TablerLyricsBubble") {
+        path("M8 9h8", fill = false, stroke = true)
+        path("M8 13h6", fill = false, stroke = true)
+        path("M9 18h-3a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-3l-3 3l-3 -3", fill = false, stroke = true)
+    }
+}

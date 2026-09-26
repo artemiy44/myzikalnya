@@ -20,6 +20,9 @@ enum class NowPlayingBackgroundMode { LIVE_BLUR, STATIC_BLUR, NONE }
 
 enum class LiveBlurIntensity { MUTED, NORMAL, VIVID }
 
+/** Now Playing's layout: ours, or one built from Material 3 Expressive pieces. */
+enum class PlayerStyle { CLASSIC, EXPRESSIVE }
+
 class SettingsRepository(private val context: Context) {
 
     companion object {
@@ -30,6 +33,7 @@ class SettingsRepository(private val context: Context) {
         val SCAN_FOLDERS_KEY = stringSetPreferencesKey("scan_folders")
         val INFINITE_PLAY_MODE_KEY = stringPreferencesKey("infinite_play_mode")
         val NOW_PLAYING_BACKGROUND_MODE_KEY = stringPreferencesKey("now_playing_background_mode")
+        val PLAYER_STYLE_KEY = stringPreferencesKey("player_style")
         val LIVE_BLUR_INTENSITY_KEY = stringPreferencesKey("live_blur_intensity")
         val LYRICS_ROMANIZATION_KEY = booleanPreferencesKey("lyrics_romanization")
         val LYRICS_TAP_PLAYS_KEY = booleanPreferencesKey("lyrics_tap_plays")
@@ -103,6 +107,14 @@ class SettingsRepository(private val context: Context) {
     val nowPlayingBackgroundMode: Flow<NowPlayingBackgroundMode> = context.settingsDataStore.data.map { prefs ->
         prefs[NOW_PLAYING_BACKGROUND_MODE_KEY]?.let { runCatching { NowPlayingBackgroundMode.valueOf(it) }.getOrNull() }
             ?: NowPlayingBackgroundMode.LIVE_BLUR
+    }
+
+    val playerStyle: Flow<PlayerStyle> = context.settingsDataStore.data.map { prefs ->
+        prefs[PLAYER_STYLE_KEY]?.let { runCatching { PlayerStyle.valueOf(it) }.getOrNull() } ?: PlayerStyle.CLASSIC
+    }
+
+    suspend fun setPlayerStyle(style: PlayerStyle) {
+        context.settingsDataStore.edit { prefs -> prefs[PLAYER_STYLE_KEY] = style.name }
     }
 
     suspend fun setNowPlayingBackgroundMode(mode: NowPlayingBackgroundMode) {

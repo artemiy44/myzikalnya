@@ -57,6 +57,11 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
     var currentSong by mutableStateOf<Song?>(null)
         private set
 
+    /** What the current run of songs was started from ("Альбом X", a playlist, a mix...) — for
+     * Now Playing's "Играет из" line. Null when unknown (e.g. restored after a restart). */
+    var playingFrom by mutableStateOf<PlaySource?>(null)
+        private set
+
     var isPlaying by mutableStateOf(false)
         private set
 
@@ -196,7 +201,8 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun play(song: Song, playlist: List<Song> = listOf(song)) {
+    fun play(song: Song, playlist: List<Song> = listOf(song), origin: PlayOrigin? = null) {
+        playingFrom = origin?.let { PlaySource(it.name, playlist.size, it.art) }
         songsById = songsById + playlist.associateBy { it.id }
         val index = playlist.indexOfFirst { it.id == song.id }.let { if (it >= 0) it else 0 }
         if (controller == null) {
@@ -492,3 +498,23 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
         controller = null
     }
 }
+
+/** Where a run of songs was started from, as the screen that started it describes it. */
+data class PlayOrigin(val name: String, val art: SourceArt)
+
+/** The little picture next to "Играет из": whatever that source looks like elsewhere in the app. */
+sealed interface SourceArt {
+    /** A Library section / Home row / tab — shown as that place's icon. */
+    data class Place(val place: SourcePlace) : SourceArt
+    /** An album — its own cover. */
+    data class Cover(val uri: android.net.Uri?) : SourceArt
+    /** A playlist or artist — the same blurred collage as their page headers. */
+    data class Collage(val songs: List<Song>) : SourceArt
+    /** A Home mix — its card's gradient and drawing. */
+    data class MixCard(val colorIndex: Int, val motif: String) : SourceArt
+}
+
+enum class SourcePlace { SONGS, LIBRARY, SEARCH, MOOD, QUICK_PICKS, RECENTLY_ADDED, RECAP }
+
+/** See [PlaybackViewModel.playingFrom]. */
+data class PlaySource(val name: String, val songCount: Int, val art: SourceArt)

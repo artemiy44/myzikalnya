@@ -30,6 +30,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.Alignment
@@ -154,6 +155,9 @@ fun MixScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
+                        // The drawing deliberately runs off the edges — kept inside the header
+                        // instead of spilling over the song list below.
+                        .clipToBounds()
                         .background(mixBrush(mix.colorIndex))
                         .drawBehind { drawMixMotifDrifting(mix.motif, textMeasurer, phase) },
                 )

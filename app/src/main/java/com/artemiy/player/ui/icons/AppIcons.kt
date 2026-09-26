@@ -95,6 +95,11 @@ object AppIcons {
     val DeviceBluetooth: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideDeviceBluetooth, TablerDeviceBluetooth)
     val DeviceUsb: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideDeviceUsb, TablerDeviceUsb)
     val DeviceTv: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideDeviceTv, TablerDeviceTv)
+
+    // The "Экспрессивный" player's own takes: skip with a bar (⏮ ⏭), lyrics as a speech bubble.
+    val SkipBack: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideSkipBack, TablerSkipBack)
+    val SkipForward: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideSkipForward, TablerSkipForward)
+    val LyricsBubble: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideLyricsBubble, TablerLyricsBubble)
 }
 
 @Composable

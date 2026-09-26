@@ -40,6 +40,9 @@ import com.artemiy.player.data.querySongs
 import com.artemiy.player.data.songsForMood
 import com.artemiy.player.data.topGenres
 import com.artemiy.player.playback.PlaybackViewModel
+import com.artemiy.player.playback.PlayOrigin
+import com.artemiy.player.playback.SourceArt
+import com.artemiy.player.playback.SourcePlace
 import com.artemiy.player.ui.components.AppTab
 import com.artemiy.player.ui.components.MiniPlayer
 import com.artemiy.player.ui.components.PlayerBottomBar
@@ -152,7 +155,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
     fun playMood(mood: Mood) {
         val pool = songsForMood(songs, mood, settings.moodFolders[mood] ?: emptySet())
         if (pool.isNotEmpty()) {
-            playback.play(pool.first(), pool)
+            playback.play(pool.first(), pool, PlayOrigin("Настроение", SourceArt.Place(SourcePlace.MOOD)))
             showNowPlaying = true
         }
     }
@@ -268,8 +271,8 @@ private fun PlayerApp(settings: SettingsViewModel) {
                     recentlyAdded = home.recentlyAdded,
                     recentlyAddedAll = home.recentlyAddedAll,
                     recap = home.recap,
-                    onSongClick = { song, list ->
-                        playback.play(song, list)
+                    onSongClick = { song, list, origin ->
+                        playback.play(song, list, origin)
                         showNowPlaying = true
                     },
                     onSaveMix = { mix ->
@@ -291,7 +294,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                     backStack = libraryBackStack,
                     onRequestPermission = { permissionLauncher.launch(audioPermission) },
                     onSongClick = { song, list ->
-                        playback.play(song, list)
+                        playback.play(song, list, libraryBackStack.lastOrNull()?.let { libraryOrigin(it, list) })
                         showNowPlaying = true
                     },
                     onPlayNext = { song -> playback.playNext(song) },
@@ -304,7 +307,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 AppTab.Search -> SearchScreen(
                     songs = songs,
                     onSongClick = { song, list ->
-                        playback.play(song, list)
+                        playback.play(song, list, PlayOrigin("Поиск", SourceArt.Place(SourcePlace.SEARCH)))
                         showNowPlaying = true
                     },
                     onPlayNext = { song -> playback.playNext(song) },
@@ -362,6 +365,8 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 lyricsRomanization = settings.lyricsRomanization,
                 onToggleLyricsRomanization = { settings.toggleLyricsRomanization() },
                 lyricsTapPlays = settings.lyricsTapPlays,
+                playerStyle = settings.playerStyle,
+                playingFrom = playback.playingFrom,
             )
         }
     }
@@ -397,6 +402,8 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 onLiveBlurIntensityChange = { settings.updateLiveBlurIntensity(it) },
                 lyricsTapPlays = settings.lyricsTapPlays,
                 onLyricsTapPlaysChange = { settings.updateLyricsTapPlays(it) },
+                playerStyle = settings.playerStyle,
+                onPlayerStyleChange = { settings.updatePlayerStyle(it) },
                 themeMode = settings.themeMode,
                 onThemeModeChange = { settings.updateThemeMode(it) },
                 lightVariant = settings.lightVariant,
@@ -434,4 +441,13 @@ private fun PlayerApp(settings: SettingsViewModel) {
         )
     }
     }
+}
+
+/** "Играет из" for songs started from a Library page. */
+private fun libraryOrigin(route: com.artemiy.player.ui.library.LibraryRoute, songs: List<Song>): PlayOrigin = when (route) {
+    is com.artemiy.player.ui.library.LibraryRoute.AlbumDetail -> PlayOrigin(route.album.ifBlank { "Альбом" }, SourceArt.Cover(songs.firstOrNull()?.uri))
+    is com.artemiy.player.ui.library.LibraryRoute.ArtistDetail -> PlayOrigin(route.artist, SourceArt.Collage(songs))
+    is com.artemiy.player.ui.library.LibraryRoute.PlaylistDetail -> PlayOrigin(route.name, SourceArt.Collage(songs))
+    com.artemiy.player.ui.library.LibraryRoute.Songs -> PlayOrigin("Треки", SourceArt.Place(SourcePlace.SONGS))
+    else -> PlayOrigin("Медиатека", SourceArt.Place(SourcePlace.LIBRARY))
 }

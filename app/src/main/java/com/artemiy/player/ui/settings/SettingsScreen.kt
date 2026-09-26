@@ -46,6 +46,7 @@ import com.artemiy.player.data.InfinitePlayMode
 import com.artemiy.player.data.LiveBlurIntensity
 import com.artemiy.player.data.Mood
 import com.artemiy.player.data.NowPlayingBackgroundMode
+import com.artemiy.player.data.PlayerStyle
 import com.artemiy.player.data.SettingsRepository
 import com.artemiy.player.ui.components.MinimalSlider
 import com.artemiy.player.ui.components.AppTab
@@ -94,6 +95,8 @@ fun SettingsScreen(
     onLiveBlurIntensityChange: (LiveBlurIntensity) -> Unit,
     lyricsTapPlays: Boolean,
     onLyricsTapPlaysChange: (Boolean) -> Unit,
+    playerStyle: PlayerStyle,
+    onPlayerStyleChange: (PlayerStyle) -> Unit,
     themeMode: ThemeMode,
     onThemeModeChange: (ThemeMode) -> Unit,
     lightVariant: LightVariant,
@@ -166,6 +169,8 @@ fun SettingsScreen(
                 onOpenNowPlayingBackground = { route = SettingsRoute.NowPlayingBackground },
                 lyricsTapPlays = lyricsTapPlays,
                 onLyricsTapPlaysChange = onLyricsTapPlaysChange,
+                playerStyle = playerStyle,
+                onPlayerStyleChange = onPlayerStyleChange,
                 themeMode = themeMode,
                 onThemeModeChange = onThemeModeChange,
                 lightVariant = lightVariant,
@@ -381,6 +386,8 @@ private fun SettingsSectionContent(
     onOpenNowPlayingBackground: () -> Unit,
     lyricsTapPlays: Boolean,
     onLyricsTapPlaysChange: (Boolean) -> Unit,
+    playerStyle: PlayerStyle,
+    onPlayerStyleChange: (PlayerStyle) -> Unit,
     themeMode: ThemeMode,
     onThemeModeChange: (ThemeMode) -> Unit,
     lightVariant: LightVariant,
@@ -561,6 +568,27 @@ private fun SettingsSectionContent(
                 }
             }
 
+            if (section == SettingsRoute.Player) {
+                SettingsCard {
+                    SettingsLabel("Стиль плеера")
+                    Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                        PlayerStyle.entries.forEach { style ->
+                            InfinitePlayModeChip(
+                                if (style == PlayerStyle.CLASSIC) "Классический" else "Экспрессивный",
+                                style == playerStyle,
+                            ) { onPlayerStyleChange(style) }
+                        }
+                    }
+                    Text(
+                        text = if (playerStyle == PlayerStyle.CLASSIC) "Обложка в рамке, громкость, кнопки внизу"
+                        else "Обложка на всю ширину, волнистая полоса, крупные кнопки, очередь в шторке",
+                        color = PlayerColors.TextSecondary,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 10.dp),
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
             if (section == SettingsRoute.Player) SettingsCard {
                 SettingsRow(
                     icon = AppIcons.Background,

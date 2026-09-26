@@ -43,7 +43,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.artemiy.player.data.LiveBlurIntensity
 import com.artemiy.player.data.NowPlayingBackgroundMode
+import com.artemiy.player.data.PlayerStyle
 import com.artemiy.player.data.Song
+import com.artemiy.player.playback.PlaySource
 import com.artemiy.player.lyrics.ParsedLyrics
 import com.artemiy.player.lyrics.hasRomanization
 import com.artemiy.player.playback.openOutputSwitcher
@@ -86,7 +88,27 @@ fun NowPlayingScreen(
     lyricsRomanization: Boolean = true,
     onToggleLyricsRomanization: () -> Unit = {},
     lyricsTapPlays: Boolean = false,
+    playerStyle: PlayerStyle = PlayerStyle.CLASSIC,
+    playingFrom: PlaySource? = null,
 ) {
+    if (playerStyle == PlayerStyle.EXPRESSIVE) {
+        ExpressiveNowPlaying(
+            song = song, isPlaying = isPlaying, positionMs = positionMs, durationMs = durationMs,
+            manualQueue = manualQueue, continueQueue = continueQueue,
+            shuffleEnabled = shuffleEnabled, repeatEnabled = repeatEnabled, infinitePlayEnabled = infinitePlayEnabled,
+            lyrics = lyrics, playingFrom = playingFrom,
+            onClose = onClose, onTogglePlayPause = onTogglePlayPause, onSkipNext = onSkipNext, onSkipPrevious = onSkipPrevious,
+            onSeek = onSeek, onQueueItemClick = onQueueItemClick, onClearManualQueue = onClearManualQueue,
+            onMoveInQueue = onMoveInQueue, onRemoveFromQueue = onRemoveFromQueue,
+            onToggleShuffle = onToggleShuffle, onToggleRepeat = onToggleRepeat, onToggleInfinitePlay = onToggleInfinitePlay,
+            allSongs = allSongs, onPlayNext = onPlayNext, onAddToQueue = onAddToQueue, onAddToPlaylist = onAddToPlaylist,
+            onGoToAlbum = onGoToAlbum, onGoToArtist = onGoToArtist,
+            backgroundMode = nowPlayingBackgroundMode, blurIntensity = liveBlurIntensity,
+            lyricsRomanization = lyricsRomanization, onToggleLyricsRomanization = onToggleLyricsRomanization,
+            lyricsTapPlays = lyricsTapPlays,
+        )
+        return
+    }
     var centerMode by remember { mutableStateOf(CenterMode.Art) }
     var controlsVisible by remember { mutableStateOf(true) }
     var controlsVisibleBeforeDrag by remember { mutableStateOf(true) }

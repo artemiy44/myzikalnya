@@ -12,6 +12,7 @@ import com.artemiy.player.data.LibraryViewMode
 import com.artemiy.player.data.LiveBlurIntensity
 import com.artemiy.player.data.Mood
 import com.artemiy.player.data.NowPlayingBackgroundMode
+import com.artemiy.player.data.PlayerStyle
 import com.artemiy.player.data.SettingsRepository
 import com.artemiy.player.data.discoverAllAudioFolders
 import com.artemiy.player.ui.components.AppTab
@@ -43,6 +44,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         private set
 
     var infinitePlayMode by mutableStateOf(InfinitePlayMode.RANDOM)
+        private set
+
+    var playerStyle by mutableStateOf(PlayerStyle.CLASSIC)
         private set
 
     var nowPlayingBackgroundMode by mutableStateOf(NowPlayingBackgroundMode.LIVE_BLUR)
@@ -101,6 +105,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             repository.nowPlayingBackgroundMode.collect { nowPlayingBackgroundMode = it }
+        }
+        viewModelScope.launch {
+            repository.playerStyle.collect { playerStyle = it }
         }
         viewModelScope.launch {
             repository.liveBlurIntensity.collect { liveBlurIntensity = it }
@@ -180,6 +187,11 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     fun updateInfinitePlayMode(mode: InfinitePlayMode) {
         infinitePlayMode = mode
         viewModelScope.launch { repository.setInfinitePlayMode(mode) }
+    }
+
+    fun updatePlayerStyle(style: PlayerStyle) {
+        playerStyle = style
+        viewModelScope.launch { repository.setPlayerStyle(style) }
     }
 
     fun updateNowPlayingBackgroundMode(mode: NowPlayingBackgroundMode) {
