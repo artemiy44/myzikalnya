@@ -7,6 +7,9 @@ import android.provider.Settings
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
@@ -41,6 +44,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -49,6 +54,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DragHandle
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.AllInclusive
 import androidx.compose.material.icons.filled.Cast
 import androidx.compose.material.icons.filled.Check
@@ -65,6 +72,9 @@ import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.VolumeDown
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -72,6 +82,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -82,6 +93,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.drawWithContent
@@ -89,6 +101,10 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.clipRect
@@ -111,6 +127,9 @@ import com.artemiy.player.ui.components.ART_SIZE_FULL
 import com.artemiy.player.ui.components.ART_SIZE_THUMB
 import com.artemiy.player.ui.components.AlbumArt
 import com.artemiy.player.ui.components.MinimalSlider
+import com.artemiy.player.ui.components.SongActionsMenuPopup
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 import com.artemiy.player.ui.components.rememberAlbumArtBitmap
 import com.artemiy.player.ui.theme.PlayerColors
 import kotlinx.coroutines.Dispatchers
@@ -119,17 +138,14 @@ import kotlin.math.max
 
 private enum class CenterMode { Art, Lyrics, Queue }
 
-/** Muted gray text/icons (title/artist column, position/duration, volume, quick-action row) are
- * normally [PlayerColors.TextSecondary] — fine against the app's flat dark background, but a
- * bright album cover under the live-blur background can wash them out. Live-blur mode overrides
- * this per track based on the background's actual brightness; every other background mode (and
- * anything reading it before the first frame resolves) keeps the plain default. */
+/** The muted gray used for secondary text/icons on this screen. Normally exactly
+ * [PlayerColors.TextSecondary]; over an album-art background it's lifted toward white just enough
+ * to stay readable when the art behind it is bright (see [readableSecondaryColor]). */
 private val LocalAdaptiveSecondaryColor = compositionLocalOf { PlayerColors.TextSecondary }
 
-/** The readable counterpart to [PlayerColors.TextSecondary] for when live-blur's background
- * reads as bright rather than dark — a muted dark gray, not pure black, to match TextSecondary's
- * own "quieter than primary text" weight rather than jumping to full contrast. */
-private val AdaptiveSecondaryOnBright = Color(0xFF333336)
+/** Minimum contrast ratio (WCAG formula) the gray must keep against the background. The plain
+ * gray on the app's flat dark background is ~6:1, so this only kicks in over bright art. */
+private const val SECONDARY_MIN_CONTRAST = 3.5f
 
 @Composable
 fun NowPlayingScreen(
@@ -150,11 +166,15 @@ fun NowPlayingScreen(
     onSeek: (Long) -> Unit,
     onQueueItemClick: (Song) -> Unit,
     onClearManualQueue: () -> Unit,
+    onMoveInQueue: (from: Int, to: Int) -> Unit,
+    onRemoveFromQueue: (position: Int) -> Unit,
     onToggleShuffle: () -> Unit,
     onToggleRepeat: () -> Unit,
     onToggleInfinitePlay: () -> Unit,
     allSongs: List<Song>,
+    onPlayNext: (Song) -> Unit,
     onAddToQueue: (Song) -> Unit,
+    onAddToPlaylist: (Song) -> Unit,
     onGoToAlbum: (Song) -> Unit,
     onGoToArtist: (Song) -> Unit,
     nowPlayingBackgroundMode: NowPlayingBackgroundMode = NowPlayingBackgroundMode.LIVE_BLUR,
@@ -162,8 +182,8 @@ fun NowPlayingScreen(
 ) {
     var centerMode by remember { mutableStateOf(CenterMode.Art) }
     var controlsVisible by remember { mutableStateOf(true) }
+    var controlsVisibleBeforeDrag by remember { mutableStateOf(true) }
     var showAddToQueuePicker by remember { mutableStateOf(false) }
-    var adaptiveSecondaryColor by remember { mutableStateOf(PlayerColors.TextSecondary) }
     val context = LocalContext.current
 
     // Reset to visible whenever the center content changes mode.
@@ -212,13 +232,30 @@ fun NowPlayingScreen(
     // those elements either; it's the *list content itself* fading to transparent (per-row alpha)
     // as it nears the edges, revealing this same static background underneath. See
     // LiveBlurBackground below and the fadeInList() modifier further down.
-    // Only live-blur mode ever overrides the muted gray text/icon color — other modes always
-    // keep the plain default, even if a stale value lingers from a previous mode switch.
-    val secondaryColor = if (nowPlayingBackgroundMode == NowPlayingBackgroundMode.LIVE_BLUR) {
-        adaptiveSecondaryColor
+    //
+    // The small pre-blurred art bitmap is loaded once here (not inside LiveBlurBackground) because
+    // it serves two purposes: it IS the live-blur background, and in both blur modes it's what we
+    // measure to decide how bright the gray text has to be to stay readable over the art.
+    val backgroundArt = if (nowPlayingBackgroundMode != NowPlayingBackgroundMode.NONE) {
+        val bitmap = rememberLivingBackgroundBitmap(song?.uri)
+        remember(bitmap) { bitmap?.let { BackgroundArt(it) } }
     } else {
-        PlayerColors.TextSecondary
+        null
     }
+    val backgroundScrimAlpha = when (nowPlayingBackgroundMode) {
+        NowPlayingBackgroundMode.LIVE_BLUR -> liveBlurScrimAlpha(liveBlurIntensity)
+        else -> scrimAlpha
+    }
+    val targetSecondaryColor by produceState(PlayerColors.TextSecondary, backgroundArt, backgroundScrimAlpha) {
+        val art = backgroundArt
+        value = if (art == null) {
+            PlayerColors.TextSecondary
+        } else {
+            withContext(Dispatchers.Default) { readableSecondaryColor(art.bitmap, backgroundScrimAlpha) }
+        }
+    }
+    // Eased so it doesn't snap while the background itself is still crossfading to the new track.
+    val secondaryColor by animateColorAsState(targetSecondaryColor, tween(600), label = "secondaryColor")
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -226,13 +263,9 @@ fun NowPlayingScreen(
     ) {
       CompositionLocalProvider(LocalAdaptiveSecondaryColor provides secondaryColor) {
         when (nowPlayingBackgroundMode) {
-            // Passed as a String, not a Uri — android.net.Uri isn't a type Compose's compiler
-            // can prove stable, so with a raw Uri param this composable would restart on every
-            // position tick from the progress slider (every ~100-250ms).
             NowPlayingBackgroundMode.LIVE_BLUR -> LiveBlurBackground(
-                songUriString = song?.uri?.toString(),
+                art = backgroundArt,
                 intensity = liveBlurIntensity,
-                onSecondaryColorChange = { adaptiveSecondaryColor = it },
             )
 
             NowPlayingBackgroundMode.STATIC_BLUR -> {
@@ -330,6 +363,9 @@ fun NowPlayingScreen(
                             // boundary collapses to the true bottom edge instead of staying
                             // pinned to the (now invisible) panel's last known height.
                             bottomFadePx = { if (controlsVisible) controlsHeightPx else 0 },
+                            anchorTopPx = headerHeightPx,
+                            anchorBottomPx = if (controlsVisible) controlsHeightPx else 0,
+                            onLineClick = onSeek,
                             contentPadding = PaddingValues(
                                 top = with(density) { headerHeightPx.toDp() } + 8.dp,
                                 bottom = with(density) { controlsHeightPx.toDp() } + 24.dp,
@@ -359,6 +395,19 @@ fun NowPlayingScreen(
                             onItemClick = onQueueItemClick,
                             onClearManualQueue = onClearManualQueue,
                             onAddSongsClick = { showAddToQueuePicker = true },
+                            onMove = onMoveInQueue,
+                            onRemove = onRemoveFromQueue,
+                            // The control panel covers the bottom of the list, so a picked-up
+                            // song couldn't be dragged down there — hide it for the duration of
+                            // the drag, then put it back the way it was.
+                            onDragActiveChange = { active ->
+                                if (active) {
+                                    controlsVisibleBeforeDrag = controlsVisible
+                                    controlsVisible = false
+                                } else {
+                                    controlsVisible = controlsVisibleBeforeDrag
+                                }
+                            },
                             state = queueListState,
                             topFadePx = { headerHeightPx + toggleRowHeightPx },
                             // Same reasoning as Lyrics — the panel hides on scroll in Queue too,
@@ -455,7 +504,7 @@ fun NowPlayingScreen(
                                 Text(
                                     text = song?.artist ?: "",
                                     color = LocalAdaptiveSecondaryColor.current,
-                                    fontSize = 14.sp,
+                                    fontSize = 18.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier.then(
@@ -468,18 +517,32 @@ fun NowPlayingScreen(
                                     ),
                                 )
                             }
-                            Icon(
-                                imageVector = Icons.Filled.Add,
-                                contentDescription = "Добавить в медиатеку",
-                                tint = PlayerColors.TextPrimary,
-                                modifier = Modifier
-                                    .padding(start = 12.dp)
-                                    .size(24.dp)
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = null,
-                                    ) {},
-                            )
+                            if (song != null) {
+                                var menuExpanded by remember { mutableStateOf(false) }
+                                Box(modifier = Modifier.padding(start = 12.dp)) {
+                                    Icon(
+                                        imageVector = Icons.Filled.MoreVert,
+                                        contentDescription = "Действия с треком",
+                                        tint = PlayerColors.TextPrimary,
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .clickable(
+                                                interactionSource = remember { MutableInteractionSource() },
+                                                indication = null,
+                                            ) { menuExpanded = true },
+                                    )
+                                    SongActionsMenuPopup(
+                                        song = song,
+                                        expanded = menuExpanded,
+                                        onDismiss = { menuExpanded = false },
+                                        onPlayNext = onPlayNext,
+                                        onAddToQueue = onAddToQueue,
+                                        onAddToPlaylist = onAddToPlaylist,
+                                        onGoToAlbum = onGoToAlbum,
+                                        onGoToArtist = onGoToArtist,
+                                    )
+                                }
+                            }
                         }
                     }
 
@@ -746,23 +809,59 @@ private fun stackBlur(bitmap: android.graphics.Bitmap, radius: Int): android.gra
     return out
 }
 
-/** Perceived (relative-luminance-weighted) average brightness of a bitmap, 0f (black) to 1f
- * (white). Only ever called on the same ~72x72 bitmap [prepareLivingBackgroundBitmap] already
- * produces, so a plain per-pixel loop is cheap enough with no need to subsample. */
-private fun averageLuminance(bitmap: android.graphics.Bitmap): Float {
+/** Wrapper so the bitmap can be passed to composables that should skip recomposition on the
+ * ~100ms position ticks — a raw [android.graphics.Bitmap] isn't a type Compose treats as stable. */
+@androidx.compose.runtime.Immutable
+private class BackgroundArt(val bitmap: android.graphics.Bitmap)
+
+/** Lower intensity = more scrim = the blurred art reads as a softer, more muted wash. */
+private fun liveBlurScrimAlpha(intensity: LiveBlurIntensity): Float = when (intensity) {
+    LiveBlurIntensity.MUTED -> 0.66f
+    LiveBlurIntensity.NORMAL -> 0.52f
+    LiveBlurIntensity.VIVID -> 0.38f
+}
+
+/**
+ * [PlayerColors.TextSecondary], lifted toward white only as far as needed to keep
+ * [SECONDARY_MIN_CONTRAST] against the brightest part of the background the text can land on.
+ *
+ * Measures the art as it actually appears on screen: each pixel is first darkened by the scrim
+ * (blended in sRGB, the way the scrim layer is drawn), then only the central vertical strip is
+ * sampled — a tall phone screen crops a square cover to roughly its middle 45%, and Ken Burns
+ * zooms in further. Uses the 85th-percentile luminance rather than the average, so one bright
+ * region on an otherwise dark cover still counts — gray text can end up on exactly that region.
+ */
+private fun readableSecondaryColor(bitmap: android.graphics.Bitmap, scrimAlpha: Float): Color {
     val w = bitmap.width
     val h = bitmap.height
-    if (w == 0 || h == 0) return 0f
+    if (w == 0 || h == 0) return PlayerColors.TextSecondary
     val pixels = IntArray(w * h)
     bitmap.getPixels(pixels, 0, w, 0, 0, w, h)
-    var sum = 0.0
-    for (p in pixels) {
-        val r = (p shr 16) and 0xFF
-        val g = (p shr 8) and 0xFF
-        val b = p and 0xFF
-        sum += 0.2126 * r + 0.7152 * g + 0.0722 * b
+    val scrim = PlayerColors.Background
+    val x0 = (w * 0.25f).toInt()
+    val x1 = (w * 0.75f).toInt().coerceAtLeast(x0 + 1)
+    val lums = FloatArray((x1 - x0) * h)
+    var n = 0
+    for (y in 0 until h) {
+        for (x in x0 until x1) {
+            val p = pixels[y * w + x]
+            val r = ((p shr 16) and 0xFF) / 255f * (1f - scrimAlpha) + scrim.red * scrimAlpha
+            val g = ((p shr 8) and 0xFF) / 255f * (1f - scrimAlpha) + scrim.green * scrimAlpha
+            val b = (p and 0xFF) / 255f * (1f - scrimAlpha) + scrim.blue * scrimAlpha
+            lums[n++] = Color(r, g, b).luminance()
+        }
     }
-    return (sum / pixels.size / 255.0).toFloat()
+    lums.sort()
+    val backgroundLum = lums[((n - 1) * 0.85f).toInt()]
+
+    fun contrast(textLum: Float) = (textLum + 0.05f) / (backgroundLum + 0.05f)
+    var t = 0f
+    while (t <= 1f) {
+        val candidate = lerp(PlayerColors.TextSecondary, PlayerColors.TextPrimary, t)
+        if (contrast(candidate.luminance()) >= SECONDARY_MIN_CONTRAST) return candidate
+        t += 0.05f
+    }
+    return PlayerColors.TextPrimary
 }
 
 /**
@@ -773,41 +872,11 @@ private fun averageLuminance(bitmap: android.graphics.Bitmap): Float {
  * scale/translate on a `graphicsLayer`.
  */
 @Composable
-private fun LiveBlurBackground(
-    songUriString: String?,
-    intensity: LiveBlurIntensity,
-    onSecondaryColorChange: (Color) -> Unit,
-) {
-    val songUri = remember(songUriString) { songUriString?.let { android.net.Uri.parse(it) } }
-    val bitmap = rememberLivingBackgroundBitmap(songUri)
-
-    // Lower intensity = more scrim = the blurred art reads as a softer, more muted wash; higher
-    // intensity lets more of its actual color through.
-    val scrimAlpha = when (intensity) {
-        LiveBlurIntensity.MUTED -> 0.66f
-        LiveBlurIntensity.NORMAL -> 0.52f
-        LiveBlurIntensity.VIVID -> 0.38f
-    }
-
-    // The gray "secondary" text/icons elsewhere on screen read fine against the app's normal flat
-    // dark background, but a bright album cover showing through the scrim can wash them out —
-    // pick a readable variant per track based on how bright the background actually ends up after
-    // the scrim darkens it (PlayerColors.Background is near-black, so its own contribution is
-    // negligible — this is basically "raw art brightness * how much the scrim lets through").
-    LaunchedEffect(bitmap, scrimAlpha) {
-        val bmp = bitmap
-        onSecondaryColorChange(
-            if (bmp == null) {
-                PlayerColors.TextSecondary
-            } else {
-                val effectiveBrightness = withContext(Dispatchers.Default) { averageLuminance(bmp) } * (1f - scrimAlpha)
-                if (effectiveBrightness > 0.45f) AdaptiveSecondaryOnBright else PlayerColors.TextSecondary
-            },
-        )
-    }
+private fun LiveBlurBackground(art: BackgroundArt?, intensity: LiveBlurIntensity) {
+    val scrimAlpha = liveBlurScrimAlpha(intensity)
 
     Box(modifier = Modifier.fillMaxSize().background(PlayerColors.Background)) {
-        val bmp = bitmap
+        val bmp = art?.bitmap
         if (bmp != null) {
             // Two fully independent phases (scale vs. pan), each always read at a straight 1x
             // multiplier — the exact bug that made the old color-blob version "teleport" was
@@ -921,6 +990,9 @@ private fun LyricsView(
     isPlaying: Boolean,
     topFadePx: () -> Int,
     bottomFadePx: () -> Int,
+    anchorTopPx: Int,
+    anchorBottomPx: Int,
+    onLineClick: (timeMs: Long) -> Unit,
     contentPadding: PaddingValues = PaddingValues(top = 16.dp, bottom = 220.dp),
 ) {
     // The controller only reports a fresh position every ~100ms, which is far too coarse for a
@@ -941,7 +1013,7 @@ private fun LyricsView(
         null -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
                 text = "Текст для этого трека не найден",
-                color = PlayerColors.TextSecondary,
+                color = LocalAdaptiveSecondaryColor.current,
                 fontSize = 14.sp,
                 modifier = Modifier.padding(horizontal = 12.dp),
             )
@@ -969,17 +1041,31 @@ private fun LyricsView(
                 lyrics.lines.indexOfLast { it.timeMs <= positionMs }
             }
             val listState = rememberLazyListState()
-            LaunchedEffect(activeIndex) {
+            var lastAnchorBottomPx by remember { mutableStateOf(anchorBottomPx) }
+            LaunchedEffect(activeIndex, anchorTopPx, anchorBottomPx) {
+                val panelToggled = anchorBottomPx != lastAnchorBottomPx
+                lastAnchorBottomPx = anchorBottomPx
                 val info = listState.layoutInfo
                 val itemInfo = info.visibleItemsInfo.firstOrNull { it.index == activeIndex }
                 if (itemInfo != null) {
-                    // Anchor a bit above dead center — reads more natural than exact middle.
-                    // No artificial top padding backs this: while there isn't enough real
-                    // content above yet (start of the song, or a short first line), the scroll
-                    // simply clamps at the true top instead of faking empty space to center it.
-                    val anchor = (info.viewportSize.height * 0.36f).toInt()
-                    val itemCenter = itemInfo.offset + itemInfo.size / 2
-                    listState.animateScrollBy((itemCenter - anchor).toFloat())
+                    // Anchored within the gap that's actually visible between the header and
+                    // the control panel (or the screen bottom when the panel is hidden): dead
+                    // center of it while the panel is up, a bit above center otherwise. No
+                    // artificial padding backs this — near the start/end of a song the scroll
+                    // simply clamps instead of faking empty space to reach the anchor.
+                    val viewportHeight = info.viewportSize.height
+                    val gap = (viewportHeight - anchorTopPx - anchorBottomPx).coerceAtLeast(0)
+                    val fraction = if (anchorBottomPx > 0) 0.5f else 0.4f
+                    val anchor = anchorTopPx + gap * fraction
+                    // offset is measured from the end of the top content padding, not from the
+                    // top of the list (viewportStartOffset == -beforeContentPadding).
+                    val itemCenterOnScreen = itemInfo.offset + itemInfo.size / 2f - info.viewportStartOffset
+                    // Panel show/hide: a quick, eased glide to the new spot. Line changes keep
+                    // the default spring they've always had.
+                    listState.animateScrollBy(
+                        itemCenterOnScreen - anchor,
+                        if (panelToggled) tween(320, easing = FastOutSlowInEasing) else spring(),
+                    )
                 } else {
                     // Big jump (e.g. track just changed) — land roughly nearby first.
                     listState.animateScrollToItem((activeIndex - 2).coerceAtLeast(0))
@@ -999,7 +1085,14 @@ private fun LyricsView(
                     val active = index == activeIndex
                     val alpha by animateFloatAsState(if (active) 1f else 0.35f, label = "lineAlpha")
                     val fontSize by animateFloatAsState(if (active) 31f else 28f, label = "lineSize")
-                    Column(modifier = Modifier.fadeInList(listState, index, topFadePx, bottomFadePx)) {
+                    Column(
+                        modifier = Modifier
+                            .fadeInList(listState, index, topFadePx, bottomFadePx)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                            ) { onLineClick(line.timeMs) },
+                    ) {
                         if (line.words != null && active) {
                             // The glow pass is the exact same word-by-word composable, just
                             // recolored/blurred, so it lines up pixel-for-pixel with the crisp text
@@ -1057,7 +1150,7 @@ private fun SecondaryLyricLine(line: LyricLine, positionMs: Long, alpha: Float, 
     } else {
         Text(
             text = line.text,
-            color = PlayerColors.TextSecondary,
+            color = LocalAdaptiveSecondaryColor.current,
             fontSize = fontSize,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier
@@ -1196,7 +1289,7 @@ private fun NowPlayingMiniHeader(
             Text(
                 text = song?.artist ?: "",
                 color = LocalAdaptiveSecondaryColor.current,
-                fontSize = 13.sp,
+                fontSize = 15.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.then(
@@ -1209,6 +1302,28 @@ private fun NowPlayingMiniHeader(
     }
 }
 
+/** One queue row plus a LazyColumn key that stays stable while rows are dragged around — the
+ * same song can legitimately be queued twice, so the song id alone isn't unique. */
+private class QueueEntry(val key: String, val song: Song)
+
+private fun queueEntries(prefix: String, songs: List<Song>): List<QueueEntry> {
+    val seen = HashMap<Long, Int>()
+    return songs.map { song ->
+        val occurrence = (seen[song.id] ?: 0) + 1
+        seen[song.id] = occurrence
+        QueueEntry("$prefix-${song.id}-$occurrence", song)
+    }
+}
+
+private fun List<QueueEntry>.moved(fromKey: Any, toKey: Any): List<QueueEntry> {
+    val from = indexOfFirst { it.key == fromKey }
+    val to = indexOfFirst { it.key == toKey }
+    if (from < 0 || to < 0) return this
+    return toMutableList().apply { add(to, removeAt(from)) }
+}
+
+private val QueueRemoveRed = Color(0xFFE5383B)
+
 @Composable
 private fun QueueList(
     manualQueue: List<Song>,
@@ -1216,24 +1331,57 @@ private fun QueueList(
     onItemClick: (Song) -> Unit,
     onClearManualQueue: () -> Unit,
     onAddSongsClick: () -> Unit,
+    onMove: (from: Int, to: Int) -> Unit,
+    onRemove: (position: Int) -> Unit,
+    onDragActiveChange: (Boolean) -> Unit,
     topFadePx: () -> Int,
     bottomFadePx: () -> Int,
     state: LazyListState = rememberLazyListState(),
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
+    // Local copies so a drag can reorder rows live under the finger; the player's real queue is
+    // only changed once, when the drag ends. Any change coming back from the player (the move
+    // itself, a track change, infinite-play top-ups) resets them to the player's truth.
+    var manualRows by remember(manualQueue) { mutableStateOf(queueEntries("m", manualQueue)) }
+    var continueRows by remember(continueQueue) { mutableStateOf(queueEntries("c", continueQueue)) }
+    val haptics = LocalHapticFeedback.current
+    // Rows only reorder within their own section — "Очередь" and "Далее по очереди" have different
+    // meanings in the player, so a drag can't cross the header between them.
+    val reorderState = rememberReorderableLazyListState(state) { from, to ->
+        val fromKey = from.key as? String ?: return@rememberReorderableLazyListState
+        val toKey = to.key as? String ?: return@rememberReorderableLazyListState
+        when {
+            fromKey.startsWith("m-") && toKey.startsWith("m-") -> manualRows = manualRows.moved(fromKey, toKey)
+            fromKey.startsWith("c-") && toKey.startsWith("c-") -> continueRows = continueRows.moved(fromKey, toKey)
+            else -> return@rememberReorderableLazyListState
+        }
+        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+    }
+
+    fun commitMove(key: String) {
+        val manual = key.startsWith("m-")
+        val original = queueEntries(if (manual) "m" else "c", if (manual) manualQueue else continueQueue)
+        val rows = if (manual) manualRows else continueRows
+        val from = original.indexOfFirst { it.key == key }
+        val to = rows.indexOfFirst { it.key == key }
+        if (from < 0 || to < 0 || from == to) return
+        val offset = if (manual) 0 else manualQueue.size
+        onMove(offset + from, offset + to)
+    }
+
     // Absolute positions of the fade-eligible rows among ALL items in this LazyColumn (needed by
     // fadeInList() below) — index 0 is the "Очередь" header row, 1 is "Добавить треки", so the
-    // manualQueue rows start at 2; continueQueue rows start after those plus its own header row
-    // (only present when continueQueue is non-empty).
+    // manual rows start at 2; continue rows start after those plus their own header row (only
+    // present when there are any).
     val manualQueueStart = 2
-    val continueQueueStart = manualQueueStart + manualQueue.size + 1
+    val continueQueueStart = manualQueueStart + manualRows.size + 1
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         state = state,
         contentPadding = contentPadding,
     ) {
-        item {
+        item(key = "header-queue") {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1246,7 +1394,7 @@ private fun QueueList(
                 if (manualQueue.isNotEmpty()) {
                     Text(
                         text = "Очистить",
-                        color = PlayerColors.TextSecondary,
+                        color = LocalAdaptiveSecondaryColor.current,
                         fontSize = 13.sp,
                         modifier = Modifier
                             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onClearManualQueue() },
@@ -1254,34 +1402,119 @@ private fun QueueList(
                 }
             }
         }
-        item { AddSongsToQueueRow(onClick = onAddSongsClick, modifier = Modifier.fadeInList(state, 1, topFadePx, bottomFadePx)) }
-        itemsIndexed(manualQueue) { i, item ->
-            QueueRow(
-                item = item,
-                onClick = { onItemClick(item) },
-                modifier = Modifier.fadeInList(state, manualQueueStart + i, topFadePx, bottomFadePx),
-            )
+        item(key = "header-add") {
+            AddSongsToQueueRow(onClick = onAddSongsClick, modifier = Modifier.fadeInList(state, 1, topFadePx, bottomFadePx))
         }
-        if (continueQueue.isNotEmpty()) {
-            item {
+        itemsIndexed(manualRows, key = { _, entry -> entry.key }) { i, entry ->
+            ReorderableItem(reorderState, key = entry.key) { isDragging ->
+                SwipeToRemove(onRemove = { onRemove(manualQueue.indexOfFirstEntry(entry.key, "m")) }) {
+                    QueueRow(
+                        item = entry.song,
+                        isDragging = isDragging,
+                        onClick = { onItemClick(entry.song) },
+                        dragHandleModifier = Modifier.draggableHandle(
+                            onDragStarted = {
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onDragActiveChange(true)
+                            },
+                            onDragStopped = {
+                                commitMove(entry.key)
+                                onDragActiveChange(false)
+                            },
+                        ),
+                        modifier = Modifier.fadeInList(state, manualQueueStart + i, topFadePx, bottomFadePx),
+                    )
+                }
+            }
+        }
+        if (continueRows.isNotEmpty()) {
+            item(key = "header-continue") {
                 Text(
                     text = "Далее по очереди",
                     color = PlayerColors.TextPrimary,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
-                        .fadeInList(state, manualQueueStart + manualQueue.size, topFadePx, bottomFadePx)
+                        .fadeInList(state, manualQueueStart + manualRows.size, topFadePx, bottomFadePx)
                         .padding(top = 18.dp, bottom = 4.dp),
                 )
             }
-            itemsIndexed(continueQueue) { i, item ->
-                QueueRow(
-                    item = item,
-                    onClick = { onItemClick(item) },
-                    modifier = Modifier.fadeInList(state, continueQueueStart + i, topFadePx, bottomFadePx),
-                )
+            itemsIndexed(continueRows, key = { _, entry -> entry.key }) { i, entry ->
+                ReorderableItem(reorderState, key = entry.key) { isDragging ->
+                    SwipeToRemove(onRemove = {
+                        onRemove(manualQueue.size + continueQueue.indexOfFirstEntry(entry.key, "c"))
+                    }) {
+                        QueueRow(
+                            item = entry.song,
+                            isDragging = isDragging,
+                            onClick = { onItemClick(entry.song) },
+                            dragHandleModifier = Modifier.draggableHandle(
+                                onDragStarted = {
+                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    onDragActiveChange(true)
+                                },
+                                onDragStopped = {
+                                    commitMove(entry.key)
+                                    onDragActiveChange(false)
+                                },
+                            ),
+                            modifier = Modifier.fadeInList(state, continueQueueStart + i, topFadePx, bottomFadePx),
+                        )
+                    }
+                }
             }
         }
+    }
+}
+
+/** Position of the row with [key] in the player's own (not locally reordered) list. */
+private fun List<Song>.indexOfFirstEntry(key: String, prefix: String): Int =
+    queueEntries(prefix, this).indexOfFirst { it.key == key }
+
+/** Swipe left to remove: the row slides away over a red strip that only fills the part already
+ * uncovered, so the row's own (transparent) content never sits on top of red. The label stays
+ * put at the row's right edge and the strip just uncovers it, rather than sliding in with it. */
+@Composable
+private fun SwipeToRemove(onRemove: () -> Unit, content: @Composable () -> Unit) {
+    val dismissState = rememberSwipeToDismissBoxState()
+    LaunchedEffect(dismissState.currentValue) {
+        if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart) onRemove()
+    }
+    SwipeToDismissBox(
+        state = dismissState,
+        enableDismissFromStartToEnd = false,
+        backgroundContent = {
+            val revealedPx = -(runCatching { dismissState.requireOffset() }.getOrDefault(0f))
+            if (revealedPx > 0f) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .fillMaxHeight()
+                            .width(with(LocalDensity.current) { revealedPx.toDp() })
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(QueueRemoveRed),
+                        contentAlignment = Alignment.CenterEnd,
+                    ) {
+                        Text(
+                            text = "Убрать",
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            softWrap = false,
+                            modifier = Modifier
+                                // Measured at full width no matter how narrow the strip is, so
+                                // it's never squeezed/re-laid-out; the strip's clip reveals it.
+                                .wrapContentWidth(Alignment.End, unbounded = true)
+                                .padding(end = 18.dp),
+                        )
+                    }
+                }
+            }
+        },
+    ) {
+        content()
     }
 }
 
@@ -1294,14 +1527,15 @@ private fun AddSongsToQueueRow(onClick: () -> Unit, modifier: Modifier = Modifie
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        // Same size/shape as a queue row's cover, same see-through fill as the toggle buttons above.
         Box(
             modifier = Modifier
-                .size(38.dp)
-                .clip(RoundedCornerShape(6.dp))
-                .background(PlayerColors.Surface),
+                .size(52.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(PlayerColors.Surface.copy(alpha = 0.4f)),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(imageVector = Icons.Filled.Add, contentDescription = null, tint = PlayerColors.TextPrimary, modifier = Modifier.size(18.dp))
+            Icon(imageVector = Icons.Filled.Add, contentDescription = null, tint = PlayerColors.TextPrimary, modifier = Modifier.size(22.dp))
         }
         Text(
             text = "Добавить треки в очередь",
@@ -1314,10 +1548,30 @@ private fun AddSongsToQueueRow(onClick: () -> Unit, modifier: Modifier = Modifie
 }
 
 @Composable
-private fun QueueRow(item: Song, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun QueueRow(
+    item: Song,
+    isDragging: Boolean,
+    onClick: () -> Unit,
+    dragHandleModifier: Modifier,
+    modifier: Modifier = Modifier,
+) {
+    val liftFill = PlayerColors.Surface.copy(alpha = 0.55f)
     Row(
         modifier = modifier
             .fillMaxWidth()
+            // A picked-up row gets a card behind it, drawn wider than the row itself so the cover
+            // and the drag handle both get the same breathing room instead of touching its edges.
+            .drawBehind {
+                if (isDragging) {
+                    val inset = 10.dp.toPx()
+                    drawRoundRect(
+                        color = liftFill,
+                        topLeft = Offset(-inset, 0f),
+                        size = androidx.compose.ui.geometry.Size(size.width + inset * 2, size.height),
+                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(14.dp.toPx()),
+                    )
+                }
+            }
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -1340,12 +1594,20 @@ private fun QueueRow(item: Song, onClick: () -> Unit, modifier: Modifier = Modif
             )
             Text(
                 text = item.artist,
-                color = PlayerColors.TextSecondary,
+                color = LocalAdaptiveSecondaryColor.current,
                 fontSize = 13.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
         }
+        Icon(
+            imageVector = Icons.Filled.DragHandle,
+            contentDescription = "Перетащить",
+            tint = LocalAdaptiveSecondaryColor.current,
+            modifier = dragHandleModifier
+                .padding(start = 12.dp, end = 4.dp)
+                .size(22.dp),
+        )
     }
 }
 

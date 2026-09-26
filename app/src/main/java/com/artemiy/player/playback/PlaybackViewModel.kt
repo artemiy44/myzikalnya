@@ -309,6 +309,43 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
         refreshDerivedQueues()
     }
 
+    /**
+     * Moves the upcoming song at [from] to [to] — both positions in the Queue screen's combined
+     * list (manual section first, then "continue playing"). Only within one section: the manual
+     * section's length is how the two are told apart.
+     *
+     * With repeat on, "upcoming" wraps past the end of the timeline back to index 0, so part of it
+     * physically sits *before* the current song. Rather than assuming contiguous indices, the song
+     * is reinserted in the timeline right after whatever should now play just before it — walking
+     * forward from the current song then yields exactly the new order either way.
+     */
+    fun moveInQueue(from: Int, to: Int) {
+        val c = controller ?: return
+        if (from == to) return
+        val upcoming = upcomingIndicesInPlayOrder(c)
+        if (from !in upcoming.indices || to !in upcoming.indices) return
+        val manualCount = manualQueueIds.size.coerceAtMost(upcoming.size)
+        if ((from < manualCount) != (to < manualCount)) return
+
+        val order = upcoming.toMutableList().apply { add(to, removeAt(from)) }
+        val moved = upcoming[from]
+        val predecessor = if (to == 0) c.currentMediaItemIndex else order[to - 1]
+        val predecessorAfterRemoval = if (predecessor > moved) predecessor - 1 else predecessor
+        c.moveMediaItem(moved, predecessorAfterRemoval + 1)
+        if (from < manualCount) manualQueueIds.add(to, manualQueueIds.removeAt(from))
+        refreshDerivedQueues()
+    }
+
+    /** Removes the upcoming song at [position] (same indexing as [moveInQueue]). */
+    fun removeFromQueue(position: Int) {
+        val c = controller ?: return
+        val upcoming = upcomingIndicesInPlayOrder(c)
+        val index = upcoming.getOrNull(position) ?: return
+        if (position < manualQueueIds.size.coerceAtMost(upcoming.size)) manualQueueIds.removeAt(position)
+        c.removeMediaItem(index)
+        refreshDerivedQueues()
+    }
+
     fun playFromQueue(song: Song) {
         val c = controller ?: return
         val index = (0 until c.mediaItemCount).firstOrNull { c.getMediaItemAt(it).mediaId == song.id.toString() } ?: return
