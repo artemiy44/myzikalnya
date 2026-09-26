@@ -729,6 +729,18 @@ private val THIRD_PARTY = listOf(
         files = listOf("tabler-mit.txt"),
     ),
     ThirdPartyComponent(
+        name = "Framework7 Icons",
+        authors = "Vladimir Kharlampidi",
+        license = "MIT",
+        files = listOf("framework7-icons-mit.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Phosphor Icons",
+        authors = "Phosphor Icons",
+        license = "MIT",
+        files = listOf("phosphor-mit.txt"),
+    ),
+    ThirdPartyComponent(
         name = "Reorderable",
         authors = "Calvin Liang",
         license = "Apache License 2.0",

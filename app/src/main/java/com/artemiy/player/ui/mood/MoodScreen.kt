@@ -59,6 +59,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
@@ -85,6 +86,8 @@ fun MoodScreen(onPlayMood: (Mood) -> Unit, genresFor: (Mood) -> List<String>) {
     val ringAlpha = remember { Animatable(0f) }
     val iconAlpha = remember { Animatable(0f) }
     val iconScale = remember { Animatable(0.8f) }
+    // The glyph's own little animation, running for as long as it's on screen.
+    val iconMotion = remember { Animatable(0f) }
     LaunchedEffect(pager.settledPage, pager.isScrollInProgress) {
         if (pager.isScrollInProgress) {
             // A swipe interrupts the intro at once: glyph out, ring and text back. Taking over the
@@ -99,6 +102,7 @@ fun MoodScreen(onPlayMood: (Mood) -> Unit, genresFor: (Mood) -> List<String>) {
         }
         // Only once the page has come fully to rest — a quick series of flings doesn't replay it.
         delay(120)
+        launch { iconMotion.snapTo(0f); iconMotion.animateTo(1f, tween(1450, easing = LinearEasing)) }
         coroutineScope {
             listOf(
                 async { ringAlpha.animateTo(0f, tween(200)) },
@@ -147,6 +151,7 @@ fun MoodScreen(onPlayMood: (Mood) -> Unit, genresFor: (Mood) -> List<String>) {
         MoodIcon(
             mood = MOOD_DISPLAY_ORDER[pager.settledPage],
             glyph = ringColor,
+            motion = { iconMotion.value },
             modifier = Modifier
                 .align(Alignment.Center)
                 .size(120.dp)
