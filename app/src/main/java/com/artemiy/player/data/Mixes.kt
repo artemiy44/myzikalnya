@@ -11,6 +11,9 @@ data class Mix(
     val songs: List<Song>,
     /** Position in the card color palette. */
     val colorIndex: Int,
+    /** What the card's drawing shows: the mix kind, plus its genre / time of day / decade where
+     * it has one — e.g. "favorites", "genre:Rock", "daypart:NIGHT", "decade:1990". */
+    val motif: String = id,
 )
 
 const val MIX_MIN_STAT_DAYS = 3
@@ -149,7 +152,14 @@ fun buildMixes(songs: List<Song>, plays: List<SongEvent>, skips: List<SongEvent>
         val (title, picks) = build() ?: continue
         val distinct = picks.distinctBy { it.id }
         if (distinct.size < MIX_MIN_SONGS) continue
-        mixes += Mix(id = id, title = title, subtitle = artistsLine(distinct), songs = distinct, colorIndex = mixes.size)
+        val motif = when {
+            id.startsWith("genre-") -> "genre:" + topGenres[id.removePrefix("genre-").toInt()]
+            id.startsWith("artist-") -> "artist"
+            id == "daypart" -> "daypart:" + dayPart.name
+            id == "decade" -> "decade:" + title.removeSuffix("-е")
+            else -> id
+        }
+        mixes += Mix(id = id, title = title, subtitle = artistsLine(distinct), songs = distinct, colorIndex = mixes.size, motif = motif)
     }
     return mixes
 }

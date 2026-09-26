@@ -48,6 +48,15 @@ import com.artemiy.player.ui.components.rememberAlbumArtBitmap
 import com.artemiy.player.ui.components.HeroTextShadow
 import com.artemiy.player.ui.components.rememberArrowTint
 import com.artemiy.player.ui.components.CircleIconButton
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import com.artemiy.player.ui.components.BlurredCollageArt
+import com.artemiy.player.ui.components.COLLAGE_HERO_HEIGHT
+import com.artemiy.player.ui.components.rememberBlurredCollage
+import com.artemiy.player.ui.components.PlayPillButton
 import com.artemiy.player.ui.components.rememberCheckFlash
 import com.artemiy.player.ui.components.SongActionsMenuPopup
 import com.artemiy.player.ui.components.songLongPressTrigger
@@ -71,42 +80,17 @@ fun ArtistDetailScreen(
 ) {
     val queuedFlash = rememberCheckFlash()
     var showAddToQueueDialog by remember { mutableStateOf(false) }
-    val heroArts = remember(songs) {
-        val distinct = songs.groupBy { it.album }.values.map { it.first() }
-        if (distinct.isEmpty()) emptyList()
-        else (0 until 4).map { distinct[it % distinct.size] }
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
-        // Thumbnail of the top-left cover, only to judge how bright the art is behind the back arrow.
-        val arrowTint = rememberArrowTint(listOf(heroArts.firstOrNull()?.let { rememberAlbumArtBitmap(it.uri, ART_SIZE_THUMB) }))
+        val collage = rememberBlurredCollage(songs)
         HeroOverArt(
-            topTint = arrowTint,
+            topTint = rememberArrowTint(listOf(collage)),
             onBack = onBack,
-            art = {
-                if (heroArts.isEmpty()) {
-                    Box(modifier = Modifier.fillMaxSize().background(com.artemiy.player.ui.components.placeholderArtBrush()))
-                } else {
-                    // 2×2 collage stretched to fill the whole (taller than wide) header.
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        heroArts.chunked(2).forEach { row ->
-                            Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
-                                row.forEach { song ->
-                                    AlbumArt(
-                                        uri = song.uri,
-                                        size = com.artemiy.player.ui.components.ART_SIZE_FULL,
-                                        modifier = Modifier.weight(1f).fillMaxHeight(),
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            },
+            height = COLLAGE_HERO_HEIGHT,
+            art = { BlurredCollageArt(collage) },
         ) {
             Text(
                 text = artist,
@@ -131,18 +115,7 @@ fun ArtistDetailScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 CircleIconButton(icon = AppIcons.Shuffle, description = "Перемешать") { onShuffleAll(songs) }
-                Row(
-                    modifier = Modifier
-                        .padding(horizontal = 14.dp)
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(PlayerColors.Accent)
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onPlayAll(songs) }
-                        .padding(horizontal = 28.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(imageVector = AppIcons.Play, contentDescription = null, tint = PlayerColors.OnAccent, modifier = Modifier.size(16.dp))
-                    Text(text = "Слушать", color = PlayerColors.OnAccent, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 6.dp))
-                }
+                PlayPillButton(onClick = { onPlayAll(songs) }, modifier = Modifier.padding(horizontal = 14.dp))
                 CircleIconButton(icon = AppIcons.AddToQueue, description = "Добавить в очередь проигрывания", showCheck = queuedFlash.visible) {
                     showAddToQueueDialog = true
                 }
@@ -212,9 +185,9 @@ fun ArtistDetailScreen(
                         .padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    AlbumArt(uri = song.uri, modifier = Modifier.size(42.dp).clip(RoundedCornerShape(7.dp)))
+                    AlbumArt(uri = song.uri, modifier = Modifier.size(52.dp).clip(RoundedCornerShape(10.dp)))
                     Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
-                        Text(text = song.title, color = PlayerColors.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(text = song.title, color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Text(text = song.album.ifBlank { artist }, color = PlayerColors.TextSecondary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     SongActionsMenuPopup(

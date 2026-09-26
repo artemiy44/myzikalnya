@@ -27,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -123,6 +124,7 @@ fun HeroOverArt(
     topTint: Color,
     onBack: () -> Unit,
     art: @Composable BoxScope.() -> Unit,
+    height: Dp = 430.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
@@ -138,7 +140,7 @@ fun HeroOverArt(
         onDispose { statusBarOverride.value = null }
     }
 
-    Box(modifier = Modifier.fillMaxWidth().height(430.dp + statusTop)) {
+    Box(modifier = Modifier.fillMaxWidth().height(height + statusTop)) {
         art()
         val contentHeight = with(density) { contentHeightPx.toDp() }
         // A soft dark scrim under the title and buttons (white text reads on any cover over it)...

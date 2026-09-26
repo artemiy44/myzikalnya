@@ -58,6 +58,19 @@ import com.artemiy.player.data.LibraryViewMode
 import com.artemiy.player.data.PlaylistWithCount
 import com.artemiy.player.data.Song
 import com.artemiy.player.ui.components.AlbumArt
+import com.artemiy.player.ui.components.BlurredCollageArt
+import com.artemiy.player.ui.components.COLLAGE_HERO_HEIGHT
+import com.artemiy.player.ui.components.CircleIconButton
+import com.artemiy.player.ui.components.HeroOverArt
+import com.artemiy.player.ui.components.HeroTextShadow
+import com.artemiy.player.ui.components.PlayPillButton
+import com.artemiy.player.ui.components.rememberArrowTint
+import com.artemiy.player.ui.components.rememberBlurredCollage
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.text.style.TextAlign
 import com.artemiy.player.ui.components.songLongPressTrigger
 import com.artemiy.player.ui.settings.SettingsViewModel
 import com.artemiy.player.ui.theme.PlayerColors
@@ -149,8 +162,8 @@ fun LibraryScreen(
         backStack.add(r)
     }
 
-    // Artist/album pages run their cover art up under the status bar themselves.
-    val edgeToEdge = route is LibraryRoute.ArtistDetail || route is LibraryRoute.AlbumDetail
+    // Artist/album/playlist pages run their header art up under the status bar themselves.
+    val edgeToEdge = route is LibraryRoute.ArtistDetail || route is LibraryRoute.AlbumDetail || route is LibraryRoute.PlaylistDetail
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -183,14 +196,6 @@ fun LibraryScreen(
                                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
                                         showCreatePlaylist = true
                                     },
-                            )
-                        }
-                    }
-                    is LibraryRoute.PlaylistDetail -> {
-                        {
-                            PlaylistMenuButton(
-                                onRename = { showRenamePlaylist = true },
-                                onDelete = { showDeletePlaylist = true },
                             )
                         }
                     }
@@ -470,70 +475,84 @@ fun LibraryScreen(
                         val playlistListState = rememberLazyListState()
                         val playlistGridState = rememberLazyGridState()
                         val removeFromPlaylist: (Song) -> Unit = { song -> playlistsVm.removeSongFromPlaylist(r.playlistId, song.id) }
-                        if (playlistSongs.isEmpty()) {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Text(text = "В плейлисте пока нет треков", color = PlayerColors.TextSecondary)
-                            }
-                        } else {
-                            val filtered = remember(playlistSongs, playlistQuery, playlistSort) {
-                                playlistSongs
-                                    .filter {
-                                        it.title.contains(playlistQuery, ignoreCase = true) ||
-                                            it.artist.contains(playlistQuery, ignoreCase = true)
+                        val filtered = remember(playlistSongs, playlistQuery, playlistSort) {
+                            playlistSongs
+                                .filter {
+                                    it.title.contains(playlistQuery, ignoreCase = true) ||
+                                        it.artist.contains(playlistQuery, ignoreCase = true)
+                                }
+                                .let { list ->
+                                    when (playlistSort) {
+                                        PlaylistSongSort.ORDER -> list
+                                        PlaylistSongSort.TITLE -> list.sortedBy { it.title.lowercase() }
+                                        PlaylistSongSort.ARTIST -> list.sortedBy { it.artist.lowercase() }
+                                        PlaylistSongSort.RECENT -> list.sortedByDescending { it.dateAddedMs }
                                     }
-                                    .let { list ->
-                                        when (playlistSort) {
-                                            PlaylistSongSort.ORDER -> list
-                                            PlaylistSongSort.TITLE -> list.sortedBy { it.title.lowercase() }
-                                            PlaylistSongSort.ARTIST -> list.sortedBy { it.artist.lowercase() }
-                                            PlaylistSongSort.RECENT -> list.sortedByDescending { it.dateAddedMs }
-                                        }
-                                    }
-                            }
-                            Column(modifier = Modifier.fillMaxSize()) {
-                                ListToolbar(
-                                    query = playlistQuery,
-                                    onQueryChange = { playlistQuery = it },
-                                    placeholder = "Поиск в плейлисте",
-                                    sortOptions = PlaylistSongSort.entries,
-                                    sortOptionLabel = { it.label },
-                                    currentSort = playlistSort.label,
-                                    onSortSelect = { playlistSort = it },
-                                    viewMode = playlistViewMode,
-                                    onViewModeCycle = { settingsVm.setViewMode("playlist", LibraryViewMode.valueOf(playlistViewMode.next().name)) },
+                                }
+                        }
+                        val collage = rememberBlurredCollage(playlistSongs)
+                        // Header, then search/sort — all scrolling away together with the songs.
+                        val header: @Composable () -> Unit = {
+                            Column {
+                                PlaylistHero(
+                                    name = r.name,
+                                    songCount = playlistSongs.size,
+                                    collage = collage,
+                                    onBack = { backStack.removeAt(backStack.lastIndex) },
+                                    onPlay = { if (filtered.isNotEmpty()) onSongClick(filtered.first(), filtered) },
+                                    onShuffle = { if (filtered.isNotEmpty()) filtered.shuffled().let { onSongClick(it.first(), it) } },
+                                    onRename = { showRenamePlaylist = true },
+                                    onDelete = { showDeletePlaylist = true },
                                 )
-                                if (filtered.isNotEmpty()) {
-                                    PlayShuffleRow(
-                                        onPlay = { onSongClick(filtered.first(), filtered) },
-                                        onShuffle = { filtered.shuffled().let { onSongClick(it.first(), it) } },
+                                if (playlistSongs.isEmpty()) {
+                                    Text(
+                                        text = "В плейлисте пока нет треков",
+                                        color = PlayerColors.TextSecondary,
+                                        fontSize = 14.sp,
+                                        modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+                                        textAlign = TextAlign.Center,
                                     )
-                                }
-                                when (playlistViewMode) {
-                                    ViewMode.LIST -> SongList(
-                                        songs = filtered,
-                                        state = playlistListState,
-                                        onSongClick = { song -> onSongClick(song, filtered) },
-                                        onPlayNext = onPlayNext,
-                                        onAddToQueue = onAddToQueue,
-                                        onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
-                                        onGoToAlbum = onGoToAlbum,
-                                        onGoToArtist = onGoToArtist,
-                                        onRemoveFromPlaylist = removeFromPlaylist,
-                                    )
-                                    ViewMode.GRID_2, ViewMode.GRID_3 -> SongsGrid(
-                                        songs = filtered,
-                                        columns = if (playlistViewMode == ViewMode.GRID_2) 2 else 3,
-                                        state = playlistGridState,
-                                        onSongClick = { song -> onSongClick(song, filtered) },
-                                        onPlayNext = onPlayNext,
-                                        onAddToQueue = onAddToQueue,
-                                        onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
-                                        onGoToAlbum = onGoToAlbum,
-                                        onGoToArtist = onGoToArtist,
-                                        onRemoveFromPlaylist = removeFromPlaylist,
+                                } else {
+                                    ListToolbar(
+                                        query = playlistQuery,
+                                        onQueryChange = { playlistQuery = it },
+                                        placeholder = "Поиск в плейлисте",
+                                        sortOptions = PlaylistSongSort.entries,
+                                        sortOptionLabel = { it.label },
+                                        currentSort = playlistSort.label,
+                                        onSortSelect = { playlistSort = it },
+                                        viewMode = playlistViewMode,
+                                        onViewModeCycle = { settingsVm.setViewMode("playlist", LibraryViewMode.valueOf(playlistViewMode.next().name)) },
                                     )
                                 }
                             }
+                        }
+                        when (playlistViewMode) {
+                            ViewMode.LIST -> SongList(
+                                songs = filtered,
+                                state = playlistListState,
+                                onSongClick = { song -> onSongClick(song, filtered) },
+                                onPlayNext = onPlayNext,
+                                onAddToQueue = onAddToQueue,
+                                onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
+                                onGoToAlbum = onGoToAlbum,
+                                onGoToArtist = onGoToArtist,
+                                onRemoveFromPlaylist = removeFromPlaylist,
+                                header = header,
+                            )
+                            ViewMode.GRID_2, ViewMode.GRID_3 -> SongsGrid(
+                                songs = filtered,
+                                columns = if (playlistViewMode == ViewMode.GRID_2) 2 else 3,
+                                state = playlistGridState,
+                                onSongClick = { song -> onSongClick(song, filtered) },
+                                onPlayNext = onPlayNext,
+                                onAddToQueue = onAddToQueue,
+                                onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
+                                onGoToAlbum = onGoToAlbum,
+                                onGoToArtist = onGoToArtist,
+                                onRemoveFromPlaylist = removeFromPlaylist,
+                                header = header,
+                            )
                         }
                     }
                 }
@@ -584,30 +603,77 @@ fun LibraryScreen(
     }
 }
 
+/** A playlist's header — same build as an artist's: its songs' covers as a blurred collage, name
+ * and song count over it, then shuffle / play / playlist actions. */
 @Composable
-private fun PlaylistMenuButton(onRename: () -> Unit, onDelete: () -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    Box {
-        Icon(
-            imageVector = AppIcons.MoreVertical,
-            contentDescription = "Действия с плейлистом",
-            tint = PlayerColors.TextPrimary,
-            modifier = Modifier
-                .size(24.dp)
-                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { expanded = true },
+private fun PlaylistHero(
+    name: String,
+    songCount: Int,
+    collage: android.graphics.Bitmap?,
+    onBack: () -> Unit,
+    onPlay: () -> Unit,
+    onShuffle: () -> Unit,
+    onRename: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    var menuExpanded by remember { mutableStateOf(false) }
+    HeroOverArt(
+        topTint = rememberArrowTint(listOf(collage)),
+        onBack = onBack,
+        height = COLLAGE_HERO_HEIGHT,
+        art = { BlurredCollageArt(collage) },
+    ) {
+        Text(
+            text = name,
+            color = Color.White,
+            fontSize = 30.sp,
+            fontWeight = FontWeight.ExtraBold,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            style = TextStyle(shadow = HeroTextShadow),
         )
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(
-                text = { Text("Переименовать") },
-                leadingIcon = { Icon(AppIcons.Edit, contentDescription = null) },
-                onClick = { expanded = false; onRename() },
-            )
-            DropdownMenuItem(
-                text = { Text("Удалить плейлист") },
-                leadingIcon = { Icon(AppIcons.Delete, contentDescription = null) },
-                onClick = { expanded = false; onDelete() },
-            )
+        Text(
+            text = "$songCount ${songsWord(songCount)}",
+            color = Color.White.copy(alpha = 0.85f),
+            fontSize = 13.sp,
+            style = TextStyle(shadow = HeroTextShadow),
+            modifier = Modifier.padding(top = 4.dp),
+        )
+        Row(
+            modifier = Modifier.padding(top = 18.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            CircleIconButton(icon = AppIcons.Shuffle, description = "Перемешать", onClick = onShuffle)
+            PlayPillButton(onClick = onPlay, modifier = Modifier.padding(horizontal = 14.dp))
+            Box {
+                CircleIconButton(icon = AppIcons.More, description = "Действия с плейлистом") { menuExpanded = true }
+                DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                    DropdownMenuItem(
+                        text = { Text("Переименовать") },
+                        leadingIcon = { Icon(AppIcons.Edit, contentDescription = null) },
+                        onClick = { menuExpanded = false; onRename() },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Удалить плейлист") },
+                        leadingIcon = { Icon(AppIcons.Delete, contentDescription = null) },
+                        onClick = { menuExpanded = false; onDelete() },
+                    )
+                }
+            }
         }
+    }
+}
+
+private fun songsWord(n: Int): String {
+    val mod100 = n % 100
+    val mod10 = n % 10
+    return when {
+        mod100 in 11..14 -> "песен"
+        mod10 == 1 -> "песня"
+        mod10 in 2..4 -> "песни"
+        else -> "песен"
     }
 }
 
@@ -1051,14 +1117,26 @@ internal fun SongsGrid(
     onGoToAlbum: (Song) -> Unit,
     onGoToArtist: (Song) -> Unit,
     onRemoveFromPlaylist: ((Song) -> Unit)? = null,
+    header: (@Composable () -> Unit)? = null,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
         state = state,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 4.dp),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = if (header != null) 0.dp else 4.dp, bottom = 4.dp),
+        modifier = Modifier.fillMaxSize(),
     ) {
+        if (header != null) {
+            // Full width, reaching past the grid's side padding — the header draws edge to edge.
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Box(modifier = Modifier.layout { measurable, constraints ->
+                    val extra = 40.dp.roundToPx()
+                    val placeable = measurable.measure(constraints.copy(minWidth = constraints.maxWidth + extra, maxWidth = constraints.maxWidth + extra))
+                    layout(constraints.maxWidth, placeable.height) { placeable.place(-extra / 2, 0) }
+                }) { header() }
+            }
+        }
         gridItems(songs, key = { it.id }) { song ->
             var menuExpanded by remember { mutableStateOf(false) }
             Column(
@@ -1119,8 +1197,10 @@ internal fun SongList(
     onGoToAlbum: (Song) -> Unit,
     onGoToArtist: (Song) -> Unit,
     onRemoveFromPlaylist: ((Song) -> Unit)? = null,
+    header: (@Composable () -> Unit)? = null,
 ) {
     LazyColumn(modifier = Modifier.fillMaxWidth(), state = state) {
+        if (header != null) item(key = "header") { header() }
         items(songs, key = { it.id }) { song ->
             Row(
                 modifier = Modifier

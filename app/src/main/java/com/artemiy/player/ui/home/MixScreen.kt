@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,9 +20,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,6 +48,7 @@ import com.artemiy.player.data.Mix
 import com.artemiy.player.data.Song
 import com.artemiy.player.ui.components.AlbumArt
 import com.artemiy.player.ui.components.CircleIconButton
+import com.artemiy.player.ui.components.PlayPillButton
 import com.artemiy.player.ui.components.rememberCheckFlash
 import com.artemiy.player.ui.components.HeroOverArt
 import com.artemiy.player.ui.components.HeroTextShadow
@@ -55,26 +67,50 @@ fun mixBrush(colorIndex: Int): Brush {
 /** The Home card for one mix: tall, colored, title up top, its artists at the bottom. */
 @Composable
 fun MixCard(mix: Mix, onClick: () -> Unit) {
+    val textMeasurer = rememberTextMeasurer()
     Column(
         modifier = Modifier
             .width(200.dp)
             .height(250.dp)
             .clip(RoundedCornerShape(18.dp))
             .background(mixBrush(mix.colorIndex))
+            .drawBehind { drawMixMotif(mix.motif, textMeasurer) }
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
             .padding(16.dp),
     ) {
         Text(text = "Микс", color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-        Text(
-            text = mix.title,
-            color = Color.White,
-            fontSize = 27.sp,
-            lineHeight = 30.sp,
-            fontWeight = FontWeight.ExtraBold,
-            maxLines = 3,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = 2.dp),
-        )
+        BoxWithConstraints(modifier = Modifier.padding(top = 2.dp)) {
+            // Shrinks from 27sp only as far as needed for the longest word to fit on one line, so
+            // "опробованное" isn't chopped up mid-word.
+            val density = LocalDensity.current
+            val baseStyle = LocalTextStyle.current
+            val widthPx = constraints.maxWidth
+            val fontSize = remember(mix.title, widthPx) {
+                val longest = mix.title.split(' ').maxByOrNull { it.length }.orEmpty()
+                var size = 27f
+                while (size > 16f) {
+                    // Measured with the same style the Text below ends up drawing with (the theme's
+                    // default text style carries its own letter spacing).
+                    val width = textMeasurer.measure(
+                        longest,
+                        baseStyle.merge(TextStyle(fontSize = size.sp, fontWeight = FontWeight.ExtraBold)),
+                        density = density,
+                    ).size.width
+                    if (width <= widthPx) break
+                    size -= 1f
+                }
+                size
+            }
+            Text(
+                text = mix.title,
+                color = Color.White,
+                fontSize = fontSize.sp,
+                lineHeight = (fontSize * 1.11f).sp,
+                fontWeight = FontWeight.ExtraBold,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
         Box(modifier = Modifier.weight(1f))
         Text(
             text = mix.subtitle,
@@ -105,7 +141,23 @@ fun MixScreen(
         HeroOverArt(
             topTint = Color.White,
             onBack = onBack,
-            art = { Box(modifier = Modifier.fillMaxSize().background(mixBrush(mix.colorIndex))) },
+            art = {
+                val textMeasurer = rememberTextMeasurer()
+                // The card's picture, big, drifting slowly.
+                val drift = rememberInfiniteTransition(label = "mixDrift")
+                val phase by drift.animateFloat(
+                    initialValue = 0f,
+                    targetValue = (2 * Math.PI).toFloat(),
+                    animationSpec = infiniteRepeatable(tween(18_000, easing = LinearEasing)),
+                    label = "mixDriftPhase",
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(mixBrush(mix.colorIndex))
+                        .drawBehind { drawMixMotifDrifting(mix.motif, textMeasurer, phase) },
+                )
+            },
         ) {
             Text(
                 text = mix.title,
@@ -132,20 +184,7 @@ fun MixScreen(
                 CircleIconButton(icon = AppIcons.Shuffle, description = "Перемешать") {
                     mix.songs.shuffled().let { onPlay(it.first(), it) }
                 }
-                Row(
-                    modifier = Modifier
-                        .padding(horizontal = 14.dp)
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(PlayerColors.Accent)
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
-                            onPlay(mix.songs.first(), mix.songs)
-                        }
-                        .padding(horizontal = 28.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(imageVector = AppIcons.Play, contentDescription = null, tint = PlayerColors.OnAccent, modifier = Modifier.size(16.dp))
-                    Text(text = "Слушать", color = PlayerColors.OnAccent, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 6.dp))
-                }
+                PlayPillButton(onClick = { onPlay(mix.songs.first(), mix.songs) }, modifier = Modifier.padding(horizontal = 14.dp))
                 CircleIconButton(icon = AppIcons.Add, description = "Сохранить в мои плейлисты", showCheck = savedFlash.visible) {
                     onSaveAsPlaylist(mix)
                     savedFlash.flash()
@@ -164,7 +203,7 @@ fun MixScreen(
                 ) {
                     AlbumArt(uri = song.uri, modifier = Modifier.size(52.dp).clip(RoundedCornerShape(10.dp)))
                     Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
-                        Text(text = song.title, color = PlayerColors.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(text = song.title, color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Text(text = song.artist, color = PlayerColors.TextSecondary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     SongActionsMenu(
