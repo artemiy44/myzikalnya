@@ -45,6 +45,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     var liveBlurIntensity by mutableStateOf(LiveBlurIntensity.NORMAL)
         private set
 
+    var lyricsRomanization by mutableStateOf(true)
+        private set
+
     private var artistViewMode by mutableStateOf(LibraryViewMode.LIST)
     private var albumViewMode by mutableStateOf(LibraryViewMode.GRID_2)
     private var songViewMode by mutableStateOf(LibraryViewMode.GRID_2)
@@ -67,6 +70,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             repository.liveBlurIntensity.collect { liveBlurIntensity = it }
+        }
+        viewModelScope.launch {
+            repository.lyricsRomanization.collect { lyricsRomanization = it }
         }
         viewModelScope.launch {
             repository.viewMode("artists", LibraryViewMode.LIST).collect { artistViewMode = it }
@@ -108,6 +114,11 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     fun updateLiveBlurIntensity(intensity: LiveBlurIntensity) {
         liveBlurIntensity = intensity
         viewModelScope.launch { repository.setLiveBlurIntensity(intensity) }
+    }
+
+    fun toggleLyricsRomanization() {
+        lyricsRomanization = !lyricsRomanization
+        viewModelScope.launch { repository.setLyricsRomanization(lyricsRomanization) }
     }
 
     fun loadAvailableScanFolders() {

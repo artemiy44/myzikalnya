@@ -46,6 +46,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -56,6 +57,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.filled.AllInclusive
 import androidx.compose.material.icons.filled.Cast
 import androidx.compose.material.icons.filled.Check
@@ -101,6 +103,8 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -110,6 +114,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.LastBaseline
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
@@ -122,6 +127,9 @@ import com.artemiy.player.data.LiveBlurIntensity
 import com.artemiy.player.data.NowPlayingBackgroundMode
 import com.artemiy.player.data.Song
 import com.artemiy.player.lyrics.LyricLine
+import com.artemiy.player.lyrics.LyricVoice
+import com.artemiy.player.lyrics.RubySegment
+import com.artemiy.player.lyrics.hasRomanization
 import com.artemiy.player.lyrics.ParsedLyrics
 import com.artemiy.player.ui.components.ART_SIZE_FULL
 import com.artemiy.player.ui.components.ART_SIZE_THUMB
@@ -179,6 +187,8 @@ fun NowPlayingScreen(
     onGoToArtist: (Song) -> Unit,
     nowPlayingBackgroundMode: NowPlayingBackgroundMode = NowPlayingBackgroundMode.LIVE_BLUR,
     liveBlurIntensity: LiveBlurIntensity = LiveBlurIntensity.NORMAL,
+    lyricsRomanization: Boolean = true,
+    onToggleLyricsRomanization: () -> Unit = {},
 ) {
     var centerMode by remember { mutableStateOf(CenterMode.Art) }
     var controlsVisible by remember { mutableStateOf(true) }
@@ -366,9 +376,13 @@ fun NowPlayingScreen(
                             anchorTopPx = headerHeightPx,
                             anchorBottomPx = if (controlsVisible) controlsHeightPx else 0,
                             onLineClick = onSeek,
+                            showRomanization = lyricsRomanization,
+                            // Extra FADE_SPAN at both ends: otherwise the first/last lines can't
+                            // scroll out of the fade zone (nothing above/below them to scroll)
+                            // and stay stuck half-faded, reading as gray.
                             contentPadding = PaddingValues(
-                                top = with(density) { headerHeightPx.toDp() } + 8.dp,
-                                bottom = with(density) { controlsHeightPx.toDp() } + 24.dp,
+                                top = with(density) { headerHeightPx.toDp() } + FADE_SPAN + 8.dp,
+                                bottom = with(density) { controlsHeightPx.toDp() } + FADE_SPAN + 8.dp,
                             ),
                         )
                         if (!controlsVisible) {
@@ -456,7 +470,28 @@ fun NowPlayingScreen(
                             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {}
                             .padding(top = 10.dp),
                     ) {
-                        NowPlayingMiniHeader(song = song, onCollapse = { centerMode = CenterMode.Art }, onGoToAlbum = onGoToAlbum, onGoToArtist = onGoToArtist)
+                        NowPlayingMiniHeader(
+                            song = song,
+                            onCollapse = { centerMode = CenterMode.Art },
+                            onGoToAlbum = onGoToAlbum,
+                            onGoToArtist = onGoToArtist,
+                            trailing = {
+                                when {
+                                    centerMode == CenterMode.Lyrics && lyrics?.hasRomanization() == true -> RomanizationToggle(
+                                        enabled = lyricsRomanization,
+                                        onToggle = onToggleLyricsRomanization,
+                                    )
+                                    centerMode == CenterMode.Queue && song != null -> CurrentSongMenuButton(
+                                        song = song,
+                                        onPlayNext = onPlayNext,
+                                        onAddToQueue = onAddToQueue,
+                                        onAddToPlaylist = onAddToPlaylist,
+                                        onGoToAlbum = onGoToAlbum,
+                                        onGoToArtist = onGoToArtist,
+                                    )
+                                }
+                            },
+                        )
                     }
                 }
 
@@ -518,30 +553,14 @@ fun NowPlayingScreen(
                                 )
                             }
                             if (song != null) {
-                                var menuExpanded by remember { mutableStateOf(false) }
-                                Box(modifier = Modifier.padding(start = 12.dp)) {
-                                    Icon(
-                                        imageVector = Icons.Filled.MoreVert,
-                                        contentDescription = "Действия с треком",
-                                        tint = PlayerColors.TextPrimary,
-                                        modifier = Modifier
-                                            .size(24.dp)
-                                            .clickable(
-                                                interactionSource = remember { MutableInteractionSource() },
-                                                indication = null,
-                                            ) { menuExpanded = true },
-                                    )
-                                    SongActionsMenuPopup(
-                                        song = song,
-                                        expanded = menuExpanded,
-                                        onDismiss = { menuExpanded = false },
-                                        onPlayNext = onPlayNext,
-                                        onAddToQueue = onAddToQueue,
-                                        onAddToPlaylist = onAddToPlaylist,
-                                        onGoToAlbum = onGoToAlbum,
-                                        onGoToArtist = onGoToArtist,
-                                    )
-                                }
+                                CurrentSongMenuButton(
+                                    song = song,
+                                    onPlayNext = onPlayNext,
+                                    onAddToQueue = onAddToQueue,
+                                    onAddToPlaylist = onAddToPlaylist,
+                                    onGoToAlbum = onGoToAlbum,
+                                    onGoToArtist = onGoToArtist,
+                                )
                             }
                         }
                     }
@@ -993,6 +1012,7 @@ private fun LyricsView(
     anchorTopPx: Int,
     anchorBottomPx: Int,
     onLineClick: (timeMs: Long) -> Unit,
+    showRomanization: Boolean,
     contentPadding: PaddingValues = PaddingValues(top = 16.dp, bottom = 220.dp),
 ) {
     // The controller only reports a fresh position every ~100ms, which is far too coarse for a
@@ -1019,18 +1039,23 @@ private fun LyricsView(
             )
         }
 
-        is ParsedLyrics.Unsynced -> LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = contentPadding,
-        ) {
-            item {
-                Text(
-                    text = lyrics.text,
-                    color = PlayerColors.TextPrimary,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    lineHeight = 24.sp,
-                )
+        is ParsedLyrics.Unsynced -> {
+            // One list item per line (not one giant text block) so fadeInList() can fade each
+            // line out under the header/controls like synced lyrics do.
+            val listState = rememberLazyListState()
+            val textLines = remember(lyrics.text) { lyrics.text.lines() }
+            val rubyLines = lyrics.rubyLines?.takeIf { showRomanization }
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = contentPadding,
+            ) {
+                itemsIndexed(textLines) { index, textLine ->
+                    val ruby = rubyLines?.getOrNull(index)
+                    Box(modifier = Modifier.fillMaxWidth().fadeInList(listState, index, topFadePx, bottomFadePx)) {
+                        if (ruby != null) UnsyncedRubyLine(ruby) else UnsyncedLine(textLine)
+                    }
+                }
             }
         }
 
@@ -1084,53 +1109,53 @@ private fun LyricsView(
                 itemsIndexed(lyrics.lines) { index, line ->
                     val active = index == activeIndex
                     val alpha by animateFloatAsState(if (active) 1f else 0.35f, label = "lineAlpha")
-                    val fontSize by animateFloatAsState(if (active) 31f else 28f, label = "lineSize")
+                    // Every line is laid out at the sung size and inactive ones are only shrunk
+                    // visually, so a line wraps the same way whether it's being sung or not —
+                    // re-laying it out at a bigger font made words jump to the next row mid-song.
+                    val scale by animateFloatAsState(if (active) 1f else INACTIVE_LYRIC_SCALE, label = "lineScale")
                     Column(
                         modifier = Modifier
+                            .fillMaxWidth()
                             .fadeInList(listState, index, topFadePx, bottomFadePx)
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null,
                             ) { onLineClick(line.timeMs) },
                     ) {
-                        if (line.words != null && active) {
-                            // The glow pass is the exact same word-by-word composable, just
-                            // recolored/blurred, so it lines up pixel-for-pixel with the crisp text
-                            // on top and sweeps forward in lockstep instead of glowing ahead of
-                            // what's been sung.
-                            Box {
-                                WordSyncedLine(
-                                    line = line,
-                                    positionMs = smoothPositionMs,
-                                    alpha = alpha,
-                                    fontSize = fontSize.sp,
-                                    nextLineStartMs = lyrics.lines.getOrNull(index + 1)?.timeMs,
-                                    glow = true,
-                                )
-                                WordSyncedLine(
-                                    line = line,
-                                    positionMs = smoothPositionMs,
-                                    alpha = alpha,
-                                    fontSize = fontSize.sp,
-                                    nextLineStartMs = lyrics.lines.getOrNull(index + 1)?.timeMs,
-                                )
-                            }
-                        } else if (active) {
-                            // Plain LRC has no per-word timing, so the whole active line glows at once.
-                            Box {
-                                PlainLyricLine(text = line.text, alpha = alpha, fontSize = fontSize, glow = true)
-                                PlainLyricLine(text = line.text, alpha = alpha, fontSize = fontSize)
-                            }
-                        } else {
-                            PlainLyricLine(text = line.text, alpha = alpha, fontSize = fontSize)
-                        }
+                        val nextLineStartMs = lyrics.lines.getOrNull(index + 1)?.timeMs
+                        SungLine(
+                            line = line,
+                            active = active,
+                            alpha = alpha,
+                            scale = scale,
+                            positionMs = smoothPositionMs,
+                            nextLineStartMs = nextLineStartMs,
+                            showRomanization = showRomanization,
+                        )
                         line.secondary.forEach { secondary ->
-                            SecondaryLyricLine(
-                                line = secondary,
-                                positionMs = smoothPositionMs,
-                                alpha = alpha,
-                                fontSize = (fontSize * 0.62f).sp,
-                            )
+                            if (secondary.voice != null && secondary.voice != line.voice) {
+                                // The other singer, at the same moment: a full line on their side.
+                                SungLine(
+                                    line = secondary,
+                                    active = active,
+                                    alpha = alpha,
+                                    scale = scale,
+                                    positionMs = smoothPositionMs,
+                                    nextLineStartMs = nextLineStartMs,
+                                    showRomanization = showRomanization,
+                                )
+                            } else {
+                                val alignEnd = line.voice == LyricVoice.V2
+                                Box(modifier = Modifier.lyricScale(scale, alignEnd)) {
+                                    SecondaryLyricLine(
+                                        line = secondary,
+                                        positionMs = smoothPositionMs,
+                                        alpha = alpha,
+                                        fontSize = (LYRIC_SIZE * 0.62f).sp,
+                                        alignEnd = alignEnd,
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -1139,21 +1164,216 @@ private fun LyricsView(
     }
 }
 
+/** Font size every synced lyric line is laid out at (the size of the line being sung). */
+private const val LYRIC_SIZE = 31f
+
+/** Lines not being sung are drawn at 28/31 of that, by scaling — see the item in [LyricsView]. */
+private const val INACTIVE_LYRIC_SCALE = 28f / 31f
+
+/** Visual-only scale, anchored to the side the line is aligned to so it shrinks toward it. */
+private fun Modifier.lyricScale(scale: Float, alignEnd: Boolean): Modifier = graphicsLayer {
+    scaleX = scale
+    scaleY = scale
+    transformOrigin = androidx.compose.ui.graphics.TransformOrigin(if (alignEnd) 1f else 0f, 0.5f)
+}
+
 /**
- * A translation or second-singer (v1/v2) line sharing its parent's timestamp — rendered smaller
- * and dimmer underneath, as a comment on the main line rather than a competing one.
+ * One sung line: the line itself (karaoke sweep + glow while active; with romanization on, each
+ * word gets its reading printed right above it) and its background vocals (smaller, dimmer,
+ * below, with their own sweep). A `v2` line sits on the right, everything else on the left.
  */
 @Composable
-private fun SecondaryLyricLine(line: LyricLine, positionMs: Long, alpha: Float, fontSize: androidx.compose.ui.unit.TextUnit) {
+private fun SungLine(
+    line: LyricLine,
+    active: Boolean,
+    alpha: Float,
+    scale: Float,
+    positionMs: Long,
+    nextLineStartMs: Long?,
+    showRomanization: Boolean,
+) = Column(modifier = Modifier.fillMaxWidth().lyricScale(scale, line.voice == LyricVoice.V2)) {
+    val fontSize = LYRIC_SIZE
+    val alignEnd = line.voice == LyricVoice.V2
+    val background = line.background
+    val bottomPadding = if (background != null) 2.dp else 8.dp
+    val readings = line.wordReadings?.takeIf { showRomanization }
+    val ruby = line.ruby?.takeIf { showRomanization }
+    when {
+        line.words != null -> {
+            // Word-synced lines keep the same per-word layout whether sung or not (only the
+            // sweep is off), so their words wrap identically in both states.
+            if (active) {
+                // The glow pass is the exact same word-by-word composable, just recolored/blurred,
+                // so it lines up pixel-for-pixel with the crisp text on top and sweeps forward in
+                // lockstep instead of glowing ahead of what's been sung.
+                Box {
+                    WordSyncedLine(line, positionMs, alpha, fontSize.sp, nextLineStartMs, alignEnd, 8.dp, bottomPadding, readings = readings, glow = true)
+                    WordSyncedLine(line, positionMs, alpha, fontSize.sp, nextLineStartMs, alignEnd, 8.dp, bottomPadding, readings = readings)
+                }
+            } else {
+                WordSyncedLine(line, positionMs, alpha, fontSize.sp, nextLineStartMs, alignEnd, 8.dp, bottomPadding, readings = readings, sweep = false)
+            }
+        }
+        ruby != null -> if (active) {
+            Box {
+                RubyLine(ruby, alpha, fontSize, alignEnd, bottomPadding, glow = true)
+                RubyLine(ruby, alpha, fontSize, alignEnd, bottomPadding)
+            }
+        } else {
+            RubyLine(ruby, alpha, fontSize, alignEnd, bottomPadding)
+        }
+        // Plain LRC has no per-word timing, so the whole active line glows at once.
+        active -> Box {
+            PlainLyricLine(line.text, alpha, fontSize, alignEnd, 8.dp, bottomPadding, glow = true)
+            PlainLyricLine(line.text, alpha, fontSize, alignEnd, 8.dp, bottomPadding)
+        }
+        else -> PlainLyricLine(line.text, alpha, fontSize, alignEnd, 8.dp, bottomPadding)
+    }
+    if (background != null) {
+        val mainLineEndMs = line.endTimeMs ?: line.words?.last()?.timeMs?.plus(400L) ?: nextLineStartMs ?: line.timeMs
+        BackgroundVocals(background, active, alpha, fontSize, positionMs, mainLineEndMs, alignEnd)
+    }
+}
+
+/** Background vocals: a small, dimmer line under the main one that grows a little from the
+ * moment it starts until both it and the main line above it are done, then settles back. */
+@Composable
+private fun BackgroundVocals(
+    background: LyricLine,
+    lineActive: Boolean,
+    alpha: Float,
+    fontSize: Float,
+    positionMs: Long,
+    mainLineEndMs: Long,
+    alignEnd: Boolean,
+) {
+    val words = background.words
+    val startMs = words?.first()?.timeMs ?: background.timeMs
+    val endMs = maxOf(background.endTimeMs ?: (words?.last()?.timeMs?.plus(400L)) ?: startMs, mainLineEndMs)
+    val singing = positionMs in startMs..endMs
+    // Same trick as whole lines: laid out at the grown size, shrunk visually when not singing.
+    val baseSize = fontSize * 0.62f
+    val grownSize = baseSize + 3f
+    val scale by animateFloatAsState(if (singing) 1f else baseSize / grownSize, label = "backgroundScale")
+    val backgroundAlpha = alpha * 0.85f
+    Box(modifier = Modifier.lyricScale(scale, alignEnd)) {
+        if (words != null) {
+            WordSyncedLine(background, positionMs, backgroundAlpha, grownSize.sp, null, alignEnd, 6.dp, 8.dp, sweep = lineActive)
+        } else {
+            PlainLyricLine(background.text, backgroundAlpha, grownSize, alignEnd, 6.dp, 8.dp)
+        }
+    }
+}
+
+@Composable
+private fun UnsyncedLine(text: String) {
+    Text(
+        text = text,
+        color = PlayerColors.TextPrimary,
+        fontSize = 16.sp,
+        fontWeight = FontWeight.SemiBold,
+        lineHeight = 24.sp,
+    )
+}
+
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun UnsyncedRubyLine(segments: List<RubySegment>) {
+    FlowRow(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
+        segments.forEach { segment ->
+            Column(
+                modifier = Modifier
+                    .alignBy(LastBaseline)
+                    .padding(end = if (segment.reading != null && !segment.text.last().isWhitespace()) 3.dp else 0.dp),
+            ) {
+                Text(
+                    text = segment.reading ?: " ",
+                    color = if (segment.reading == null) Color.Transparent else PlayerColors.TextPrimary.copy(alpha = 0.7f),
+                    fontSize = 11.sp,
+                    lineHeight = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    softWrap = false,
+                )
+                UnsyncedLine(segment.text)
+            }
+        }
+    }
+}
+
+/** Size of a reading printed above its word, relative to the lyric's own font size. */
+private const val READING_SCALE = 0.42f
+
+@Composable
+private fun ReadingText(reading: String?, fontSize: Float, glow: Boolean) {
+    // Words without a reading still reserve the reading row, so every word in a row lines up.
+    Text(
+        text = reading ?: " ",
+        color = if (glow || reading == null) Color.Transparent else PlayerColors.TextPrimary.copy(alpha = 0.8f),
+        fontSize = (fontSize * READING_SCALE).sp,
+        lineHeight = (fontSize * READING_SCALE * 1.2f).sp,
+        fontWeight = FontWeight.SemiBold,
+        maxLines = 1,
+        softWrap = false,
+    )
+}
+
+/** A romanized line without word timing: each word-sized piece with its reading above it. */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun RubyLine(
+    segments: List<RubySegment>,
+    alpha: Float,
+    fontSize: Float,
+    alignEnd: Boolean,
+    bottomPadding: Dp,
+    glow: Boolean = false,
+) {
+    val color = if (glow) PlayerColors.TextPrimary.copy(alpha = LYRIC_GLOW_ALPHA) else PlayerColors.TextPrimary
+    FlowRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .alpha(alpha)
+            .padding(top = 8.dp, bottom = bottomPadding)
+            .then(if (glow) Modifier.blur(LYRIC_GLOW_BLUR, BlurredEdgeTreatment.Unbounded) else Modifier),
+        horizontalArrangement = if (alignEnd) Arrangement.End else Arrangement.Start,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        segments.forEachIndexed { index, segment ->
+            val text = if (index == segments.lastIndex) segment.text.trimEnd() else segment.text
+            Column(
+                modifier = Modifier
+                    .alignBy(LastBaseline)
+                    .padding(end = if (segment.reading != null && !segment.text.last().isWhitespace()) 4.dp else 0.dp),
+            ) {
+                ReadingText(segment.reading, fontSize, glow)
+                Text(text = text, color = color, fontSize = fontSize.sp, lineHeight = fontSize.sp * 1.2f, fontWeight = FontWeight.ExtraBold)
+            }
+        }
+    }
+}
+
+/** A translation line sharing its parent's timestamp — smaller and dimmer underneath, as a
+ * comment on the main line rather than a competing one. */
+@Composable
+private fun SecondaryLyricLine(
+    line: LyricLine,
+    positionMs: Long,
+    alpha: Float,
+    fontSize: androidx.compose.ui.unit.TextUnit,
+    alignEnd: Boolean,
+) {
     if (line.words != null) {
-        WordSyncedLine(line = line, positionMs = positionMs, alpha = alpha, fontSize = fontSize, nextLineStartMs = null)
+        WordSyncedLine(line, positionMs, alpha, fontSize, null, alignEnd, 8.dp, 8.dp)
     } else {
         Text(
             text = line.text,
             color = LocalAdaptiveSecondaryColor.current,
             fontSize = fontSize,
             fontWeight = FontWeight.SemiBold,
+            textAlign = if (alignEnd) TextAlign.End else TextAlign.Start,
             modifier = Modifier
+                .fillMaxWidth()
                 .alpha(alpha)
                 .padding(bottom = 6.dp),
         )
@@ -1165,16 +1385,26 @@ private val LYRIC_GLOW_BLUR = 18.dp
 private const val LYRIC_GLOW_ALPHA = 0.75f
 
 @Composable
-private fun PlainLyricLine(text: String, alpha: Float, fontSize: Float, glow: Boolean = false) {
+private fun PlainLyricLine(
+    text: String,
+    alpha: Float,
+    fontSize: Float,
+    alignEnd: Boolean,
+    topPadding: Dp,
+    bottomPadding: Dp,
+    glow: Boolean = false,
+) {
     Text(
         text = text,
         color = if (glow) PlayerColors.TextPrimary.copy(alpha = LYRIC_GLOW_ALPHA) else PlayerColors.TextPrimary,
         fontSize = fontSize.sp,
         lineHeight = fontSize.sp * 1.3f,
         fontWeight = FontWeight.ExtraBold,
+        textAlign = if (alignEnd) TextAlign.End else TextAlign.Start,
         modifier = Modifier
+            .fillMaxWidth()
             .alpha(alpha)
-            .padding(vertical = 8.dp)
+            .padding(top = topPadding, bottom = bottomPadding)
             .then(if (glow) Modifier.blur(LYRIC_GLOW_BLUR, BlurredEdgeTreatment.Unbounded) else Modifier),
     )
 }
@@ -1184,6 +1414,9 @@ private fun PlainLyricLine(text: String, alpha: Float, fontSize: Float, glow: Bo
  * word from dim to bright the instant its timestamp hits, the *currently singing* word sweeps
  * from bright to dim left-to-right as playback moves through its time window, so the highlight
  * looks like it travels through the word instead of jumping whole words at a time.
+ *
+ * [readings], when given, prints each word's romanization right above it. With [sweep] off every
+ * word is one flat color (an inactive line that still needs the per-word layout for readings).
  */
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
@@ -1193,6 +1426,11 @@ private fun WordSyncedLine(
     alpha: Float,
     fontSize: androidx.compose.ui.unit.TextUnit,
     nextLineStartMs: Long?,
+    alignEnd: Boolean,
+    topPadding: Dp,
+    bottomPadding: Dp,
+    readings: List<String?>? = null,
+    sweep: Boolean = true,
     glow: Boolean = false,
 ) {
     val words = line.words ?: return
@@ -1209,41 +1447,55 @@ private fun WordSyncedLine(
     // found (last word whose tag time has passed). Every other word is a flat solid color. This
     // guarantees only a single word animates even when the line wraps onto two visual rows, and
     // keeps already-sung/not-yet-sung words from flickering due to their own window's edge cases.
-    val currentIndex = words.indexOfLast { it.timeMs <= positionMs }.coerceAtLeast(0)
+    val currentIndex = if (sweep) words.indexOfLast { it.timeMs <= positionMs }.coerceAtLeast(0) else words.size
     FlowRow(
         modifier = Modifier
+            .fillMaxWidth()
             .alpha(alpha)
-            .padding(vertical = 8.dp)
+            .padding(top = topPadding, bottom = bottomPadding)
             .then(if (glow) Modifier.blur(LYRIC_GLOW_BLUR, BlurredEdgeTreatment.Unbounded) else Modifier),
-        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+        horizontalArrangement = if (alignEnd) Arrangement.End else Arrangement.Start,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         words.forEachIndexed { index, word ->
-            when {
-                index < currentIndex -> Text(text = word.text, style = sungStyle)
-                index > currentIndex -> Text(text = word.text, style = unsungStyle)
-                else -> {
-                    val wordEndMs = when {
-                        index + 1 < words.size -> words[index + 1].timeMs
-                        line.endTimeMs != null -> line.endTimeMs
-                        nextLineStartMs != null -> nextLineStartMs
-                        else -> word.timeMs + 400L
-                    }
-                    val progress = if (wordEndMs > word.timeMs) {
-                        ((positionMs - word.timeMs).toFloat() / (wordEndMs - word.timeMs)).coerceIn(0f, 1f)
-                    } else 1f
-                    // A brush-based gradient here turned out to look gray throughout most of the
-                    // word (its scaling wasn't behaving as a clean per-word wipe). Drawing the
-                    // bright copy on top, hard-clipped to exactly `progress` of that word's own
-                    // measured width, is a much more direct and reliably-correct reveal.
-                    Box {
-                        Text(text = word.text, style = unsungStyle)
-                        Text(
-                            text = word.text,
-                            style = sungStyle,
-                            modifier = Modifier.drawWithContent {
-                                clipRect(right = size.width * progress) { this@drawWithContent.drawContent() }
-                            },
-                        )
+            // The last word's trailing space would leave a gap against the right edge of a v2 line.
+            val text = if (index == words.lastIndex) word.text.trimEnd() else word.text
+            val reading = readings?.getOrNull(index)
+            Column(
+                modifier = Modifier
+                    // Latin and Japanese glyphs sit at different heights in the same font; lining
+                    // up the lyric text's baseline keeps "high" level with the kanji around it.
+                    .then(if (readings != null) Modifier.alignBy(LastBaseline) else Modifier)
+                    .padding(end = if (reading != null && text.lastOrNull()?.isWhitespace() == false) 4.dp else 0.dp),
+            ) {
+                if (readings != null) ReadingText(reading, fontSize.value, glow)
+                when {
+                    index < currentIndex -> Text(text = text, style = sungStyle)
+                    index > currentIndex -> Text(text = text, style = unsungStyle)
+                    else -> {
+                        val wordEndMs = when {
+                            index + 1 < words.size -> words[index + 1].timeMs
+                            line.endTimeMs != null -> line.endTimeMs
+                            nextLineStartMs != null -> nextLineStartMs
+                            else -> word.timeMs + 400L
+                        }
+                        val progress = if (wordEndMs > word.timeMs) {
+                            ((positionMs - word.timeMs).toFloat() / (wordEndMs - word.timeMs)).coerceIn(0f, 1f)
+                        } else 1f
+                        // A brush-based gradient here turned out to look gray throughout most of
+                        // the word (its scaling wasn't behaving as a clean per-word wipe). Drawing
+                        // the bright copy on top, hard-clipped to exactly `progress` of that word's
+                        // own measured width, is a much more direct and reliably-correct reveal.
+                        Box {
+                            Text(text = text, style = unsungStyle)
+                            Text(
+                                text = text,
+                                style = sungStyle,
+                                modifier = Modifier.drawWithContent {
+                                    clipRect(right = size.width * progress) { this@drawWithContent.drawContent() }
+                                },
+                            )
+                        }
                     }
                 }
             }
@@ -1257,6 +1509,7 @@ private fun NowPlayingMiniHeader(
     onCollapse: () -> Unit,
     onGoToAlbum: (Song) -> Unit,
     onGoToArtist: (Song) -> Unit,
+    trailing: @Composable () -> Unit = {},
 ) {
     Row(
         modifier = Modifier
@@ -1299,6 +1552,61 @@ private fun NowPlayingMiniHeader(
                 ),
             )
         }
+        trailing()
+    }
+}
+
+/** The "⋮" next to the current song's title (Art view and Queue header). */
+@Composable
+private fun CurrentSongMenuButton(
+    song: Song,
+    onPlayNext: (Song) -> Unit,
+    onAddToQueue: (Song) -> Unit,
+    onAddToPlaylist: (Song) -> Unit,
+    onGoToAlbum: (Song) -> Unit,
+    onGoToArtist: (Song) -> Unit,
+) {
+    var menuExpanded by remember { mutableStateOf(false) }
+    Box(modifier = Modifier.padding(start = 12.dp)) {
+        Icon(
+            imageVector = Icons.Filled.MoreVert,
+            contentDescription = "Действия с треком",
+            tint = PlayerColors.TextPrimary,
+            modifier = Modifier
+                .size(24.dp)
+                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { menuExpanded = true },
+        )
+        SongActionsMenuPopup(
+            song = song,
+            expanded = menuExpanded,
+            onDismiss = { menuExpanded = false },
+            onPlayNext = onPlayNext,
+            onAddToQueue = onAddToQueue,
+            onAddToPlaylist = onAddToPlaylist,
+            onGoToAlbum = onGoToAlbum,
+            onGoToArtist = onGoToArtist,
+        )
+    }
+}
+
+/** Lyrics-view switch for the romanized lines — same see-through look as the Queue toggles. */
+@Composable
+private fun RomanizationToggle(enabled: Boolean, onToggle: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .padding(start = 12.dp)
+            .size(36.dp)
+            .clip(CircleShape)
+            .background((if (enabled) PlayerColors.AccentOnDark else PlayerColors.Surface).copy(alpha = 0.4f))
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onToggle),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Translate,
+            contentDescription = if (enabled) "Скрыть романизацию" else "Показать романизацию",
+            tint = if (enabled) PlayerColors.AccentText else PlayerColors.TextPrimary,
+            modifier = Modifier.size(18.dp),
+        )
     }
 }
 

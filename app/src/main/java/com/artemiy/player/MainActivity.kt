@@ -284,6 +284,8 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 onGoToArtist = ::goToArtist,
                 nowPlayingBackgroundMode = settings.nowPlayingBackgroundMode,
                 liveBlurIntensity = settings.liveBlurIntensity,
+                lyricsRomanization = settings.lyricsRomanization,
+                onToggleLyricsRomanization = { settings.toggleLyricsRomanization() },
             )
         }
     }

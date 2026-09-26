@@ -21,11 +21,14 @@ import com.artemiy.player.data.PlayHistoryEntity
 import com.artemiy.player.data.SettingsRepository
 import com.artemiy.player.data.Song
 import com.artemiy.player.lyrics.LyricsExtractor
+import com.artemiy.player.lyrics.LyricsRomanizer
 import com.artemiy.player.lyrics.ParsedLyrics
 import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private const val TAG = "PlaybackViewModel"
 private const val INFINITE_PLAY_TOPUP_THRESHOLD = 5
@@ -101,6 +104,16 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
                 .getOrNull()
             Log.d(TAG, "Lyrics for ${song.title}: ${result?.let { it::class.simpleName } ?: "none"} (${System.currentTimeMillis() - start}ms)")
             lyrics = result
+            // Shown right away without romanization, then swapped for the romanized version — the
+            // first Japanese song has to load Kuromoji's dictionary, which takes a moment.
+            if (result != null) {
+                val romanized = withContext(Dispatchers.Default) {
+                    runCatching { LyricsRomanizer.romanize(result) }
+                        .onFailure { Log.w(TAG, "Romanization failed for ${song.title}", it) }
+                        .getOrNull()
+                }
+                if (romanized != null && romanized !== result) lyrics = romanized
+            }
         }
     }
 

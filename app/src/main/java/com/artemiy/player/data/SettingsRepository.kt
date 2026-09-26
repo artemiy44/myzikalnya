@@ -1,6 +1,7 @@
 package com.artemiy.player.data
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -30,6 +31,7 @@ class SettingsRepository(private val context: Context) {
         val INFINITE_PLAY_MODE_KEY = stringPreferencesKey("infinite_play_mode")
         val NOW_PLAYING_BACKGROUND_MODE_KEY = stringPreferencesKey("now_playing_background_mode")
         val LIVE_BLUR_INTENSITY_KEY = stringPreferencesKey("live_blur_intensity")
+        val LYRICS_ROMANIZATION_KEY = booleanPreferencesKey("lyrics_romanization")
         private fun viewModeKey(tab: String) = stringPreferencesKey("view_mode_$tab")
     }
 
@@ -109,6 +111,16 @@ class SettingsRepository(private val context: Context) {
     suspend fun setLiveBlurIntensity(intensity: LiveBlurIntensity) {
         context.settingsDataStore.edit { prefs ->
             prefs[LIVE_BLUR_INTENSITY_KEY] = intensity.name
+        }
+    }
+
+    val lyricsRomanization: Flow<Boolean> = context.settingsDataStore.data.map { prefs ->
+        prefs[LYRICS_ROMANIZATION_KEY] ?: true
+    }
+
+    suspend fun setLyricsRomanization(enabled: Boolean) {
+        context.settingsDataStore.edit { prefs ->
+            prefs[LYRICS_ROMANIZATION_KEY] = enabled
         }
     }
 }

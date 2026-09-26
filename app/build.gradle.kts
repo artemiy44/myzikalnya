@@ -29,6 +29,13 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    packaging {
+        resources {
+            // Kuromoji's core and dictionary jars both ship these.
+            excludes += setOf("META-INF/CONTRIBUTORS.md", "META-INF/LICENSE.md", "META-INF/NOTICE.md")
+        }
+    }
 }
 
 dependencies {
@@ -48,4 +55,5 @@ dependencies {
     ksp("androidx.room:room-compiler:2.6.1")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     implementation("sh.calvin.reorderable:reorderable:3.1.0")
+    implementation("com.atilika.kuromoji:kuromoji-ipadic:0.9.0")
 }

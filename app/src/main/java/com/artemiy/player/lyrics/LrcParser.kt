@@ -5,8 +5,12 @@ private val TIME_TAG = Regex("\\[(\\d{1,3}):(\\d{2})(?:[.:](\\d{1,3}))?]")
 /** Enhanced-LRC (a.k.a. eLRC / A2 extension) per-word tag: `<mm:ss.xx>` inline inside a line. */
 private val WORD_TAG = Regex("<(\\d{1,3}):(\\d{2})(?:[.:](\\d{1,3}))?>")
 
-/** Some duet-style eLRC files mark the second singer's line with a leading `v1:`/`v2:`. */
+/** Duet-style eLRC files mark each line's singer with a leading `v1:`/`v2:`. */
 private val VOICE_PREFIX = Regex("^(v1|v2)\\s*:\\s*", RegexOption.IGNORE_CASE)
+
+/** Background vocals, eLRC style: a whole physical line `[bg: <mm:ss.xx>word <mm:ss.xx>word ...]`
+ * with no leading line timestamp — it belongs to the main line right above it. */
+private val BACKGROUND_LINE = Regex("^\\s*\\[bg:(.*)]\\s*$", RegexOption.IGNORE_CASE)
 
 private fun parseTimeMs(minutes: String, seconds: String, frac: String): Long {
     val fracMs = when (frac.length) {
@@ -53,6 +57,21 @@ private fun parseWordTags(text: String): WordTagResult? {
 fun parsePlainLrc(raw: String): List<LyricLine> {
     val lines = mutableListOf<LyricLine>()
     raw.lineSequence().forEach { rawLine ->
+        BACKGROUND_LINE.matchEntire(rawLine)?.let { match ->
+            val owner = lines.lastOrNull() ?: return@forEach
+            val body = match.groupValues[1]
+            val wordResult = parseWordTags(body)
+            val text = wordResult?.words?.joinToString("") { it.text }?.trim() ?: body.trim()
+            if (text.isEmpty()) return@forEach
+            val background = LyricLine(
+                timeMs = wordResult?.words?.first()?.timeMs ?: owner.timeMs,
+                text = text,
+                words = wordResult?.words,
+                endTimeMs = wordResult?.endMs,
+            )
+            lines[lines.lastIndex] = owner.copy(background = background)
+            return@forEach
+        }
         val tags = TIME_TAG.findAll(rawLine).toList()
         if (tags.isEmpty()) return@forEach
 
@@ -74,13 +93,18 @@ fun parsePlainLrc(raw: String): List<LyricLine> {
         }
 
         tags.forEachIndexed { i, match ->
+            val voice = when (VOICE_PREFIX.find(slices[i])?.groupValues?.get(1)?.lowercase()) {
+                "v1" -> LyricVoice.V1
+                "v2" -> LyricVoice.V2
+                else -> null
+            }
             val rest = VOICE_PREFIX.replace(slices[i], "")
             if (rest.isEmpty()) return@forEachIndexed
             val wordResult = parseWordTags(rest)
             val text = wordResult?.words?.joinToString("") { it.text }?.trim() ?: rest
             if (text.isEmpty()) return@forEachIndexed
             val timeMs = parseTimeMs(match.groupValues[1], match.groupValues[2], match.groupValues[3])
-            lines.add(LyricLine(timeMs, text, wordResult?.words, wordResult?.endMs))
+            lines.add(LyricLine(timeMs, text, wordResult?.words, wordResult?.endMs, voice = voice))
         }
     }
     return groupSimultaneousLines(lines)
