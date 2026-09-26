@@ -286,6 +286,19 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
         refreshDerivedQueues()
     }
 
+    /** Batch version of [addToQueue] for "add the whole artist" — skips the song playing right now
+     * and anything already lined up, so tapping it twice (or over an artist already queued via
+     * infinite play) doesn't stack duplicates. */
+    fun addAllToQueue(songs: List<Song>) {
+        val c = controller ?: return
+        val skip = (manualQueue + continueQueue).mapTo(mutableSetOf()) { it.id } + setOfNotNull(currentSong?.id)
+        val toAdd = songs.distinctBy { it.id }.filterNot { it.id in skip }
+        if (toAdd.isEmpty()) return
+        songsById = songsById + toAdd.associateBy { it.id }
+        c.addMediaItems(toAdd.map { toMediaItem(it) })
+        refreshDerivedQueues()
+    }
+
     fun clearManualQueue() {
         val c = controller ?: return
         val count = manualQueueIds.size

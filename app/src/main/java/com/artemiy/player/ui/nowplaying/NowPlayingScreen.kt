@@ -963,8 +963,10 @@ private fun LyricsView(
         }
 
         is ParsedLyrics.Synced -> {
+            // -1 during an instrumental intro, before the first line starts — must stay -1, not
+            // be clamped to 0, or line 0 lights up (big font, autoscroll, gray first word) early.
             val activeIndex = remember(lyrics, positionMs) {
-                lyrics.lines.indexOfLast { it.timeMs <= positionMs }.coerceAtLeast(0)
+                lyrics.lines.indexOfLast { it.timeMs <= positionMs }
             }
             val listState = rememberLazyListState()
             LaunchedEffect(activeIndex) {
@@ -975,7 +977,7 @@ private fun LyricsView(
                     // No artificial top padding backs this: while there isn't enough real
                     // content above yet (start of the song, or a short first line), the scroll
                     // simply clamps at the true top instead of faking empty space to center it.
-                    val anchor = (info.viewportSize.height * 0.42f).toInt()
+                    val anchor = (info.viewportSize.height * 0.36f).toInt()
                     val itemCenter = itemInfo.offset + itemInfo.size / 2
                     listState.animateScrollBy((itemCenter - anchor).toFloat())
                 } else {
@@ -985,27 +987,24 @@ private fun LyricsView(
             }
             LazyColumn(
                 state = listState,
-                // clipToBounds() is explicit here, not just relying on the default scroll clip —
-                // the active line's glow uses an Unbounded blur (intentionally bleeds past its
-                // own text bounds for a soft look), and without an explicit clip that bleed could
-                // escape into the floating mini-header above when the glowing line scrolls near
-                // the top of the list.
-                modifier = Modifier.fillMaxSize().clipToBounds(),
+                // No clipToBounds(): the list is inset by the screen's 22dp side padding, so a
+                // hard clip at its bounds visibly cut the active line's glow off at the sides.
+                // LazyColumn's own scroll clip still clips top/bottom but allows ~30dp of
+                // sideways overdraw — enough to reach the screen edge. Glow bleeding upward
+                // toward the header is a non-issue since fadeInList() takes rows there to alpha 0.
+                modifier = Modifier.fillMaxSize(),
                 contentPadding = contentPadding,
             ) {
                 itemsIndexed(lyrics.lines) { index, line ->
                     val active = index == activeIndex
                     val alpha by animateFloatAsState(if (active) 1f else 0.35f, label = "lineAlpha")
-                    val fontSize by animateFloatAsState(if (active) 28f else 22f, label = "lineSize")
+                    val fontSize by animateFloatAsState(if (active) 31f else 28f, label = "lineSize")
                     Column(modifier = Modifier.fadeInList(listState, index, topFadePx, bottomFadePx)) {
                         if (line.words != null && active) {
-                            // Glow only applies to the active eLRC (word-synced) line — a plain
-                            // LRC line has no per-word timing to justify the effect, and a
-                            // not-yet-reached line never hits this branch since `active` is only
-                            // ever true for the current line. The glow pass is the exact same
-                            // word-by-word composable, just recolored/blurred, so it always lines
-                            // up pixel-for-pixel with the crisp text on top and sweeps forward in
-                            // lockstep with it instead of glowing ahead of what's been sung.
+                            // The glow pass is the exact same word-by-word composable, just
+                            // recolored/blurred, so it lines up pixel-for-pixel with the crisp text
+                            // on top and sweeps forward in lockstep instead of glowing ahead of
+                            // what's been sung.
                             Box {
                                 WordSyncedLine(
                                     line = line,
@@ -1023,17 +1022,14 @@ private fun LyricsView(
                                     nextLineStartMs = lyrics.lines.getOrNull(index + 1)?.timeMs,
                                 )
                             }
+                        } else if (active) {
+                            // Plain LRC has no per-word timing, so the whole active line glows at once.
+                            Box {
+                                PlainLyricLine(text = line.text, alpha = alpha, fontSize = fontSize, glow = true)
+                                PlainLyricLine(text = line.text, alpha = alpha, fontSize = fontSize)
+                            }
                         } else {
-                            Text(
-                                text = line.text,
-                                color = PlayerColors.TextPrimary,
-                                fontSize = fontSize.sp,
-                                lineHeight = fontSize.sp * 1.3f,
-                                fontWeight = FontWeight.ExtraBold,
-                                modifier = Modifier
-                                    .alpha(alpha)
-                                    .padding(vertical = 8.dp),
-                            )
+                            PlainLyricLine(text = line.text, alpha = alpha, fontSize = fontSize)
                         }
                         line.secondary.forEach { secondary ->
                             SecondaryLyricLine(
@@ -1071,6 +1067,25 @@ private fun SecondaryLyricLine(line: LyricLine, positionMs: Long, alpha: Float, 
     }
 }
 
+/** Shared by the eLRC and plain-LRC glow passes so both look identical. */
+private val LYRIC_GLOW_BLUR = 18.dp
+private const val LYRIC_GLOW_ALPHA = 0.75f
+
+@Composable
+private fun PlainLyricLine(text: String, alpha: Float, fontSize: Float, glow: Boolean = false) {
+    Text(
+        text = text,
+        color = if (glow) PlayerColors.TextPrimary.copy(alpha = LYRIC_GLOW_ALPHA) else PlayerColors.TextPrimary,
+        fontSize = fontSize.sp,
+        lineHeight = fontSize.sp * 1.3f,
+        fontWeight = FontWeight.ExtraBold,
+        modifier = Modifier
+            .alpha(alpha)
+            .padding(vertical = 8.dp)
+            .then(if (glow) Modifier.blur(LYRIC_GLOW_BLUR, BlurredEdgeTreatment.Unbounded) else Modifier),
+    )
+}
+
 /**
  * Renders a word-synced line the way Apple Music / Gramophone do it: rather than flipping each
  * word from dim to bright the instant its timestamp hits, the *currently singing* word sweeps
@@ -1088,7 +1103,7 @@ private fun WordSyncedLine(
     glow: Boolean = false,
 ) {
     val words = line.words ?: return
-    val sungColor = PlayerColors.TextPrimary
+    val sungColor = if (glow) PlayerColors.TextPrimary.copy(alpha = LYRIC_GLOW_ALPHA) else PlayerColors.TextPrimary
     // Not-yet-sung words *within the currently active line* stay fairly bright (unlike fully
     // inactive lines, which fade via the line-level `alpha`) — otherwise the whole active line
     // reads as dim/gray for most of its duration since only one short word is ever fully white.
@@ -1106,7 +1121,7 @@ private fun WordSyncedLine(
         modifier = Modifier
             .alpha(alpha)
             .padding(vertical = 8.dp)
-            .then(if (glow) Modifier.blur(18.dp, BlurredEdgeTreatment.Unbounded) else Modifier),
+            .then(if (glow) Modifier.blur(LYRIC_GLOW_BLUR, BlurredEdgeTreatment.Unbounded) else Modifier),
         verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
     ) {
         words.forEachIndexed { index, word ->

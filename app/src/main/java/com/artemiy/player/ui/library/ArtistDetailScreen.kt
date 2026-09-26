@@ -17,11 +17,10 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Shuffle
@@ -43,7 +42,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.artemiy.player.data.Song
+import androidx.compose.ui.window.Dialog
 import com.artemiy.player.ui.components.AlbumArt
+import com.artemiy.player.ui.components.CircleIconButton
 import com.artemiy.player.ui.components.SongActionsMenuPopup
 import com.artemiy.player.ui.components.songLongPressTrigger
 import com.artemiy.player.ui.theme.PlayerColors
@@ -60,9 +61,11 @@ fun ArtistDetailScreen(
     onAlbumClick: (String) -> Unit,
     onPlayNext: (Song) -> Unit,
     onAddToQueue: (Song) -> Unit,
+    onAddAllToQueue: (List<Song>) -> Unit,
     onAddToPlaylist: (Song) -> Unit,
     onGoToAlbum: (Song) -> Unit,
 ) {
+    var showAddToQueueDialog by remember { mutableStateOf(false) }
     val heroArts = remember(songs) {
         val distinct = songs.groupBy { it.album }.values.map { it.first() }
         if (distinct.isEmpty()) emptyList()
@@ -155,7 +158,20 @@ fun ArtistDetailScreen(
                 Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null, tint = PlayerColors.AccentText, modifier = Modifier.size(16.dp))
                 Text(text = "Слушать", color = PlayerColors.AccentText, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 6.dp))
             }
-            CircleIconButton(icon = Icons.Filled.Add, description = "Добавить") {}
+            CircleIconButton(icon = Icons.AutoMirrored.Filled.QueueMusic, description = "Добавить в очередь проигрывания") {
+                showAddToQueueDialog = true
+            }
+        }
+
+        if (showAddToQueueDialog) {
+            AddArtistToQueueDialog(
+                songCount = songs.size,
+                onDismiss = { showAddToQueueDialog = false },
+                onConfirm = {
+                    showAddToQueueDialog = false
+                    onAddAllToQueue(songs)
+                },
+            )
         }
 
         if (albums.isNotEmpty()) {
@@ -230,15 +246,48 @@ fun ArtistDetailScreen(
 }
 
 @Composable
-private fun CircleIconButton(icon: androidx.compose.ui.graphics.vector.ImageVector, description: String, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(46.dp)
-            .clip(CircleShape)
-            .background(PlayerColors.Surface)
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onClick() },
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(imageVector = icon, contentDescription = description, tint = PlayerColors.TextPrimary, modifier = Modifier.size(19.dp))
+private fun AddArtistToQueueDialog(songCount: Int, onDismiss: () -> Unit, onConfirm: () -> Unit) {
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(18.dp))
+                .background(PlayerColors.SurfaceDim)
+                .padding(20.dp),
+        ) {
+            Text(
+                text = "Добавить в очередь проигрывания?",
+                color = PlayerColors.TextPrimary,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = "Все песни артиста ($songCount) встанут в конец очереди. Та, что играет сейчас, и уже стоящие в очереди не продублируются.",
+                color = PlayerColors.TextSecondary,
+                fontSize = 13.sp,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 18.dp),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                Text(
+                    text = "Нет",
+                    color = PlayerColors.TextSecondary,
+                    fontSize = 13.sp,
+                    modifier = Modifier
+                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onDismiss() }
+                        .padding(end = 20.dp),
+                )
+                Text(
+                    text = "Да",
+                    color = PlayerColors.TextPrimary,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onConfirm() },
+                )
+            }
+        }
     }
 }

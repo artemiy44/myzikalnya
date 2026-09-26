@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
@@ -113,6 +114,7 @@ fun LibraryScreen(
     onSongClick: (Song, List<Song>) -> Unit,
     onPlayNext: (Song) -> Unit,
     onAddToQueue: (Song) -> Unit,
+    onAddAllToQueue: (List<Song>) -> Unit,
     onAddToPlaylist: (List<Song>) -> Unit,
     onGoToAlbum: (Song) -> Unit,
     onGoToArtist: (Song) -> Unit,
@@ -416,6 +418,7 @@ fun LibraryScreen(
                             },
                             onPlayNext = onPlayNext,
                             onAddToQueue = onAddToQueue,
+                            onAddAllToQueue = onAddAllToQueue,
                             onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
                             onGoToAlbum = onGoToAlbum,
                         )
@@ -542,7 +545,7 @@ private fun LibraryHomeList(
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {
             LibraryRow("Плейлисты", playlistCount, Icons.Filled.PlaylistPlay, onOpenPlaylists)
             LibraryRow("Артисты", artistCount, Icons.Filled.Person, onOpenArtists)
-            LibraryRow("Альбомы", albumCount, Icons.Filled.MusicNote, onOpenAlbums)
+            LibraryRow("Альбомы", albumCount, Icons.Filled.Album, onOpenAlbums)
             LibraryRow("Треки", songCount, Icons.Filled.MusicNote, onOpenSongs)
         }
 

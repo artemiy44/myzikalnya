@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -41,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import com.artemiy.player.data.Song
 import com.artemiy.player.ui.components.ART_SIZE_FULL
 import com.artemiy.player.ui.components.AlbumArt
+import com.artemiy.player.ui.components.CircleIconButton
 import com.artemiy.player.ui.components.SongActionsMenuPopup
 import com.artemiy.player.ui.components.songLongPressTrigger
 import com.artemiy.player.ui.theme.PlayerColors
@@ -169,19 +169,5 @@ fun AlbumDetailScreen(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun CircleIconButton(icon: androidx.compose.ui.graphics.vector.ImageVector, description: String, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(46.dp)
-            .clip(CircleShape)
-            .background(PlayerColors.Surface)
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onClick() },
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(imageVector = icon, contentDescription = description, tint = PlayerColors.TextPrimary, modifier = Modifier.size(19.dp))
     }
 }

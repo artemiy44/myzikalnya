@@ -223,6 +223,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                     },
                     onPlayNext = { song -> playback.playNext(song) },
                     onAddToQueue = { song -> playback.addToQueue(song) },
+                    onAddAllToQueue = { list -> playback.addAllToQueue(list) },
                     onAddToPlaylist = { list -> addToPlaylistSongs = list },
                     onGoToAlbum = ::goToAlbum,
                     onGoToArtist = ::goToArtist,
