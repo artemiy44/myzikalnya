@@ -33,6 +33,10 @@ class SettingsRepository(private val context: Context) {
         val LIVE_BLUR_INTENSITY_KEY = stringPreferencesKey("live_blur_intensity")
         val LYRICS_ROMANIZATION_KEY = booleanPreferencesKey("lyrics_romanization")
         val LYRICS_TAP_PLAYS_KEY = booleanPreferencesKey("lyrics_tap_plays")
+        val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
+        val LIGHT_VARIANT_KEY = stringPreferencesKey("light_variant")
+        val DARK_VARIANT_KEY = stringPreferencesKey("dark_variant")
+        val ACCENT_KEY = stringPreferencesKey("accent")
         private fun viewModeKey(tab: String) = stringPreferencesKey("view_mode_$tab")
     }
 
@@ -134,5 +138,29 @@ class SettingsRepository(private val context: Context) {
         context.settingsDataStore.edit { prefs ->
             prefs[LYRICS_TAP_PLAYS_KEY] = enabled
         }
+    }
+
+    /** Theme choices are stored as plain names/keys; parsing them is the UI layer's business. */
+    val themeMode: Flow<String?> = context.settingsDataStore.data.map { it[THEME_MODE_KEY] }
+    val lightVariant: Flow<String?> = context.settingsDataStore.data.map { it[LIGHT_VARIANT_KEY] }
+    val darkVariant: Flow<String?> = context.settingsDataStore.data.map { it[DARK_VARIANT_KEY] }
+
+    /** Empty/absent = monochrome. */
+    val accent: Flow<String?> = context.settingsDataStore.data.map { it[ACCENT_KEY] }
+
+    suspend fun setThemeMode(value: String) {
+        context.settingsDataStore.edit { it[THEME_MODE_KEY] = value }
+    }
+
+    suspend fun setLightVariant(value: String) {
+        context.settingsDataStore.edit { it[LIGHT_VARIANT_KEY] = value }
+    }
+
+    suspend fun setDarkVariant(value: String) {
+        context.settingsDataStore.edit { it[DARK_VARIANT_KEY] = value }
+    }
+
+    suspend fun setAccent(value: String) {
+        context.settingsDataStore.edit { it[ACCENT_KEY] = value }
     }
 }

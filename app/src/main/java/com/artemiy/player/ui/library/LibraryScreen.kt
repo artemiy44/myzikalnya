@@ -159,13 +159,15 @@ fun LibraryScreen(
         backStack.add(r)
     }
 
+    // Artist/album pages run their cover art up under the status bar themselves.
+    val edgeToEdge = route is LibraryRoute.ArtistDetail || route is LibraryRoute.AlbumDetail
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(PlayerColors.Background)
-            .statusBarsPadding(),
+            .then(if (edgeToEdge) Modifier else Modifier.statusBarsPadding()),
     ) {
-        if (route !is LibraryRoute.ArtistDetail && route !is LibraryRoute.AlbumDetail) {
+        if (!edgeToEdge) {
             LibraryHeader(
                 title = when (val r = route) {
                     LibraryRoute.Home -> "Медиатека"
@@ -221,8 +223,8 @@ fun LibraryScreen(
                             onClick = onRequestPermission,
                             shape = RoundedCornerShape(24.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = PlayerColors.AccentOnDark,
-                                contentColor = PlayerColors.AccentText,
+                                containerColor = PlayerColors.Accent,
+                                contentColor = PlayerColors.OnAccent,
                             ),
                         ) {
                             Text("Разрешить доступ")

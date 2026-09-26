@@ -1,5 +1,6 @@
 package com.artemiy.player.ui.components
 
+import com.artemiy.player.ui.theme.LocalPlayerPalette
 import android.content.ContentUris
 import android.graphics.Bitmap
 import android.net.Uri
@@ -63,6 +64,15 @@ fun rememberAlbumArtBitmap(uri: Uri?, size: Int = ART_SIZE_THUMB): Bitmap? {
     return bitmap
 }
 
+/** Stand-in for missing cover art — a soft gradient in the current theme's tones. */
+@Composable
+fun placeholderArtBrush(): Brush =
+    if (LocalPlayerPalette.current.isLight) {
+        Brush.linearGradient(listOf(Color(0xFFD9D9DC), Color(0xFFC7C7CB)))
+    } else {
+        Brush.linearGradient(listOf(Color(0xFF3A3A3C), Color(0xFF232325)))
+    }
+
 @Composable
 fun AlbumArt(uri: Uri?, modifier: Modifier = Modifier, size: Int = ART_SIZE_THUMB) {
     val bmp = rememberAlbumArtBitmap(uri, size)
@@ -74,10 +84,6 @@ fun AlbumArt(uri: Uri?, modifier: Modifier = Modifier, size: Int = ART_SIZE_THUM
             modifier = modifier,
         )
     } else {
-        Box(
-            modifier = modifier.background(
-                Brush.linearGradient(listOf(Color(0xFF3A3A3C), Color(0xFF232325)))
-            )
-        )
+        Box(modifier = modifier.background(placeholderArtBrush()))
     }
 }

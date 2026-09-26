@@ -33,6 +33,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.artemiy.player.data.NowPlayingBackgroundMode
 import com.artemiy.player.data.Song
 import com.artemiy.player.data.querySongs
 import com.artemiy.player.data.songsForMood
@@ -52,21 +53,23 @@ import com.artemiy.player.ui.search.SearchScreen
 import com.artemiy.player.ui.settings.SettingsScreen
 import com.artemiy.player.ui.settings.SettingsViewModel
 import com.artemiy.player.ui.theme.PlayerColors
+import com.artemiy.player.ui.components.LocalStatusBarIconsOverride
+import com.artemiy.player.ui.theme.LocalPlayerPalette
+import androidx.compose.runtime.CompositionLocalProvider
 import com.artemiy.player.ui.theme.PlayerTheme
+import com.artemiy.player.ui.theme.appPalette
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalView
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        // App is dark-only for now (no light theme yet), so status/nav bar icons
-        // must stay light regardless of the system's day/night setting.
-        WindowCompat.getInsetsController(window, window.decorView).apply {
-            isAppearanceLightStatusBars = false
-            isAppearanceLightNavigationBars = false
-        }
         setContent {
             val settings: SettingsViewModel = viewModel()
-            PlayerTheme(appTextScale = settings.fontScale) {
+            val palette = appPalette(settings.themeMode, settings.lightVariant, settings.darkVariant, settings.accent, isSystemInDarkTheme())
+            PlayerTheme(palette = palette, appTextScale = settings.fontScale) {
                 PlayerApp(settings)
             }
         }
@@ -162,10 +165,28 @@ private fun PlayerApp(settings: SettingsViewModel) {
     if (showNowPlaying) {
         BackHandler { showNowPlaying = false }
     }
+
+    // Dark status/nav bar icons on a light theme — except over the Now Playing screen's blur
+    // backgrounds, which stay dark whatever the theme is.
+    val lightTheme = LocalPlayerPalette.current.isLight
+    val lightBars = lightTheme && !(showNowPlaying && settings.nowPlayingBackgroundMode != NowPlayingBackgroundMode.NONE)
+    // Album/artist pages put their cover art under the status bar and pick its icon color from
+    // the art; overlays drawn on top of them (player, settings) go back to the theme's choice.
+    val statusBarOverride = remember { mutableStateOf<Boolean?>(null) }
+    val darkStatusIcons = if (showNowPlaying || showSettings) lightBars else statusBarOverride.value ?: lightBars
+    val view = LocalView.current
+    SideEffect {
+        val window = (view.context as? android.app.Activity)?.window ?: return@SideEffect
+        WindowCompat.getInsetsController(window, view).apply {
+            isAppearanceLightStatusBars = darkStatusIcons
+            isAppearanceLightNavigationBars = lightBars
+        }
+    }
     if (showSettings) {
         BackHandler { showSettings = false }
     }
 
+    CompositionLocalProvider(LocalStatusBarIconsOverride provides statusBarOverride) {
     Scaffold(
         containerColor = PlayerColors.Background,
         bottomBar = {
@@ -328,6 +349,14 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 onLiveBlurIntensityChange = { settings.updateLiveBlurIntensity(it) },
                 lyricsTapPlays = settings.lyricsTapPlays,
                 onLyricsTapPlaysChange = { settings.updateLyricsTapPlays(it) },
+                themeMode = settings.themeMode,
+                onThemeModeChange = { settings.updateThemeMode(it) },
+                lightVariant = settings.lightVariant,
+                onLightVariantChange = { settings.updateLightVariant(it) },
+                darkVariant = settings.darkVariant,
+                onDarkVariantChange = { settings.updateDarkVariant(it) },
+                accent = settings.accent,
+                onAccentChange = { settings.updateAccent(it) },
                 onBack = { showSettings = false },
             )
         }
@@ -351,5 +380,6 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 playlistsVm.createPlaylist(name) { id -> addAllTo(id) }
             },
         )
+    }
     }
 }

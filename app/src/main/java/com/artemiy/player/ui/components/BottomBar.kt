@@ -60,12 +60,12 @@ fun PlayerBottomBar(selected: AppTab, onSelect: (AppTab) -> Unit) {
                         AppTab.Search -> Icons.Filled.Search
                     },
                     contentDescription = tab.label,
-                    tint = if (active) PlayerColors.TextPrimary else PlayerColors.TextSecondary,
+                    tint = if (active) PlayerColors.AccentStandalone else PlayerColors.TextSecondary,
                     modifier = Modifier.size(20.dp),
                 )
                 Text(
                     text = tab.label,
-                    color = if (active) PlayerColors.TextPrimary else PlayerColors.TextSecondary,
+                    color = if (active) PlayerColors.AccentStandalone else PlayerColors.TextSecondary,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.SemiBold,
                 )

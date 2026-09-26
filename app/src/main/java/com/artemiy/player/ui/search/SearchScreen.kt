@@ -29,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -245,7 +246,7 @@ fun SearchScreen(
                                         overflow = TextOverflow.Ellipsis,
                                     )
                                     Text(
-                                        text = highlightMatch(hit.line, query.trim()),
+                                        text = highlightMatch(hit.line, query.trim(), PlayerColors.TextPrimary),
                                         color = PlayerColors.TextSecondary,
                                         fontSize = 12.sp,
                                         maxLines = 2,
@@ -272,10 +273,10 @@ fun SearchScreen(
 }
 
 /** The lyric line with the searched-for part in bright bold. */
-private fun highlightMatch(line: String, query: String): AnnotatedString = buildAnnotatedString {
+private fun highlightMatch(line: String, query: String, highlight: Color): AnnotatedString = buildAnnotatedString {
     append(line)
     val start = normalizeForSearch(line).indexOf(normalizeForSearch(query))
     if (start >= 0 && start + query.length <= line.length) {
-        addStyle(SpanStyle(color = PlayerColors.TextPrimary, fontWeight = FontWeight.SemiBold), start, start + query.length)
+        addStyle(SpanStyle(color = highlight, fontWeight = FontWeight.SemiBold), start, start + query.length)
     }
 }

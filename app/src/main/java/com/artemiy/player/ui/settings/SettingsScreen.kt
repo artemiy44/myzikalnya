@@ -4,6 +4,8 @@ import android.content.Intent
 import android.media.audiofx.AudioEffect
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -29,6 +31,9 @@ import androidx.compose.material.icons.filled.BlurOn
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.LibraryMusic
+import androidx.compose.material.icons.filled.EmojiEmotions
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.TouchApp
@@ -54,9 +59,28 @@ import com.artemiy.player.data.Mood
 import com.artemiy.player.data.NowPlayingBackgroundMode
 import com.artemiy.player.data.SettingsRepository
 import com.artemiy.player.ui.components.MinimalSlider
+import com.artemiy.player.ui.theme.AccentChoice
+import com.artemiy.player.ui.theme.AccentFamily
+import com.artemiy.player.ui.theme.LightVariant
+import com.artemiy.player.ui.theme.LocalPlayerPalette
 import com.artemiy.player.ui.theme.PlayerColors
+import com.artemiy.player.ui.theme.ThemeMode
+import com.artemiy.player.ui.theme.accentColors
+import com.artemiy.player.ui.theme.DarkVariant
+import com.artemiy.player.ui.theme.darkPalette
+import com.artemiy.player.ui.theme.lightPalette
 
-private enum class SettingsRoute { Main, NowPlayingBackground, About }
+/** Settings pages. [parent] is where "back" goes from each one. */
+private enum class SettingsRoute(val title: String, val parent: SettingsRoute?) {
+    Main("Настройки", null),
+    Appearance("Внешний вид", Main),
+    Library("Библиотека", Main),
+    Playback("Воспроизведение", Main),
+    Mood("Настроение", Main),
+    Player("Плеер", Main),
+    NowPlayingBackground("Фон плеера", Player),
+    About("О приложении", Main),
+}
 
 @Composable
 fun SettingsScreen(
@@ -78,13 +102,21 @@ fun SettingsScreen(
     onLiveBlurIntensityChange: (LiveBlurIntensity) -> Unit,
     lyricsTapPlays: Boolean,
     onLyricsTapPlaysChange: (Boolean) -> Unit,
+    themeMode: ThemeMode,
+    onThemeModeChange: (ThemeMode) -> Unit,
+    lightVariant: LightVariant,
+    onLightVariantChange: (LightVariant) -> Unit,
+    darkVariant: DarkVariant,
+    onDarkVariantChange: (DarkVariant) -> Unit,
+    accent: AccentChoice?,
+    onAccentChange: (AccentChoice?) -> Unit,
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
     var route by remember { mutableStateOf(SettingsRoute.Main) }
 
     BackHandler(enabled = route != SettingsRoute.Main) {
-        route = SettingsRoute.Main
+        route = route.parent ?: SettingsRoute.Main
     }
 
     Column(
@@ -104,16 +136,12 @@ fun SettingsScreen(
                 modifier = Modifier
                     .size(24.dp)
                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
-                        if (route == SettingsRoute.Main) onBack() else route = SettingsRoute.Main
+                        route.parent?.let { route = it } ?: onBack()
                     }
                     .padding(end = 12.dp),
             )
             Text(
-                text = when (route) {
-                    SettingsRoute.Main -> "Настройки"
-                    SettingsRoute.NowPlayingBackground -> "Фон плеера"
-                    SettingsRoute.About -> "О приложении"
-                },
+                text = route.title,
                 color = PlayerColors.TextPrimary,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold,
@@ -121,7 +149,10 @@ fun SettingsScreen(
         }
 
         when (route) {
-            SettingsRoute.Main -> SettingsMainContent(
+            SettingsRoute.Main -> SettingsCategories(onOpen = { route = it })
+            SettingsRoute.Appearance, SettingsRoute.Library, SettingsRoute.Playback,
+            SettingsRoute.Mood, SettingsRoute.Player -> SettingsSectionContent(
+                section = route,
                 fontScale = fontScale,
                 onFontScaleChange = onFontScaleChange,
                 songCount = songCount,
@@ -138,7 +169,14 @@ fun SettingsScreen(
                 onOpenNowPlayingBackground = { route = SettingsRoute.NowPlayingBackground },
                 lyricsTapPlays = lyricsTapPlays,
                 onLyricsTapPlaysChange = onLyricsTapPlaysChange,
-                onOpenAbout = { route = SettingsRoute.About },
+                themeMode = themeMode,
+                onThemeModeChange = onThemeModeChange,
+                lightVariant = lightVariant,
+                onLightVariantChange = onLightVariantChange,
+                darkVariant = darkVariant,
+                onDarkVariantChange = onDarkVariantChange,
+                accent = accent,
+                onAccentChange = onAccentChange,
             )
             SettingsRoute.NowPlayingBackground -> NowPlayingBackgroundContent(
                 mode = nowPlayingBackgroundMode,
@@ -152,7 +190,160 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun SettingsMainContent(
+private fun SettingsCategories(onOpen: (SettingsRoute) -> Unit) {
+    Column(
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp)
+            .navigationBarsPadding(),
+    ) {
+        Spacer(modifier = Modifier.height(12.dp))
+        SettingsCard {
+            SettingsRow(Icons.Filled.TextFields, "Внешний вид", "Тема, акцентный цвет, размер текста", { onOpen(SettingsRoute.Appearance) }, showChevron = true)
+            CategoryDivider()
+            SettingsRow(Icons.Filled.LibraryMusic, "Библиотека", "Сканирование и папки с музыкой", { onOpen(SettingsRoute.Library) }, showChevron = true)
+            CategoryDivider()
+            SettingsRow(Icons.Filled.Equalizer, "Воспроизведение", "Эквалайзер, «бесконечное» воспроизведение", { onOpen(SettingsRoute.Playback) }, showChevron = true)
+            CategoryDivider()
+            SettingsRow(Icons.Filled.EmojiEmotions, "Настроение", "Какие папки считать каким настроением", { onOpen(SettingsRoute.Mood) }, showChevron = true)
+            CategoryDivider()
+            SettingsRow(Icons.Filled.PlayCircle, "Плеер", "Фон плеера, текст песни", { onOpen(SettingsRoute.Player) }, showChevron = true)
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        SettingsCard {
+            SettingsRow(Icons.Filled.Info, "О приложении", "Версия и лицензии сторонних компонентов", { onOpen(SettingsRoute.About) }, showChevron = true)
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ThemeSettings(
+    themeMode: ThemeMode,
+    onThemeModeChange: (ThemeMode) -> Unit,
+    lightVariant: LightVariant,
+    onLightVariantChange: (LightVariant) -> Unit,
+    darkVariant: DarkVariant,
+    onDarkVariantChange: (DarkVariant) -> Unit,
+    accent: AccentChoice?,
+    onAccentChange: (AccentChoice?) -> Unit,
+) {
+    SettingsCard {
+        SettingsLabel("Тема")
+        Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+            InfinitePlayModeChip("Как в системе", themeMode == ThemeMode.SYSTEM) { onThemeModeChange(ThemeMode.SYSTEM) }
+            InfinitePlayModeChip("Тёмная", themeMode == ThemeMode.DARK) { onThemeModeChange(ThemeMode.DARK) }
+            InfinitePlayModeChip("Светлая", themeMode == ThemeMode.LIGHT) { onThemeModeChange(ThemeMode.LIGHT) }
+        }
+
+        // Each background picker only matters for the theme it belongs to ("as in system" can be
+        // either, so it shows both).
+        if (themeMode != ThemeMode.DARK) {
+            SettingsLabel("Фон светлой темы", top = 18.dp)
+            Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(18.dp)) {
+                LightVariant.entries.forEach { variant ->
+                    LabeledSwatch(variant.label, lightPalette(variant).background, variant == lightVariant) { onLightVariantChange(variant) }
+                }
+            }
+        }
+        if (themeMode != ThemeMode.LIGHT) {
+            SettingsLabel("Фон тёмной темы", top = 18.dp)
+            Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(18.dp)) {
+                DarkVariant.entries.forEach { variant ->
+                    LabeledSwatch(variant.label, darkPalette(variant).background, variant == darkVariant) { onDarkVariantChange(variant) }
+                }
+            }
+        }
+    }
+    Spacer(modifier = Modifier.height(12.dp))
+    SettingsCard {
+        SettingsLabel("Акцентный цвет")
+        var family by remember { mutableStateOf(accent?.family ?: AccentFamily.STOCK) }
+        FlowRow(
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+        ) {
+            AccentFamily.entries.forEach { f ->
+                InfinitePlayModeChip(f.label, f == family) { family = f }
+            }
+        }
+        FlowRow(
+            modifier = Modifier.padding(top = 14.dp),
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
+        ) {
+            // Monochrome: the app's own text color, no hue at all (the default).
+            ColorSwatch(
+                color = LocalPlayerPalette.current.textPrimary,
+                selected = accent == null,
+                onClick = { onAccentChange(null) },
+            )
+            accentColors(family).forEachIndexed { index, color ->
+                ColorSwatch(
+                    color = color,
+                    selected = accent == AccentChoice(family, index),
+                    onClick = { onAccentChange(AccentChoice(family, index)) },
+                )
+            }
+        }
+        Text(
+            text = if (accent == null) "Монохром — без цветного акцента" else "Кнопки, ползунки, переключатели и выбранная вкладка",
+            color = PlayerColors.TextSecondary,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(top = 12.dp),
+        )
+    }
+}
+
+@Composable
+private fun LabeledSwatch(label: String, color: androidx.compose.ui.graphics.Color, selected: Boolean, onClick: () -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        ColorSwatch(color = color, selected = selected, onClick = onClick)
+        Text(text = label, color = PlayerColors.TextSecondary, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
+    }
+}
+
+@Composable
+private fun SettingsLabel(text: String, top: androidx.compose.ui.unit.Dp = 0.dp) {
+    Text(
+        text = text,
+        color = PlayerColors.TextPrimary,
+        fontSize = 15.sp,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.padding(top = top, bottom = 10.dp),
+    )
+}
+
+/** A round color sample; the selected one gets a ring in the text color around it. */
+@Composable
+private fun ColorSwatch(color: androidx.compose.ui.graphics.Color, selected: Boolean, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(40.dp)
+            .clip(CircleShape)
+            .border(width = if (selected) 2.dp else 1.dp, color = if (selected) PlayerColors.TextPrimary else PlayerColors.Border, shape = CircleShape)
+            .padding(if (selected) 5.dp else 0.dp)
+            .clip(CircleShape)
+            .background(color)
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick),
+    )
+}
+
+@Composable
+private fun CategoryDivider() {
+    Box(
+        modifier = Modifier
+            .padding(vertical = 12.dp)
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(PlayerColors.Border),
+    )
+}
+
+@Composable
+private fun SettingsSectionContent(
+    section: SettingsRoute,
     fontScale: Float,
     onFontScaleChange: (Float) -> Unit,
     songCount: Int,
@@ -169,7 +360,14 @@ private fun SettingsMainContent(
     onOpenNowPlayingBackground: () -> Unit,
     lyricsTapPlays: Boolean,
     onLyricsTapPlaysChange: (Boolean) -> Unit,
-    onOpenAbout: () -> Unit,
+    themeMode: ThemeMode,
+    onThemeModeChange: (ThemeMode) -> Unit,
+    lightVariant: LightVariant,
+    onLightVariantChange: (LightVariant) -> Unit,
+    darkVariant: DarkVariant,
+    onDarkVariantChange: (DarkVariant) -> Unit,
+    accent: AccentChoice?,
+    onAccentChange: (AccentChoice?) -> Unit,
 ) {
         Column(
             modifier = Modifier
@@ -178,8 +376,21 @@ private fun SettingsMainContent(
                 .navigationBarsPadding(),
         ) {
 
-            SectionTitle("Внешний вид")
-            SettingsCard {
+            Spacer(modifier = Modifier.height(12.dp))
+            if (section == SettingsRoute.Appearance) {
+                ThemeSettings(
+                    themeMode = themeMode,
+                    onThemeModeChange = onThemeModeChange,
+                    lightVariant = lightVariant,
+                    onLightVariantChange = onLightVariantChange,
+                    darkVariant = darkVariant,
+                    onDarkVariantChange = onDarkVariantChange,
+                    accent = accent,
+                    onAccentChange = onAccentChange,
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+            if (section == SettingsRoute.Appearance) SettingsCard {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(imageVector = Icons.Filled.TextFields, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(20.dp))
                     Text(
@@ -203,8 +414,7 @@ private fun SettingsMainContent(
                 )
             }
 
-            SectionTitle("Библиотека")
-            SettingsCard {
+            if (section == SettingsRoute.Library) SettingsCard {
                 SettingsRow(
                     icon = Icons.Filled.Refresh,
                     title = "Пересканировать медиатеку",
@@ -244,8 +454,7 @@ private fun SettingsMainContent(
                 }
             }
 
-            SectionTitle("Воспроизведение")
-            SettingsCard {
+            if (section == SettingsRoute.Playback) SettingsCard {
                 SettingsRow(
                     icon = Icons.Filled.Equalizer,
                     title = "Эквалайзер",
@@ -287,8 +496,7 @@ private fun SettingsMainContent(
                 }
             }
 
-            SectionTitle("Настроение")
-            SettingsCard {
+            if (section == SettingsRoute.Mood) SettingsCard {
                 Text(
                     text = "Подбор по жанру из тегов файла — не всегда точный, теги бывают неполными " +
                         "или вообще не отражают настроение. Отметь ниже, какие свои папки библиотеки " +
@@ -315,8 +523,7 @@ private fun SettingsMainContent(
                 }
             }
 
-            SectionTitle("Плеер")
-            SettingsCard {
+            if (section == SettingsRoute.Player) SettingsCard {
                 SettingsRow(
                     icon = Icons.Filled.BlurOn,
                     title = "Фон плеера",
@@ -334,25 +541,6 @@ private fun SettingsMainContent(
                 )
             }
 
-            SectionTitle("Скоро")
-            SettingsCard {
-                Text(
-                    text = "Цветовая тема (светлая/тёмная) и акцентный цвет — появятся здесь по мере готовности.",
-                    color = PlayerColors.TextSecondary,
-                    fontSize = 12.sp,
-                )
-            }
-
-            SectionTitle("О приложении")
-            SettingsCard {
-                SettingsRow(
-                    icon = Icons.Filled.Info,
-                    title = "О приложении",
-                    subtitle = "Версия и лицензии сторонних компонентов",
-                    onClick = onOpenAbout,
-                    showChevron = true,
-                )
-            }
 
             Spacer(modifier = Modifier.height(20.dp))
         }
@@ -435,8 +623,8 @@ private fun SettingsSwitchRow(
             checked = checked,
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = PlayerColors.AccentText,
-                checkedTrackColor = PlayerColors.AccentOnDark,
+                checkedThumbColor = PlayerColors.OnAccent,
+                checkedTrackColor = PlayerColors.Accent,
                 uncheckedThumbColor = PlayerColors.TextSecondary,
                 uncheckedTrackColor = PlayerColors.SurfaceDim,
                 uncheckedBorderColor = PlayerColors.Border,
@@ -540,12 +728,12 @@ private fun AboutContent() {
 private fun InfinitePlayModeChip(label: String, selected: Boolean, onClick: () -> Unit) {
     Text(
         text = label,
-        color = if (selected) PlayerColors.AccentText else PlayerColors.TextPrimary,
+        color = if (selected) PlayerColors.OnAccent else PlayerColors.TextPrimary,
         fontSize = 12.sp,
         fontWeight = FontWeight.SemiBold,
         modifier = Modifier
             .clip(RoundedCornerShape(10.dp))
-            .background(if (selected) PlayerColors.AccentOnDark else PlayerColors.SurfaceDim)
+            .background(if (selected) PlayerColors.Accent else PlayerColors.SurfaceDim)
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 7.dp),
     )
@@ -586,12 +774,12 @@ private fun FolderChips(
             val selected = folder in selectedFolders
             Text(
                 text = folder,
-                color = if (selected) PlayerColors.AccentText else PlayerColors.TextPrimary,
+                color = if (selected) PlayerColors.OnAccent else PlayerColors.TextPrimary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier
                     .clip(RoundedCornerShape(10.dp))
-                    .background(if (selected) PlayerColors.AccentOnDark else PlayerColors.SurfaceDim)
+                    .background(if (selected) PlayerColors.Accent else PlayerColors.SurfaceDim)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
@@ -688,14 +876,14 @@ private fun BackgroundModeOption(
             modifier = Modifier
                 .size(18.dp)
                 .clip(RoundedCornerShape(50))
-                .background(if (selected) PlayerColors.AccentOnDark else PlayerColors.SurfaceDim),
+                .background(if (selected) PlayerColors.Accent else PlayerColors.SurfaceDim),
         ) {
             if (selected) {
                 Box(
                     modifier = Modifier
                         .padding(5.dp)
                         .clip(RoundedCornerShape(50))
-                        .background(PlayerColors.AccentText)
+                        .background(PlayerColors.OnAccent)
                         .size(8.dp),
                 )
             }

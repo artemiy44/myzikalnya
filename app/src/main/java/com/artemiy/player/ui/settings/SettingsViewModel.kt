@@ -14,6 +14,10 @@ import com.artemiy.player.data.Mood
 import com.artemiy.player.data.NowPlayingBackgroundMode
 import com.artemiy.player.data.SettingsRepository
 import com.artemiy.player.data.discoverAllAudioFolders
+import com.artemiy.player.ui.theme.AccentChoice
+import com.artemiy.player.ui.theme.DarkVariant
+import com.artemiy.player.ui.theme.LightVariant
+import com.artemiy.player.ui.theme.ThemeMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -51,6 +55,19 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     var lyricsTapPlays by mutableStateOf(false)
         private set
 
+    var themeMode by mutableStateOf(ThemeMode.DARK)
+        private set
+
+    var lightVariant by mutableStateOf(LightVariant.WHITE)
+        private set
+
+    var darkVariant by mutableStateOf(DarkVariant.GNOME)
+        private set
+
+    /** Null = monochrome. */
+    var accent by mutableStateOf<AccentChoice?>(null)
+        private set
+
     private var artistViewMode by mutableStateOf(LibraryViewMode.LIST)
     private var albumViewMode by mutableStateOf(LibraryViewMode.GRID_2)
     private var songViewMode by mutableStateOf(LibraryViewMode.GRID_2)
@@ -80,6 +97,24 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             repository.lyricsTapPlays.collect { lyricsTapPlays = it }
+        }
+        viewModelScope.launch {
+            repository.themeMode.collect { value ->
+                themeMode = value?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() } ?: ThemeMode.DARK
+            }
+        }
+        viewModelScope.launch {
+            repository.lightVariant.collect { value ->
+                lightVariant = value?.let { runCatching { LightVariant.valueOf(it) }.getOrNull() } ?: LightVariant.WHITE
+            }
+        }
+        viewModelScope.launch {
+            repository.darkVariant.collect { value ->
+                darkVariant = value?.let { runCatching { DarkVariant.valueOf(it) }.getOrNull() } ?: DarkVariant.GNOME
+            }
+        }
+        viewModelScope.launch {
+            repository.accent.collect { accent = AccentChoice.fromKey(it) }
         }
         viewModelScope.launch {
             repository.viewMode("artists", LibraryViewMode.LIST).collect { artistViewMode = it }
@@ -126,6 +161,26 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     fun updateLiveBlurIntensity(intensity: LiveBlurIntensity) {
         liveBlurIntensity = intensity
         viewModelScope.launch { repository.setLiveBlurIntensity(intensity) }
+    }
+
+    fun updateThemeMode(mode: ThemeMode) {
+        themeMode = mode
+        viewModelScope.launch { repository.setThemeMode(mode.name) }
+    }
+
+    fun updateLightVariant(variant: LightVariant) {
+        lightVariant = variant
+        viewModelScope.launch { repository.setLightVariant(variant.name) }
+    }
+
+    fun updateDarkVariant(variant: DarkVariant) {
+        darkVariant = variant
+        viewModelScope.launch { repository.setDarkVariant(variant.name) }
+    }
+
+    fun updateAccent(choice: AccentChoice?) {
+        accent = choice
+        viewModelScope.launch { repository.setAccent(choice?.toKey().orEmpty()) }
     }
 
     fun updateLyricsTapPlays(enabled: Boolean) {

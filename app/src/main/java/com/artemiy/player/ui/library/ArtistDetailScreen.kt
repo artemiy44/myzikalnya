@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -37,6 +38,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -44,6 +46,11 @@ import androidx.compose.ui.unit.sp
 import com.artemiy.player.data.Song
 import androidx.compose.ui.window.Dialog
 import com.artemiy.player.ui.components.AlbumArt
+import com.artemiy.player.ui.components.ART_SIZE_THUMB
+import com.artemiy.player.ui.components.HeroOverArt
+import com.artemiy.player.ui.components.rememberAlbumArtBitmap
+import com.artemiy.player.ui.components.HeroTextShadow
+import com.artemiy.player.ui.components.rememberArrowTint
 import com.artemiy.player.ui.components.CircleIconButton
 import com.artemiy.player.ui.components.SongActionsMenuPopup
 import com.artemiy.player.ui.components.songLongPressTrigger
@@ -77,89 +84,70 @@ fun ArtistDetailScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
-        Box(modifier = Modifier.fillMaxWidth().height(340.dp)) {
-            if (heroArts.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Brush.linearGradient(listOf(Color(0xFF3A3A3C), Color(0xFF232325)))),
-                )
-            } else {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    userScrollEnabled = false,
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    items(heroArts) { song ->
-                        AlbumArt(uri = song.uri, size = com.artemiy.player.ui.components.ART_SIZE_FULL, modifier = Modifier.fillMaxSize())
+        // Thumbnail of the top-left cover, only to judge how bright the art is behind the back arrow.
+        val arrowTint = rememberArrowTint(listOf(heroArts.firstOrNull()?.let { rememberAlbumArtBitmap(it.uri, ART_SIZE_THUMB) }))
+        HeroOverArt(
+            topTint = arrowTint,
+            onBack = onBack,
+            art = {
+                if (heroArts.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize().background(com.artemiy.player.ui.components.placeholderArtBrush()))
+                } else {
+                    // 2×2 collage stretched to fill the whole (taller than wide) header.
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        heroArts.chunked(2).forEach { row ->
+                            Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                                row.forEach { song ->
+                                    AlbumArt(
+                                        uri = song.uri,
+                                        size = com.artemiy.player.ui.components.ART_SIZE_FULL,
+                                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
-            }
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            0.35f to Color.Transparent,
-                            1f to PlayerColors.Background,
-                        )
-                    ),
-            )
-            Icon(
-                imageVector = Icons.Filled.ArrowBack,
-                contentDescription = "Назад",
-                tint = Color.White,
-                modifier = Modifier
-                    .padding(16.dp)
-                    .size(22.dp)
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onBack() },
-            )
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 18.dp, start = 24.dp, end = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    text = artist,
-                    color = PlayerColors.TextPrimary,
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = "${songs.size} песен · ${albums.size} альбомов",
-                    color = PlayerColors.TextSecondary,
-                    fontSize = 13.sp,
-                    modifier = Modifier.padding(top = 4.dp),
-                )
-            }
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 18.dp, bottom = 22.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
+            },
         ) {
-            CircleIconButton(icon = Icons.Filled.Shuffle, description = "Перемешать") { onShuffleAll(songs) }
+            Text(
+                text = artist,
+                color = Color.White,
+                fontSize = 30.sp,
+                style = TextStyle(shadow = HeroTextShadow),
+                fontWeight = FontWeight.ExtraBold,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = "${songs.size} песен · ${albums.size} альбомов",
+                color = Color.White.copy(alpha = 0.85f),
+                fontSize = 13.sp,
+                style = TextStyle(shadow = HeroTextShadow),
+                modifier = Modifier.padding(top = 4.dp),
+            )
             Row(
-                modifier = Modifier
-                    .padding(horizontal = 14.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(PlayerColors.AccentOnDark)
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onPlayAll(songs) }
-                    .padding(horizontal = 28.dp, vertical = 12.dp),
+                modifier = Modifier.padding(top = 18.dp),
+                horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null, tint = PlayerColors.AccentText, modifier = Modifier.size(16.dp))
-                Text(text = "Слушать", color = PlayerColors.AccentText, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 6.dp))
-            }
-            CircleIconButton(icon = Icons.AutoMirrored.Filled.QueueMusic, description = "Добавить в очередь проигрывания") {
-                showAddToQueueDialog = true
+                CircleIconButton(icon = Icons.Filled.Shuffle, description = "Перемешать") { onShuffleAll(songs) }
+                Row(
+                    modifier = Modifier
+                        .padding(horizontal = 14.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(PlayerColors.Accent)
+                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onPlayAll(songs) }
+                        .padding(horizontal = 28.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null, tint = PlayerColors.OnAccent, modifier = Modifier.size(16.dp))
+                    Text(text = "Слушать", color = PlayerColors.OnAccent, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 6.dp))
+                }
+                CircleIconButton(icon = Icons.AutoMirrored.Filled.QueueMusic, description = "Добавить в очередь проигрывания") {
+                    showAddToQueueDialog = true
+                }
             }
         }
 

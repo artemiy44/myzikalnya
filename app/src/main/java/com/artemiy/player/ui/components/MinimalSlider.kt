@@ -34,7 +34,7 @@ fun MinimalSlider(
     modifier: Modifier = Modifier,
     trackHeight: Dp = 4.dp,
     thumbSize: Dp = 12.dp,
-    activeColor: Color = PlayerColors.TextPrimary,
+    activeColor: Color = PlayerColors.Accent,
     inactiveColor: Color = PlayerColors.TextSecondary.copy(alpha = 0.3f),
 ) {
     val density = LocalDensity.current

@@ -1,5 +1,9 @@
 package com.artemiy.player.ui.home
 
+import androidx.compose.foundation.layout.windowInsetsTopHeight
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -55,6 +59,7 @@ import com.artemiy.player.data.Song
 import com.artemiy.player.ui.components.AlbumArt
 import com.artemiy.player.ui.components.SongActionsMenuPopup
 import com.artemiy.player.ui.components.songLongPressTrigger
+import com.artemiy.player.ui.components.StatusBarFade
 import com.artemiy.player.ui.theme.PlayerColors
 import kotlin.math.cos
 import kotlin.math.sin
@@ -73,49 +78,50 @@ fun HomeScreen(
     onGoToAlbum: (Song) -> Unit,
     onGoToArtist: (Song) -> Unit,
 ) {
-    Column(
+    // The header scrolls away with the page instead of being pinned under the status bar, and the
+    // page runs edge-to-edge behind the status bar — only a soft fade keeps its icons readable.
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(PlayerColors.Background)
-            .statusBarsPadding(),
+            .background(PlayerColors.Background),
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp, 20.dp, 20.dp, 2.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = "Главная",
-                color = PlayerColors.TextPrimary,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.ExtraBold,
-            )
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(PlayerColors.Surface)
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onSettingsClick() },
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Settings,
-                    contentDescription = "Настройки",
-                    tint = PlayerColors.TextSecondary,
-                    modifier = Modifier.size(18.dp),
-                )
-            }
-        }
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(top = 16.dp, bottom = 20.dp),
+                .statusBarsPadding()
+                .padding(bottom = 20.dp),
             verticalArrangement = Arrangement.spacedBy(22.dp),
         ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp, 20.dp, 20.dp, 0.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "Главная",
+                    color = PlayerColors.TextPrimary,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                )
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(PlayerColors.Surface)
+                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onSettingsClick() },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Settings,
+                        contentDescription = "Настройки",
+                        tint = PlayerColors.TextSecondary,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            }
             val menuActions = SongMenuActions(onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
             MoodSection(onMoodClick = onMoodClick)
             SongGridSection(
@@ -141,8 +147,10 @@ fun HomeScreen(
                 menuActions = menuActions,
             )
         }
+        StatusBarFade()
     }
 }
+
 
 /** Bundles the five "⋮" menu callbacks so they thread through Home's several song sections as
  * one param instead of five. */
@@ -327,10 +335,6 @@ private fun SongRowSection(
     }
 }
 
-private val MoodCardBackground = Color(0xFF242426)
-private val MoodDefaultCardBackground = Color(0xFF2E2E30)
-private val MoodDefaultBorder = Color(0xFF8E8E93)
-private val MoodSubtitleColor = Color(0xFFD0D0D2)
 
 private val MOOD_COLORS = mapOf(
     Mood.NORMAL to Color(0xFF8E8E93),
@@ -381,10 +385,10 @@ private fun MoodCard(mood: Mood, onClick: () -> Unit) {
             .width(326.dp)
             .height(210.dp)
             .clip(RoundedCornerShape(22.dp))
-            .background(if (isDefault) MoodDefaultCardBackground else MoodCardBackground)
+            .background(PlayerColors.Surface)
             .then(
                 if (isDefault) {
-                    Modifier.border(1.5.dp, MoodDefaultBorder, RoundedCornerShape(22.dp))
+                    Modifier.border(1.5.dp, PlayerColors.TextTertiary, RoundedCornerShape(22.dp))
                 } else {
                     Modifier
                 },
@@ -419,7 +423,7 @@ private fun MoodCard(mood: Mood, onClick: () -> Unit) {
                 fontWeight = FontWeight.ExtraBold,
             )
             Spacer(modifier = Modifier.height(2.dp))
-            Text(text = mood.subtitle, color = MoodSubtitleColor, fontSize = 12.sp)
+            Text(text = mood.subtitle, color = PlayerColors.TextSecondary, fontSize = 12.sp)
         }
     }
 }
@@ -428,6 +432,7 @@ private fun MoodCard(mood: Mood, onClick: () -> Unit) {
  * (mechanics first, visual polish is a separate backlog item). */
 @Composable
 private fun MoodIcon(mood: Mood, modifier: Modifier = Modifier) {
+    val glyph = PlayerColors.TextPrimary
     Canvas(modifier = modifier) {
         val strokeWidth = size.minDimension * 0.09f
         when (mood) {
@@ -438,7 +443,7 @@ private fun MoodIcon(mood: Mood, modifier: Modifier = Modifier) {
                 var x = barWidth / 2
                 heights.forEach { hFrac ->
                     drawLine(
-                        color = Color.White,
+                        color = glyph,
                         start = Offset(x, size.height),
                         end = Offset(x, size.height * (1f - hFrac)),
                         strokeWidth = strokeWidth,
@@ -451,14 +456,14 @@ private fun MoodIcon(mood: Mood, modifier: Modifier = Modifier) {
             Mood.HAPPY -> {
                 val center = Offset(size.width / 2, size.height / 2)
                 val r = size.minDimension * 0.22f
-                drawCircle(color = Color.White, radius = r, center = center, style = Stroke(width = strokeWidth))
+                drawCircle(color = glyph, radius = r, center = center, style = Stroke(width = strokeWidth))
                 val rayLen = size.minDimension * 0.2f
                 for (i in 0 until 8) {
                     val angle = Math.toRadians((i * 45).toDouble()).toFloat()
                     val innerR = r + strokeWidth * 1.6f
                     val outerR = innerR + rayLen
                     drawLine(
-                        color = Color.White,
+                        color = glyph,
                         start = Offset(center.x + innerR * cos(angle), center.y + innerR * sin(angle)),
                         end = Offset(center.x + outerR * cos(angle), center.y + outerR * sin(angle)),
                         strokeWidth = strokeWidth,
@@ -479,7 +484,7 @@ private fun MoodIcon(mood: Mood, modifier: Modifier = Modifier) {
                     lineTo(w * 0.56f, h * 0.38f)
                     close()
                 }
-                drawPath(bolt, color = Color.White)
+                drawPath(bolt, color = glyph)
             }
 
             Mood.SAD -> {
@@ -492,7 +497,7 @@ private fun MoodIcon(mood: Mood, modifier: Modifier = Modifier) {
                     addOval(Rect(Offset(cutCenter.x - cutR, cutCenter.y - cutR), Size(cutR * 2, cutR * 2)))
                     fillType = PathFillType.EvenOdd
                 }
-                drawPath(moon, color = Color.White)
+                drawPath(moon, color = glyph)
             }
 
             Mood.CRY -> {
@@ -506,7 +511,7 @@ private fun MoodIcon(mood: Mood, modifier: Modifier = Modifier) {
                     cubicTo(w * 0.86f, h * 0.56f, w * 0.5f, h * 0.04f, w * 0.5f, h * 0.04f)
                     close()
                 }
-                drawPath(drop, color = Color.White)
+                drawPath(drop, color = glyph)
             }
         }
     }
