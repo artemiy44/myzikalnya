@@ -137,6 +137,8 @@ fun NowPlayingScreen(
             lyricsTapPlays = lyricsTapPlays,
             lyricsLoading = lyricsLoading,
             memory = memory,
+            expand = expand,
+            mini = mini,
         )
         return
     }

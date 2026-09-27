@@ -155,6 +155,10 @@ internal fun ExpressiveNowPlaying(
     lyricsTapPlays: Boolean,
     lyricsLoading: Boolean,
     memory: NowPlayingMemory,
+    /** How far the player is open (0 = closed, 1 = open) — it rides up from the bottom as a card. */
+    expand: () -> Float = { 1f },
+    /** Where the mini player bar is — the card grows out of it. */
+    mini: com.artemiy.player.ui.components.MiniPlayerAnchors? = null,
 ) {
     var showLyrics by memory::expressiveLyrics
     var showAddToQueuePicker by remember { mutableStateOf(false) }
@@ -163,7 +167,54 @@ internal fun ExpressiveNowPlaying(
     val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
-    NowPlayingSurface(song = song, mode = backgroundMode, intensity = blurIntensity) {
+    // Opening: the app behind dims a little, and the mini player bar grows into the player — a
+    // card with big round corners (in the bar's own color at first) stretching up to the top of
+    // the screen, the corners straightening out as it arrives; its pieces then pop into place one
+    // after another, each with a small overshoot (see popIn). Closing runs it all backwards.
+    val miniColor = PlayerColors.SurfaceDim
+    val bar = mini?.bar
+    val active = LocalNowPlayingActive.current
+    val cardCornerPx = with(density) { CARD_CORNER.toPx() }
+    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer { alpha = if (active) SCRIM_ALPHA * expand() else 0f }
+            .background(Color.Black),
+    )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer {
+                val e = if (active) expand() else 1f
+                if (e < 1f) {
+                    val from = bar ?: androidx.compose.ui.geometry.Rect(0f, size.height, size.width, size.height)
+                    val top = from.top * (1f - e)
+                    val bottom = from.bottom + (size.height - from.bottom) * e
+                    // Rounded all the way up, straightening only in the last moment of arriving.
+                    val corner = cardCornerPx * ((1f - e) / CORNER_SETTLE).coerceAtMost(1f)
+                    shape = androidx.compose.foundation.shape.GenericShape { _, _ ->
+                        addRoundRect(
+                            androidx.compose.ui.geometry.RoundRect(
+                                androidx.compose.ui.geometry.Rect(0f, top, size.width, bottom),
+                                androidx.compose.ui.geometry.CornerRadius(corner),
+                            ),
+                        )
+                    }
+                    clip = true
+                    // Comes up over the mini player quickly, rather than covering it at once.
+                    alpha = (e / CARD_FADE_IN).coerceAtMost(1f)
+                }
+            },
+    ) {
+    NowPlayingSurface(
+        song = song,
+        mode = backgroundMode,
+        intensity = blurIntensity,
+        openFrom = bar,
+        openProgress = { if (active) expand() else 1f },
+        openTint = miniColor,
+    ) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             // A little extra lift, so the bar doesn't sit right on the screen's bottom edge.
             val barHeight = 78.dp + navBottom
@@ -171,7 +222,7 @@ internal fun ExpressiveNowPlaying(
             Column(modifier = Modifier.fillMaxSize()) {
                 // Everything above the title: the cover sitting at the bottom of this space, or the
                 // lyrics filling all of it.
-                Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                Box(modifier = Modifier.fillMaxWidth().weight(1f).popIn(expand, active, order = 0, grow = true)) {
                     Crossfade(targetState = showLyrics, animationSpec = tween(300), label = "coverOrLyrics") { lyricsShown ->
                         if (lyricsShown) {
                             val topPx = with(density) { (statusTop + 36.dp).roundToPx() }
@@ -221,6 +272,7 @@ internal fun ExpressiveNowPlaying(
                 }
 
                 Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+                    Box(modifier = Modifier.popIn(expand, active, order = 1)) {
                     ExpressiveTitleRow(
                         song = song,
                         onGoToAlbum = onGoToAlbum,
@@ -229,19 +281,20 @@ internal fun ExpressiveNowPlaying(
                         onAddToQueue = onAddToQueue,
                         onAddToPlaylist = onAddToPlaylist,
                     )
+                    }
                     WavySeekBar(
                         positionMs = positionMs,
                         durationMs = durationMs,
                         isPlaying = isPlaying,
                         onSeek = onSeek,
-                        modifier = Modifier.padding(top = 14.dp),
+                        modifier = Modifier.padding(top = 14.dp).popIn(expand, active, order = 2),
                     )
                     ExpressiveTransport(
                         isPlaying = isPlaying,
                         onSkipPrevious = onSkipPrevious,
                         onTogglePlayPause = onTogglePlayPause,
                         onSkipNext = onSkipNext,
-                        modifier = Modifier.padding(top = 18.dp),
+                        modifier = Modifier.padding(top = 18.dp).popIn(expand, active, order = 3),
                     )
                 }
                 // Some air between the buttons and the bottom bar.
@@ -265,7 +318,9 @@ internal fun ExpressiveNowPlaying(
             }
 
             QueueSheet(
-                fullHeight = maxHeight - statusTop - 12.dp,
+                // Stops well short of the top, so reaching for the top of the open queue doesn't
+                // land on the player itself and swipe the whole thing shut.
+                fullHeight = maxHeight - statusTop - 64.dp,
                 barHeight = barHeight,
                 playingFrom = playingFrom,
                 song = song,
@@ -291,7 +346,7 @@ internal fun ExpressiveNowPlaying(
                 navBottom = navBottom,
                 initiallyOpen = memory.expressiveQueueOpen,
                 onOpenChange = { memory.expressiveQueueOpen = it },
-                modifier = Modifier.align(Alignment.BottomCenter),
+                modifier = Modifier.align(Alignment.BottomCenter).popIn(expand, active, order = 4),
             )
         }
 
@@ -303,7 +358,55 @@ internal fun ExpressiveNowPlaying(
             )
         }
     }
+    }
+    }
 }
+
+/** Top corners of the player card while it's on its way up or down. */
+private val CARD_CORNER = 32.dp
+
+/** Over this first bit of the way the card fades in over the mini player. */
+private const val CARD_FADE_IN = 0.1f
+
+/** The card's corners straighten over this last bit of the way up. */
+private const val CORNER_SETTLE = 0.04f
+
+/** How dark the app behind gets under the open player. */
+private const val SCRIM_ALPHA = 0.45f
+
+/**
+ * One piece of the expressive player coming in as it opens: the pieces take turns ([order] 0
+ * first), each rising a little from below into place with a small springy overshoot and fading
+ * in. [grow] instead scales it up from a bit smaller (the cover).
+ */
+private fun Modifier.popIn(expand: () -> Float, active: Boolean, order: Int, grow: Boolean = false): Modifier = graphicsLayer {
+    if (!active) return@graphicsLayer
+    val start = POP_START + order * POP_STAGGER
+    val t = ((expand() - start) / POP_SPAN).coerceIn(0f, 1f)
+    if (t >= 1f) return@graphicsLayer
+    val eased = easeOutBack(t)
+    alpha = (t * 2.5f).coerceAtMost(1f)
+    if (grow) {
+        val scale = 0.82f + 0.18f * eased
+        scaleX = scale
+        scaleY = scale
+    } else {
+        translationY = (1f - eased) * POP_RISE.toPx()
+    }
+}
+
+/** Past the target a little, then back — the springy "pop". */
+private fun easeOutBack(t: Float): Float {
+    val c1 = 1.6f
+    val c3 = c1 + 1f
+    val u = t - 1f
+    return 1f + c3 * u * u * u + c1 * u * u
+}
+
+private const val POP_START = 0.3f
+private const val POP_STAGGER = 0.08f
+private const val POP_SPAN = 0.42f
+private val POP_RISE = 64.dp
 
 @Composable
 private fun ExpressiveTitleRow(
@@ -381,7 +484,7 @@ private fun WavySeekBar(positionMs: Long, durationMs: Long, isPlaying: Boolean, 
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(28.dp)
+                .height(34.dp)
                 .pointerInput(Unit) {
                     detectTapGestures { offset ->
                         val f = (offset.x / size.width).coerceIn(0f, 1f)
@@ -407,7 +510,7 @@ private fun WavySeekBar(positionMs: Long, durationMs: Long, isPlaying: Boolean, 
             val gap = 5.dp.toPx()
             val thumbX = (size.width * fraction).coerceIn(stroke, size.width - stroke)
             val amp = amplitude.toPx()
-            val wavelength = 26.dp.toPx()
+            val wavelength = 40.dp.toPx()
 
             val waveEnd = thumbX - gap
             if (waveEnd > 0f) {
@@ -425,7 +528,7 @@ private fun WavySeekBar(positionMs: Long, durationMs: Long, isPlaying: Boolean, 
                 drawLine(rest, Offset(restStart, mid), Offset(size.width - stroke / 2, mid), strokeWidth = stroke, cap = StrokeCap.Round)
                 drawCircle(played, radius = stroke * 0.6f, center = Offset(size.width - stroke / 2, mid))
             }
-            drawLine(played, Offset(thumbX, mid - 11.dp.toPx()), Offset(thumbX, mid + 11.dp.toPx()), strokeWidth = stroke, cap = StrokeCap.Round)
+            drawLine(played, Offset(thumbX, mid - 15.dp.toPx()), Offset(thumbX, mid + 15.dp.toPx()), strokeWidth = stroke, cap = StrokeCap.Round)
         }
         Row(modifier = Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
             val shownMs = (fraction * safeDuration).toLong()
@@ -460,10 +563,22 @@ private fun ExpressiveTransport(
     val nextWeight by animateFloatAsState(if (nextPressed) 1.35f else 1f, bounce, label = "nextWeight")
     val sideFill = PlayerColors.TextPrimary.copy(alpha = 0.14f)
 
-    Row(modifier = modifier.fillMaxWidth().height(84.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(modifier = modifier.fillMaxWidth().height(84.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
         ExpressiveButton(
             weight = prevWeight,
-            corner = if (prevPressed) 16.dp else 28.dp,
+            // The side facing play matches play's own corners while a song plays.
+            corner = when {
+                prevPressed -> 14.dp
+                isPlaying -> 20.dp
+                else -> 28.dp
+            },
+            // While a song plays, the outer side rounds off further — the row reads as one pill.
+            outerCorner = when {
+                prevPressed -> 16.dp
+                isPlaying -> 42.dp
+                else -> 28.dp
+            },
+            outerStart = true,
             fill = sideFill,
             interaction = prevInteraction,
             onClick = onSkipPrevious,
@@ -473,8 +588,9 @@ private fun ExpressiveTransport(
         ExpressiveButton(
             weight = playWeight,
             corner = when {
-                playPressed -> 18.dp
-                isPlaying -> 28.dp
+                playPressed -> 14.dp
+                // Playing: a squarer rounded rectangle; paused: a round pill.
+                isPlaying -> 20.dp
                 else -> 42.dp
             },
             fill = PlayerColors.TextPrimary,
@@ -485,7 +601,18 @@ private fun ExpressiveTransport(
         }
         ExpressiveButton(
             weight = nextWeight,
-            corner = if (nextPressed) 16.dp else 28.dp,
+            // The side facing play matches play's own corners while a song plays.
+            corner = when {
+                nextPressed -> 14.dp
+                isPlaying -> 20.dp
+                else -> 28.dp
+            },
+            outerCorner = when {
+                nextPressed -> 16.dp
+                isPlaying -> 42.dp
+                else -> 28.dp
+            },
+            outerStart = false,
             fill = sideFill,
             interaction = nextInteraction,
             onClick = onSkipNext,
@@ -500,16 +627,23 @@ private fun androidx.compose.foundation.layout.RowScope.ExpressiveButton(
     weight: Float,
     corner: androidx.compose.ui.unit.Dp,
     fill: Color,
+    /** The corners on the row's outer edge, when they differ from [corner]. */
+    outerCorner: androidx.compose.ui.unit.Dp = corner,
+    /** Whether the outer edge is this button's start (left) side, or its end. */
+    outerStart: Boolean = true,
     interaction: MutableInteractionSource,
     onClick: () -> Unit,
     content: @Composable () -> Unit,
 ) {
     val animatedCorner by animateDpAsState(corner, spring(stiffness = Spring.StiffnessMediumLow), label = "buttonCorner")
+    val animatedOuter by animateDpAsState(outerCorner, spring(stiffness = Spring.StiffnessMediumLow), label = "buttonOuterCorner")
+    val start = if (outerStart) animatedOuter else animatedCorner
+    val end = if (outerStart) animatedCorner else animatedOuter
     Box(
         modifier = Modifier
             .weight(weight)
             .fillMaxSize()
-            .clip(RoundedCornerShape(animatedCorner))
+            .clip(RoundedCornerShape(topStart = start, bottomStart = start, topEnd = end, bottomEnd = end))
             .background(fill)
             .clickable(interactionSource = interaction, indication = null, onClick = onClick),
         contentAlignment = Alignment.Center,
@@ -564,7 +698,14 @@ private fun QueueSheet(
     val dragState = rememberDraggableState { delta ->
         scope.launch { openness.snapTo((openness.value - delta / travelPx).coerceIn(0f, 1f)) }
     }
-    val sheetFill = lerp(Color.Black.copy(alpha = 0.28f), PlayerColors.Background.copy(alpha = 0.97f), openness.value)
+    // In the cover's own color (a Material-style tone of it): lightly tinted and see-through
+    // while closed, a solid sheet of it once pulled up.
+    val tone by androidx.compose.animation.animateColorAsState(
+        rememberArtTone(song?.uri, com.artemiy.player.ui.theme.LocalPlayerPalette.current.isLight),
+        tween(600),
+        label = "queueSheetTone",
+    )
+    val sheetFill = lerp(tone.copy(alpha = 0.4f), tone.copy(alpha = 0.97f), openness.value)
 
     Column(
         modifier = modifier
@@ -656,14 +797,6 @@ private fun QueueSheet(
         // The queue — only built once the sheet starts opening.
         if (openness.value > 0.001f) {
             Column(modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 20.dp)) {
-                QueueToggleRow(
-                    shuffleEnabled = shuffleEnabled,
-                    repeatEnabled = repeatEnabled,
-                    infinitePlayEnabled = infinitePlayEnabled,
-                    onToggleShuffle = onToggleShuffle,
-                    onToggleRepeat = onToggleRepeat,
-                    onToggleInfinitePlay = onToggleInfinitePlay,
-                )
                 QueueList(
                     manualQueue = manualQueue,
                     continueQueue = continueQueue,
@@ -677,7 +810,19 @@ private fun QueueSheet(
                     topFadePx = { 0 },
                     bottomFadePx = { 0 },
                     modifier = Modifier.fillMaxWidth().weight(1f),
-                    contentPadding = PaddingValues(top = 8.dp, bottom = navBottom + 24.dp),
+                    contentPadding = PaddingValues(top = 8.dp, bottom = 12.dp),
+                )
+                // The play modes under the list, in the same chunky connected style as the
+                // transport buttons, lit in the cover's color.
+                ExpressiveQueueModes(
+                    song = song,
+                    shuffleEnabled = shuffleEnabled,
+                    repeatEnabled = repeatEnabled,
+                    infinitePlayEnabled = infinitePlayEnabled,
+                    onToggleShuffle = onToggleShuffle,
+                    onToggleRepeat = onToggleRepeat,
+                    onToggleInfinitePlay = onToggleInfinitePlay,
+                    modifier = Modifier.padding(top = 4.dp, bottom = navBottom + 16.dp),
                 )
             }
         }
@@ -732,3 +877,112 @@ private fun SourceArtThumb(art: SourceArt?, song: Song?, modifier: Modifier = Mo
         null -> AlbumArt(uri = song?.uri, size = ART_SIZE_THUMB, modifier = modifier)
     }
 }
+
+/**
+ * A Material-style container color from the cover: its main hue (by the most colorful pixels),
+ * toned down — deep on a dark player, pale on a light one — so the text on it stays readable.
+ * A black-and-white cover gives a neutral gray.
+ */
+@Composable
+private fun rememberArtTone(uri: android.net.Uri?, light: Boolean, accent: Boolean = false): Color {
+    val bitmap = com.artemiy.player.ui.components.rememberAlbumArtBitmap(uri)
+    val neutral = when {
+        accent -> PlayerColors.TextPrimary
+        light -> Color(0xFFE6E6EA)
+        else -> Color(0xFF2A2A2E)
+    }
+    val tone by androidx.compose.runtime.produceState(neutral, bitmap, light, accent) {
+        val bmp = bitmap ?: return@produceState
+        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { artTone(bmp, light, accent) } ?: neutral
+    }
+    return tone
+}
+
+private fun artTone(source: android.graphics.Bitmap, light: Boolean, accent: Boolean): Color? {
+    val bmp = if (source.config == android.graphics.Bitmap.Config.HARDWARE) {
+        source.copy(android.graphics.Bitmap.Config.ARGB_8888, false) ?: return null
+    } else source
+    val hsv = FloatArray(3)
+    var x = 0.0
+    var y = 0.0
+    var satSum = 0.0
+    var weightSum = 0.0
+    val steps = 24
+    for (i in 0 until steps) for (j in 0 until steps) {
+        val px = bmp.getPixel(i * (bmp.width - 1) / (steps - 1), j * (bmp.height - 1) / (steps - 1))
+        android.graphics.Color.colorToHSV(px, hsv)
+        // Colorful, not-too-dark pixels decide the hue.
+        val weight = (hsv[1] * hsv[2]).toDouble().let { it * it }
+        if (weight < 0.01) continue
+        val angle = Math.toRadians(hsv[0].toDouble())
+        x += kotlin.math.cos(angle) * weight
+        y += kotlin.math.sin(angle) * weight
+        satSum += hsv[1] * weight
+        weightSum += weight
+    }
+    if (weightSum < 0.5) return null
+    val hue = ((Math.toDegrees(kotlin.math.atan2(y, x)) + 360.0) % 360.0).toFloat()
+    val saturation = (satSum / weightSum).toFloat()
+    return when {
+        // The bright version, for things lit up on top of the container tone.
+        accent && light -> Color.hsl(hue, (saturation * 0.9f).coerceIn(0.35f, 0.75f), 0.4f)
+        accent -> Color.hsl(hue, (saturation * 0.9f).coerceIn(0.35f, 0.8f), 0.74f)
+        light -> Color.hsl(hue, (saturation * 0.55f).coerceIn(0.15f, 0.5f), 0.86f)
+        else -> Color.hsl(hue, (saturation * 0.6f).coerceIn(0.15f, 0.55f), 0.22f)
+    }
+}
+
+/**
+ * Shuffle / repeat / endless play for the expressive queue: three connected buttons like the
+ * transport ones. Off: see-through and round; on: filled in the cover's bright color and a bit
+ * squarer. The pressed one widens a little while the others make way.
+ */
+@Composable
+private fun ExpressiveQueueModes(
+    song: Song?,
+    shuffleEnabled: Boolean,
+    repeatEnabled: Boolean,
+    infinitePlayEnabled: Boolean,
+    onToggleShuffle: () -> Unit,
+    onToggleRepeat: () -> Unit,
+    onToggleInfinitePlay: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val light = com.artemiy.player.ui.theme.LocalPlayerPalette.current.isLight
+    val accent by androidx.compose.animation.animateColorAsState(rememberArtTone(song?.uri, light, accent = true), tween(600), label = "modesAccent")
+    val onAccent = if (light) Color.White else Color(0xFF141416)
+    val offFill = PlayerColors.TextPrimary.copy(alpha = 0.12f)
+    val bounce = spring<Float>(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow)
+
+    Row(modifier = modifier.fillMaxWidth().height(56.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+        listOf(
+            Triple(AppIcons.Shuffle to "Перемешать", shuffleEnabled, onToggleShuffle),
+            Triple(AppIcons.Repeat to "Повтор", repeatEnabled, onToggleRepeat),
+            Triple(AppIcons.Infinite to "Бесконечное воспроизведение", infinitePlayEnabled, onToggleInfinitePlay),
+        ).forEachIndexed { index, (iconAndLabel, enabled, onClick) ->
+            val interaction = remember { MutableInteractionSource() }
+            val pressed by interaction.collectIsPressedAsState()
+            val weight by animateFloatAsState(if (pressed) 1.25f else 1f, bounce, label = "modeWeight")
+            val fill by androidx.compose.animation.animateColorAsState(if (enabled) accent else offFill, tween(220), label = "modeFill")
+            val tint by androidx.compose.animation.animateColorAsState(if (enabled) onAccent else PlayerColors.TextPrimary, tween(220), label = "modeTint")
+            val inner = when {
+                pressed -> 10.dp
+                enabled -> 14.dp
+                else -> 28.dp
+            }
+            ExpressiveButton(
+                weight = weight,
+                corner = inner,
+                // The row's outer ends stay fully round.
+                outerCorner = if (index == 1) inner else if (pressed) 14.dp else 28.dp,
+                outerStart = index == 0,
+                fill = fill,
+                interaction = interaction,
+                onClick = onClick,
+            ) {
+                Icon(iconAndLabel.first, contentDescription = iconAndLabel.second, tint = tint, modifier = Modifier.size(22.dp))
+            }
+        }
+    }
+}
+

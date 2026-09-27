@@ -193,14 +193,13 @@ private fun PlayerApp(settings: SettingsViewModel) {
     fun openNowPlaying(velocity: Float = 0f) {
         showNowPlaying = true
         scope.launch {
-            if (classicPlayer) nowPlayingExpand.animateTo(1f, NOW_PLAYING_SPRING, initialVelocity = velocity)
-            else nowPlayingExpand.snapTo(1f)
+            nowPlayingExpand.animateTo(1f, if (classicPlayer) NOW_PLAYING_SPRING else EXPRESSIVE_SPRING, initialVelocity = velocity)
         }
     }
 
     fun closeNowPlaying(animated: Boolean = true, velocity: Float = 0f) {
         scope.launch {
-            if (classicPlayer && animated) nowPlayingExpand.animateTo(0f, NOW_PLAYING_SPRING, initialVelocity = velocity)
+            if (animated) nowPlayingExpand.animateTo(0f, if (classicPlayer) NOW_PLAYING_SPRING else EXPRESSIVE_SPRING, initialVelocity = velocity)
             else nowPlayingExpand.snapTo(0f)
             showNowPlaying = false
         }
@@ -355,13 +354,14 @@ private fun PlayerApp(settings: SettingsViewModel) {
                     onOpen = { if (playback.currentSong != null) openNowPlaying() },
                     onTogglePlayPause = { playback.togglePlayPause() },
                     onSkipNext = { playback.skipNext() },
+                    onSkipPrevious = if (classicPlayer) null else ({ playback.skipPrevious() }),
                     artVisible = !(showNowPlaying && classicPlayer),
                     anchors = miniAnchors,
                     textScrolls = !showNowPlaying,
                     // Drag it up to pull the classic player open with the finger.
                     modifier = Modifier.draggable(
                         orientation = Orientation.Vertical,
-                        enabled = classicPlayer && playback.currentSong != null,
+                        enabled = playback.currentSong != null,
                         state = rememberDraggableState { delta ->
                             showNowPlaying = true
                             scope.launch {
@@ -490,7 +490,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 // Lists inside (lyrics, queue) keep their own vertical scrolling.
                 .draggable(
                     orientation = Orientation.Vertical,
-                    enabled = classicPlayer && showNowPlaying,
+                    enabled = showNowPlaying,
                     state = rememberDraggableState { delta ->
                         scope.launch {
                             nowPlayingExpand.snapTo((nowPlayingExpand.value - delta / expandTravelPx).coerceIn(0f, 1f))
@@ -698,3 +698,7 @@ private fun libraryOrigin(route: com.artemiy.player.ui.library.LibraryRoute, son
  * and carried right to the end: the spring's own default is to stop 1% short and jump the rest,
  * which showed as the cover, title and buttons hopping a few pixels as it finished. */
 private val NOW_PLAYING_SPRING = spring(dampingRatio = 1f, stiffness = 320f, visibilityThreshold = 0.0005f)
+
+/** The expressive player's card: a little softer and slower than the classic sheet, so its
+ * pieces have time to pop in one after another. */
+private val EXPRESSIVE_SPRING = spring(dampingRatio = 1f, stiffness = 240f, visibilityThreshold = 0.0005f)

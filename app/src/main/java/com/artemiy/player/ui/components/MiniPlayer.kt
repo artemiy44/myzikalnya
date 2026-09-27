@@ -40,6 +40,8 @@ fun MiniPlayer(
     onOpen: () -> Unit,
     onTogglePlayPause: () -> Unit,
     onSkipNext: () -> Unit,
+    /** Given (expressive player style): a "previous" button before play too. */
+    onSkipPrevious: (() -> Unit)? = null,
     /** Hidden while the classic player is open — its big cover is this one, flown up there. */
     artVisible: Boolean = true,
     /** Filled with where each piece sits on screen, for the classic player to open out of. */
@@ -99,6 +101,19 @@ fun MiniPlayer(
           }
         }
 
+        if (onSkipPrevious != null) {
+            val prevInteraction = remember { MutableInteractionSource() }
+            Icon(
+                imageVector = AppIcons.SkipPrevious,
+                contentDescription = "Предыдущий трек",
+                tint = PlayerColors.TextPrimary,
+                modifier = Modifier
+                    .padding(end = 18.dp)
+                    .size(24.dp)
+                    .pressScale(prevInteraction)
+                    .clickable(interactionSource = prevInteraction, indication = null) { onSkipPrevious() },
+            )
+        }
         val playInteraction = remember { MutableInteractionSource() }
         PlayPauseIcon(
             isPlaying = isPlaying,
