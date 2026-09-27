@@ -6,6 +6,10 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
 import androidx.compose.animation.core.Animatable
@@ -338,6 +342,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                     onSkipNext = { playback.skipNext() },
                     artVisible = !(showNowPlaying && classicPlayer),
                     anchors = miniAnchors,
+                    textScrolls = !showNowPlaying,
                     // Drag it up to pull the classic player open with the finger.
                     modifier = Modifier.draggable(
                         orientation = Orientation.Vertical,
@@ -487,6 +492,25 @@ private fun PlayerApp(settings: SettingsViewModel) {
                     indication = null,
                 ) {},
         ) {
+          // While the player is on its way open or shut (not fully open), touches starting inside
+          // it are swallowed — a tap meant for the page underneath could otherwise land on a
+          // button or slider mid-animation (the volume jumped to 100% like that).
+          Box(
+              modifier = Modifier
+                  .fillMaxSize()
+                  .pointerInput(Unit) {
+                      awaitEachGesture {
+                          val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                          if (nowPlayingExpand.value < 0.999f) {
+                              down.consume()
+                              do {
+                                  val event = awaitPointerEvent(PointerEventPass.Initial)
+                                  event.changes.forEach { it.consume() }
+                              } while (event.changes.any { it.pressed })
+                          }
+                      }
+                  },
+          ) {
           CompositionLocalProvider(LocalNowPlayingActive provides showNowPlaying) {
             NowPlayingScreen(
                 song = playback.currentSong,
@@ -529,6 +553,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 memory = nowPlayingMemory,
                 lyricsLoading = playback.lyricsLoading,
             )
+          }
           }
         }
     }

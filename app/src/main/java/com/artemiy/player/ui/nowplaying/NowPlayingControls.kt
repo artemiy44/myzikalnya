@@ -51,6 +51,9 @@ import com.artemiy.player.ui.components.PlayPauseIcon
 import com.artemiy.player.ui.components.SongActionsMenuPopup
 import com.artemiy.player.ui.components.pressScale
 import com.artemiy.player.ui.icons.AppIcons
+import com.artemiy.player.ui.components.marquee
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.takeOrElse
 import com.artemiy.player.ui.theme.PlayerColors
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -92,8 +95,7 @@ internal fun NowPlayingMiniHeader(
                 lineHeight = HEADER_LINE_HEIGHT,
                 fontWeight = FontWeight.ExtraBold,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.then(
+                modifier = Modifier.marquee(LocalNowPlayingActive.current).then(
                     if (song != null) {
                         Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onGoToAlbum(song) }
                     } else Modifier,
@@ -105,8 +107,7 @@ internal fun NowPlayingMiniHeader(
                 fontSize = 15.sp,
                 lineHeight = HEADER_LINE_HEIGHT,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.then(
+                modifier = Modifier.marquee(LocalNowPlayingActive.current).then(
                     if (song != null) {
                         Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onGoToArtist(song) }
                     } else Modifier,
@@ -264,7 +265,7 @@ internal fun BottomQuickActionsRow(
                 .width(120.dp)
                 .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onDeviceClick() },
         ) {
-            val output = rememberOutputDevice()
+            val output = rememberOutputDevice(active = LocalNowPlayingActive.current)
             Icon(
                 imageVector = when (output.kind) {
                     OutputKind.PHONE -> AppIcons.DevicePhone
@@ -367,8 +368,7 @@ internal fun SongTitleRow(
                 lineHeight = 24.sp,
                 fontWeight = FontWeight.ExtraBold,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.then(
+                modifier = Modifier.marquee(LocalNowPlayingActive.current).then(
                     if (song != null) {
                         Modifier.clickable(
                             interactionSource = remember { MutableInteractionSource() },
@@ -383,8 +383,7 @@ internal fun SongTitleRow(
                 fontSize = 18.sp,
                 lineHeight = 24.sp,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.then(
+                modifier = Modifier.marquee(LocalNowPlayingActive.current).then(
                     if (song != null) {
                         Modifier.clickable(
                             interactionSource = remember { MutableInteractionSource() },
@@ -441,7 +440,10 @@ internal fun TransportControls(
     prevModifier: Modifier = Modifier,
     playModifier: Modifier = Modifier,
     nextModifier: Modifier = Modifier,
+    /** Color of play and next — the classic player blends it from the mini player's while opening. */
+    iconTint: () -> Color = { Color.Unspecified },
 ) {
+    val tint = iconTint().takeOrElse { PlayerColors.TextPrimary }
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.Center,
@@ -461,7 +463,7 @@ internal fun TransportControls(
         val playInteraction = remember { MutableInteractionSource() }
         PlayPauseIcon(
             isPlaying = isPlaying,
-            tint = PlayerColors.TextPrimary,
+            tint = tint,
             modifier = Modifier
                 .padding(horizontal = 46.dp)
                 .size(58.dp)
@@ -473,7 +475,7 @@ internal fun TransportControls(
         Icon(
             imageVector = AppIcons.SkipNext,
             contentDescription = "Следующий трек",
-            tint = PlayerColors.TextPrimary,
+            tint = tint,
             modifier = Modifier
                 .size(40.dp)
                 .then(nextModifier)

@@ -44,6 +44,8 @@ fun MiniPlayer(
     artVisible: Boolean = true,
     /** Filled with where each piece sits on screen, for the classic player to open out of. */
     anchors: MiniPlayerAnchors? = null,
+    /** Off while the big player is open — so the text starts scrolling afresh once it's closed. */
+    textScrolls: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -84,7 +86,7 @@ fun MiniPlayer(
                 // size differs, so the hand-over while opening is hardly visible.
                 fontWeight = FontWeight.ExtraBold,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.marquee(textScrolls),
             )
             Text(
                 text = artist,
@@ -92,7 +94,7 @@ fun MiniPlayer(
                 fontSize = 11.sp,
                 lineHeight = MINI_TEXT_LINE_HEIGHT,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.marquee(textScrolls),
             )
           }
         }

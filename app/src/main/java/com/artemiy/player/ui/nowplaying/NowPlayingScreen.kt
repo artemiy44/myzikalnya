@@ -184,7 +184,9 @@ fun NowPlayingScreen(
     val miniColor = PlayerColors.SurfaceDim
     val miniTitleColor = PlayerColors.TextPrimary
     val miniArtistColor = PlayerColors.TextSecondary
+    val miniIconColor = PlayerColors.TextPrimary
     var titleTarget by remember { mutableStateOf<Rect?>(null) }
+    val playerActive = LocalNowPlayingActive.current
     NowPlayingSurface(
         song = song,
         mode = nowPlayingBackgroundMode,
@@ -252,7 +254,7 @@ fun NowPlayingScreen(
                                     val p = FLIGHT_EASING.transform(expand())
                                     val to = finalArtBounds
                                     val from = mini?.art
-                                    if (p < 1f && to != null && from != null && to.width > 0f) {
+                                    if (playerActive && p < 1f && to != null && from != null && to.width > 0f) {
                                         // Aim for the cover as it'll actually sit — a touch smaller
                                         // while paused — so there's no jump when it lands.
                                         val endW = to.width * artScale
@@ -492,6 +494,7 @@ fun NowPlayingScreen(
                         modifier = Modifier.padding(top = 18.dp).graphicsLayer { alpha = chromeAlpha() },
                     )
 
+                    val playerIconColor = PlayerColors.TextPrimary
                     TransportControls(
                         isPlaying = isPlaying,
                         onSkipPrevious = onSkipPrevious,
@@ -502,6 +505,12 @@ fun NowPlayingScreen(
                         // Play and next fly over from the mini player's buttons.
                         playModifier = Modifier.flyFrom(mini?.play, expand, fromCenter = true),
                         nextModifier = Modifier.flyFrom(mini?.next, expand, fromCenter = true),
+                        // In the mini player's colors at first (dark on a light theme), turning
+                        // into the player's own as they fly up — and back when closing.
+                        iconTint = {
+                            val t = (expand() / TEXT_HANDOFF).coerceIn(0f, 1f)
+                            androidx.compose.ui.graphics.lerp(miniIconColor, playerIconColor, t)
+                        },
                     )
 
                     VolumeRow(modifier = Modifier.padding(top = 28.dp).graphicsLayer { alpha = chromeAlpha() })
@@ -529,7 +538,7 @@ fun NowPlayingScreen(
         // A look-alike of the mini player's text — same size, weight and colors — riding along at
         // first and fading out as the player's own title fades in, so grabbing the bar doesn't
         // change how its text looks.
-        val miniText = mini?.text
+        val miniText = mini?.text?.takeIf { playerActive }
         // How much bigger the text it hands over to is: the Art view's title, or the header's.
         val handoffScale = if (centerMode == CenterMode.Art) 20f / 13f else 17f / 13f
         if (miniText != null) {

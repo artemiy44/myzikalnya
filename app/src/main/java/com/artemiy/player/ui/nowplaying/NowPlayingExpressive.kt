@@ -101,6 +101,7 @@ import com.artemiy.player.ui.components.ART_SIZE_THUMB
 import com.artemiy.player.ui.components.AlbumArt
 import com.artemiy.player.ui.components.PlayPauseIcon
 import com.artemiy.player.ui.icons.AppIcons
+import com.artemiy.player.ui.components.marquee
 import com.artemiy.player.ui.theme.PlayerColors
 import kotlinx.coroutines.launch
 import kotlin.math.PI
@@ -322,8 +323,7 @@ private fun ExpressiveTitleRow(
                 lineHeight = 30.sp,
                 fontWeight = FontWeight.ExtraBold,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                modifier = Modifier.marquee(LocalNowPlayingActive.current).clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
                     song?.let(onGoToAlbum)
                 },
             )
@@ -332,8 +332,7 @@ private fun ExpressiveTitleRow(
                 color = LocalAdaptiveSecondaryColor.current,
                 fontSize = 19.sp,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                modifier = Modifier.marquee(LocalNowPlayingActive.current).clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
                     song?.let(onGoToArtist)
                 },
             )
@@ -632,7 +631,7 @@ private fun QueueSheet(
                         .size(24.dp)
                         .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onLyricsClick() },
                 )
-                val output = rememberOutputDevice()
+                val output = rememberOutputDevice(active = LocalNowPlayingActive.current)
                 Icon(
                     imageVector = when (output.kind) {
                         OutputKind.PHONE -> AppIcons.DevicePhone

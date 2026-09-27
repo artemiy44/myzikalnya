@@ -132,8 +132,12 @@ internal fun Modifier.flyFrom(
     onTarget: (Rect) -> Unit = {},
 ): Modifier {
     var target by remember { mutableStateOf<Rect?>(null) }
+    // While the player is hidden it's parked off screen — flying this back over the mini player
+    // there would put an invisible copy right on top of it, catching its taps.
+    val active = LocalNowPlayingActive.current
     return onGloballyPositioned { target = it.boundsInRoot(); onTarget(it.boundsInRoot()) }
         .graphicsLayer {
+            if (!active) return@graphicsLayer
             alpha = if (fadeInUntil != null) (progress() / fadeInUntil).coerceIn(0f, 1f) else 1f
             val p = FLIGHT_EASING.transform(progress())
             val to = target

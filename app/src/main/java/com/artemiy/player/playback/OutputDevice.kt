@@ -1,6 +1,13 @@
 package com.artemiy.player.playback
 
 import android.content.Context
+import android.Manifest
+import android.bluetooth.BluetoothManager
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.core.content.ContextCompat
 import android.content.Intent
 import android.media.AudioAttributes
 import android.media.AudioDeviceCallback
@@ -24,33 +31,61 @@ import kotlinx.coroutines.delay
 enum class OutputKind { PHONE, HEADPHONES, SPEAKER, BLUETOOTH, USB, TV }
 
 /** Where the music is coming out right now — [name] is null for the phone's own speaker. */
-data class OutputDevice(val kind: OutputKind, val name: String?)
+data class OutputDevice(val kind: OutputKind, val name: String?, val isBluetooth: Boolean = false)
 
 private val PHONE = OutputDevice(OutputKind.PHONE, null)
 
-/** Tracks the current media output, updating as things are plugged in, paired or switched. */
+/**
+ * Tracks the current media output, updating as things are plugged in, paired or switched.
+ * [active]: the screen showing it is actually visible — only then does it keep re-checking, and
+ * only then, the first time a Bluetooth device turns up, does it ask for "Nearby devices" (needed
+ * to read the name you gave the device rather than its factory one).
+ */
 @Composable
-fun rememberOutputDevice(): OutputDevice {
+fun rememberOutputDevice(active: Boolean = true): OutputDevice {
     val context = LocalContext.current
     val audio = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
-    var device by remember { mutableStateOf(currentOutput(audio)) }
+    var device by remember { mutableStateOf(currentOutput(audio, context)) }
     DisposableEffect(audio) {
         val callback = object : AudioDeviceCallback() {
-            override fun onAudioDevicesAdded(added: Array<out AudioDeviceInfo>) { device = currentOutput(audio) }
-            override fun onAudioDevicesRemoved(removed: Array<out AudioDeviceInfo>) { device = currentOutput(audio) }
+            override fun onAudioDevicesAdded(added: Array<out AudioDeviceInfo>) { device = currentOutput(audio, context) }
+            override fun onAudioDevicesRemoved(removed: Array<out AudioDeviceInfo>) { device = currentOutput(audio, context) }
         }
         audio.registerAudioDeviceCallback(callback, Handler(Looper.getMainLooper()))
         onDispose { audio.unregisterAudioDeviceCallback(callback) }
     }
     // Switching between already-connected devices (from the system output picker) doesn't add or
     // remove anything, so there's no callback for it — a cheap re-check every couple of seconds.
-    LaunchedEffect(audio) {
-        while (true) {
+    LaunchedEffect(audio, active) {
+        while (active) {
+            device = currentOutput(audio, context)
             delay(1500)
-            device = currentOutput(audio)
+        }
+    }
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        device = currentOutput(audio, context)
+    }
+    var askedForNearby by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(device.isBluetooth, active) {
+        if (active && device.isBluetooth && !askedForNearby && Build.VERSION.SDK_INT >= 31 && !hasBluetoothConnect(context)) {
+            askedForNearby = true
+            permissionLauncher.launch(Manifest.permission.BLUETOOTH_CONNECT)
         }
     }
     return device
+}
+
+private fun hasBluetoothConnect(context: Context): Boolean =
+    Build.VERSION.SDK_INT < 31 ||
+        ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
+
+/** The name the user gave a Bluetooth device in the system settings, when Android lets us read it. */
+private fun bluetoothAlias(context: Context, info: AudioDeviceInfo): String? {
+    if (Build.VERSION.SDK_INT < 30 || !hasBluetoothConnect(context)) return null
+    val address = info.address.takeIf { it.isNotBlank() } ?: return null
+    return runCatching {
+        context.getSystemService(BluetoothManager::class.java)?.adapter?.getRemoteDevice(address)?.alias
+    }.getOrNull()?.trim()?.takeIf { it.isNotEmpty() }
 }
 
 private val MEDIA_ATTRIBUTES = AudioAttributes.Builder()
@@ -58,17 +93,21 @@ private val MEDIA_ATTRIBUTES = AudioAttributes.Builder()
     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
     .build()
 
-private fun currentOutput(audio: AudioManager): OutputDevice {
-    val info = runCatching {
-        if (Build.VERSION.SDK_INT >= 33) {
-            audio.getAudioDevicesForAttributes(MEDIA_ATTRIBUTES).firstOrNull()
-        } else {
-            // Older Android can't say where media is routed, so guess the way it usually picks:
-            // the most "personal" connected output wins over the phone's speaker.
-            audio.getDevices(AudioManager.GET_DEVICES_OUTPUTS).maxByOrNull { priorityOf(it.type) }
-        }
-    }.getOrNull() ?: return PHONE
-    return describe(info)
+private fun currentOutput(audio: AudioManager, context: Context): OutputDevice {
+    // Android 13+ can say exactly where media is routed — but on some phones that call wants a
+    // system permission an ordinary app doesn't have, and just fails. Then (and on older Android)
+    // guess the way Android itself usually picks: the most "personal" connected output wins over
+    // the phone's own speaker.
+    val routed = if (Build.VERSION.SDK_INT >= 33) {
+        runCatching { audio.getAudioDevicesForAttributes(MEDIA_ATTRIBUTES).firstOrNull() }
+            .onFailure { android.util.Log.d("OutputDevice", "Routed device unavailable: ${it.javaClass.simpleName}") }
+            .getOrNull()
+    } else null
+    val info = routed
+        ?: runCatching { audio.getDevices(AudioManager.GET_DEVICES_OUTPUTS).maxByOrNull { priorityOf(it.type) } }.getOrNull()
+        ?: return PHONE
+    val described = describe(info)
+    return if (described.isBluetooth) bluetoothAlias(context, info)?.let { described.copy(name = it) } ?: described else described
 }
 
 private fun priorityOf(type: Int): Int = when (type) {
@@ -90,12 +129,12 @@ private fun describe(info: AudioDeviceInfo): OutputDevice {
         AudioDeviceInfo.TYPE_USB_DEVICE, AudioDeviceInfo.TYPE_USB_ACCESSORY -> OutputDevice(OutputKind.USB, name ?: "USB-аудио")
         AudioDeviceInfo.TYPE_HDMI, AudioDeviceInfo.TYPE_HDMI_ARC, AudioDeviceInfo.TYPE_HDMI_EARC ->
             OutputDevice(OutputKind.TV, name ?: "HDMI")
-        AudioDeviceInfo.TYPE_BLE_HEADSET -> OutputDevice(OutputKind.HEADPHONES, name ?: "Bluetooth")
-        AudioDeviceInfo.TYPE_BLE_SPEAKER -> OutputDevice(OutputKind.SPEAKER, name ?: "Bluetooth")
+        AudioDeviceInfo.TYPE_BLE_HEADSET -> OutputDevice(OutputKind.HEADPHONES, name ?: "Bluetooth", isBluetooth = true)
+        AudioDeviceInfo.TYPE_BLE_SPEAKER -> OutputDevice(OutputKind.SPEAKER, name ?: "Bluetooth", isBluetooth = true)
         // Bluetooth doesn't say what kind of thing it is without extra permissions, so the name
         // is the best hint there is.
         AudioDeviceInfo.TYPE_BLUETOOTH_A2DP, AudioDeviceInfo.TYPE_BLUETOOTH_SCO, AudioDeviceInfo.TYPE_BLE_BROADCAST ->
-            OutputDevice(bluetoothKindFromName(name), name ?: "Bluetooth")
+            OutputDevice(bluetoothKindFromName(name), name ?: "Bluetooth", isBluetooth = true)
         else -> OutputDevice(OutputKind.SPEAKER, name ?: "Внешнее устройство")
     }
 }
