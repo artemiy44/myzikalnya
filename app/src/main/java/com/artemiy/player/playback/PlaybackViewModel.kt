@@ -235,8 +235,15 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
         controller?.seekToNextMediaItem()
     }
 
+    /** Past the first few seconds of a song, "back" restarts it; only near its start does it go
+     * to the previous song. */
     fun skipPrevious() {
-        controller?.seekToPreviousMediaItem()
+        val c = controller ?: return
+        if (c.currentPosition > RESTART_INSTEAD_OF_PREVIOUS_MS || !c.hasPreviousMediaItem()) {
+            seekTo(0)
+        } else {
+            c.seekToPreviousMediaItem()
+        }
     }
 
     fun seekTo(ms: Long) {
@@ -525,3 +532,5 @@ enum class SourcePlace { SONGS, LIBRARY, SEARCH, MOOD, QUICK_PICKS, RECENTLY_ADD
 
 /** See [PlaybackViewModel.playingFrom]. */
 data class PlaySource(val name: String, val songCount: Int, val art: SourceArt)
+
+private const val RESTART_INSTEAD_OF_PREVIOUS_MS = 3_000L

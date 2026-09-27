@@ -12,6 +12,10 @@ private val VOICE_PREFIX = Regex("^(v1|v2)\\s*:\\s*", RegexOption.IGNORE_CASE)
  * with no leading line timestamp — it belongs to the main line right above it. */
 private val BACKGROUND_LINE = Regex("^\\s*\\[bg:(.*)]\\s*$", RegexOption.IGNORE_CASE)
 
+/** `[offset:+500]`: move every timestamp in the file by this many milliseconds. Per the LRC
+ * convention a positive value makes the lyrics come *sooner*, a negative one later. */
+private val OFFSET_TAG = Regex("^\\s*\\[offset:\\s*([+-]?)\\s*(\\d+)\\s*]", RegexOption.IGNORE_CASE)
+
 private fun parseTimeMs(minutes: String, seconds: String, frac: String): Long {
     val fracMs = when (frac.length) {
         0 -> 0L
@@ -56,7 +60,13 @@ private fun parseWordTags(text: String): WordTagResult? {
  */
 fun parsePlainLrc(raw: String): List<LyricLine> {
     val lines = mutableListOf<LyricLine>()
+    var offsetMs = 0L
     raw.lineSequence().forEach { rawLine ->
+        OFFSET_TAG.find(rawLine)?.let { match ->
+            val amount = match.groupValues[2].toLong()
+            offsetMs = if (match.groupValues[1] == "-") -amount else amount
+            return@forEach
+        }
         BACKGROUND_LINE.matchEntire(rawLine)?.let { match ->
             val owner = lines.lastOrNull() ?: return@forEach
             val body = match.groupValues[1]
@@ -107,8 +117,17 @@ fun parsePlainLrc(raw: String): List<LyricLine> {
             lines.add(LyricLine(timeMs, text, wordResult?.words, wordResult?.endMs, voice = voice))
         }
     }
-    return groupSimultaneousLines(lines)
+    return groupSimultaneousLines(if (offsetMs == 0L) lines else lines.map { it.shiftedBy(-offsetMs) })
 }
+
+/** The same line with every time in it (words, end, background vocals) moved by [deltaMs]. */
+private fun LyricLine.shiftedBy(deltaMs: Long): LyricLine = copy(
+    timeMs = timeMs + deltaMs,
+    words = words?.map { it.copy(timeMs = it.timeMs + deltaMs) },
+    endTimeMs = endTimeMs?.plus(deltaMs),
+    background = background?.shiftedBy(deltaMs),
+    secondary = secondary.map { it.shiftedBy(deltaMs) },
+)
 
 /**
  * Lines sharing the exact same timestamp aren't competing alternatives — they're a translation

@@ -176,7 +176,7 @@ internal fun LyricsView(
             val stillSinging = remember(lines, positionMs, activeIndex) {
                 (0 until activeIndex.coerceAtLeast(0)).filterTo(HashSet()) { i ->
                     val line = lines[i]
-                    line.instrumentalUntilMs == null && (line.endTimeMs ?: Long.MIN_VALUE) > positionMs
+                    line.instrumentalUntilMs == null && line.singingEndMs() > positionMs
                 }
             }
             val listState = rememberLazyListState()
@@ -238,7 +238,7 @@ internal fun LyricsView(
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null,
-                            ) { onLineClick(line.timeMs) },
+                            ) { onLineClick(line.timeMs.coerceAtLeast(0L)) },
                     ) {
                         val nextLineStartMs = lines.getOrNull(index + 1)?.timeMs
                         val breakUntil = line.instrumentalUntilMs
@@ -291,6 +291,55 @@ internal fun LyricsView(
     }
 }
 
+/**
+ * The font size for a line: [LYRIC_SIZE], unless the line is so long (a whole paragraph sung as
+ * one line) that it would be taller than [MAX_LINE_SCREEN_SHARE] of the screen and reach under
+ * the controls — then just small enough to fit. Ordinary lines never get here.
+ */
+@Composable
+private fun fittedLyricSize(text: String, withReadings: Boolean): Float {
+    if (text.length < FIT_CHECK_MIN_CHARS) return LYRIC_SIZE
+    val measurer = androidx.compose.ui.text.rememberTextMeasurer()
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    return remember(text, withReadings, configuration.screenWidthDp, configuration.screenHeightDp) {
+        val widthPx = with(density) { (configuration.screenWidthDp - 44).dp.roundToPx() }.coerceAtLeast(1)
+        val maxHeightPx = with(density) { (configuration.screenHeightDp * MAX_LINE_SCREEN_SHARE).dp.toPx() }
+        var size = LYRIC_SIZE
+        while (size > LYRIC_SIZE * 0.5f) {
+            val rows = measurer.measure(
+                text,
+                TextStyle(fontSize = size.sp, fontWeight = FontWeight.ExtraBold),
+                constraints = androidx.compose.ui.unit.Constraints(maxWidth = widthPx),
+            ).lineCount
+            // Each row: the text, its reading above it (when shown) and the gap between rows.
+            // Word-by-word layout wraps a bit worse than plain text, hence the extra 15%.
+            val rowPx = with(density) {
+                (size * 1.2f).sp.toPx() + (if (withReadings) (size * READING_SCALE * 1.2f).sp.toPx() else 0f) + 8.dp.toPx()
+            }
+            if (rows * rowPx * 1.15f <= maxHeightPx) break
+            size *= 0.92f
+        }
+        size
+    }
+}
+
+/** Lines shorter than this always fit; only longer ones are measured. */
+private const val FIT_CHECK_MIN_CHARS = 40
+
+/** The most of the screen's height one lyric line may take. */
+private const val MAX_LINE_SCREEN_SHARE = 0.4f
+
+/** When a line is really done: its own last word, or its background vocals / the other singer's
+ * part if those go on longer — the line stays lit (and they keep sweeping) until then. */
+private fun LyricLine.singingEndMs(): Long {
+    fun LyricLine.ownEnd(): Long = endTimeMs ?: words?.last()?.timeMs?.plus(400L) ?: Long.MIN_VALUE
+    val background = background?.ownEnd() ?: Long.MIN_VALUE
+    val others = secondary.maxOfOrNull { it.ownEnd() } ?: Long.MIN_VALUE
+    // Without its own end time a line only counts through its extras, as before.
+    return maxOf(endTimeMs ?: Long.MIN_VALUE, background, others)
+}
+
 /** Font size every synced lyric line is laid out at (the size of the line being sung). */
 internal const val LYRIC_SIZE = 33f
 
@@ -323,12 +372,12 @@ internal fun SungLine(
     // them) and ease down to the "not sung yet" brightness together with the line brightening —
     // switching them at once made every line flicker darker for a moment.
     val unsungAlpha by animateFloatAsState(if (active) 0.55f else 1f, LINE_CHANGE, label = "unsungWords")
-    val fontSize = LYRIC_SIZE
     val alignEnd = line.voice == LyricVoice.V2
     val background = line.background
     val bottomPadding = if (background != null) 2.dp else 8.dp
     val readings = line.wordReadings?.takeIf { showRomanization }
     val ruby = line.ruby?.takeIf { showRomanization }
+    val fontSize = fittedLyricSize(line.text, withReadings = readings != null || ruby != null)
     when {
         line.words != null -> {
             // Word-synced lines keep the same per-word layout whether sung or not (only the
@@ -600,25 +649,34 @@ internal fun WordSyncedLine(
         // Timed pieces with no space between them ("a" + "bout") are one word on screen: kept
         // together on the same row instead of possibly wrapping between them.
         wordGroups(words).forEach { group ->
-          Row(modifier = if (readings != null) Modifier.alignBy(LastBaseline) else Modifier) {
+          // A word held for a long time ("fooor...") swells a little as a whole — every syllable
+          // of it, not just the one being stretched — and glows brighter while it lasts, then
+          // settles back. Mid-line words count from HELD_WORD_MS; a line's last word only from
+          // HELD_LAST_WORD_MS, since files often just stretch it up to the next line.
+          // "Held" is one piece of the word really being stretched, not several quick ones that
+          // only add up to a long time together.
+          val heldFor = if (currentIndex == words.lastIndex) HELD_LAST_WORD_MS else HELD_WORD_MS
+          val groupHeld = sweep && currentIndex in group && words[currentIndex].text.isNotBlank() &&
+              endOf(currentIndex) - words[currentIndex].timeMs >= heldFor && positionMs < endOf(currentIndex)
+          val swell by animateFloatAsState(if (groupHeld) 1f else 0f, tween(700, easing = FastOutSlowInEasing), label = "heldWord")
+          Row(
+              modifier = Modifier
+                  .then(if (readings != null) Modifier.alignBy(LastBaseline) else Modifier)
+                  .graphicsLayer {
+                      val grow = 1f + HELD_WORD_GROWTH * swell
+                      scaleX = grow
+                      scaleY = grow
+                      transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0.5f, 0.7f)
+                  },
+          ) {
             group.forEach { index ->
             val word = words[index]
             // The last word's trailing space would leave a gap against the right edge of a v2 line.
             val text = if (index == words.lastIndex) word.text.trimEnd() else word.text
             val reading = readings?.getOrNull(index)
-            // A word held for a long time ("fooor...") swells a little and glows brighter while it
-            // lasts, then settles back.
-            val held = sweep && index == currentIndex && word.text.isNotBlank() &&
-                endOf(index) - word.timeMs >= HELD_WORD_MS && positionMs < endOf(index)
-            val swell by animateFloatAsState(if (held) 1f else 0f, tween(700, easing = FastOutSlowInEasing), label = "heldWord")
+            val held = groupHeld
             Column(
                 modifier = Modifier
-                    .graphicsLayer {
-                        val grow = 1f + HELD_WORD_GROWTH * swell
-                        scaleX = grow
-                        scaleY = grow
-                        transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0.5f, 0.7f)
-                    }
                     // Latin and Japanese glyphs sit at different heights in the same font; lining
                     // up the lyric text's baseline keeps "high" level with the kanji around it.
                     .then(if (readings != null) Modifier.alignBy(LastBaseline) else Modifier)
@@ -732,8 +790,10 @@ internal fun InstrumentalDots(startMs: Long, endMs: Long, positionMs: Long, acti
 /** The dots fold away this long before the next line starts, so it's already back in place. */
 private const val DOTS_FOLD_EARLY_MS = 450L
 
-/** A word held at least this long counts as a long, stretched note. */
-private const val HELD_WORD_MS = 3_000L
+/** A word held at least this long counts as a long, stretched note — in the middle of a line,
+ * and as a line's last word (which files often stretch to the next line anyway, so more). */
+private const val HELD_WORD_MS = 2_000L
+private const val HELD_LAST_WORD_MS = 3_000L
 
 /** How much bigger a held word gets while it lasts. */
 private const val HELD_WORD_GROWTH = 0.08f
@@ -760,11 +820,15 @@ private fun wordGroups(words: List<LyricWord>): List<List<Int>> {
         val previous = words.getOrNull(index - 1)
         val joins = previous != null && previous.text.isNotEmpty() && !previous.text.last().isWhitespace() &&
             word.text.isNotEmpty() && !word.text.first().isWhitespace() &&
-            !previous.text.last().isCjk() && !word.text.first().isCjk()
+            !previous.text.last().isCjk() && !word.text.first().isCjk() &&
+            // "deserts/Go", "Pseudo-Sacrosanct": separate words, free to wrap between.
+            previous.text.last() !in WORD_BREAKS && word.text.first() !in WORD_BREAKS
         if (joins) groups.last().add(index) else groups.add(mutableListOf(index))
     }
     return groups
 }
+
+private val WORD_BREAKS = setOf('/', '-', '\\', '|', '—', '–')
 
 private fun Char.isCjk(): Boolean = when (Character.UnicodeScript.of(code)) {
     Character.UnicodeScript.HAN, Character.UnicodeScript.HIRAGANA,

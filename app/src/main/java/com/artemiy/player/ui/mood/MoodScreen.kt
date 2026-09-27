@@ -13,6 +13,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import com.artemiy.player.ui.components.pressScale
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -73,6 +74,9 @@ import kotlin.math.sin
 @Composable
 fun MoodScreen(onPlayMood: (Mood) -> Unit, genresFor: (Mood) -> List<String>) {
     val pager = rememberPagerState(pageCount = { MOOD_DISPLAY_ORDER.size })
+    val screenWidthPx = with(androidx.compose.ui.platform.LocalDensity.current) {
+        androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp.toPx()
+    }
 
     // Ring color follows the swipe continuously instead of jumping when a page settles.
     val position = pager.currentPage + pager.currentPageOffsetFraction
@@ -86,6 +90,13 @@ fun MoodScreen(onPlayMood: (Mood) -> Unit, genresFor: (Mood) -> List<String>) {
     val ringAlpha = remember { Animatable(0f) }
     val iconAlpha = remember { Animatable(0f) }
     val iconScale = remember { Animatable(0.8f) }
+    // The glyph sinks into the background (shrinking, blurring away) and the ring grows back out
+    // of the spot where it sank; when a new mood comes, the ring draws back into the middle.
+    val iconSink = remember { Animatable(0f) }
+    val ringScale = remember { Animatable(1f) }
+    // The settled mood's title making its entrance (0 → 1) as the glyph sinks away.
+    val titleIntro = remember { Animatable(1f) }
+    PreloadMoodFonts()
     // The glyph's own little animation, running for as long as it's on screen.
     val iconMotion = remember { Animatable(0f) }
     LaunchedEffect(pager.settledPage, pager.isScrollInProgress) {
@@ -96,6 +107,8 @@ fun MoodScreen(onPlayMood: (Mood) -> Unit, genresFor: (Mood) -> List<String>) {
                 listOf(
                     async { iconAlpha.animateTo(0f, tween(150)) },
                     async { ringAlpha.animateTo(1f, tween(200)) },
+                    async { ringScale.animateTo(1f, tween(200)) },
+                    async { titleIntro.snapTo(1f) },
                 ).awaitAll()
             }
             return@LaunchedEffect
@@ -105,16 +118,26 @@ fun MoodScreen(onPlayMood: (Mood) -> Unit, genresFor: (Mood) -> List<String>) {
         launch { iconMotion.snapTo(0f); iconMotion.animateTo(1f, tween(1450, easing = LinearEasing)) }
         coroutineScope {
             listOf(
-                async { ringAlpha.animateTo(0f, tween(200)) },
-                async { iconScale.snapTo(0.8f); iconScale.animateTo(1f, tween(450)) },
+                async { ringAlpha.animateTo(0f, tween(220)) },
+                async { ringScale.animateTo(RING_SUNK_SCALE, tween(260)) },
+                async { iconSink.snapTo(0f); iconScale.snapTo(0.8f); iconScale.animateTo(1f, tween(450)) },
+                async { titleIntro.snapTo(0f) },
                 async { iconAlpha.animateTo(1f, tween(300)) },
             ).awaitAll()
         }
         delay(550)
         coroutineScope {
             listOf(
-                async { iconAlpha.animateTo(0f, tween(450)) },
-                async { ringAlpha.animateTo(1f, tween(650)) },
+                // Sinking: slow at first, then gone — and the ring rises out of it a moment later.
+                async { iconSink.animateTo(1f, tween(700, easing = androidx.compose.animation.core.FastOutLinearInEasing)) },
+                async { iconAlpha.animateTo(0f, tween(650, delayMillis = 50)) },
+                async { delay(180); ringScale.animateTo(1f, tween(900, easing = androidx.compose.animation.core.LinearOutSlowInEasing)) },
+                async { delay(180); ringAlpha.animateTo(1f, tween(700)) },
+                async {
+                    delay(250)
+                    val mood = MOOD_DISPLAY_ORDER[pager.settledPage]
+                    titleIntro.animateTo(1f, tween(moodTitleIntroMs(mood), easing = LinearEasing))
+                },
             ).awaitAll()
         }
     }
@@ -125,12 +148,14 @@ fun MoodScreen(onPlayMood: (Mood) -> Unit, genresFor: (Mood) -> List<String>) {
             .background(PlayerColors.Background)
             .statusBarsPadding(),
     ) {
-        Text(
-            text = "Настроение",
-            color = PlayerColors.TextPrimary,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.ExtraBold,
-            modifier = Modifier.padding(20.dp, 20.dp, 20.dp, 0.dp),
+        MoodParticles(
+            from = from,
+            to = to,
+            blend = blend,
+            color = ringColor,
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer { alpha = ringAlpha.value },
         )
 
         GlowingRing(
@@ -144,6 +169,8 @@ fun MoodScreen(onPlayMood: (Mood) -> Unit, genresFor: (Mood) -> List<String>) {
                 // glow off at the edges.
                 .graphicsLayer {
                     alpha = ringAlpha.value
+                    scaleX = ringScale.value
+                    scaleY = ringScale.value
                     compositingStrategy = CompositingStrategy.ModulateAlpha
                 },
         )
@@ -154,19 +181,33 @@ fun MoodScreen(onPlayMood: (Mood) -> Unit, genresFor: (Mood) -> List<String>) {
             motion = { iconMotion.value },
             modifier = Modifier
                 .align(Alignment.Center)
-                .size(120.dp)
+                // Room around the 120dp glyph, so the layer below (blurred while sinking) doesn't
+                // cut off the rays or the blur at its edges.
+                .size(120.dp + GLYPH_BLEED * 2)
                 // graphicsLayer rather than alpha()/scale(): alpha() also clips to the bounds, and
                 // the glyphs (the sun's rays especially) reach past them while scaling up.
                 .graphicsLayer {
+                    val sink = iconSink.value
                     alpha = iconAlpha.value
-                    scaleX = iconScale.value
-                    scaleY = iconScale.value
-                    compositingStrategy = CompositingStrategy.ModulateAlpha
-                },
+                    scaleX = iconScale.value * (1f - 0.45f * sink)
+                    scaleY = iconScale.value * (1f - 0.45f * sink)
+                    // Sinking also goes soft and out of focus (blur needs Android 12+; older ones
+                    // just shrink and fade).
+                    if (sink > 0.01f && android.os.Build.VERSION.SDK_INT >= 31) {
+                        val radius = 22.dp.toPx() * sink
+                        renderEffect = androidx.compose.ui.graphics.BlurEffect(radius, radius, androidx.compose.ui.graphics.TileMode.Decal)
+                    } else {
+                        renderEffect = null
+                    }
+                    compositingStrategy = if (sink > 0.01f) CompositingStrategy.Offscreen else CompositingStrategy.ModulateAlpha
+                }
+                .padding(GLYPH_BLEED),
         )
 
         HorizontalPager(state = pager, modifier = Modifier.fillMaxSize()) { page ->
             val mood = MOOD_DISPLAY_ORDER[page]
+            // How far this page is from the middle of the screen, in pages (+ = off to the left).
+            val pageOffset = { (pager.currentPage - page) + pager.currentPageOffsetFraction }
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -175,35 +216,31 @@ fun MoodScreen(onPlayMood: (Mood) -> Unit, genresFor: (Mood) -> List<String>) {
                         .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onPlayMood(mood) }
                         .padding(24.dp),
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .padding(end = 12.dp)
-                                .size(46.dp)
-                                .clip(CircleShape)
-                                .background(PlayerColors.TextPrimary.copy(alpha = 0.14f)),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                imageVector = AppIcons.Play,
-                                contentDescription = null,
-                                tint = PlayerColors.TextPrimary,
-                                modifier = Modifier.size(28.dp),
-                            )
-                        }
-                        Text(
-                            text = mood.label,
-                            color = PlayerColors.TextPrimary,
-                            fontSize = 34.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                        )
-                    }
+                    // Parallax: the title trails the swipe a little and the line under it runs a
+                    // little ahead, so the page has some depth as it slides.
+                    MoodTitle(
+                        mood = mood,
+                        progress = { if (page == pager.settledPage) titleIntro.value else 1f },
+                        // Fades out on its way, so a title trailing behind its page is gone before
+                        // the page's edge could cut it off.
+                        modifier = Modifier.graphicsLayer {
+                            val offset = pageOffset()
+                            translationX = offset * screenWidthPx * 0.3f
+                            alpha = (1f - kotlin.math.abs(offset) * 1.8f).coerceIn(0f, 1f)
+                        },
+                    )
                     Text(
                         text = mood.subtitle,
                         color = PlayerColors.TextSecondary,
-                        fontSize = 13.sp,
+                        fontSize = 16.sp,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 6.dp),
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .graphicsLayer {
+                                val offset = pageOffset()
+                                translationX = -offset * screenWidthPx * 0.15f
+                                alpha = (1f - kotlin.math.abs(offset) * 1.8f).coerceIn(0f, 1f)
+                            },
                     )
                 }
             }
@@ -215,6 +252,10 @@ fun MoodScreen(onPlayMood: (Mood) -> Unit, genresFor: (Mood) -> List<String>) {
                 .padding(bottom = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            MoodPlayButton(
+                onClick = { onPlayMood(MOOD_DISPLAY_ORDER[pager.settledPage]) },
+                modifier = Modifier.padding(bottom = 22.dp),
+            )
             // The library's own most common genres in this mood's mix — what's actually going to play.
             Crossfade(targetState = MOOD_DISPLAY_ORDER[pager.settledPage], label = "moodGenres") { mood ->
                 Row(
@@ -304,9 +345,9 @@ private fun GlowingRing(color: Color, from: RingShape, to: RingShape, blend: Flo
     Box(modifier = modifier) {
         // Wide cloud: spread across the screen, kept faint.
         Canvas(modifier = Modifier.fillMaxSize().blur(80.dp, BlurredEdgeTreatment.Unbounded)) {
-            val path = morphedLoop(from, to, blend, clocks, breath, grow = 1.1f)
+            val path = morphedLoop(from, to, blend, clocks, breath, grow = 1.15f)
             drawPath(path = path, color = color.copy(alpha = 0.12f))
-            drawPath(path = path, color = color.copy(alpha = 0.22f), style = Stroke(width = 90.dp.toPx(), join = StrokeJoin.Round))
+            drawPath(path = path, color = color.copy(alpha = 0.22f), style = Stroke(width = 160.dp.toPx(), join = StrokeJoin.Round))
         }
         // Close glow hugging the line.
         Canvas(modifier = Modifier.fillMaxSize().blur(14.dp, BlurredEdgeTreatment.Unbounded)) {
@@ -368,3 +409,98 @@ private fun DrawScope.morphedLoop(
     path.close()
     return path
 }
+
+/**
+ * "Слушать" for the mood on screen: the album/artist pages' button (same size, same little
+ * shrink when pressed), but in the theme's own text/background colors rather than the accent.
+ */
+@Composable
+private fun MoodPlayButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val interaction = remember { MutableInteractionSource() }
+    Row(
+        modifier = modifier
+            .pressScale(interaction, pressedScale = 0.93f)
+            .clip(CircleShape)
+            .background(PlayerColors.TextPrimary)
+            .clickable(interactionSource = interaction, indication = null, onClick = onClick)
+            .padding(horizontal = 30.dp, vertical = 15.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(imageVector = AppIcons.Play, contentDescription = null, tint = PlayerColors.Background, modifier = Modifier.size(20.dp))
+        Text(text = "Слушать", color = PlayerColors.Background, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
+    }
+}
+
+/** How small the ring draws back to while a mood's glyph is on screen. */
+private const val RING_SUNK_SCALE = 0.55f
+
+private val GLYPH_BLEED = 50.dp
+
+/**
+ * A few faint particles drifting behind the ring, in the mood's color: rain for "Поплакать",
+ * sparks flying up for "Громкое", bubbles rising for "Весёлое"; the other moods stay clear.
+ * Crossfades between two moods' kinds while swiping. Only a dozen shapes, drawn on the frame the
+ * ring is redrawn anyway.
+ */
+@Composable
+private fun MoodParticles(from: Mood, to: Mood, blend: Float, color: Color, modifier: Modifier = Modifier) {
+    val time by rememberInfiniteTransition(label = "particles").animateFloat(
+        0f, 1f, infiniteRepeatable(tween(PARTICLE_LOOP_MS, easing = LinearEasing), RepeatMode.Restart), label = "t",
+    )
+    Canvas(modifier = modifier) {
+        drawParticles(from, 1f - blend, time, color)
+        if (to != from) drawParticles(to, blend, time, color)
+    }
+}
+
+private fun DrawScope.drawParticles(mood: Mood, weight: Float, time: Float, color: Color) {
+    if (weight <= 0.01f) return
+    val tint = lerp(color, Color.White, 0.25f)
+    repeat(PARTICLE_COUNT) { i ->
+        // Fixed per particle: where across, how many trips per loop (whole numbers, so the loop
+        // wraps seamlessly), and where in its trip it starts.
+        val x0 = ((i * 0.618034f + 0.13f) % 1f) * size.width
+        val phase = (i * 0.381966f + 0.37f) % 1f
+        when (mood) {
+            Mood.CRY -> {
+                val trips = 5 + i % 4
+                val f = (time * trips + phase) % 1f
+                val y = -30.dp.toPx() + f * (size.height + 60.dp.toPx())
+                drawLine(
+                    color = tint.copy(alpha = 0.22f * weight),
+                    start = Offset(x0, y),
+                    end = Offset(x0 - 2.dp.toPx(), y + 16.dp.toPx()),
+                    strokeWidth = 1.6.dp.toPx(),
+                    cap = StrokeCap.Round,
+                )
+            }
+            Mood.LOUD -> {
+                val trips = 6 + i % 5
+                val f = (time * trips + phase) % 1f
+                val y = size.height * (0.95f - 0.8f * f)
+                val x = x0 + sin(f * 9f + i) * 14.dp.toPx()
+                drawCircle(
+                    color = tint.copy(alpha = 0.55f * sin(f * PI.toFloat()) * weight),
+                    radius = (1.2f + (i % 3) * 0.5f).dp.toPx(),
+                    center = Offset(x, y),
+                )
+            }
+            Mood.HAPPY -> {
+                val trips = 2 + i % 3
+                val f = (time * trips + phase) % 1f
+                val y = size.height * (1.05f - 1.1f * f)
+                val x = x0 + sin(f * 7f + i) * 18.dp.toPx()
+                drawCircle(
+                    color = tint.copy(alpha = 0.3f * sin(f * PI.toFloat()) * weight),
+                    radius = (4 + i % 5).dp.toPx(),
+                    center = Offset(x, y),
+                    style = Stroke(width = 1.4.dp.toPx()),
+                )
+            }
+            Mood.NORMAL, Mood.SAD -> return
+        }
+    }
+}
+
+private const val PARTICLE_COUNT = 14
+private const val PARTICLE_LOOP_MS = 40_000

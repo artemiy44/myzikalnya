@@ -881,6 +881,30 @@ private val THIRD_PARTY = listOf(
         files = listOf("svg-spinners-mit.txt"),
     ),
     ThirdPartyComponent(
+        name = "Шрифт Unbounded",
+        authors = "The Unbounded Project Authors",
+        license = "SIL Open Font License 1.1",
+        files = listOf("unbounded-ofl.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Шрифт Playpen Sans",
+        authors = "The Playpen Sans Project Authors (TypeTogether)",
+        license = "SIL Open Font License 1.1",
+        files = listOf("playpen-sans-ofl.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Шрифт Climate Crisis",
+        authors = "The Climate Crisis Project Authors (Daniel Coull, Eino Korkala)",
+        license = "SIL Open Font License 1.1",
+        files = listOf("climate-crisis-ofl.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Шрифт Caveat",
+        authors = "The Caveat Project Authors (Impallari Type)",
+        license = "SIL Open Font License 1.1",
+        files = listOf("caveat-ofl.txt"),
+    ),
+    ThirdPartyComponent(
         name = "Reorderable",
         authors = "Calvin Liang",
         license = "Apache License 2.0",
