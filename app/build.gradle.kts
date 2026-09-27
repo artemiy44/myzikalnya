@@ -21,6 +21,17 @@ android {
         compose = true
     }
 
+    buildTypes {
+        // The build to actually use on the phone: not debuggable, so Android fully optimizes it
+        // (a debug build runs Compose several times slower). Signed with the same debug key, so
+        // it installs over a debug build and keeps all the app's data.
+        release {
+            isDebuggable = false
+            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("debug")
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

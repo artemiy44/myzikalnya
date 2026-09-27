@@ -157,20 +157,24 @@ internal fun CurrentSongMenuButton(
 /** Lyrics-view switch for the romanized lines — same see-through look as the Queue toggles. */
 @Composable
 internal fun RomanizationToggle(enabled: Boolean, onToggle: () -> Unit) {
+    // Just the icon, like the buttons at the bottom: dim while off, bright while on.
+    val tint by androidx.compose.animation.animateColorAsState(
+        if (enabled) PlayerColors.TextPrimary else LocalAdaptiveSecondaryColor.current,
+        tween(180),
+        label = "romanizationTint",
+    )
     Box(
         modifier = Modifier
             .padding(start = 12.dp)
             .size(36.dp)
-            .clip(CircleShape)
-            .background((if (enabled) PlayerColors.Accent else PlayerColors.Surface).copy(alpha = 0.4f))
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onToggle),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             imageVector = AppIcons.Romanization,
             contentDescription = if (enabled) "Скрыть романизацию" else "Показать романизацию",
-            tint = if (enabled) PlayerColors.OnAccent else PlayerColors.TextPrimary,
-            modifier = Modifier.size(18.dp),
+            tint = tint,
+            modifier = Modifier.size(24.dp),
         )
     }
 }

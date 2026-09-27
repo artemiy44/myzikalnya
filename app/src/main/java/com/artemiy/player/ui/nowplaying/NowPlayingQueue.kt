@@ -27,10 +27,15 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.layout.onSizeChanged
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -177,7 +182,7 @@ internal fun QueueList(
         item(key = "header-add") {
             AddSongsToQueueRow(onClick = onAddSongsClick, modifier = Modifier.fadeInList(state, 1, topFadePx, bottomFadePx))
         }
-        itemsIndexed(manualRows, key = { _, entry -> entry.key }) { i, entry ->
+        itemsIndexed(manualRows, key = { _, entry -> entry.key }, contentType = { _, _ -> "song" }) { i, entry ->
             ReorderableItem(reorderState, key = entry.key) { isDragging ->
                 SwipeToRemove(onRemove = { onRemove(manualQueue.indexOfFirstEntry(entry.key, "m")) }) {
                     QueueRow(
@@ -212,7 +217,7 @@ internal fun QueueList(
                         .padding(top = 18.dp, bottom = 4.dp),
                 )
             }
-            itemsIndexed(continueRows, key = { _, entry -> entry.key }) { i, entry ->
+            itemsIndexed(continueRows, key = { _, entry -> entry.key }, contentType = { _, _ -> "song" }) { i, entry ->
                 ReorderableItem(reorderState, key = entry.key) { isDragging ->
                     SwipeToRemove(onRemove = {
                         onRemove(manualQueue.size + continueQueue.indexOfFirstEntry(entry.key, "c"))
@@ -247,50 +252,76 @@ internal fun List<Song>.indexOfFirstEntry(key: String, prefix: String): Int =
 
 /** Swipe left to remove: the row slides away over a red strip that only fills the part already
  * uncovered, so the row's own (transparent) content never sits on top of red. The label stays
- * put at the row's right edge and the strip just uncovers it, rather than sliding in with it. */
+ * put at the row's right edge and the strip just uncovers it, rather than sliding in with it.
+ *
+ * Hand-rolled rather than Material's SwipeToDismissBox: a queue can hold a whole library, and
+ * that box made every row noticeably heavier to build while flinging through it. Until a finger
+ * actually swipes, this is just one small drag listener. */
 @Composable
 internal fun SwipeToRemove(onRemove: () -> Unit, content: @Composable () -> Unit) {
-    val dismissState = rememberSwipeToDismissBoxState()
-    LaunchedEffect(dismissState.currentValue) {
-        if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart) onRemove()
-    }
-    SwipeToDismissBox(
-        state = dismissState,
-        enableDismissFromStartToEnd = false,
-        backgroundContent = {
-            val revealedPx = -(runCatching { dismissState.requireOffset() }.getOrDefault(0f))
-            if (revealedPx > 0f) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .fillMaxHeight()
-                            .width(with(LocalDensity.current) { revealedPx.toDp() })
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(QueueRemoveRed),
-                        contentAlignment = Alignment.CenterEnd,
-                    ) {
-                        Text(
-                            text = "Убрать",
-                            color = Color.White,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
-                            softWrap = false,
-                            modifier = Modifier
-                                // Measured at full width no matter how narrow the strip is, so
-                                // it's never squeezed/re-laid-out; the strip's clip reveals it.
-                                .wrapContentWidth(Alignment.End, unbounded = true)
-                                .padding(end = 18.dp),
-                        )
-                    }
-                }
+    var dragPx by remember { mutableFloatStateOf(0f) }
+    var widthPx by remember { mutableIntStateOf(0) }
+    var removed by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val density = LocalDensity.current
+    val dragState = rememberDraggableState { delta -> if (!removed) dragPx = (dragPx + delta).coerceIn(-widthPx.toFloat(), 0f) }
+    Box(modifier = Modifier.onSizeChanged { widthPx = it.width }) {
+        val revealedPx = -dragPx
+        if (revealedPx > 0f) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .wrapContentWidth(Alignment.End)
+                    .fillMaxHeight()
+                    .width(with(density) { revealedPx.toDp() })
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(QueueRemoveRed),
+                contentAlignment = Alignment.CenterEnd,
+            ) {
+                Text(
+                    text = "Убрать",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    softWrap = false,
+                    modifier = Modifier
+                        // Measured at full width no matter how narrow the strip is, so
+                        // it's never squeezed/re-laid-out; the strip's clip reveals it.
+                        .wrapContentWidth(Alignment.End, unbounded = true)
+                        .padding(end = 18.dp),
+                )
             }
-        },
-    ) {
-        content()
+        }
+        Box(
+            modifier = Modifier
+                .offset { androidx.compose.ui.unit.IntOffset(dragPx.toInt(), 0) }
+                .draggable(
+                    state = dragState,
+                    orientation = Orientation.Horizontal,
+                    enabled = !removed,
+                    onDragStopped = { velocity ->
+                        val threshold = with(density) { SWIPE_REMOVE_THRESHOLD.toPx() }
+                        val flung = velocity < -with(density) { SWIPE_REMOVE_VELOCITY.toPx() }
+                        val target = if (-dragPx > threshold || flung) -widthPx.toFloat() else 0f
+                        scope.launch {
+                            androidx.compose.animation.core.animate(dragPx, target) { value, _ -> dragPx = value }
+                            if (target != 0f) {
+                                removed = true
+                                onRemove()
+                            }
+                        }
+                    },
+                ),
+        ) {
+            content()
+        }
     }
 }
+
+/** How far a row has to be pulled, or how fast flung, to be removed on letting go. */
+private val SWIPE_REMOVE_THRESHOLD = 56.dp
+private val SWIPE_REMOVE_VELOCITY = 125.dp
 
 @Composable
 internal fun AddSongsToQueueRow(onClick: () -> Unit, modifier: Modifier = Modifier) {
@@ -332,6 +363,7 @@ internal fun QueueRow(
 ) {
     val liftFill = PlayerColors.Surface.copy(alpha = 0.55f)
     var menuExpanded by remember { mutableStateOf(false) }
+    var menuOpenedOnce by remember { mutableStateOf(false) }
     val haptics = LocalHapticFeedback.current
     // Holding still on the row long enough before dragging also counts as a long press — once
     // the row actually starts moving, that menu is clearly not what was meant.
@@ -359,6 +391,7 @@ internal fun QueueRow(
                 onLongClick = {
                     if (!isDragging) {
                         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        menuOpenedOnce = true
                         menuExpanded = true
                     }
                 },
@@ -374,7 +407,9 @@ internal fun QueueRow(
                     .size(52.dp)
                     .clip(RoundedCornerShape(8.dp)),
             )
-            SongActionsMenuPopup(
+            // Only built once it's been opened: hundreds of rows each carrying a closed menu cost
+            // real time while flinging through a long queue. Kept afterwards for its closing animation.
+            if (menuOpenedOnce) SongActionsMenuPopup(
                 song = item,
                 expanded = menuExpanded && !isDragging,
                 onDismiss = { menuExpanded = false },

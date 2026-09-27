@@ -61,6 +61,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.animation.EnterTransition
 import androidx.compose.runtime.SideEffect
 import com.artemiy.player.data.PlayerStyle
@@ -138,6 +141,53 @@ fun NowPlayingScreen(
         return
     }
     var centerMode by memory::centerMode
+    // Moving between the cover and lyrics/queue: the cover flies up into the header's thumbnail
+    // (and back down out of it), the title between the panel and the header — the same kind of
+    // flight as opening from the mini player. 1 = settled; lyrics <-> queue has nothing to fly.
+    var modeFlight by remember { mutableFloatStateOf(1f) }
+    var modeFlightFromArt by remember { mutableStateOf(true) }
+    var modeFlightRun by remember { mutableIntStateOf(0) }
+    // Lyrics or the queue — whichever end of the flight isn't the cover.
+    var modeFlightOther by remember { mutableStateOf(CenterMode.Queue) }
+    var sideFlight by remember { mutableFloatStateOf(1f) }
+    var sideFrom by remember { mutableStateOf(CenterMode.Lyrics) }
+    var sideFlightRun by remember { mutableIntStateOf(0) }
+    fun switchMode(next: CenterMode) {
+        if (next == centerMode) return
+        val crossesArt = (next == CenterMode.Art) != (centerMode == CenterMode.Art)
+        if (!crossesArt) {
+            sideFlight = if (sideFlight < 1f) 1f - sideFlight else 0f
+            sideFrom = centerMode
+            sideFlightRun++
+        } else {
+            sideFlight = 1f
+        }
+        if (crossesArt) {
+            // Turning back halfway: carry on from the same spot, the other way round.
+            modeFlight = if (modeFlight < 1f) 1f - modeFlight else 0f
+            modeFlightFromArt = centerMode == CenterMode.Art
+            modeFlightOther = if (next == CenterMode.Art) centerMode else next
+            modeFlightRun++
+        }
+        centerMode = next
+    }
+    LaunchedEffect(sideFlightRun) {
+        if (sideFlightRun == 0) return@LaunchedEffect
+        androidx.compose.animation.core.animate(sideFlight, 1f, animationSpec = MODE_FLIGHT_SPRING) { value, _ -> sideFlight = value }
+    }
+    LaunchedEffect(modeFlightRun) {
+        if (modeFlightRun == 0) return@LaunchedEffect
+        androidx.compose.animation.core.animate(modeFlight, 1f, animationSpec = MODE_FLIGHT_SPRING) { value, _ -> modeFlight = value }
+    }
+    // Where the pieces sit at either end, as last laid out.
+    var headerArtBounds by remember { mutableStateOf<Rect?>(null) }
+    var headerTextBounds by remember { mutableStateOf<Rect?>(null) }
+    var panelTextBounds by remember { mutableStateOf<Rect?>(null) }
+    // The "⋯" song menu: beside the title under the cover, and in the header on the queue.
+    var panelMenuBounds by remember { mutableStateOf<Rect?>(null) }
+    var headerMenuBounds by remember { mutableStateOf<Rect?>(null) }
+    // It flies along with the title only between the cover and the queue (lyrics has none).
+    val menuFlight = { if (modeFlightOther == CenterMode.Queue) modeFlight else 1f }
     var controlsVisible by remember { mutableStateOf(true) }
     var closingFromHidden by remember { mutableStateOf(false) }
     var controlsVisibleBeforeDrag by remember { mutableStateOf(true) }
@@ -194,6 +244,35 @@ fun NowPlayingScreen(
     val miniIconColor = PlayerColors.TextPrimary
     var titleTarget by remember { mutableStateOf<Rect?>(null) }
     val playerActive = LocalNowPlayingActive.current
+    // What sits at the right end of the header: the romanization switch on lyrics, the song's
+    // "⋯" menu on the queue (flying there from beside the title under the cover).
+    @Composable
+    fun HeaderTrailing(mode: CenterMode) {
+        when {
+            mode == CenterMode.Lyrics && lyrics?.hasRomanization() == true -> RomanizationToggle(
+                enabled = lyricsRomanization,
+                onToggle = onToggleLyricsRomanization,
+            )
+            mode == CenterMode.Queue && song != null -> Box(
+                modifier = Modifier.flyFrom(
+                    panelMenuBounds,
+                    { if (modeFlightFromArt) menuFlight() else 1f },
+                    fromCenter = true,
+                    startScale = 1f,
+                    onTarget = { headerMenuBounds = it },
+                ),
+            ) {
+                CurrentSongMenuButton(
+                    song = song,
+                    onPlayNext = onPlayNext,
+                    onAddToQueue = onAddToQueue,
+                    onAddToPlaylist = onAddToPlaylist,
+                    onGoToAlbum = onGoToAlbum,
+                    onGoToArtist = onGoToArtist,
+                )
+            }
+        }
+    }
     NowPlayingSurface(
         song = song,
         mode = nowPlayingBackgroundMode,
@@ -240,7 +319,27 @@ fun NowPlayingScreen(
                     .fillMaxWidth()
                     .weight(1f),
             ) {
-                when (centerMode) {
+                // Lyrics <-> queue: the one leaving slides off to its side and fades while the
+                // other slides in from the other side (lyrics' button is left of the queue's).
+                val sideOutgoing = sideFrom.takeIf { sideFlight < 1f && it != centerMode }
+                listOfNotNull(sideOutgoing, centerMode).forEach { mode ->
+                key(mode) {
+                Box(
+                    modifier = Modifier.fillMaxSize().graphicsLayer {
+                        if (sideOutgoing == null) return@graphicsLayer
+                        val toQueue = centerMode == CenterMode.Queue
+                        val shift = size.width * SIDE_SHIFT * (if (toQueue) 1f else -1f)
+                        val p = sideFlight
+                        if (mode == centerMode) {
+                            translationX = shift * (1f - p)
+                            alpha = ((p - 0.15f) / 0.85f).coerceIn(0f, 1f)
+                        } else {
+                            translationX = -shift * p
+                            alpha = (1f - p / 0.6f).coerceIn(0f, 1f)
+                        }
+                    },
+                ) {
+                when (mode) {
                     CenterMode.Art -> Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -289,12 +388,14 @@ fun NowPlayingScreen(
                                         scaleY = artScale
                                         shape = RoundedCornerShape(artCornerPx)
                                     }
+                                    // Coming back from lyrics/queue: the flying copy lands here.
+                                    alpha = if (modeFlight < 1f && !modeFlightFromArt) 0f else 1f
                                     clip = true
                                 },
                         )
                     }
 
-                    CenterMode.Lyrics -> Box(modifier = Modifier.fillMaxSize().graphicsLayer { alpha = chromeAlpha() }) {
+                    CenterMode.Lyrics -> Box(modifier = Modifier.fillMaxSize().graphicsLayer { alpha = chromeAlpha() }.modeContentIn { modeFlight }) {
                         LyricsView(
                             lyrics = lyrics,
                             positionMs = positionMs,
@@ -338,7 +439,7 @@ fun NowPlayingScreen(
                     // The toggle row floats fixed under the header (same idea as the header
                     // itself) — the list scrolls underneath BOTH of them and fades out as it
                     // approaches, exactly like Lyrics does under its header.
-                    CenterMode.Queue -> Box(modifier = Modifier.fillMaxSize().graphicsLayer { alpha = chromeAlpha() }) {
+                    CenterMode.Queue -> Box(modifier = Modifier.fillMaxSize().graphicsLayer { alpha = chromeAlpha() }.modeContentIn { modeFlight }) {
                         QueueList(
                             manualQueue = manualQueue,
                             continueQueue = continueQueue,
@@ -392,6 +493,9 @@ fun NowPlayingScreen(
                         }
                     }
                 }
+                }
+                }
+                }
 
                 // Floating mini-header — Lyrics/Queue only (Art shows title in the control panel
                 // below instead). Overlaps the scrollable content instead of pushing it down — no
@@ -411,13 +515,23 @@ fun NowPlayingScreen(
                     ) {
                         NowPlayingMiniHeader(
                             song = song,
-                            onCollapse = { centerMode = CenterMode.Art },
+                            onCollapse = { switchMode(CenterMode.Art) },
                             onGoToAlbum = onGoToAlbum,
                             onGoToArtist = onGoToArtist,
                             // Opening/closing on lyrics or the queue: the mini player's cover and
                             // text fly to (and from) this header instead of the big cover.
-                            artModifier = Modifier.flyFrom(mini?.art, expand, fromCenter = true),
+                            artModifier = Modifier
+                                .onGloballyPositioned { headerArtBounds = it.boundsInRoot() }
+                                // The big cover is flying up into here — this one shows once it lands.
+                                .graphicsLayer { alpha = if (modeFlight < 1f && modeFlightFromArt) 0f else 1f }
+                                .flyFrom(mini?.art, expand, fromCenter = true),
                             textModifier = Modifier.flyFrom(
+                                panelTextBounds,
+                                { if (modeFlightFromArt) modeFlight else 1f },
+                                fromCenter = false,
+                                startScale = 20f / 17f,
+                                onTarget = { headerTextBounds = it },
+                            ).flyFrom(
                                 mini?.text,
                                 expand,
                                 fromCenter = false,
@@ -426,21 +540,23 @@ fun NowPlayingScreen(
                                 onTarget = { titleTarget = it },
                             ),
                             trailing = {
+                                // Lyrics <-> queue: the one leaving fades out as the other fades in
+                                // in the same spot (the romanization switch / the "⋯" menu).
+                                val sideLeaving = sideFrom.takeIf { sideFlight < 1f && it != centerMode }
                                 Box(modifier = Modifier.graphicsLayer { alpha = chromeAlpha() }) {
-                                when {
-                                    centerMode == CenterMode.Lyrics && lyrics?.hasRomanization() == true -> RomanizationToggle(
-                                        enabled = lyricsRomanization,
-                                        onToggle = onToggleLyricsRomanization,
-                                    )
-                                    centerMode == CenterMode.Queue && song != null -> CurrentSongMenuButton(
-                                        song = song,
-                                        onPlayNext = onPlayNext,
-                                        onAddToQueue = onAddToQueue,
-                                        onAddToPlaylist = onAddToPlaylist,
-                                        onGoToAlbum = onGoToAlbum,
-                                        onGoToArtist = onGoToArtist,
-                                    )
-                                }
+                                    listOfNotNull(sideLeaving, centerMode).forEach { mode ->
+                                        key(mode) {
+                                            Box(
+                                                modifier = Modifier.graphicsLayer {
+                                                    if (sideLeaving != null) {
+                                                        alpha = if (mode == centerMode) sideFlight else 1f - sideFlight
+                                                    }
+                                                },
+                                            ) {
+                                                HeaderTrailing(mode)
+                                            }
+                                        }
+                                    }
                                 }
                             },
                         )
@@ -498,6 +614,12 @@ fun NowPlayingScreen(
                             onGoToArtist = onGoToArtist,
                             // Title and artist fly over from the mini player's text.
                             textModifier = Modifier.flyFrom(
+                                headerTextBounds,
+                                { if (!modeFlightFromArt) modeFlight else 1f },
+                                fromCenter = false,
+                                startScale = 17f / 20f,
+                                onTarget = { panelTextBounds = it },
+                            ).flyFrom(
                                 mini?.text,
                                 expand,
                                 fromCenter = false,
@@ -506,7 +628,21 @@ fun NowPlayingScreen(
                                 onTarget = { titleTarget = it },
                             ),
                             trailing = {
-                                if (song != null) Box(modifier = Modifier.graphicsLayer { alpha = panelAlpha() }) {
+                                if (song != null) Box(
+                                    modifier = Modifier
+                                        .flyFrom(
+                                            headerMenuBounds,
+                                            { if (!modeFlightFromArt) menuFlight() else 1f },
+                                            fromCenter = true,
+                                            startScale = 1f,
+                                            onTarget = { panelMenuBounds = it },
+                                        )
+                                        .graphicsLayer {
+                                            // Back from lyrics (no "⋯" up there to fly from): fades in.
+                                            val fromLyrics = !modeFlightFromArt && modeFlightOther == CenterMode.Lyrics
+                                            alpha = panelAlpha() * (if (fromLyrics) modeFlight else 1f)
+                                        },
+                                ) {
                                     CurrentSongMenuButton(
                                         song = song,
                                         onPlayNext = onPlayNext,
@@ -559,23 +695,64 @@ fun NowPlayingScreen(
                     VolumeRow(modifier = Modifier.padding(top = 28.dp).graphicsLayer { alpha = panelAlpha() })
 
                     BottomQuickActionsRow(
-                        modifier = Modifier.padding(top = 30.dp).graphicsLayer { alpha = panelAlpha() },
+                        // ModulateAlpha: an offscreen fade would clip the little modes badge that
+                        // sticks out above the queue button.
+                        modifier = Modifier.padding(top = 30.dp).graphicsLayer {
+                            alpha = panelAlpha()
+                            compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.ModulateAlpha
+                        },
                         lyricsActive = centerMode == CenterMode.Lyrics,
                         queueActive = centerMode == CenterMode.Queue,
                         shuffleEnabled = shuffleEnabled,
                         repeatEnabled = repeatEnabled,
                         infinitePlayEnabled = infinitePlayEnabled,
                         onLyricsClick = {
-                            centerMode = if (centerMode == CenterMode.Lyrics) CenterMode.Art else CenterMode.Lyrics
+                            switchMode(if (centerMode == CenterMode.Lyrics) CenterMode.Art else CenterMode.Lyrics)
                         },
                         onDeviceClick = { openOutputSwitcher(context) },
                         onQueueClick = {
-                            centerMode = if (centerMode == CenterMode.Queue) CenterMode.Art else CenterMode.Queue
+                            switchMode(if (centerMode == CenterMode.Queue) CenterMode.Art else CenterMode.Queue)
                         },
                     )
                 }
             }
             }
+        }
+
+        // The cover on its way between the big view and the header's thumbnail (either way).
+        val big = finalArtBounds
+        val thumb = headerArtBounds
+        if (modeFlight < 1f && big != null && thumb != null && playerActive) {
+            val headerCornerPx = with(LocalDensity.current) { 10.dp.toPx() }
+            AlbumArt(
+                uri = song?.uri,
+                size = ART_SIZE_FULL,
+                modifier = Modifier
+                    .offset { IntOffset(big.left.roundToInt(), big.top.roundToInt()) }
+                    .size(with(LocalDensity.current) { big.width.toDp() }, with(LocalDensity.current) { big.height.toDp() })
+                    .graphicsLayer {
+                        val p = FLIGHT_EASING.transform(modeFlight)
+                        // The big cover as it actually sits (a touch smaller while paused).
+                        val bigW = big.width * artScale
+                        val bigH = big.height * artScale
+                        val bigRect = Rect(big.center.x - bigW / 2, big.center.y - bigH / 2, big.center.x + bigW / 2, big.center.y + bigH / 2)
+                        val from = if (modeFlightFromArt) bigRect else thumb
+                        val to = if (modeFlightFromArt) thumb else bigRect
+                        val left = lerp(from.left, to.left, p)
+                        val top = lerp(from.top, to.top, p)
+                        val width = lerp(from.width, to.width, p)
+                        val height = lerp(from.height, to.height, p)
+                        transformOrigin = TransformOrigin(0f, 0f)
+                        translationX = left - big.left
+                        translationY = top - big.top
+                        scaleX = width / big.width
+                        scaleY = height / big.height
+                        val fromCorner = if (modeFlightFromArt) artCornerPx else headerCornerPx
+                        val toCorner = if (modeFlightFromArt) headerCornerPx else artCornerPx
+                        shape = RoundedCornerShape(lerp(fromCorner, toCorner, p) * big.width / width)
+                        clip = true
+                    },
+            )
         }
 
         // A look-alike of the mini player's text — same size, weight and colors — riding along at
@@ -631,6 +808,20 @@ fun NowPlayingScreen(
             )
         }
     }
+}
+
+/** How far (of the width) lyrics and the queue slide when switching between them. */
+private const val SIDE_SHIFT = 0.22f
+
+/** Cover <-> lyrics/queue flight: the same soft spring as opening the player. */
+private val MODE_FLIGHT_SPRING = androidx.compose.animation.core.spring<Float>(dampingRatio = 1f, stiffness = 320f, visibilityThreshold = 0.0005f)
+
+/** Lyrics/queue coming in as the cover flies off: they fade and rise into place over the second
+ * half of the flight, once the cover is out of their way. */
+private fun Modifier.modeContentIn(progress: () -> Float): Modifier = graphicsLayer {
+    val t = ((progress() - 0.35f) / 0.65f).coerceIn(0f, 1f)
+    alpha = t
+    translationY = (1f - androidx.compose.animation.core.LinearOutSlowInEasing.transform(t)) * 24.dp.toPx()
 }
 
 /** How the flying pieces (cover, text, buttons) move against the opening — evenly, in step with

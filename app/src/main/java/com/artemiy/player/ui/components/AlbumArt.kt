@@ -21,13 +21,26 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.coroutineContext
 
 /** Thumbnail size for lists/grids/mini-player — small and fast. */
 const val ART_SIZE_THUMB = 300
 
 /** Larger size for full-screen art (Now Playing) — sharper, costs more memory. */
 const val ART_SIZE_FULL = 720
+
+/**
+ * Covers are decoded a few at a time, not with every IO thread at once: flinging through a long
+ * list used to start dozens of decodes together, and they took the CPU away from drawing the
+ * list itself. A decode for a row that has already scrolled away is cancelled.
+ */
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+private val ArtDecoding = Dispatchers.IO.limitedParallelism(3)
+
+private const val ART_LOAD_DELAY_MS = 60L
 
 private object AlbumArtCache {
     private val maxKb = (Runtime.getRuntime().maxMemory() / 1024 / 6).toInt()
@@ -55,9 +68,13 @@ fun rememberAlbumArtBitmap(uri: Uri?, size: Int = ART_SIZE_THUMB): Bitmap? {
             value = cached
             return@produceState
         }
-        value = withContext(Dispatchers.IO) {
+        // A row only flashing past during a fling never starts decoding.
+        delay(ART_LOAD_DELAY_MS)
+        val cancel = android.os.CancellationSignal()
+        coroutineContext.job.invokeOnCompletion { cancel.cancel() }
+        value = withContext(ArtDecoding) {
             runCatching {
-                context.contentResolver.loadThumbnail(uri, Size(size, size), null)
+                context.contentResolver.loadThumbnail(uri, Size(size, size), cancel)
             }.getOrNull()?.also { bmp -> AlbumArtCache.put(id, size, bmp) }
         }
     }
