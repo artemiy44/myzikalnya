@@ -81,6 +81,13 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     var iconSet by mutableStateOf(IconSet.LUCIDE)
         private set
 
+    var appFont by mutableStateOf(com.artemiy.player.ui.theme.AppFont.DEFAULT)
+        private set
+
+    /** Null until read from storage — so the welcome screens don't flash up for a returning user. */
+    var onboardingDone by mutableStateOf<Boolean?>(null)
+        private set
+
     /** Artist names never split into several artists (on top of the built-in list). */
     var keptArtists by mutableStateOf<Set<String>>(emptySet())
         private set
@@ -150,6 +157,15 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             repository.iconSet.collect { value ->
                 iconSet = value?.let { runCatching { IconSet.valueOf(it) }.getOrNull() } ?: IconSet.LUCIDE
+            }
+        }
+        viewModelScope.launch {
+            repository.onboardingDone.collect { onboardingDone = it }
+        }
+        viewModelScope.launch {
+            repository.appFont.collect { value ->
+                appFont = value?.let { runCatching { com.artemiy.player.ui.theme.AppFont.valueOf(it) }.getOrNull() }
+                    ?: com.artemiy.player.ui.theme.AppFont.DEFAULT
             }
         }
         viewModelScope.launch {
@@ -233,6 +249,16 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     fun updateIconSet(set: IconSet) {
         iconSet = set
         viewModelScope.launch { repository.setIconSet(set.name) }
+    }
+
+    fun updateOnboardingDone(done: Boolean) {
+        onboardingDone = done
+        viewModelScope.launch { repository.setOnboardingDone(done) }
+    }
+
+    fun updateAppFont(font: com.artemiy.player.ui.theme.AppFont) {
+        appFont = font
+        viewModelScope.launch { repository.setAppFont(font.name) }
     }
 
     fun updateStartTab(tab: AppTab) {

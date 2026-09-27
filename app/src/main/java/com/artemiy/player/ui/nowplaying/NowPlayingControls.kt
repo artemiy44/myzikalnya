@@ -1,5 +1,7 @@
 package com.artemiy.player.ui.nowplaying
 
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
 import android.content.Intent
 import android.media.AudioManager
 import androidx.compose.animation.AnimatedVisibility
@@ -87,7 +89,7 @@ internal fun NowPlayingMiniHeader(
         )
         Column(modifier = Modifier.weight(1f).padding(start = 12.dp).then(textModifier)) {
             Text(
-                text = song?.title ?: "Ничего не играет",
+                text = song?.title ?: stringResource(R.string.nothing_playing),
                 color = PlayerColors.TextPrimary,
                 fontSize = 17.sp,
                 // Weight and line spacing matched to the mini player's text at this size, which
@@ -135,7 +137,7 @@ internal fun CurrentSongMenuButton(
     Box(modifier = Modifier.padding(start = 12.dp)) {
         Icon(
             imageVector = AppIcons.More,
-            contentDescription = "Действия с треком",
+            contentDescription = stringResource(R.string.track_actions),
             tint = PlayerColors.TextPrimary,
             modifier = Modifier
                 .size(24.dp)
@@ -172,7 +174,7 @@ internal fun RomanizationToggle(enabled: Boolean, onToggle: () -> Unit) {
     ) {
         Icon(
             imageVector = AppIcons.Romanization,
-            contentDescription = if (enabled) "Скрыть романизацию" else "Показать романизацию",
+            contentDescription = stringResource(if (enabled) R.string.hide_romanization else R.string.show_romanization),
             tint = tint,
             modifier = Modifier.size(24.dp),
         )
@@ -257,7 +259,7 @@ internal fun BottomQuickActionsRow(
         Icon(
             // Filled while the lyrics are open, outline otherwise.
             imageVector = if (lyricsActive) AppIcons.LyricsFilled else AppIcons.Lyrics,
-            contentDescription = "Текст песни",
+            contentDescription = stringResource(R.string.lyrics),
             tint = if (lyricsActive) PlayerColors.TextPrimary else LocalAdaptiveSecondaryColor.current,
             modifier = Modifier
                 .size(24.dp)
@@ -281,13 +283,13 @@ internal fun BottomQuickActionsRow(
                     OutputKind.TV -> AppIcons.DeviceTv
                     OutputKind.CAR -> AppIcons.DeviceCar
                 },
-                contentDescription = "Устройство воспроизведения",
+                contentDescription = stringResource(R.string.output_device),
                 // Lit up while playing through something other than the phone itself.
                 tint = if (output.kind == OutputKind.PHONE) LocalAdaptiveSecondaryColor.current else PlayerColors.TextPrimary,
                 modifier = Modifier.size(24.dp),
             )
             Text(
-                text = output.name ?: "Это устройство",
+                text = output.name ?: stringResource(R.string.this_device),
                 color = if (output.kind == OutputKind.PHONE) LocalAdaptiveSecondaryColor.current else PlayerColors.TextPrimary,
                 fontSize = 10.sp,
                 maxLines = 1,
@@ -300,7 +302,7 @@ internal fun BottomQuickActionsRow(
         ) {
             Icon(
                 imageVector = AppIcons.Queue,
-                contentDescription = "Очередь",
+                contentDescription = stringResource(R.string.queue),
                 tint = if (queueActive) PlayerColors.TextPrimary else LocalAdaptiveSecondaryColor.current,
                 modifier = Modifier.size(24.dp),
             )
@@ -367,7 +369,7 @@ internal fun SongTitleRow(
     ) {
         Column(modifier = Modifier.weight(1f).then(textModifier)) {
             Text(
-                text = song?.title ?: "Ничего не играет",
+                text = song?.title ?: stringResource(R.string.nothing_playing),
                 color = PlayerColors.TextPrimary,
                 fontSize = 20.sp,
                 // Fixed, since the mini player's text is spaced to match it scaled down.
@@ -458,7 +460,7 @@ internal fun TransportControls(
         val skipPreviousInteraction = remember { MutableInteractionSource() }
         Icon(
             imageVector = AppIcons.SkipPrevious,
-            contentDescription = "Предыдущий трек",
+            contentDescription = stringResource(R.string.cd_previous_track),
             tint = PlayerColors.TextPrimary,
             modifier = Modifier
                 .size(40.dp)
@@ -480,7 +482,7 @@ internal fun TransportControls(
         val skipNextInteraction = remember { MutableInteractionSource() }
         Icon(
             imageVector = AppIcons.SkipNext,
-            contentDescription = "Следующий трек",
+            contentDescription = stringResource(R.string.cd_next_track),
             tint = tint,
             modifier = Modifier
                 .size(40.dp)

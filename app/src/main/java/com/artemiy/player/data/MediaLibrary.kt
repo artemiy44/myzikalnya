@@ -1,5 +1,6 @@
 package com.artemiy.player.data
 
+import com.artemiy.player.R
 import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
@@ -92,8 +93,8 @@ fun querySongs(context: Context, scanFolders: Set<String> = emptySet()): List<So
             if (scanFolders.isNotEmpty() && segments.none { it in scanFolders }) continue
             songs += Song(
                 id = id,
-                title = cursor.getString(titleCol) ?: "Без названия",
-                artist = cursor.getString(artistCol) ?: "Неизвестный артист",
+                title = cursor.getString(titleCol) ?: context.getString(R.string.untitled),
+                artist = cursor.getString(artistCol) ?: context.getString(R.string.unknown_artist),
                 album = cursor.getString(albumCol) ?: "",
                 durationMs = cursor.getLong(durationCol),
                 dateAddedMs = cursor.getLong(dateAddedCol) * 1000L,

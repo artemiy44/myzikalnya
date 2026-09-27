@@ -39,6 +39,14 @@ interface PlaylistDao {
     )
     suspend fun getPlaylistsWithCount(): List<PlaylistWithCount>
 
+    @Query(
+        "SELECT p.id as id, p.name as name, " +
+            "(SELECT COUNT(*) FROM playlist_songs c WHERE c.playlistId = p.id) as songCount " +
+            "FROM playlists p JOIN playlist_songs ps ON ps.playlistId = p.id " +
+            "WHERE ps.songId = :songId ORDER BY p.name COLLATE NOCASE ASC"
+    )
+    suspend fun playlistsContaining(songId: Long): List<PlaylistWithCount>
+
     @Query("SELECT songId FROM playlist_songs WHERE playlistId = :playlistId ORDER BY position ASC")
     suspend fun getSongIds(playlistId: Long): List<Long>
 

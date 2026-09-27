@@ -1,6 +1,10 @@
 package com.artemiy.player.ui.home
 
+import androidx.compose.ui.res.pluralStringResource
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
 import com.artemiy.player.ui.icons.AppIcons
+import com.artemiy.player.ui.theme.inAppFont
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -79,7 +83,7 @@ fun MixCard(mix: Mix, onClick: () -> Unit) {
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
             .padding(16.dp),
     ) {
-        Text(text = "Микс", color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+        Text(text = stringResource(R.string.mix_label), color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
         BoxWithConstraints(modifier = Modifier.padding(top = 2.dp)) {
             // Shrinks from 27sp only as far as needed for the longest word to fit on one line, so
             // "опробованное" isn't chopped up mid-word.
@@ -171,25 +175,25 @@ fun MixScreen(
                 textAlign = TextAlign.Center,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                style = TextStyle(shadow = HeroTextShadow),
+                style = TextStyle(shadow = HeroTextShadow).inAppFont(),
             )
             Text(
-                text = "${mix.songs.size} песен · обновляется каждый день",
+                text = pluralStringResource(R.plurals.songs_count, mix.songs.size, mix.songs.size) + " · " + stringResource(R.string.mix_updates_daily),
                 color = Color.White.copy(alpha = 0.85f),
                 fontSize = 13.sp,
                 modifier = Modifier.padding(top = 4.dp),
-                style = TextStyle(shadow = HeroTextShadow),
+                style = TextStyle(shadow = HeroTextShadow).inAppFont(),
             )
             Row(
                 modifier = Modifier.padding(top = 18.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                CircleIconButton(icon = AppIcons.Shuffle, description = "Перемешать") {
+                CircleIconButton(icon = AppIcons.Shuffle, description = stringResource(R.string.shuffle)) {
                     mix.songs.shuffled().let { onPlay(it.first(), it) }
                 }
                 PlayPillButton(onClick = { onPlay(mix.songs.first(), mix.songs) }, modifier = Modifier.padding(horizontal = 14.dp))
-                CircleIconButton(icon = AppIcons.Add, description = "Сохранить в мои плейлисты", showCheck = savedFlash.visible) {
+                CircleIconButton(icon = AppIcons.Add, description = stringResource(R.string.save_to_my_playlists), showCheck = savedFlash.visible) {
                     onSaveAsPlaylist(mix)
                     savedFlash.flash()
                 }

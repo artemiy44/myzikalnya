@@ -1,5 +1,7 @@
 package com.artemiy.player.ui.components
 
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
 import com.artemiy.player.ui.icons.AppIcons
 import android.graphics.Bitmap
 import androidx.compose.foundation.background
@@ -167,7 +169,7 @@ fun HeroOverArt(
         )
         Icon(
             imageVector = AppIcons.Back,
-            contentDescription = "Назад",
+            contentDescription = stringResource(R.string.cd_back),
             tint = topTint,
             modifier = Modifier
                 .padding(start = 16.dp, top = statusTop + 12.dp)

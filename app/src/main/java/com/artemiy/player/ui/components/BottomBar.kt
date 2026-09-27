@@ -1,5 +1,7 @@
 package com.artemiy.player.ui.components
 
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
 import com.artemiy.player.ui.icons.AppIcons
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -24,12 +26,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.artemiy.player.ui.theme.PlayerColors
 
-enum class AppTab(val label: String) {
-    Mood("Настроение"),
-    Home("Главная"),
-    Library("Медиатека"),
-    Search("Поиск"),
+enum class AppTab(@androidx.annotation.StringRes val labelRes: Int) {
+    Mood(R.string.tab_mood),
+    Home(R.string.tab_home),
+    Library(R.string.tab_library),
+    Search(R.string.tab_search),
 }
+
+val AppTab.label: String @Composable get() = stringResource(labelRes)
 
 @Composable
 fun PlayerBottomBar(selected: AppTab, onSelect: (AppTab) -> Unit) {

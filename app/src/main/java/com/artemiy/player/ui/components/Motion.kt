@@ -1,5 +1,7 @@
 package com.artemiy.player.ui.components
 
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -49,7 +51,7 @@ fun PlayPauseIcon(isPlaying: Boolean, tint: Color, modifier: Modifier = Modifier
     ) { playing ->
         Icon(
             imageVector = if (playing) AppIcons.Pause else AppIcons.Play,
-            contentDescription = if (playing) "Пауза" else "Играть",
+            contentDescription = stringResource(if (playing) R.string.cd_pause else R.string.cd_play),
             tint = tint,
             modifier = Modifier.fillMaxSize(),
         )

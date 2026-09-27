@@ -1,5 +1,6 @@
 package com.artemiy.player.ui.home
 
+import com.artemiy.player.ui.i18n.withAppLanguage
 import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,7 +53,7 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
             val songsById = allSongs.associateBy { it.id }
             val newest = allSongs.sortedByDescending { it.dateAddedMs }
             // The heavy counting happens off the main thread; the results land on it.
-            val builtMixes = withContext(Dispatchers.Default) { buildMixes(allSongs, plays, skips, now) }
+            val builtMixes = withContext(Dispatchers.Default) { buildMixes(allSongs, plays, skips, now, getApplication<Application>().withAppLanguage()) }
             val builtRecap = withContext(Dispatchers.Default) { buildRecap(allSongs, plays, now) }
             statDays = statDays(plays)
             mixes = builtMixes

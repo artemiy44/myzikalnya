@@ -1,5 +1,7 @@
 package com.artemiy.player.ui.nowplaying
 
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
@@ -420,7 +422,7 @@ private fun ExpressiveTitleRow(
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = song?.title ?: "Ничего не играет",
+                text = song?.title ?: stringResource(R.string.nothing_playing),
                 color = PlayerColors.TextPrimary,
                 fontSize = 26.sp,
                 lineHeight = 30.sp,
@@ -583,7 +585,7 @@ private fun ExpressiveTransport(
             interaction = prevInteraction,
             onClick = onSkipPrevious,
         ) {
-            Icon(AppIcons.SkipBack, contentDescription = "Предыдущий трек", tint = PlayerColors.TextPrimary, modifier = Modifier.size(28.dp))
+            Icon(AppIcons.SkipBack, contentDescription = stringResource(R.string.cd_previous_track), tint = PlayerColors.TextPrimary, modifier = Modifier.size(28.dp))
         }
         ExpressiveButton(
             weight = playWeight,
@@ -617,7 +619,7 @@ private fun ExpressiveTransport(
             interaction = nextInteraction,
             onClick = onSkipNext,
         ) {
-            Icon(AppIcons.SkipForward, contentDescription = "Следующий трек", tint = PlayerColors.TextPrimary, modifier = Modifier.size(28.dp))
+            Icon(AppIcons.SkipForward, contentDescription = stringResource(R.string.cd_next_track), tint = PlayerColors.TextPrimary, modifier = Modifier.size(28.dp))
         }
     }
 }
@@ -750,11 +752,13 @@ private fun QueueSheet(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 SourceArtThumb(art = playingFrom?.art, song = song, modifier = Modifier.size(34.dp).clip(RoundedCornerShape(8.dp)))
+                val playingFromLabel = stringResource(R.string.playing_from)
+                val queueLabel = stringResource(R.string.playing_from_queue)
                 Text(
                     text = buildAnnotatedString {
-                        append("Играет из ")
+                        append(playingFromLabel)
                         withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = PlayerColors.TextPrimary)) {
-                            append(playingFrom?.name ?: "очереди")
+                            append(playingFrom?.name ?: queueLabel)
                         }
                     },
                     color = LocalAdaptiveSecondaryColor.current,
@@ -765,7 +769,7 @@ private fun QueueSheet(
                 )
                 Icon(
                     imageVector = AppIcons.LyricsBubble,
-                    contentDescription = "Текст песни",
+                    contentDescription = stringResource(R.string.lyrics),
                     tint = if (lyricsActive) PlayerColors.TextPrimary else LocalAdaptiveSecondaryColor.current,
                     modifier = Modifier
                         .padding(start = 6.dp)
@@ -784,7 +788,7 @@ private fun QueueSheet(
                         OutputKind.TV -> AppIcons.DeviceTv
                         OutputKind.CAR -> AppIcons.DeviceCar
                     },
-                    contentDescription = output.name ?: "Это устройство",
+                    contentDescription = output.name ?: stringResource(R.string.this_device),
                     tint = if (output.kind == OutputKind.PHONE) LocalAdaptiveSecondaryColor.current else PlayerColors.TextPrimary,
                     modifier = Modifier
                         .padding(start = 18.dp)
@@ -956,9 +960,9 @@ private fun ExpressiveQueueModes(
 
     Row(modifier = modifier.fillMaxWidth().height(56.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
         listOf(
-            Triple(AppIcons.Shuffle to "Перемешать", shuffleEnabled, onToggleShuffle),
-            Triple(AppIcons.Repeat to "Повтор", repeatEnabled, onToggleRepeat),
-            Triple(AppIcons.Infinite to "Бесконечное воспроизведение", infinitePlayEnabled, onToggleInfinitePlay),
+            Triple(AppIcons.Shuffle to stringResource(R.string.shuffle), shuffleEnabled, onToggleShuffle),
+            Triple(AppIcons.Repeat to stringResource(R.string.repeat), repeatEnabled, onToggleRepeat),
+            Triple(AppIcons.Infinite to stringResource(R.string.endless_play), infinitePlayEnabled, onToggleInfinitePlay),
         ).forEachIndexed { index, (iconAndLabel, enabled, onClick) ->
             val interaction = remember { MutableInteractionSource() }
             val pressed by interaction.collectIsPressedAsState()

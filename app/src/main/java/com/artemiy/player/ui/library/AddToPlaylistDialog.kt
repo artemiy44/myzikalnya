@@ -1,5 +1,8 @@
 package com.artemiy.player.ui.library
 
+import androidx.compose.ui.res.pluralStringResource
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
 import com.artemiy.player.ui.icons.AppIcons
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,6 +36,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.artemiy.player.data.PlaylistWithCount
 import com.artemiy.player.ui.theme.PlayerColors
+import com.artemiy.player.ui.components.AppDialog
+import com.artemiy.player.ui.components.DialogButtons
+import com.artemiy.player.ui.components.DialogListRow
+import com.artemiy.player.ui.components.DialogTextField
+import com.artemiy.player.ui.components.DialogTitle
+import androidx.compose.foundation.shape.CircleShape
 
 @Composable
 fun AddToPlaylistDialog(
@@ -42,100 +51,50 @@ fun AddToPlaylistDialog(
     onCreatePlaylist: (String) -> Unit,
 ) {
     var newName by remember { mutableStateOf("") }
-
-    Dialog(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(18.dp))
-                .background(PlayerColors.SurfaceDim)
-                .padding(20.dp),
-        ) {
-            Text(
-                text = "Добавить в плейлист",
-                color = PlayerColors.TextPrimary,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 14.dp),
-            )
-
-            if (playlists.isNotEmpty()) {
-                LazyColumn(modifier = Modifier.heightIn(max = 260.dp)) {
-                    items(playlists, key = { it.id }) { playlist ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null,
-                                ) { onAddToPlaylist(playlist.id) }
-                                .padding(vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(
-                                imageVector = AppIcons.Playlist,
-                                contentDescription = null,
-                                tint = PlayerColors.TextSecondary,
-                                modifier = Modifier.size(20.dp),
-                            )
-                            Column(modifier = Modifier.padding(start = 12.dp)) {
-                                Text(text = playlist.name, color = PlayerColors.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                                Text(text = "${playlist.songCount} треков", color = PlayerColors.TextSecondary, fontSize = 11.sp)
-                            }
-                        }
-                    }
-                }
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 14.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(PlayerColors.Surface)
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(modifier = Modifier.weight(1f)) {
-                    if (newName.isEmpty()) {
-                        Text(text = "Новый плейлист", color = PlayerColors.TextTertiary, fontSize = 14.sp)
-                    }
-                    BasicTextField(
-                        value = newName,
-                        onValueChange = { newName = it },
-                        singleLine = true,
-                        textStyle = TextStyle(color = PlayerColors.TextPrimary, fontSize = 14.sp),
-                        cursorBrush = androidx.compose.ui.graphics.SolidColor(PlayerColors.TextPrimary),
-                        modifier = Modifier.fillMaxWidth(),
+    AppDialog(onDismiss = onDismiss) {
+        DialogTitle(stringResource(R.string.add_to_playlist))
+        if (playlists.isNotEmpty()) {
+            LazyColumn(modifier = Modifier.padding(top = 12.dp).heightIn(max = 280.dp)) {
+                items(playlists, key = { it.id }) { playlist ->
+                    DialogListRow(
+                        icon = AppIcons.Playlist,
+                        title = playlist.name,
+                        subtitle = pluralStringResource(R.plurals.tracks_count, playlist.songCount, playlist.songCount),
+                        onClick = { onAddToPlaylist(playlist.id) },
                     )
                 }
-                Icon(
-                    imageVector = AppIcons.Add,
-                    contentDescription = "Создать плейлист",
-                    tint = PlayerColors.TextPrimary,
-                    modifier = Modifier
-                        .size(22.dp)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                        ) {
-                            if (newName.isNotBlank()) {
-                                onCreatePlaylist(newName)
-                                newName = ""
-                            }
-                        },
-                )
             }
-
-            Text(
-                text = "Отмена",
-                color = PlayerColors.TextSecondary,
-                fontSize = 13.sp,
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .padding(top = 16.dp)
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onDismiss() },
-            )
         }
+        // Or straight into a new one.
+        DialogTextField(
+            value = newName,
+            onValueChange = { newName = it },
+            placeholder = stringResource(R.string.new_playlist),
+            autoFocus = playlists.isEmpty(),
+            modifier = Modifier.padding(top = 14.dp),
+            trailing = {
+                val ready = newName.isNotBlank()
+                Box(
+                    modifier = Modifier
+                        .padding(start = 10.dp)
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(if (ready) PlayerColors.Accent else PlayerColors.SurfaceDim)
+                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, enabled = ready) {
+                            onCreatePlaylist(newName)
+                            newName = ""
+                        },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = AppIcons.Add,
+                        contentDescription = stringResource(R.string.create_playlist),
+                        tint = if (ready) PlayerColors.OnAccent else PlayerColors.TextTertiary,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+            },
+        )
+        DialogButtons(dismissLabel = stringResource(R.string.cancel), onDismiss = onDismiss)
     }
 }

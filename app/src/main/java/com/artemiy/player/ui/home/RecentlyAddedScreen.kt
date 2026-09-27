@@ -1,5 +1,7 @@
 package com.artemiy.player.ui.home
 
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,11 +45,11 @@ fun RecentlyAddedScreen(
         songs.filter { it.title.contains(query, ignoreCase = true) || it.artist.contains(query, ignoreCase = true) }
     }
     Column(modifier = Modifier.fillMaxSize().background(PlayerColors.Background).statusBarsPadding()) {
-        LibraryHeader(title = "Недавно добавленные", showBack = true, onBack = onBack)
+        LibraryHeader(title = stringResource(R.string.recently_added), showBack = true, onBack = onBack)
         ListToolbar(
             query = query,
             onQueryChange = { query = it },
-            placeholder = "Поиск",
+            placeholder = stringResource(R.string.search_placeholder),
             sortOptions = emptyList<Unit>(),
             sortOptionLabel = { "" },
             currentSort = "",

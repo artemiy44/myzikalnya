@@ -4,10 +4,12 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
@@ -114,7 +116,7 @@ private val BURST_NODES by lazy { PathParser().parsePathString(BURST[0]).toNodes
  * on its angle and the time — so the rays grow and shrink unevenly, like a living spark. The
  * middle barely moves; the tips move the most.
  */
-private fun warpedBurst(center: Offset, t: Float, amount: Float): Path {
+internal fun warpedBurst(center: Offset, t: Float, amount: Float): Path {
     val phase = 2f * PI.toFloat() * t
     fun warp(x: Float, y: Float): Offset {
         val dx = x - center.x
@@ -211,9 +213,15 @@ private fun DrawScope.drawMoodParts(mood: Mood, parts: List<Path>, t: Float, col
     }
 }
 
-/** The happy burst as a loading mark: spinning slowly with its rays playing, round and round. */
+/** The happy burst as a loading mark: spinning slowly with its rays playing, round and round.
+ * It first flies in — from bigger and faded, turning into place — picking up from the system's
+ * own launch screen, whose app icon sits bigger in the same spot. */
 @Composable
 fun LoadingBurst(color: Color, modifier: Modifier = Modifier) {
+    val arrive = androidx.compose.runtime.remember { androidx.compose.animation.core.Animatable(0f) }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        arrive.animateTo(1f, androidx.compose.animation.core.spring(dampingRatio = 0.6f, stiffness = 220f))
+    }
     val transition = androidx.compose.animation.core.rememberInfiniteTransition(label = "loadingBurst")
     val t by transition.animateFloat(
         initialValue = 0f,
@@ -231,12 +239,60 @@ fun LoadingBurst(color: Color, modifier: Modifier = Modifier) {
         ),
         label = "burstSpin",
     )
-    Canvas(modifier = modifier) {
+    Canvas(
+        modifier = modifier.graphicsLayer {
+            val a = arrive.value
+            val s = 1.9f - 0.9f * a
+            scaleX = s
+            scaleY = s
+            alpha = (a * 2.5f).coerceIn(0f, 1f)
+            rotationZ = -40f * (1f - a)
+        },
+    ) {
         val k = size.minDimension / 56f
         val pivot = Offset(28f, 28.8f)
         translate((size.width - 56f * k) / 2, (size.height - 56f * k) / 2) {
             scale(k, k, pivot = Offset.Zero) {
                 rotate(spin, pivot) { drawPath(warpedBurst(pivot, t, 0.14f), color) }
+            }
+        }
+    }
+}
+
+/**
+ * The burst as a little character: turning slowly and breathing while quiet; while [speaking],
+ * it spins faster and its rays wag quickly and much more, like it's talking.
+ */
+@Composable
+fun TalkingBurst(color: Color, speaking: Boolean, modifier: Modifier = Modifier) {
+    val talk by androidx.compose.animation.core.animateFloatAsState(
+        if (speaking) 1f else 0f,
+        androidx.compose.animation.core.tween(260),
+        label = "talk",
+    )
+    val talkNow = androidx.compose.runtime.rememberUpdatedState(talk)
+    var spin by androidx.compose.runtime.remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
+    var phase by androidx.compose.runtime.remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        var last = androidx.compose.runtime.withFrameNanos { it }
+        while (true) {
+            val now = androidx.compose.runtime.withFrameNanos { it }
+            val dt = (now - last) / 1_000_000_000f
+            last = now
+            val k = talkNow.value
+            spin = (spin + dt * (12f + 24f * k)) % 360f
+            phase = (phase + dt * (0.35f + 0.8f * k)) % 1f
+        }
+    }
+    Canvas(modifier = modifier) {
+        val k = size.minDimension / 56f
+        val pivot = Offset(28f, 28.8f)
+        val bounce = 1f + 0.03f * talk * sin(phase * 4f * PI.toFloat())
+        translate((size.width - 56f * k) / 2, (size.height - 56f * k) / 2) {
+            scale(k, k, pivot = Offset.Zero) {
+                scale(bounce, bounce, pivot) {
+                    rotate(spin, pivot) { drawPath(warpedBurst(pivot, phase, 0.08f + 0.1f * talk), color) }
+                }
             }
         }
     }

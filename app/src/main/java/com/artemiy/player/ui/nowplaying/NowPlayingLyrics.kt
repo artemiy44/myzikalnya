@@ -1,6 +1,9 @@
 package com.artemiy.player.ui.nowplaying
 
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.core.FastOutSlowInEasing
+import com.artemiy.player.ui.theme.inAppFont
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -135,7 +138,7 @@ internal fun LyricsView(
             if (loading && active) {
                 EqualizerLoader(color = LocalAdaptiveSecondaryColor.current, modifier = Modifier.size(44.dp))
             } else Text(
-                text = "Текст для этого трека не найден",
+                text = stringResource(R.string.lyrics_not_found),
                 color = LocalAdaptiveSecondaryColor.current,
                 fontSize = 14.sp,
                 modifier = Modifier.padding(horizontal = 12.dp),
@@ -302,14 +305,15 @@ private fun fittedLyricSize(text: String, withReadings: Boolean): Float {
     val measurer = androidx.compose.ui.text.rememberTextMeasurer()
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val density = androidx.compose.ui.platform.LocalDensity.current
-    return remember(text, withReadings, configuration.screenWidthDp, configuration.screenHeightDp) {
+    val family = com.artemiy.player.ui.theme.LocalAppFontFamily.current
+    return remember(text, withReadings, configuration.screenWidthDp, configuration.screenHeightDp, family) {
         val widthPx = with(density) { (configuration.screenWidthDp - 44).dp.roundToPx() }.coerceAtLeast(1)
         val maxHeightPx = with(density) { (configuration.screenHeightDp * MAX_LINE_SCREEN_SHARE).dp.toPx() }
         var size = LYRIC_SIZE
         while (size > LYRIC_SIZE * 0.5f) {
             val rows = measurer.measure(
                 text,
-                TextStyle(fontSize = size.sp, fontWeight = FontWeight.ExtraBold),
+                TextStyle(fontSize = size.sp, fontWeight = FontWeight.ExtraBold, fontFamily = family),
                 constraints = androidx.compose.ui.unit.Constraints(maxWidth = widthPx),
             ).lineCount
             // Each row: the text, its reading above it (when shown) and the gap between rows.
@@ -624,8 +628,8 @@ internal fun WordSyncedLine(
     // In the glow pass, "not yet sung" is fully transparent instead — the glow must only sit
     // behind text that has actually been reached, never ahead of the sweep.
     val unsungColor = if (glow) Color.Transparent else PlayerColors.TextPrimary.copy(alpha = unsungAlpha)
-    val sungStyle = TextStyle(color = sungColor, fontSize = fontSize, fontWeight = FontWeight.ExtraBold)
-    val unsungStyle = TextStyle(color = unsungColor, fontSize = fontSize, fontWeight = FontWeight.ExtraBold)
+    val sungStyle = TextStyle(color = sungColor, fontSize = fontSize, fontWeight = FontWeight.ExtraBold).inAppFont()
+    val unsungStyle = TextStyle(color = unsungColor, fontSize = fontSize, fontWeight = FontWeight.ExtraBold).inAppFont()
     // Exactly one word is ever "in progress" at a time — found the same way the active *line* is
     // found (last word whose tag time has passed). Every other word is a flat solid color. This
     // guarantees only a single word animates even when the line wraps onto two visual rows, and

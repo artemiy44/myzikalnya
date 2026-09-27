@@ -2,6 +2,7 @@
 
 package com.artemiy.player.ui.mood
 
+import com.artemiy.player.data.label
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.foundation.layout.Box
@@ -41,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import com.artemiy.player.R
 import com.artemiy.player.data.Mood
 import com.artemiy.player.ui.theme.PlayerColors
+import com.artemiy.player.ui.theme.inAppFont
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.sin
@@ -108,7 +110,8 @@ internal fun MoodTitle(mood: Mood, progress: () -> Float, modifier: Modifier = M
         else -> lerp(base, Color.White, 0.3f)
     }
     val glowColor = if (light) Color.Transparent else base.copy(alpha = 0.7f)
-    var style = moodTitleStyle(mood)
+    // "Обычное" is written in the app's own font.
+    var style = moodTitleStyle(mood).inAppFont()
     if (mood == Mood.HAPPY) {
         val step by remember {
             derivedStateOf {

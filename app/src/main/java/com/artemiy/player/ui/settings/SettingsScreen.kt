@@ -1,6 +1,12 @@
 package com.artemiy.player.ui.settings
 
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
+import com.artemiy.player.data.label
+import com.artemiy.player.ui.components.label
+import com.artemiy.player.ui.theme.label
 import com.artemiy.player.ui.icons.AppIcons
+import com.artemiy.player.ui.theme.inAppFont
 import android.content.Intent
 import android.media.audiofx.AudioEffect
 import androidx.activity.compose.BackHandler
@@ -64,17 +70,18 @@ import com.artemiy.player.ui.theme.darkPalette
 import com.artemiy.player.ui.theme.lightPalette
 
 /** Settings pages. [parent] is where "back" goes from each one. */
-private enum class SettingsRoute(val title: String, val parent: SettingsRoute?) {
-    Main("Настройки", null),
-    General("Общие", Main),
-    Appearance("Внешний вид", Main),
-    Library("Библиотека", Main),
-    Playback("Воспроизведение", Main),
-    Mood("Настроение", Main),
-    Player("Плеер", Main),
-    NowPlayingBackground("Фон плеера", Player),
-    KeptArtists("Исполнители", General),
-    About("О приложении", Main),
+private enum class SettingsRoute(val titleRes: Int, val parent: SettingsRoute?) {
+    Main(R.string.settings, null),
+    General(R.string.set_general, Main),
+    Appearance(R.string.set_appearance, Main),
+    Library(R.string.set_library, Main),
+    Playback(R.string.set_playback, Main),
+    Mood(R.string.tab_mood, Main),
+    Player(R.string.onb_player, Main),
+    NowPlayingBackground(R.string.set_player_background, Player),
+    KeptArtists(R.string.set_kept_artists, General),
+    Language(R.string.set_language, Main),
+    About(R.string.set_about, Main),
 }
 
 @Composable
@@ -111,7 +118,10 @@ fun SettingsScreen(
     onStartTabChange: (AppTab) -> Unit,
     iconSet: IconSet,
     onIconSetChange: (IconSet) -> Unit,
+    appFont: com.artemiy.player.ui.theme.AppFont,
+    onAppFontChange: (com.artemiy.player.ui.theme.AppFont) -> Unit,
     onBack: () -> Unit,
+    onShowOnboarding: () -> Unit = {},
     keptArtists: Set<String> = emptySet(),
     onAddKeptArtist: (String) -> Unit = {},
     onRemoveKeptArtist: (String) -> Unit = {},
@@ -137,7 +147,7 @@ fun SettingsScreen(
             ) {
                 Icon(
                     imageVector = AppIcons.Back,
-                    contentDescription = "Назад",
+                    contentDescription = stringResource(R.string.cd_back),
                     tint = PlayerColors.TextPrimary,
                     modifier = Modifier
                         .size(24.dp)
@@ -147,7 +157,7 @@ fun SettingsScreen(
                         .padding(end = 12.dp),
                 )
                 Text(
-                    text = page.title,
+                    text = stringResource(page.titleRes),
                     color = PlayerColors.TextPrimary,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.ExtraBold,
@@ -198,6 +208,8 @@ fun SettingsScreen(
                     onAccentChange = onAccentChange,
                     iconSet = iconSet,
                     onIconSetChange = onIconSetChange,
+                    appFont = appFont,
+                    onAppFontChange = onAppFontChange,
                 )
                 SettingsRoute.NowPlayingBackground -> NowPlayingBackgroundContent(
                     mode = nowPlayingBackgroundMode,
@@ -205,7 +217,8 @@ fun SettingsScreen(
                     intensity = liveBlurIntensity,
                     onIntensityChange = onLiveBlurIntensityChange,
                 )
-                SettingsRoute.About -> AboutContent()
+                SettingsRoute.About -> AboutContent(onShowOnboarding = onShowOnboarding)
+                SettingsRoute.Language -> LanguageContent()
             }
         }
     }
@@ -221,21 +234,23 @@ private fun SettingsCategories(onOpen: (SettingsRoute) -> Unit) {
     ) {
         Spacer(modifier = Modifier.height(12.dp))
         SettingsCard {
-            SettingsRow(AppIcons.General, "Общие", "С какой вкладки открывается приложение", { onOpen(SettingsRoute.General) }, showChevron = true)
+            SettingsRow(AppIcons.General, stringResource(R.string.set_general), stringResource(R.string.set_general_sub), { onOpen(SettingsRoute.General) }, showChevron = true)
             CategoryDivider()
-            SettingsRow(AppIcons.TextSize, "Внешний вид", "Тема, акцент, иконки, размер текста", { onOpen(SettingsRoute.Appearance) }, showChevron = true)
+            SettingsRow(AppIcons.TextSize, stringResource(R.string.set_appearance), stringResource(R.string.set_appearance_sub), { onOpen(SettingsRoute.Appearance) }, showChevron = true)
             CategoryDivider()
-            SettingsRow(AppIcons.Library, "Библиотека", "Сканирование и папки с музыкой", { onOpen(SettingsRoute.Library) }, showChevron = true)
+            SettingsRow(AppIcons.Library, stringResource(R.string.set_library), stringResource(R.string.set_library_sub), { onOpen(SettingsRoute.Library) }, showChevron = true)
             CategoryDivider()
-            SettingsRow(AppIcons.Equalizer, "Воспроизведение", "Эквалайзер, «бесконечное» воспроизведение", { onOpen(SettingsRoute.Playback) }, showChevron = true)
+            SettingsRow(AppIcons.Equalizer, stringResource(R.string.set_playback), stringResource(R.string.set_playback_sub), { onOpen(SettingsRoute.Playback) }, showChevron = true)
             CategoryDivider()
-            SettingsRow(AppIcons.MoodSettings, "Настроение", "Какие папки считать каким настроением", { onOpen(SettingsRoute.Mood) }, showChevron = true)
+            SettingsRow(AppIcons.MoodSettings, stringResource(R.string.tab_mood), stringResource(R.string.set_mood_sub), { onOpen(SettingsRoute.Mood) }, showChevron = true)
             CategoryDivider()
-            SettingsRow(AppIcons.Player, "Плеер", "Фон плеера, текст песни", { onOpen(SettingsRoute.Player) }, showChevron = true)
+            SettingsRow(AppIcons.Player, stringResource(R.string.onb_player), stringResource(R.string.set_player_sub), { onOpen(SettingsRoute.Player) }, showChevron = true)
         }
         Spacer(modifier = Modifier.height(12.dp))
         SettingsCard {
-            SettingsRow(AppIcons.Info, "О приложении", "Версия и лицензии сторонних компонентов", { onOpen(SettingsRoute.About) }, showChevron = true)
+            SettingsRow(AppIcons.Language, stringResource(R.string.set_language), stringResource(R.string.set_language_sub), { onOpen(SettingsRoute.Language) }, showChevron = true)
+            CategoryDivider()
+            SettingsRow(AppIcons.Info, stringResource(R.string.set_about), stringResource(R.string.set_about_sub), { onOpen(SettingsRoute.About) }, showChevron = true)
         }
         Spacer(modifier = Modifier.height(20.dp))
     }
@@ -254,17 +269,17 @@ private fun ThemeSettings(
     onAccentChange: (AccentChoice?) -> Unit,
 ) {
     SettingsCard {
-        SettingsLabel("Тема")
+        SettingsLabel(stringResource(R.string.onb_theme))
         Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
-            InfinitePlayModeChip("Как в системе", themeMode == ThemeMode.SYSTEM) { onThemeModeChange(ThemeMode.SYSTEM) }
-            InfinitePlayModeChip("Тёмная", themeMode == ThemeMode.DARK) { onThemeModeChange(ThemeMode.DARK) }
-            InfinitePlayModeChip("Светлая", themeMode == ThemeMode.LIGHT) { onThemeModeChange(ThemeMode.LIGHT) }
+            InfinitePlayModeChip(stringResource(R.string.theme_system), themeMode == ThemeMode.SYSTEM) { onThemeModeChange(ThemeMode.SYSTEM) }
+            InfinitePlayModeChip(stringResource(R.string.theme_dark), themeMode == ThemeMode.DARK) { onThemeModeChange(ThemeMode.DARK) }
+            InfinitePlayModeChip(stringResource(R.string.theme_light), themeMode == ThemeMode.LIGHT) { onThemeModeChange(ThemeMode.LIGHT) }
         }
 
         // Each background picker only matters for the theme it belongs to ("as in system" can be
         // either, so it shows both).
         if (themeMode != ThemeMode.DARK) {
-            SettingsLabel("Фон светлой темы", top = 18.dp)
+            SettingsLabel(stringResource(R.string.set_light_bg), top = 18.dp)
             Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(18.dp)) {
                 LightVariant.entries.forEach { variant ->
                     LabeledSwatch(variant.label, lightPalette(variant).background, variant == lightVariant) { onLightVariantChange(variant) }
@@ -272,7 +287,7 @@ private fun ThemeSettings(
             }
         }
         if (themeMode != ThemeMode.LIGHT) {
-            SettingsLabel("Фон тёмной темы", top = 18.dp)
+            SettingsLabel(stringResource(R.string.set_dark_bg), top = 18.dp)
             Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(18.dp)) {
                 DarkVariant.entries.forEach { variant ->
                     LabeledSwatch(variant.label, darkPalette(variant).background, variant == darkVariant) { onDarkVariantChange(variant) }
@@ -282,7 +297,7 @@ private fun ThemeSettings(
     }
     Spacer(modifier = Modifier.height(12.dp))
     SettingsCard {
-        SettingsLabel("Акцентный цвет")
+        SettingsLabel(stringResource(R.string.set_accent))
         var family by remember { mutableStateOf(accent?.family ?: AccentFamily.STOCK) }
         FlowRow(
             horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
@@ -312,7 +327,7 @@ private fun ThemeSettings(
             }
         }
         Text(
-            text = if (accent == null) "Монохром — без цветного акцента" else "Кнопки, ползунки, переключатели и выбранная вкладка",
+            text = stringResource(if (accent == null) R.string.set_accent_mono else R.string.set_accent_desc),
             color = PlayerColors.TextSecondary,
             fontSize = 12.sp,
             modifier = Modifier.padding(top = 12.dp),
@@ -364,7 +379,7 @@ private fun GeneralContent(startTab: AppTab, onStartTabChange: (AppTab) -> Unit,
     ) {
         Spacer(modifier = Modifier.height(12.dp))
         SettingsCard {
-            SettingsLabel("Открывать при запуске")
+            SettingsLabel(stringResource(R.string.set_start_tab))
             Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
                 listOf(AppTab.Home, AppTab.Library, AppTab.Mood).forEach { tab ->
                     InfinitePlayModeChip(tab.label, tab == startTab) { onStartTabChange(tab) }
@@ -375,8 +390,8 @@ private fun GeneralContent(startTab: AppTab, onStartTabChange: (AppTab) -> Unit,
         SettingsCard {
             SettingsRow(
                 icon = AppIcons.Artist,
-                title = "Исполнители целиком",
-                subtitle = "Кого не делить на нескольких исполнителей",
+                title = stringResource(R.string.set_kept_title),
+                subtitle = stringResource(R.string.set_kept_sub),
                 onClick = onOpenKeptArtists,
                 showChevron = true,
             )
@@ -406,9 +421,7 @@ private fun KeptArtistsContent(
     ) {
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "Если у песни несколько исполнителей через «&», запятую, «feat.» и т. п., она появляется у каждого " +
-                "из них. Названия групп, в которых такие знаки просто есть («Earth, Wind & Fire», «AC/DC»), плеер " +
-                "и так узнаёт и не делит. Если он всё-таки разделил группу, добавь её сюда.",
+            text = stringResource(R.string.set_kept_explain),
             color = PlayerColors.TextSecondary,
             fontSize = 12.sp,
         )
@@ -422,18 +435,18 @@ private fun KeptArtistsContent(
                         .background(PlayerColors.SurfaceDim)
                         .padding(horizontal = 12.dp, vertical = 10.dp),
                 ) {
-                    if (input.isEmpty()) Text(text = "Название исполнителя", color = PlayerColors.TextTertiary, fontSize = 14.sp)
+                    if (input.isEmpty()) Text(text = stringResource(R.string.set_artist_name), color = PlayerColors.TextTertiary, fontSize = 14.sp)
                     androidx.compose.foundation.text.BasicTextField(
                         value = input,
                         onValueChange = { input = it },
                         singleLine = true,
-                        textStyle = androidx.compose.ui.text.TextStyle(color = PlayerColors.TextPrimary, fontSize = 14.sp),
+                        textStyle = androidx.compose.ui.text.TextStyle(color = PlayerColors.TextPrimary, fontSize = 14.sp).inAppFont(),
                         cursorBrush = androidx.compose.ui.graphics.SolidColor(PlayerColors.Accent),
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
                 Text(
-                    text = "Добавить",
+                    text = stringResource(R.string.add),
                     color = if (input.isBlank()) PlayerColors.TextTertiary else PlayerColors.TextPrimary,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
@@ -455,7 +468,7 @@ private fun KeptArtistsContent(
                     Text(text = name, color = PlayerColors.TextPrimary, fontSize = 14.sp, modifier = Modifier.weight(1f))
                     Icon(
                         imageVector = AppIcons.Close,
-                        contentDescription = "Убрать",
+                        contentDescription = stringResource(R.string.remove),
                         tint = PlayerColors.TextSecondary,
                         modifier = Modifier
                             .size(20.dp)
@@ -466,7 +479,7 @@ private fun KeptArtistsContent(
         }
         val suggestions = splitLines.filter { line -> kept.none { it.equals(line, ignoreCase = true) } }
         if (suggestions.isNotEmpty()) {
-            SectionTitle("Сейчас делятся на нескольких исполнителей")
+            SectionTitle(stringResource(R.string.set_split_now))
             SettingsCard {
                 suggestions.forEachIndexed { index, line ->
                     Row(
@@ -476,7 +489,7 @@ private fun KeptArtistsContent(
                         Text(text = line, color = PlayerColors.TextPrimary, fontSize = 14.sp, modifier = Modifier.weight(1f))
                         Icon(
                             imageVector = AppIcons.Add,
-                            contentDescription = "Не делить",
+                            contentDescription = stringResource(R.string.set_dont_split),
                             tint = PlayerColors.TextSecondary,
                             modifier = Modifier
                                 .size(20.dp)
@@ -532,6 +545,8 @@ private fun SettingsSectionContent(
     onAccentChange: (AccentChoice?) -> Unit,
     iconSet: IconSet,
     onIconSetChange: (IconSet) -> Unit,
+    appFont: com.artemiy.player.ui.theme.AppFont,
+    onAppFontChange: (com.artemiy.player.ui.theme.AppFont) -> Unit,
 ) {
         Column(
             modifier = Modifier
@@ -554,14 +569,25 @@ private fun SettingsSectionContent(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 SettingsCard {
-                    SettingsLabel("Иконки")
+                    SettingsLabel(stringResource(R.string.set_icons))
                     Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
                         IconSet.entries.forEach { set ->
                             InfinitePlayModeChip(set.label, set == iconSet) { onIconSetChange(set) }
                         }
                     }
                     Text(
-                        text = if (iconSet == IconSet.LUCIDE) "Мягкие и скруглённые — ближе к GNOME" else "Тоньше и чётче — ближе к Apple Music",
+                        text = stringResource(if (iconSet == IconSet.LUCIDE) R.string.set_icons_lucide else R.string.set_icons_tabler),
+                        color = PlayerColors.TextSecondary,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 10.dp),
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                SettingsCard {
+                    SettingsLabel(stringResource(R.string.set_font))
+                    FontChoices(selected = appFont, onSelect = onAppFontChange)
+                    Text(
+                        text = stringResource(R.string.font_note),
                         color = PlayerColors.TextSecondary,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(top = 10.dp),
@@ -573,7 +599,7 @@ private fun SettingsSectionContent(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(imageVector = AppIcons.TextSize, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(20.dp))
                     Text(
-                        text = "Размер текста",
+                        text = stringResource(R.string.set_text_size),
                         color = PlayerColors.TextPrimary,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -596,12 +622,12 @@ private fun SettingsSectionContent(
             if (section == SettingsRoute.Library) SettingsCard {
                 SettingsRow(
                     icon = AppIcons.Refresh,
-                    title = "Пересканировать медиатеку",
-                    subtitle = "Треков найдено: $songCount",
+                    title = stringResource(R.string.set_rescan),
+                    subtitle = stringResource(R.string.set_tracks_found, songCount),
                     onClick = onRescanLibrary,
                 )
                 Text(
-                    text = "Какие папки сканировать",
+                    text = stringResource(R.string.set_scan_folders),
                     color = PlayerColors.TextPrimary,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -609,10 +635,9 @@ private fun SettingsSectionContent(
                 )
                 Text(
                     text = if (scanFolders.isEmpty()) {
-                        "Ничего не выбрано — сканируется всё, что система считает музыкой " +
-                            "(иногда цепляет рингтоны/уведомления). Отметь свои папки, чтобы сканировать только их."
+                        stringResource(R.string.set_scan_all)
                     } else {
-                        "Сканируются только выбранные папки и всё, что лежит в них (включая подпапки)."
+                        stringResource(R.string.set_scan_picked)
                     },
                     color = PlayerColors.TextSecondary,
                     fontSize = 12.sp,
@@ -620,7 +645,7 @@ private fun SettingsSectionContent(
                 )
                 if (availableScanFolders.isEmpty()) {
                     Text(
-                        text = "Папки ещё не найдены — пересканируй медиатеку.",
+                        text = stringResource(R.string.set_no_folders_yet),
                         color = PlayerColors.TextTertiary,
                         fontSize = 12.sp,
                     )
@@ -636,8 +661,8 @@ private fun SettingsSectionContent(
             if (section == SettingsRoute.Playback) SettingsCard {
                 SettingsRow(
                     icon = AppIcons.Equalizer,
-                    title = "Эквалайзер",
-                    subtitle = "Открыть системный или установленный",
+                    title = stringResource(R.string.set_equalizer),
+                    subtitle = stringResource(R.string.set_equalizer_sub),
                     onClick = {
                         runCatching {
                             val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
@@ -649,26 +674,26 @@ private fun SettingsSectionContent(
                     },
                 )
                 Text(
-                    text = "«Бесконечное» воспроизведение",
+                    text = stringResource(R.string.set_endless),
                     color = PlayerColors.TextPrimary,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(top = 16.dp),
                 )
                 Text(
-                    text = "Когда очередь подходит к концу, а в плеере включена кнопка \"∞\" — чем её подмешивать.",
+                    text = stringResource(R.string.set_endless_desc),
                     color = PlayerColors.TextSecondary,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(top = 2.dp, bottom = 8.dp),
                 )
                 Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
                     InfinitePlayModeChip(
-                        label = "Случайно",
+                        label = stringResource(R.string.set_endless_random),
                         selected = infinitePlayMode == InfinitePlayMode.RANDOM,
                         onClick = { onInfinitePlayModeChange(InfinitePlayMode.RANDOM) },
                     )
                     InfinitePlayModeChip(
-                        label = "По жанру (радио)",
+                        label = stringResource(R.string.set_endless_genre),
                         selected = infinitePlayMode == InfinitePlayMode.GENRE_RADIO,
                         onClick = { onInfinitePlayModeChange(InfinitePlayMode.GENRE_RADIO) },
                     )
@@ -677,15 +702,13 @@ private fun SettingsSectionContent(
 
             if (section == SettingsRoute.Mood) SettingsCard {
                 Text(
-                    text = "Подбор по жанру из тегов файла — не всегда точный, теги бывают неполными " +
-                        "или вообще не отражают настроение. Отметь ниже, какие свои папки библиотеки " +
-                        "считать тем или иным настроением — это добавится поверх жанра, а не заменит его.",
+                    text = stringResource(R.string.set_mood_explain),
                     color = PlayerColors.TextSecondary,
                     fontSize = 12.sp,
                 )
                 if (availableFolders.isEmpty()) {
                     Text(
-                        text = "Папки появятся здесь после сканирования медиатеки.",
+                        text = stringResource(R.string.set_folders_after_scan),
                         color = PlayerColors.TextTertiary,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(top = 10.dp),
@@ -704,18 +727,17 @@ private fun SettingsSectionContent(
 
             if (section == SettingsRoute.Player) {
                 SettingsCard {
-                    SettingsLabel("Стиль плеера")
+                    SettingsLabel(stringResource(R.string.set_player_style))
                     Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
                         PlayerStyle.entries.forEach { style ->
                             InfinitePlayModeChip(
-                                if (style == PlayerStyle.CLASSIC) "Классический" else "Экспрессивный",
+                                stringResource(if (style == PlayerStyle.CLASSIC) R.string.player_classic else R.string.player_expressive),
                                 style == playerStyle,
                             ) { onPlayerStyleChange(style) }
                         }
                     }
                     Text(
-                        text = if (playerStyle == PlayerStyle.CLASSIC) "Обложка в рамке, громкость, кнопки внизу"
-                        else "Обложка на всю ширину, волнистая полоса, крупные кнопки, очередь в шторке",
+                        text = stringResource(if (playerStyle == PlayerStyle.CLASSIC) R.string.set_player_classic_desc else R.string.set_player_expressive_desc),
                         color = PlayerColors.TextSecondary,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(top = 10.dp),
@@ -726,15 +748,15 @@ private fun SettingsSectionContent(
             if (section == SettingsRoute.Player) SettingsCard {
                 SettingsRow(
                     icon = AppIcons.Background,
-                    title = "Фон плеера",
-                    subtitle = "Живой блюр, статичный блюр или без блюра",
+                    title = stringResource(R.string.set_player_background),
+                    subtitle = stringResource(R.string.set_bg_sub),
                     onClick = onOpenNowPlayingBackground,
                     showChevron = true,
                 )
                 SettingsSwitchRow(
                     icon = AppIcons.Tap,
-                    title = "Нажатие на строку текста включает музыку",
-                    subtitle = "Если песня на паузе: перемотать к строке и сразу продолжить воспроизведение",
+                    title = stringResource(R.string.set_tap_plays),
+                    subtitle = stringResource(R.string.set_tap_plays_sub),
                     checked = lyricsTapPlays,
                     onCheckedChange = onLyricsTapPlaysChange,
                     modifier = Modifier.padding(top = 16.dp),
@@ -835,7 +857,23 @@ private fun SettingsSwitchRow(
 
 /** Third-party components bundled in the app, each with the license text it requires us to
  * ship (kept as plain files in assets/licenses). Placeholder layout — to be redesigned. */
-private class ThirdPartyComponent(val name: String, val authors: String, val license: String, val files: List<String>)
+private enum class ComponentKind { FONT, ICONS, LIBRARY }
+
+private class ThirdPartyComponent(val name: String, val authors: String, val license: String, val files: List<String>) {
+    /** Fonts come with their OFL text, icon sets are named as such; the rest is code. */
+    val kind: ComponentKind = when {
+        files.any { it.endsWith("-ofl.txt") } -> ComponentKind.FONT
+        "Icons" in name || name == "SVG Spinners" -> ComponentKind.ICONS
+        else -> ComponentKind.LIBRARY
+    }
+
+    /** The license, short enough for the end of a row. */
+    val shortLicense: String = when {
+        license.startsWith("SIL") -> "OFL"
+        license.startsWith("Apache") -> "Apache 2.0"
+        else -> license
+    }
+}
 
 private val THIRD_PARTY = listOf(
     ThirdPartyComponent(
@@ -845,9 +883,9 @@ private val THIRD_PARTY = listOf(
         files = listOf("alac-bsd.txt"),
     ),
     ThirdPartyComponent(
-        name = "Kuromoji + словарь mecab-ipadic",
+        name = "Kuromoji + mecab-ipadic",
         authors = "Atilika Inc. and contributors; Nara Institute of Science and Technology (NAIST)",
-        license = "Apache License 2.0 + уведомление NAIST/ICOT",
+        license = "Apache License 2.0 + NAIST/ICOT notice",
         files = listOf("kuromoji-notice.txt", "apache-2.0.txt"),
     ),
     ThirdPartyComponent(
@@ -881,25 +919,79 @@ private val THIRD_PARTY = listOf(
         files = listOf("svg-spinners-mit.txt"),
     ),
     ThirdPartyComponent(
-        name = "Шрифт Unbounded",
+        name = "Inter",
+        authors = "The Inter Project Authors (Rasmus Andersson)",
+        license = "SIL Open Font License 1.1",
+        files = listOf("inter-ofl.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Adwaita Sans",
+        authors = "The Inter Project Authors; Renzhi Li; Jamie Gravendeel (GNOME)",
+        license = "SIL Open Font License 1.1",
+        files = listOf("adwaita-sans-ofl.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Geist",
+        authors = "The Geist Project Authors (Vercel)",
+        license = "SIL Open Font License 1.1",
+        files = listOf("geist-ofl.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Manrope",
+        authors = "The Manrope Project Authors (Mikhail Sharanda)",
+        license = "SIL Open Font License 1.1",
+        files = listOf("manrope-ofl.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Onest",
+        authors = "The Onest Project Authors",
+        license = "SIL Open Font License 1.1",
+        files = listOf("onest-ofl.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Golos Text",
+        authors = "The Golos Text Project Authors (Paratype)",
+        license = "SIL Open Font License 1.1",
+        files = listOf("golos-text-ofl.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Rubik",
+        authors = "The Rubik Project Authors",
+        license = "SIL Open Font License 1.1",
+        files = listOf("rubik-ofl.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Nunito",
+        authors = "The Nunito Project Authors",
+        license = "SIL Open Font License 1.1",
+        files = listOf("nunito-ofl.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Roboto",
+        authors = "The Roboto Project Authors (Google)",
+        license = "SIL Open Font License 1.1",
+        files = listOf("roboto-ofl.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Unbounded",
         authors = "The Unbounded Project Authors",
         license = "SIL Open Font License 1.1",
         files = listOf("unbounded-ofl.txt"),
     ),
     ThirdPartyComponent(
-        name = "Шрифт Playpen Sans",
+        name = "Playpen Sans",
         authors = "The Playpen Sans Project Authors (TypeTogether)",
         license = "SIL Open Font License 1.1",
         files = listOf("playpen-sans-ofl.txt"),
     ),
     ThirdPartyComponent(
-        name = "Шрифт Climate Crisis",
+        name = "Climate Crisis",
         authors = "The Climate Crisis Project Authors (Daniel Coull, Eino Korkala)",
         license = "SIL Open Font License 1.1",
         files = listOf("climate-crisis-ofl.txt"),
     ),
     ThirdPartyComponent(
-        name = "Шрифт Caveat",
+        name = "Caveat",
         authors = "The Caveat Project Authors (Impallari Type)",
         license = "SIL Open Font License 1.1",
         files = listOf("caveat-ofl.txt"),
@@ -919,64 +1011,143 @@ private val THIRD_PARTY = listOf(
 )
 
 @Composable
-private fun AboutContent() {
+private fun AboutContent(onShowOnboarding: () -> Unit) {
     val context = LocalContext.current
     val version = remember {
         runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "?"
     }
-    var expanded by remember { mutableStateOf<String?>(null) }
+    var openLicense by remember { mutableStateOf<ThirdPartyComponent?>(null) }
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp)
             .navigationBarsPadding(),
     ) {
-        SectionTitle("Приложение")
-        SettingsCard {
-            Text(text = "Lumine", color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-            Text(text = "Версия $version", color = PlayerColors.TextSecondary, fontSize = 12.sp)
+        // The app itself: its burst, name, version and what it is.
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            com.artemiy.player.ui.mood.TalkingBurst(color = PlayerColors.AccentStandalone, speaking = false, modifier = Modifier.size(84.dp))
+            Text(
+                text = "Lumine",
+                color = PlayerColors.TextPrimary,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier.padding(top = 14.dp),
+            )
+            Text(text = stringResource(R.string.set_version, version), color = PlayerColors.TextSecondary, fontSize = 13.sp)
+            Text(
+                text = stringResource(R.string.about_tagline),
+                color = PlayerColors.TextSecondary,
+                fontSize = 14.sp,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                modifier = Modifier.padding(top = 8.dp),
+            )
         }
-        SectionTitle("Сторонние компоненты")
-        THIRD_PARTY.forEach { component ->
-            val isOpen = expanded == component.name
-            Column(
-                modifier = Modifier
-                    .padding(bottom = 10.dp)
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(PlayerColors.Surface)
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
-                        expanded = if (isOpen) null else component.name
-                    }
-                    .padding(16.dp),
-            ) {
-                Text(text = component.name, color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                Text(text = component.authors, color = PlayerColors.TextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 2.dp))
-                Text(
-                    text = if (isOpen) component.license else "${component.license} · нажми, чтобы показать текст",
-                    color = PlayerColors.TextTertiary,
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(top = 2.dp),
-                )
-                if (isOpen) {
-                    val text = remember(component.name) {
-                        component.files.joinToString("\n\n") { file ->
-                            runCatching { context.assets.open("licenses/$file").bufferedReader().use { it.readText() } }.getOrDefault("")
+        Spacer(modifier = Modifier.height(12.dp))
+        SettingsCard {
+            SettingsRow(AppIcons.Refresh, stringResource(R.string.set_show_welcome), stringResource(R.string.about_welcome_sub), onShowOnboarding, showChevron = true)
+            CategoryDivider()
+            SettingsRow(AppIcons.Share, stringResource(R.string.about_source), stringResource(R.string.about_source_sub), {
+                runCatching {
+                    context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(SOURCE_URL)))
+                }
+            }, showChevron = true)
+        }
+        // Everything bundled from others, in groups; a tap shows its license.
+        listOf(
+            R.string.about_fonts to THIRD_PARTY.filter { it.kind == ComponentKind.FONT },
+            R.string.set_icons to THIRD_PARTY.filter { it.kind == ComponentKind.ICONS },
+            R.string.about_libraries to THIRD_PARTY.filter { it.kind == ComponentKind.LIBRARY },
+        ).forEach { (title, components) ->
+            SectionTitle(stringResource(title))
+            SettingsCard {
+                components.forEachIndexed { index, component ->
+                    if (index > 0) CategoryDivider()
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { openLicense = component }
+                            .padding(vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(text = component.name, color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                            Text(text = component.authors, color = PlayerColors.TextSecondary, fontSize = 12.sp, maxLines = 2)
                         }
+                        Text(
+                            text = component.shortLicense,
+                            color = PlayerColors.TextTertiary,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(start = 10.dp),
+                        )
+                        Icon(AppIcons.ChevronRight, contentDescription = null, tint = PlayerColors.TextTertiary, modifier = Modifier.padding(start = 4.dp).size(18.dp))
                     }
-                    Text(
-                        text = text,
-                        color = PlayerColors.TextSecondary,
-                        fontSize = 11.sp,
-                        lineHeight = 15.sp,
-                        modifier = Modifier.padding(top = 12.dp),
-                    )
                 }
             }
         }
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(24.dp))
+    }
+    openLicense?.let { component -> LicenseSheet(component, onDismiss = { openLicense = null }) }
+}
+
+/** A bundled component's full license text, in a sheet that slides up; the text can be copied. */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun LicenseSheet(component: ThirdPartyComponent, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val text = remember(component.name) {
+        component.files.joinToString("\n\n") { file ->
+            runCatching { context.assets.open("licenses/$file").bufferedReader().use { it.readText() } }.getOrDefault("")
+        }
+    }
+    androidx.compose.material3.ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = PlayerColors.Background,
+        shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),
+        dragHandle = {
+            Box(
+                modifier = Modifier
+                    .padding(top = 10.dp, bottom = 6.dp)
+                    .size(width = 36.dp, height = 5.dp)
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(PlayerColors.TextTertiary),
+            )
+        },
+    ) {
+        androidx.compose.foundation.text.selection.SelectionContainer {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 22.dp)
+                    .padding(bottom = 24.dp)
+                    .navigationBarsPadding(),
+            ) {
+                Text(text = component.name, color = PlayerColors.TextPrimary, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+                Text(text = component.authors, color = PlayerColors.TextSecondary, fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp))
+                Text(
+                    text = stringResource(R.string.about_license) + ": " + component.license,
+                    color = PlayerColors.AccentStandalone,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(top = 10.dp),
+                )
+                Text(
+                    text = text,
+                    color = PlayerColors.TextSecondary,
+                    fontSize = 12.sp,
+                    lineHeight = 17.sp,
+                    modifier = Modifier.padding(top = 16.dp),
+                )
+            }
+        }
     }
 }
+
+private const val SOURCE_URL = "https://github.com/artemiy44/myzikalnya"
 
 @Composable
 private fun InfinitePlayModeChip(label: String, selected: Boolean, onClick: () -> Unit) {
@@ -1013,7 +1184,7 @@ private fun MoodFolderPicker(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun FolderChips(
+internal fun FolderChips(
     availableFolders: List<String>,
     selectedFolders: Set<String>,
     onToggleFolder: (String) -> Unit,
@@ -1057,45 +1228,45 @@ private fun NowPlayingBackgroundContent(
             .padding(horizontal = 20.dp)
             .navigationBarsPadding(),
     ) {
-        SectionTitle("Режим фона")
+        SectionTitle(stringResource(R.string.set_bg_mode))
         SettingsCard {
             Text(
-                text = "Как выглядит фон в режиме воспроизведения — одинаково на вкладках обложки, текста и очереди.",
+                text = stringResource(R.string.set_bg_mode_desc),
                 color = PlayerColors.TextSecondary,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(bottom = 10.dp),
             )
             BackgroundModeOption(
-                title = "Живой блюр",
-                subtitle = "Размытая обложка мягко «дышит» — плавное движение и масштаб.",
+                title = stringResource(R.string.bg_live),
+                subtitle = stringResource(R.string.bg_live_sub),
                 selected = mode == NowPlayingBackgroundMode.LIVE_BLUR,
                 onClick = { onModeChange(NowPlayingBackgroundMode.LIVE_BLUR) },
             )
             BackgroundModeOption(
-                title = "Статичный блюр",
-                subtitle = "Обложка размыта, но неподвижна — как раньше.",
+                title = stringResource(R.string.bg_static),
+                subtitle = stringResource(R.string.bg_static_sub),
                 selected = mode == NowPlayingBackgroundMode.STATIC_BLUR,
                 onClick = { onModeChange(NowPlayingBackgroundMode.STATIC_BLUR) },
             )
             BackgroundModeOption(
-                title = "Без блюра",
-                subtitle = "Обычный фон приложения, без обложки.",
+                title = stringResource(R.string.bg_none),
+                subtitle = stringResource(R.string.bg_none_sub),
                 selected = mode == NowPlayingBackgroundMode.NONE,
                 onClick = { onModeChange(NowPlayingBackgroundMode.NONE) },
             )
         }
 
         if (mode == NowPlayingBackgroundMode.LIVE_BLUR) {
-            SectionTitle("Насыщенность")
+            SectionTitle(stringResource(R.string.set_saturation))
             SettingsCard {
                 Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
                     InfinitePlayModeChip(
-                        label = "Приглушённый",
+                        label = stringResource(R.string.sat_muted),
                         selected = intensity == LiveBlurIntensity.MUTED,
                         onClick = { onIntensityChange(LiveBlurIntensity.MUTED) },
                     )
                     InfinitePlayModeChip(
-                        label = "Обычный",
+                        label = stringResource(R.string.sat_normal),
                         selected = intensity == LiveBlurIntensity.NORMAL,
                         onClick = { onIntensityChange(LiveBlurIntensity.NORMAL) },
                     )
@@ -1146,5 +1317,83 @@ private fun BackgroundModeOption(
             Text(text = title, color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
             Text(text = subtitle, color = PlayerColors.TextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 2.dp))
         }
+    }
+}
+
+/** Every app font as a chip, each written in its own typeface; the chosen one filled in. */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun FontChoices(selected: com.artemiy.player.ui.theme.AppFont, onSelect: (com.artemiy.player.ui.theme.AppFont) -> Unit) {
+    androidx.compose.foundation.layout.FlowRow(
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+    ) {
+        com.artemiy.player.ui.theme.AppFont.entries.forEach { font ->
+            val chosen = font == selected
+            Text(
+                text = font.label,
+                color = if (chosen) PlayerColors.OnAccent else PlayerColors.TextPrimary,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                fontFamily = font.family,
+                modifier = Modifier
+                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(50))
+                    .background(if (chosen) PlayerColors.Accent else PlayerColors.Surface)
+                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onSelect(font) }
+                    .padding(horizontal = 16.dp, vertical = 9.dp),
+            )
+        }
+    }
+}
+
+/** The app's language and its tone; picking one restarts the screen in it. Languages are named
+ * in themselves, so they're findable whatever the app is showing. */
+@Composable
+private fun LanguageContent() {
+    val context = LocalContext.current
+    val current = remember { com.artemiy.player.ui.i18n.LanguagePrefs.effective(context) }
+    Column(
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp)
+            .navigationBarsPadding(),
+    ) {
+        Spacer(modifier = Modifier.height(12.dp))
+        SettingsCard {
+            com.artemiy.player.ui.i18n.AppLanguage.entries.forEachIndexed { index, language ->
+                if (index > 0) CategoryDivider()
+                val chosen = language == current
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                            if (!chosen) {
+                                com.artemiy.player.ui.i18n.LanguagePrefs.set(context, language)
+                                (context as? android.app.Activity)?.recreate()
+                            }
+                        }
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = if (language.expressive) {
+                                language.nativeName + " · " + stringResource(R.string.lang_expressive)
+                            } else {
+                                language.nativeName
+                            },
+                            color = PlayerColors.TextPrimary,
+                            fontSize = 15.sp,
+                            fontWeight = if (chosen) FontWeight.Bold else FontWeight.SemiBold,
+                        )
+                        if (language.expressive) {
+                            Text(text = stringResource(R.string.lang_expressive_hint), color = PlayerColors.TextSecondary, fontSize = 12.sp)
+                        }
+                    }
+                    if (chosen) Icon(AppIcons.Check, contentDescription = null, tint = PlayerColors.AccentStandalone, modifier = Modifier.size(20.dp))
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(20.dp))
     }
 }

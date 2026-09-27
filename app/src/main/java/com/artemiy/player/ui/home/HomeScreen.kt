@@ -1,5 +1,7 @@
 package com.artemiy.player.ui.home
 
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
 import com.artemiy.player.ui.icons.AppIcons
 import com.artemiy.player.data.Recap
 import com.artemiy.player.data.Mix
@@ -100,6 +102,10 @@ fun HomeScreen(
 ) {
     var route by remember { mutableStateOf<HomeRoute>(HomeRoute.Main) }
     val back = { route = HomeRoute.Main }
+    // Where playback started from, for the "Играет из" line — in the app's language.
+    val fromRecentlyAdded = stringResource(R.string.recently_added)
+    val fromRecap = stringResource(R.string.weekly_recap)
+    val fromQuickPicks = stringResource(R.string.home_quick_picks)
 
     // Kept out here so the page's scroll position survives opening a mix and coming back.
     val mainScroll = rememberScrollState()
@@ -115,10 +121,10 @@ fun HomeScreen(
                 }
             }
             HomeRoute.RecentlyAddedAll -> {
-                RecentlyAddedScreen(recentlyAddedAll, back, { song, list -> onSongClick(song, list, PlayOrigin("Недавно добавленные", SourceArt.Place(SourcePlace.RECENTLY_ADDED))) }, onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
+                RecentlyAddedScreen(recentlyAddedAll, back, { song, list -> onSongClick(song, list, PlayOrigin(fromRecentlyAdded, SourceArt.Place(SourcePlace.RECENTLY_ADDED))) }, onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
             }
             HomeRoute.WeekRecap -> {
-                if (recap == null) LaunchedEffect(Unit) { route = HomeRoute.Main } else RecapScreen(recap, back) { song, list -> onSongClick(song, list, PlayOrigin("Итоги недели", SourceArt.Place(SourcePlace.RECAP))) }
+                if (recap == null) LaunchedEffect(Unit) { route = HomeRoute.Main } else RecapScreen(recap, back) { song, list -> onSongClick(song, list, PlayOrigin(fromRecap, SourceArt.Place(SourcePlace.RECAP))) }
             }
             HomeRoute.Main -> {
                 // The header scrolls away with the page instead of being pinned under the status bar, and the
@@ -144,7 +150,7 @@ fun HomeScreen(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                text = "Главная",
+                                text = stringResource(R.string.tab_home),
                                 color = PlayerColors.TextPrimary,
                                 fontSize = 28.sp,
                                 fontWeight = FontWeight.ExtraBold,
@@ -159,7 +165,7 @@ fun HomeScreen(
                             ) {
                                 Icon(
                                     imageVector = AppIcons.Settings,
-                                    contentDescription = "Настройки",
+                                    contentDescription = stringResource(R.string.settings),
                                     tint = PlayerColors.TextSecondary,
                                     modifier = Modifier.size(20.dp),
                                 )
@@ -168,17 +174,17 @@ fun HomeScreen(
                         val menuActions = SongMenuActions(onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
                         MixesSection(mixes = mixes, statDays = statDays, onOpen = { route = HomeRoute.OpenMix(it.id) })
                         SongRowSection(
-                            title = "Quick picks",
+                            title = stringResource(R.string.home_quick_picks),
                             songs = quickPicks,
-                            emptyHint = "Здесь появятся часто прослушиваемые треки",
-                            onSongClick = { song -> onSongClick(song, quickPicks, PlayOrigin("Quick picks", SourceArt.Place(SourcePlace.QUICK_PICKS))) },
+                            emptyHint = stringResource(R.string.quick_picks_empty),
+                            onSongClick = { song -> onSongClick(song, quickPicks, PlayOrigin(fromQuickPicks, SourceArt.Place(SourcePlace.QUICK_PICKS))) },
                             menuActions = menuActions,
                         )
                         SongRowSection(
-                            title = "Recently added",
+                            title = stringResource(R.string.home_recently_added),
                             songs = recentlyAdded,
                             emptyHint = null,
-                            onSongClick = { song -> onSongClick(song, recentlyAdded, PlayOrigin("Недавно добавленные", SourceArt.Place(SourcePlace.RECENTLY_ADDED))) },
+                            onSongClick = { song -> onSongClick(song, recentlyAdded, PlayOrigin(fromRecentlyAdded, SourceArt.Place(SourcePlace.RECENTLY_ADDED))) },
                             menuActions = menuActions,
                             onSeeAll = { route = HomeRoute.RecentlyAddedAll },
                         )
@@ -195,7 +201,7 @@ fun HomeScreen(
 private fun MixesSection(mixes: List<Mix>, statDays: Int, onOpen: (Mix) -> Unit) {
     Column {
         Text(
-            text = "Миксы для тебя",
+            text = stringResource(R.string.mixes_for_you),
             color = PlayerColors.TextPrimary,
             fontSize = 17.sp,
             fontWeight = FontWeight.Bold,
@@ -203,9 +209,8 @@ private fun MixesSection(mixes: List<Mix>, statDays: Int, onOpen: (Mix) -> Unit)
         )
         val hint = when {
             statDays < MIX_MIN_STAT_DAYS ->
-                "Собираю статистику прослушиваний: $statDays из $MIX_MIN_STAT_DAYS дней. " +
-                    "Миксы появятся, когда наберётся база."
-            mixes.isEmpty() -> "Пока не из чего собрать миксы — послушай ещё немного."
+                stringResource(R.string.mixes_collecting, statDays, MIX_MIN_STAT_DAYS)
+            mixes.isEmpty() -> stringResource(R.string.mixes_nothing_yet)
             else -> null
         }
         if (hint != null) {
@@ -325,7 +330,7 @@ private fun SongRowSection(
                     verticalArrangement = Arrangement.Center,
                 ) {
                     Icon(imageVector = AppIcons.Forward, contentDescription = null, tint = PlayerColors.TextPrimary, modifier = Modifier.size(26.dp))
-                    Text(text = "Все", color = PlayerColors.TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 6.dp))
+                    Text(text = stringResource(R.string.all), color = PlayerColors.TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 6.dp))
                 }
             }
         }

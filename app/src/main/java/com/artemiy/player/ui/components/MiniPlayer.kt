@@ -1,5 +1,7 @@
 package com.artemiy.player.ui.components
 
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
 import com.artemiy.player.ui.icons.AppIcons
 import android.net.Uri
 import androidx.compose.foundation.background
@@ -105,7 +107,7 @@ fun MiniPlayer(
             val prevInteraction = remember { MutableInteractionSource() }
             Icon(
                 imageVector = AppIcons.SkipPrevious,
-                contentDescription = "Предыдущий трек",
+                contentDescription = stringResource(R.string.cd_previous_track),
                 tint = PlayerColors.TextPrimary,
                 modifier = Modifier
                     .padding(end = 18.dp)
@@ -127,7 +129,7 @@ fun MiniPlayer(
         val nextInteraction = remember { MutableInteractionSource() }
         Icon(
             imageVector = AppIcons.SkipNext,
-            contentDescription = "Следующий трек",
+            contentDescription = stringResource(R.string.cd_next_track),
             tint = PlayerColors.TextPrimary,
             modifier = Modifier
                 .padding(start = 18.dp)

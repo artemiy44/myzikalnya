@@ -48,6 +48,7 @@ object AppIcons {
     val MoreVertical: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideMoreVertical, TablerMoreVertical)
     val More: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideMore, TablerMore)
     val Info: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideInfo, TablerInfo)
+    val Language: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideLanguage, TablerLanguage)
     val Library: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideLibrary, TablerLibrary)
     val ViewGrid: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideViewGrid, TablerViewGrid)
     val ViewGridDense: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideViewGridDense, TablerViewGridDense)

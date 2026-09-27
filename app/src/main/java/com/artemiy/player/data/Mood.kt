@@ -1,12 +1,17 @@
 package com.artemiy.player.data
 
-enum class Mood(val label: String, val subtitle: String) {
-    NORMAL("Обычное", "На основе жанров в твоей медиатеке"),
-    HAPPY("Весёлое", "Бодрые и яркие жанры"),
-    LOUD("Громкое", "Энергичное и драйвовое"),
-    SAD("Грустное", "Тише и лиричнее"),
-    CRY("Поплакать", "Медленное и пронзительное"),
+import com.artemiy.player.R
+
+enum class Mood(@androidx.annotation.StringRes val labelRes: Int, @androidx.annotation.StringRes val subtitleRes: Int) {
+    NORMAL(R.string.mood_normal, R.string.mood_normal_subtitle),
+    HAPPY(R.string.mood_happy, R.string.mood_happy_subtitle),
+    LOUD(R.string.mood_loud, R.string.mood_loud_subtitle),
+    SAD(R.string.mood_sad, R.string.mood_sad_subtitle),
+    CRY(R.string.mood_cry, R.string.mood_cry_subtitle),
 }
+
+val Mood.label: String @androidx.compose.runtime.Composable get() = androidx.compose.ui.res.stringResource(labelRes)
+val Mood.subtitle: String @androidx.compose.runtime.Composable get() = androidx.compose.ui.res.stringResource(subtitleRes)
 
 // Plain substring matching on the free-text genre tag — approximate on purpose, since MediaStore
 // genres are whatever the file's own tags say, with no fixed taxonomy. A genre can legitimately

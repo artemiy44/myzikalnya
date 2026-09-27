@@ -37,7 +37,11 @@ fun colorSchemeFor(palette: PlayerPalette): ColorScheme {
 @Composable
 fun PaletteScope(palette: PlayerPalette, content: @Composable () -> Unit) {
     CompositionLocalProvider(LocalPlayerPalette provides palette) {
-        MaterialTheme(colorScheme = colorSchemeFor(palette), content = content)
+        MaterialTheme(
+            colorScheme = colorSchemeFor(palette),
+            typography = typographyIn(LocalAppFontFamily.current),
+            content = content,
+        )
     }
 }
 
@@ -46,6 +50,7 @@ fun PaletteScope(palette: PlayerPalette, content: @Composable () -> Unit) {
 fun PlayerTheme(
     palette: PlayerPalette,
     appTextScale: Float = SettingsRepository.DEFAULT_FONT_SCALE,
+    font: AppFont = AppFont.DEFAULT,
     content: @Composable () -> Unit,
 ) {
     val density = LocalDensity.current
@@ -53,9 +58,11 @@ fun PlayerTheme(
         density = density.density,
         fontScale = density.fontScale * appTextScale,
     )
-    PaletteScope(palette) {
-        CompositionLocalProvider(LocalDensity provides scaledDensity) {
-            content()
+    CompositionLocalProvider(LocalAppFontFamily provides font.family) {
+        PaletteScope(palette) {
+            CompositionLocalProvider(LocalDensity provides scaledDensity, LocalAppPalette provides palette) {
+                content()
+            }
         }
     }
 }

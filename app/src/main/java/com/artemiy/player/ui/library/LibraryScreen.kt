@@ -1,6 +1,17 @@
 package com.artemiy.player.ui.library
 
+import androidx.compose.ui.res.pluralStringResource
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
 import com.artemiy.player.ui.icons.AppIcons
+import com.artemiy.player.ui.theme.inAppFont
+import com.artemiy.player.ui.components.AppDialog
+import com.artemiy.player.ui.components.AppDropdownMenu
+import com.artemiy.player.ui.components.AppMenuItem
+import com.artemiy.player.ui.components.DialogButtons
+import com.artemiy.player.ui.components.DialogMessage
+import com.artemiy.player.ui.components.DialogTextField
+import com.artemiy.player.ui.components.DialogTitle
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -93,10 +104,10 @@ private data class ArtistGroup(val name: String, val songs: List<Song>)
 private data class AlbumGroup(val album: String, val artist: String, val songs: List<Song>)
 
 /** Cycled by a single toolbar icon, in this order: list rows, then 2-wide grid, then 3-wide. */
-internal enum class ViewMode(val description: String) {
-    LIST("Список"),
-    GRID_2("Сетка (2)"),
-    GRID_3("Сетка (3)");
+internal enum class ViewMode(@androidx.annotation.StringRes val descriptionRes: Int) {
+    LIST(R.string.view_list),
+    GRID_2(R.string.view_grid_2),
+    GRID_3(R.string.view_grid_3);
 
     /** Read at draw time — the icon depends on the chosen icon set. */
     val icon: ImageVector
@@ -109,10 +120,10 @@ internal enum class ViewMode(val description: String) {
     fun next(): ViewMode = entries[(ordinal + 1) % entries.size]
 }
 
-private enum class ArtistSort(val label: String) { COUNT("По числу треков"), RECENT("Недавно добавленные"), NAME("По алфавиту") }
-private enum class AlbumSort(val label: String) { RECENT("Недавно добавленные"), NAME("По алфавиту"), COUNT("По числу треков"), ARTIST("По артисту") }
-private enum class PlaylistSongSort(val label: String) { ORDER("В порядке добавления"), TITLE("По названию"), ARTIST("По артисту"), RECENT("Недавно добавленные в медиатеку") }
-private enum class SongSort(val label: String) { RECENT("Недавно добавленные"), RELEASE_DATE("По дате выпуска"), TITLE("По названию"), ARTIST("По артисту") }
+private enum class ArtistSort(val labelRes: Int) { COUNT(R.string.sort_by_count), RECENT(R.string.sort_recent), NAME(R.string.sort_by_name) }
+private enum class AlbumSort(val labelRes: Int) { RECENT(R.string.sort_recent), NAME(R.string.sort_by_name), COUNT(R.string.sort_by_count), ARTIST(R.string.sort_by_artist) }
+private enum class PlaylistSongSort(val labelRes: Int) { ORDER(R.string.sort_added_order), TITLE(R.string.sort_by_title), ARTIST(R.string.sort_by_artist), RECENT(R.string.sort_recent_library) }
+private enum class SongSort(val labelRes: Int) { RECENT(R.string.sort_recent), RELEASE_DATE(R.string.sort_release_date), TITLE(R.string.sort_by_title), ARTIST(R.string.sort_by_artist) }
 
 @Composable
 fun LibraryScreen(
@@ -175,11 +186,11 @@ fun LibraryScreen(
             if (!edgeToEdge) {
                 LibraryHeader(
                     title = when (val r = route) {
-                        LibraryRoute.Home -> "Медиатека"
-                        LibraryRoute.Playlists -> "Плейлисты"
-                        LibraryRoute.Artists -> "Артисты"
-                        LibraryRoute.Albums -> "Альбомы"
-                        LibraryRoute.Songs -> "Треки"
+                        LibraryRoute.Home -> stringResource(R.string.tab_library)
+                        LibraryRoute.Playlists -> stringResource(R.string.playlists)
+                        LibraryRoute.Artists -> stringResource(R.string.artists)
+                        LibraryRoute.Albums -> stringResource(R.string.albums)
+                        LibraryRoute.Songs -> stringResource(R.string.tracks)
                         is LibraryRoute.AlbumDetail -> r.album
                         is LibraryRoute.PlaylistDetail -> r.name
                         is LibraryRoute.ArtistDetail -> "" // handled by its own hero header
@@ -191,7 +202,7 @@ fun LibraryScreen(
                             {
                                 Icon(
                                     imageVector = AppIcons.Add,
-                                    contentDescription = "Новый плейлист",
+                                    contentDescription = stringResource(R.string.new_playlist),
                                     tint = PlayerColors.TextPrimary,
                                     modifier = Modifier
                                         .size(24.dp)
@@ -211,7 +222,7 @@ fun LibraryScreen(
                     Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                text = "Нужен доступ к музыке на устройстве",
+                                text = stringResource(R.string.music_access_needed),
                                 color = PlayerColors.TextSecondary,
                                 fontSize = 14.sp,
                                 modifier = Modifier.padding(bottom = 16.dp),
@@ -224,7 +235,7 @@ fun LibraryScreen(
                                     contentColor = PlayerColors.OnAccent,
                                 ),
                             ) {
-                                Text("Разрешить доступ")
+                                Text(stringResource(R.string.allow_access))
                             }
                         }
                     }
@@ -232,7 +243,7 @@ fun LibraryScreen(
 
                 songs.isEmpty() -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(text = "Треки не найдены", color = PlayerColors.TextSecondary)
+                        Text(text = stringResource(R.string.no_tracks_found), color = PlayerColors.TextSecondary)
                     }
                 }
 
@@ -285,10 +296,10 @@ fun LibraryScreen(
                                 ListToolbar(
                                     query = artistQuery,
                                     onQueryChange = { artistQuery = it },
-                                    placeholder = "Поиск по артистам",
+                                    placeholder = stringResource(R.string.search_artists),
                                     sortOptions = ArtistSort.entries,
-                                    sortOptionLabel = { it.label },
-                                    currentSort = artistSort.label,
+                                    sortOptionLabel = { stringResource(it.labelRes) },
+                                    currentSort = stringResource(artistSort.labelRes),
                                     onSortSelect = { artistSort = it },
                                     viewMode = artistViewMode,
                                     onViewModeCycle = { settingsVm.setViewMode("artists", LibraryViewMode.valueOf(artistViewMode.next().name)) },
@@ -329,10 +340,10 @@ fun LibraryScreen(
                                 ListToolbar(
                                     query = albumQuery,
                                     onQueryChange = { albumQuery = it },
-                                    placeholder = "Поиск по альбомам",
+                                    placeholder = stringResource(R.string.search_albums),
                                     sortOptions = AlbumSort.entries,
-                                    sortOptionLabel = { it.label },
-                                    currentSort = albumSort.label,
+                                    sortOptionLabel = { stringResource(it.labelRes) },
+                                    currentSort = stringResource(albumSort.labelRes),
                                     onSortSelect = { albumSort = it },
                                     viewMode = albumViewMode,
                                     onViewModeCycle = { settingsVm.setViewMode("albums", LibraryViewMode.valueOf(albumViewMode.next().name)) },
@@ -373,10 +384,10 @@ fun LibraryScreen(
                                 ListToolbar(
                                     query = songQuery,
                                     onQueryChange = { songQuery = it },
-                                    placeholder = "Поиск по трекам",
+                                    placeholder = stringResource(R.string.search_tracks),
                                     sortOptions = SongSort.entries,
-                                    sortOptionLabel = { it.label },
-                                    currentSort = songSort.label,
+                                    sortOptionLabel = { stringResource(it.labelRes) },
+                                    currentSort = stringResource(songSort.labelRes),
                                     onSortSelect = { songSort = it },
                                     viewMode = songViewMode,
                                     onViewModeCycle = { settingsVm.setViewMode("songs", LibraryViewMode.valueOf(songViewMode.next().name)) },
@@ -515,7 +526,7 @@ fun LibraryScreen(
                                     )
                                     if (playlistSongs.isEmpty()) {
                                         Text(
-                                            text = "В плейлисте пока нет треков",
+                                            text = stringResource(R.string.playlist_empty),
                                             color = PlayerColors.TextSecondary,
                                             fontSize = 14.sp,
                                             modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
@@ -525,10 +536,10 @@ fun LibraryScreen(
                                         ListToolbar(
                                             query = playlistQuery,
                                             onQueryChange = { playlistQuery = it },
-                                            placeholder = "Поиск в плейлисте",
+                                            placeholder = stringResource(R.string.search_playlist),
                                             sortOptions = PlaylistSongSort.entries,
-                                            sortOptionLabel = { it.label },
-                                            currentSort = playlistSort.label,
+                                            sortOptionLabel = { stringResource(it.labelRes) },
+                                            currentSort = stringResource(playlistSort.labelRes),
                                             onSortSelect = { playlistSort = it },
                                             viewMode = playlistViewMode,
                                             onViewModeCycle = { settingsVm.setViewMode("playlist", LibraryViewMode.valueOf(playlistViewMode.next().name)) },
@@ -572,9 +583,9 @@ fun LibraryScreen(
 
     if (showCreatePlaylist) {
         PlaylistNameDialog(
-            title = "Новый плейлист",
+            title = stringResource(R.string.new_playlist),
             initialName = "",
-            confirmLabel = "Создать",
+            confirmLabel = stringResource(R.string.create),
             onDismiss = { showCreatePlaylist = false },
             onConfirm = { name ->
                 playlistsVm.createPlaylist(name)
@@ -586,9 +597,9 @@ fun LibraryScreen(
     val openPlaylist = route as? LibraryRoute.PlaylistDetail
     if (showRenamePlaylist && openPlaylist != null) {
         PlaylistNameDialog(
-            title = "Переименовать плейлист",
+            title = stringResource(R.string.rename_playlist),
             initialName = openPlaylist.name,
-            confirmLabel = "Сохранить",
+            confirmLabel = stringResource(R.string.save),
             onDismiss = { showRenamePlaylist = false },
             onConfirm = { name ->
                 playlistsVm.renamePlaylist(openPlaylist.playlistId, name)
@@ -600,9 +611,9 @@ fun LibraryScreen(
     }
     if (showDeletePlaylist && openPlaylist != null) {
         ConfirmDialog(
-            title = "Удалить плейлист «${openPlaylist.name}»?",
-            message = "Сами треки останутся в медиатеке.",
-            confirmLabel = "Удалить",
+            title = stringResource(R.string.delete_playlist_q, openPlaylist.name),
+            message = stringResource(R.string.delete_playlist_msg),
+            confirmLabel = stringResource(R.string.delete),
             onDismiss = { showDeletePlaylist = false },
             onConfirm = {
                 playlistsVm.deletePlaylist(openPlaylist.playlistId)
@@ -641,13 +652,13 @@ private fun PlaylistHero(
             textAlign = TextAlign.Center,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            style = TextStyle(shadow = HeroTextShadow),
+            style = TextStyle(shadow = HeroTextShadow).inAppFont(),
         )
         Text(
-            text = "$songCount ${songsWord(songCount)}",
+            text = pluralStringResource(R.plurals.songs_count, songCount, songCount),
             color = Color.White.copy(alpha = 0.85f),
             fontSize = 13.sp,
-            style = TextStyle(shadow = HeroTextShadow),
+            style = TextStyle(shadow = HeroTextShadow).inAppFont(),
             modifier = Modifier.padding(top = 4.dp),
         )
         Row(
@@ -655,71 +666,25 @@ private fun PlaylistHero(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            CircleIconButton(icon = AppIcons.Shuffle, description = "Перемешать", onClick = onShuffle)
+            CircleIconButton(icon = AppIcons.Shuffle, description = stringResource(R.string.shuffle), onClick = onShuffle)
             PlayPillButton(onClick = onPlay, modifier = Modifier.padding(horizontal = 14.dp))
             Box {
-                CircleIconButton(icon = AppIcons.More, description = "Действия с плейлистом") { menuExpanded = true }
-                DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
-                    DropdownMenuItem(
-                        text = { Text("Переименовать") },
-                        leadingIcon = { Icon(AppIcons.Edit, contentDescription = null) },
-                        onClick = { menuExpanded = false; onRename() },
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Удалить плейлист") },
-                        leadingIcon = { Icon(AppIcons.Delete, contentDescription = null) },
-                        onClick = { menuExpanded = false; onDelete() },
-                    )
+                CircleIconButton(icon = AppIcons.More, description = stringResource(R.string.playlist_actions)) { menuExpanded = true }
+                AppDropdownMenu(expanded = menuExpanded, onDismiss = { menuExpanded = false }) {
+                    AppMenuItem(text = stringResource(R.string.rename), icon = AppIcons.Edit, onClick = { menuExpanded = false; onRename() })
+                    AppMenuItem(text = stringResource(R.string.delete_playlist), icon = AppIcons.Delete, destructive = true, onClick = { menuExpanded = false; onDelete() })
                 }
             }
         }
     }
 }
 
-private fun songsWord(n: Int): String {
-    val mod100 = n % 100
-    val mod10 = n % 10
-    return when {
-        mod100 in 11..14 -> "песен"
-        mod10 == 1 -> "песня"
-        mod10 in 2..4 -> "песни"
-        else -> "песен"
-    }
-}
-
 @Composable
 private fun ConfirmDialog(title: String, message: String, confirmLabel: String, onDismiss: () -> Unit, onConfirm: () -> Unit) {
-    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(18.dp))
-                .background(PlayerColors.SurfaceDim)
-                .padding(20.dp),
-        ) {
-            Text(text = title, color = PlayerColors.TextPrimary, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-            Text(text = message, color = PlayerColors.TextSecondary, fontSize = 13.sp, modifier = Modifier.padding(top = 8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 18.dp),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                Text(
-                    text = "Отмена",
-                    color = PlayerColors.TextSecondary,
-                    fontSize = 13.sp,
-                    modifier = Modifier
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onDismiss() }
-                        .padding(end = 20.dp),
-                )
-                Text(
-                    text = confirmLabel,
-                    color = PlayerColors.TextPrimary,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onConfirm() },
-                )
-            }
-        }
+    AppDialog(onDismiss = onDismiss) {
+        DialogTitle(title)
+        DialogMessage(message)
+        DialogButtons(dismissLabel = stringResource(R.string.cancel), onDismiss = onDismiss, confirmLabel = confirmLabel, onConfirm = onConfirm, destructive = true)
     }
 }
 
@@ -739,7 +704,7 @@ internal fun LibraryHeader(
         if (showBack) {
             Icon(
                 imageVector = AppIcons.Back,
-                contentDescription = "Назад",
+                contentDescription = stringResource(R.string.cd_back),
                 tint = PlayerColors.TextPrimary,
                 modifier = Modifier
                     .size(24.dp)
@@ -780,15 +745,15 @@ private fun LibraryHomeList(
             .padding(bottom = 20.dp),
     ) {
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-            LibraryRow("Плейлисты", playlistCount, AppIcons.Playlist, onOpenPlaylists)
-            LibraryRow("Артисты", artistCount, AppIcons.Artist, onOpenArtists)
-            LibraryRow("Альбомы", albumCount, AppIcons.Album, onOpenAlbums)
-            LibraryRow("Треки", songCount, AppIcons.Songs, onOpenSongs)
+            LibraryRow(stringResource(R.string.playlists), playlistCount, AppIcons.Playlist, onOpenPlaylists)
+            LibraryRow(stringResource(R.string.artists), artistCount, AppIcons.Artist, onOpenArtists)
+            LibraryRow(stringResource(R.string.albums), albumCount, AppIcons.Album, onOpenAlbums)
+            LibraryRow(stringResource(R.string.tracks), songCount, AppIcons.Songs, onOpenSongs)
         }
 
         if (recentSongs.isNotEmpty()) {
             Text(
-                text = "Недавно добавленные",
+                text = stringResource(R.string.recently_added),
                 color = PlayerColors.TextPrimary,
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
@@ -878,7 +843,7 @@ internal fun <T> ListToolbar(
     onQueryChange: (String) -> Unit,
     placeholder: String,
     sortOptions: List<T>,
-    sortOptionLabel: (T) -> String,
+    sortOptionLabel: @Composable (T) -> String,
     currentSort: String,
     onSortSelect: (T) -> Unit,
     viewMode: ViewMode,
@@ -908,7 +873,7 @@ internal fun <T> ListToolbar(
                     value = query,
                     onValueChange = onQueryChange,
                     singleLine = true,
-                    textStyle = TextStyle(color = PlayerColors.TextPrimary, fontSize = 13.sp),
+                    textStyle = TextStyle(color = PlayerColors.TextPrimary, fontSize = 13.sp).inAppFont(),
                     cursorBrush = SolidColor(PlayerColors.TextPrimary),
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -916,7 +881,7 @@ internal fun <T> ListToolbar(
         }
         Icon(
             imageVector = viewMode.icon,
-            contentDescription = "Вид: ${viewMode.description}",
+            contentDescription = stringResource(R.string.view_mode, stringResource(viewMode.descriptionRes)),
             tint = PlayerColors.TextSecondary,
             modifier = Modifier
                 .padding(start = 10.dp)
@@ -927,17 +892,18 @@ internal fun <T> ListToolbar(
         if (sortOptions.isNotEmpty()) Box {
             Icon(
                 imageVector = AppIcons.Sort,
-                contentDescription = "Сортировка: $currentSort",
+                contentDescription = stringResource(R.string.sort_mode, currentSort),
                 tint = PlayerColors.TextSecondary,
                 modifier = Modifier
                     .padding(start = 10.dp)
                     .size(20.dp)
                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { menuExpanded = true },
             )
-            DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+            AppDropdownMenu(expanded = menuExpanded, onDismiss = { menuExpanded = false }) {
                 sortOptions.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(sortOptionLabel(option)) },
+                    AppMenuItem(
+                        text = sortOptionLabel(option),
+                        selected = sortOptionLabel(option) == currentSort,
                         onClick = {
                             onSortSelect(option)
                             menuExpanded = false
@@ -1048,7 +1014,7 @@ private fun AlbumsList(groups: List<AlbumGroup>, state: LazyListState, onAlbumCl
                 )
                 Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
                     Text(
-                        text = group.album.ifBlank { "Без альбома" },
+                        text = group.album.ifBlank { stringResource(R.string.no_album) },
                         color = PlayerColors.TextPrimary,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -1095,7 +1061,7 @@ private fun AlbumsGrid(groups: List<AlbumGroup>, columns: Int, state: LazyGridSt
                         .clip(RoundedCornerShape(10.dp)),
                 )
                 Text(
-                    text = group.album.ifBlank { "Без альбома" },
+                    text = group.album.ifBlank { stringResource(R.string.no_album) },
                     color = PlayerColors.TextPrimary,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -1258,8 +1224,8 @@ internal fun PlayShuffleRow(onPlay: () -> Unit, onShuffle: () -> Unit) {
         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        PlayShuffleButton(icon = AppIcons.Play, label = "Слушать", onClick = onPlay, modifier = Modifier.weight(1f))
-        PlayShuffleButton(icon = AppIcons.Shuffle, label = "Перемешать", onClick = onShuffle, modifier = Modifier.weight(1f))
+        PlayShuffleButton(icon = AppIcons.Play, label = stringResource(R.string.action_listen), onClick = onPlay, modifier = Modifier.weight(1f))
+        PlayShuffleButton(icon = AppIcons.Shuffle, label = stringResource(R.string.shuffle), onClick = onShuffle, modifier = Modifier.weight(1f))
     }
 }
 
@@ -1284,7 +1250,7 @@ private fun PlaylistsList(playlists: List<PlaylistWithCount>, onPlaylistClick: (
     if (playlists.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
             Text(
-                text = "Плейлистов пока нет — создай первый значком «+» сверху",
+                text = stringResource(R.string.no_playlists),
                 color = PlayerColors.TextSecondary,
                 fontSize = 13.sp,
             )
@@ -1333,63 +1299,15 @@ private fun PlaylistNameDialog(
     onConfirm: (String) -> Unit,
 ) {
     var name by remember { mutableStateOf(initialName) }
-    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(18.dp))
-                .background(PlayerColors.SurfaceDim)
-                .padding(20.dp),
-        ) {
-            Text(
-                text = title,
-                color = PlayerColors.TextPrimary,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 14.dp),
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(PlayerColors.Surface)
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
-            ) {
-                if (name.isEmpty()) {
-                    Text(text = "Название", color = PlayerColors.TextTertiary, fontSize = 14.sp)
-                }
-                BasicTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    singleLine = true,
-                    textStyle = TextStyle(color = PlayerColors.TextPrimary, fontSize = 14.sp),
-                    cursorBrush = SolidColor(PlayerColors.TextPrimary),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                Text(
-                    text = "Отмена",
-                    color = PlayerColors.TextSecondary,
-                    fontSize = 13.sp,
-                    modifier = Modifier
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onDismiss() }
-                        .padding(end = 20.dp),
-                )
-                Text(
-                    text = confirmLabel,
-                    color = PlayerColors.TextPrimary,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
-                            if (name.isNotBlank()) onConfirm(name)
-                        },
-                )
-            }
-        }
+    AppDialog(onDismiss = onDismiss) {
+        DialogTitle(title)
+        DialogTextField(value = name, onValueChange = { name = it }, placeholder = stringResource(R.string.name), modifier = Modifier.padding(top = 16.dp))
+        DialogButtons(
+            dismissLabel = stringResource(R.string.cancel),
+            onDismiss = onDismiss,
+            confirmLabel = confirmLabel,
+            onConfirm = { if (name.isNotBlank()) onConfirm(name) },
+            confirmEnabled = name.isNotBlank(),
+        )
     }
 }

@@ -1,5 +1,7 @@
 package com.artemiy.player.playback
 
+import com.artemiy.player.ui.i18n.withAppLanguage
+import com.artemiy.player.R
 import android.app.Application
 import android.content.ComponentName
 import android.util.Log
@@ -473,8 +475,8 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
         val uri = localConfiguration?.uri ?: return null
         return Song(
             id = id,
-            title = mediaMetadata.title?.toString() ?: "Без названия",
-            artist = mediaMetadata.artist?.toString() ?: "Неизвестный артист",
+            title = mediaMetadata.title?.toString() ?: getApplication<Application>().withAppLanguage().getString(R.string.untitled),
+            artist = mediaMetadata.artist?.toString() ?: getApplication<Application>().withAppLanguage().getString(R.string.unknown_artist),
             album = mediaMetadata.albumTitle?.toString() ?: "",
             durationMs = 0L,
             dateAddedMs = 0L,

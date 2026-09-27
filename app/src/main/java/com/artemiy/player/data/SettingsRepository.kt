@@ -44,6 +44,8 @@ class SettingsRepository(private val context: Context) {
         val ACCENT_KEY = stringPreferencesKey("accent")
         val START_TAB_KEY = stringPreferencesKey("start_tab")
         val ICON_SET_KEY = stringPreferencesKey("icon_set")
+        val APP_FONT_KEY = stringPreferencesKey("app_font")
+        val ONBOARDING_DONE_KEY = booleanPreferencesKey("onboarding_done")
         private fun viewModeKey(tab: String) = stringPreferencesKey("view_mode_$tab")
     }
 
@@ -182,6 +184,20 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setIconSet(value: String) {
         context.settingsDataStore.edit { it[ICON_SET_KEY] = value }
+    }
+
+    /** Whether the welcome screens have been gone through (absent = not yet). */
+    val onboardingDone: Flow<Boolean> = context.settingsDataStore.data.map { it[ONBOARDING_DONE_KEY] ?: false }
+
+    suspend fun setOnboardingDone(value: Boolean) {
+        context.settingsDataStore.edit { it[ONBOARDING_DONE_KEY] = value }
+    }
+
+    /** The app's typeface (an AppFont name); absent = the default one. */
+    val appFont: Flow<String?> = context.settingsDataStore.data.map { it[APP_FONT_KEY] }
+
+    suspend fun setAppFont(value: String) {
+        context.settingsDataStore.edit { it[APP_FONT_KEY] = value }
     }
 
     /** Artist names the user wants kept whole, never split into several artists. */

@@ -1111,3 +1111,25 @@ internal val SharedDeviceEarbuds: ImageVector by lazy {
     }
 }
 
+internal val LucideLanguage: ImageVector by lazy {
+    iconVector("LucideLanguage", scale = LUCIDE_SCALE) {
+        path("m5 8 6 6", fill = false, stroke = true)
+        path("m4 14 6-6 2-3", fill = false, stroke = true)
+        path("M2 5h12", fill = false, stroke = true)
+        path("M7 2h1", fill = false, stroke = true)
+        path("m22 22-5-10-5 10", fill = false, stroke = true)
+        path("M14 18h6", fill = false, stroke = true)
+    }
+}
+
+internal val TablerLanguage: ImageVector by lazy {
+    iconVector("TablerLanguage") {
+        path("M9 6.371c0 4.418 -2.239 6.629 -5 6.629", fill = false, stroke = true)
+        path("M4 6.371h7", fill = false, stroke = true)
+        path("M5 9c0 2.144 2.252 3.908 6 4", fill = false, stroke = true)
+        path("M12 20l4 -9l4 9", fill = false, stroke = true)
+        path("M19.1 18h-6.2", fill = false, stroke = true)
+        path("M6.694 3l.793 .582", fill = false, stroke = true)
+    }
+}
+

@@ -1,5 +1,6 @@
 package com.artemiy.player.playback
 
+import com.artemiy.player.R
 import android.content.Context
 import android.Manifest
 import android.bluetooth.BluetoothClass
@@ -127,7 +128,7 @@ private fun currentOutput(audio: AudioManager, context: Context): OutputDevice {
     val info = routed
         ?: runCatching { audio.getDevices(AudioManager.GET_DEVICES_OUTPUTS).maxByOrNull { priorityOf(it.type) } }.getOrNull()
         ?: return PHONE
-    val described = describe(info)
+    val described = describe(info, context)
     if (!described.isBluetooth) return described
     val details = bluetoothDetails(context, info) ?: return described
     return described.copy(
@@ -145,14 +146,14 @@ private fun priorityOf(type: Int): Int = when (type) {
     else -> 0
 }
 
-private fun describe(info: AudioDeviceInfo): OutputDevice {
+private fun describe(info: AudioDeviceInfo, context: Context): OutputDevice {
     val name = info.productName?.toString()?.trim()?.takeIf { it.isNotEmpty() && it != Build.MODEL }
     return when (info.type) {
         AudioDeviceInfo.TYPE_BUILTIN_SPEAKER, AudioDeviceInfo.TYPE_BUILTIN_EARPIECE -> PHONE
         AudioDeviceInfo.TYPE_WIRED_HEADPHONES, AudioDeviceInfo.TYPE_WIRED_HEADSET ->
-            OutputDevice(OutputKind.HEADPHONES, "Наушники")
-        AudioDeviceInfo.TYPE_USB_HEADSET -> OutputDevice(OutputKind.HEADPHONES, name ?: "USB-наушники")
-        AudioDeviceInfo.TYPE_USB_DEVICE, AudioDeviceInfo.TYPE_USB_ACCESSORY -> OutputDevice(OutputKind.USB, name ?: "USB-аудио")
+            OutputDevice(OutputKind.HEADPHONES, context.getString(R.string.device_headphones))
+        AudioDeviceInfo.TYPE_USB_HEADSET -> OutputDevice(OutputKind.HEADPHONES, name ?: context.getString(R.string.device_usb_headphones))
+        AudioDeviceInfo.TYPE_USB_DEVICE, AudioDeviceInfo.TYPE_USB_ACCESSORY -> OutputDevice(OutputKind.USB, name ?: context.getString(R.string.device_usb_audio))
         AudioDeviceInfo.TYPE_HDMI, AudioDeviceInfo.TYPE_HDMI_ARC, AudioDeviceInfo.TYPE_HDMI_EARC ->
             OutputDevice(OutputKind.TV, name ?: "HDMI")
         AudioDeviceInfo.TYPE_BLE_HEADSET -> OutputDevice(OutputKind.HEADPHONES, name ?: "Bluetooth", isBluetooth = true)
@@ -161,7 +162,7 @@ private fun describe(info: AudioDeviceInfo): OutputDevice {
         // is the best hint there is.
         AudioDeviceInfo.TYPE_BLUETOOTH_A2DP, AudioDeviceInfo.TYPE_BLUETOOTH_SCO, AudioDeviceInfo.TYPE_BLE_BROADCAST ->
             OutputDevice(bluetoothKindFromName(name), name ?: "Bluetooth", isBluetooth = true)
-        else -> OutputDevice(OutputKind.SPEAKER, name ?: "Внешнее устройство")
+        else -> OutputDevice(OutputKind.SPEAKER, name ?: context.getString(R.string.device_external))
     }
 }
 

@@ -1,5 +1,8 @@
 package com.artemiy.player.ui.mood
 
+import com.artemiy.player.data.subtitle
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
 import com.artemiy.player.ui.icons.AppIcons
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
@@ -427,7 +430,7 @@ private fun MoodPlayButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(imageVector = AppIcons.Play, contentDescription = null, tint = PlayerColors.Background, modifier = Modifier.size(20.dp))
-        Text(text = "Слушать", color = PlayerColors.Background, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
+        Text(text = stringResource(R.string.action_listen), color = PlayerColors.Background, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
     }
 }
 

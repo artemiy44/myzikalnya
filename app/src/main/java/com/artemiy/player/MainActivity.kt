@@ -1,5 +1,7 @@
 package com.artemiy.player
 
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
@@ -34,6 +36,7 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.size
 import com.artemiy.player.ui.mood.LoadingBurst
+import com.artemiy.player.ui.i18n.withAppLanguage
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -115,6 +118,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalView
 
 class MainActivity : ComponentActivity() {
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(newBase.withAppLanguage())
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -135,7 +142,7 @@ class MainActivity : ComponentActivity() {
             }
             val palette = appPalette(settings.themeMode, settings.lightVariant, settings.darkVariant, settings.accent, isSystemInDarkTheme())
             CompositionLocalProvider(LocalIconSet provides settings.iconSet) {
-                PlayerTheme(palette = palette, appTextScale = settings.fontScale) {
+                PlayerTheme(palette = palette, appTextScale = settings.fontScale, font = settings.appFont) {
                     PlayerApp(settings)
                 }
             }
@@ -160,7 +167,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
         }
     }
     var showNowPlaying by remember { mutableStateOf(false) }
-    var showSettings by remember { mutableStateOf(false) }
+    var showSettings by rememberSaveable { mutableStateOf(false) }
     var rescanTrigger by remember { mutableStateOf(0) }
     val context = LocalContext.current
     val playback: PlaybackViewModel = viewModel()
@@ -187,6 +194,16 @@ private fun PlayerApp(settings: SettingsViewModel) {
     // What the player was showing last time (lyrics, queue...), to open it the same way again.
     val nowPlayingMemory = remember { NowPlayingMemory() }
     val classicPlayer = settings.playerStyle == PlayerStyle.CLASSIC
+    // Opening the player (e.g. from a search result) puts away the keyboard left up by the
+    // search field, instead of leaving it hanging over the player.
+    val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
+    val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
+    LaunchedEffect(showNowPlaying) {
+        if (showNowPlaying) {
+            keyboard?.hide()
+            focusManager.clearFocus(force = true)
+        }
+    }
 
     /** [velocity]: how fast a finger was moving it when let go, in "whole openings" per second —
      * the animation carries on from that speed instead of starting from standstill. */
@@ -235,7 +252,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
     fun playMood(mood: Mood) {
         val pool = songsForMood(songs, mood, settings.moodFolders[mood] ?: emptySet())
         if (pool.isNotEmpty()) {
-            playback.play(pool.first(), pool, PlayOrigin("Настроение", SourceArt.Place(SourcePlace.MOOD)))
+            playback.play(pool.first(), pool, PlayOrigin(context.getString(R.string.tab_mood), SourceArt.Place(SourcePlace.MOOD)))
             openNowPlaying()
         }
     }
@@ -249,8 +266,9 @@ private fun PlayerApp(settings: SettingsViewModel) {
         ActivityResultContracts.RequestPermission()
     ) { }
 
-    LaunchedEffect(Unit) {
-        if (Build.VERSION.SDK_INT >= 33 &&
+    // First launch: the welcome screens ask for this themselves, in their own step.
+    LaunchedEffect(settings.onboardingDone) {
+        if (settings.onboardingDone == true && Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) {
             notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -347,8 +365,8 @@ private fun PlayerApp(settings: SettingsViewModel) {
                         .background(PlayerColors.Border),
                 )
                 MiniPlayer(
-                    title = playback.currentSong?.title ?: "Ничего не играет",
-                    artist = playback.currentSong?.artist ?: "Трек не выбран",
+                    title = playback.currentSong?.title ?: stringResource(R.string.nothing_playing),
+                    artist = playback.currentSong?.artist ?: stringResource(R.string.no_track_chosen),
                     albumArtUri = playback.currentSong?.uri,
                     isPlaying = playback.isPlaying,
                     onOpen = { if (playback.currentSong != null) openNowPlaying() },
@@ -415,9 +433,9 @@ private fun PlayerApp(settings: SettingsViewModel) {
                             },
                             onSaveMix = { mix ->
                                 // A snapshot: the mix itself changes daily, the saved playlist doesn't.
-                                val date = java.text.SimpleDateFormat("dd.MM", java.util.Locale("ru")).format(java.util.Date())
+                                val date = java.text.SimpleDateFormat("dd.MM", java.util.Locale.getDefault()).format(java.util.Date())
                                 playlistsVm.createPlaylistWithSongs("${mix.title} · $date", mix.songs.map { it.id })
-                                android.widget.Toast.makeText(context, "Сохранено в плейлисты", android.widget.Toast.LENGTH_SHORT).show()
+                                android.widget.Toast.makeText(context, context.getString(R.string.saved_to_playlists), android.widget.Toast.LENGTH_SHORT).show()
                             },
                             onSettingsClick = { showSettings = true },
                             onPlayNext = { song -> playback.playNext(song) },
@@ -432,7 +450,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                             backStack = libraryBackStack,
                             onRequestPermission = { permissionLauncher.launch(audioPermission) },
                             onSongClick = { song, list ->
-                                playback.play(song, list, libraryBackStack.lastOrNull()?.let { libraryOrigin(it, list) })
+                                playback.play(song, list, libraryBackStack.lastOrNull()?.let { libraryOrigin(it, list, context) })
                                 openNowPlaying()
                             },
                             onPlayNext = { song -> playback.playNext(song) },
@@ -445,7 +463,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                         AppTab.Search -> SearchScreen(
                             songs = songs,
                             onSongClick = { song, list ->
-                                playback.play(song, list, PlayOrigin("Поиск", SourceArt.Place(SourcePlace.SEARCH)))
+                                playback.play(song, list, PlayOrigin(context.getString(R.string.tab_search), SourceArt.Place(SourcePlace.SEARCH)))
                                 openNowPlaying()
                             },
                             onPlayNext = { song -> playback.playNext(song) },
@@ -623,6 +641,9 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 onStartTabChange = { settings.updateStartTab(it) },
                 iconSet = settings.iconSet,
                 onIconSetChange = { settings.updateIconSet(it) },
+                appFont = settings.appFont,
+                onAppFontChange = { settings.updateAppFont(it) },
+                onShowOnboarding = { settings.updateOnboardingDone(false) },
                 onBack = { showSettings = false },
                 keptArtists = settings.keptArtists,
                 onAddKeptArtist = { settings.addKeptArtist(it) },
@@ -632,6 +653,47 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 },
             )
         }
+    }
+
+    // The welcome screens: on first launch, and again when asked for from "О приложении" — first
+    // the language (the screen restarts in it), then the burst's hello and the setup steps.
+    var languageStepDone by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(settings.onboardingDone) { if (settings.onboardingDone == true) languageStepDone = false }
+    if (settings.onboardingDone == false && !languageStepDone) {
+        com.artemiy.player.ui.onboarding.LanguageScreen(onPicked = { language ->
+            val before = com.artemiy.player.ui.i18n.LanguagePrefs.get(context)
+            com.artemiy.player.ui.i18n.LanguagePrefs.set(context, language)
+            languageStepDone = true
+            if (before != language) (context as? android.app.Activity)?.recreate()
+        })
+    } else if (settings.onboardingDone == false) {
+        com.artemiy.player.ui.onboarding.OnboardingScreen(
+            state = com.artemiy.player.ui.onboarding.OnboardingState(
+                musicAllowed = permissionGranted,
+                libraryLoaded = libraryLoaded,
+                songCount = songs.size,
+                availableFolders = settings.availableScanFolders,
+                selectedFolders = settings.scanFolders,
+                themeMode = settings.themeMode,
+                playerStyle = settings.playerStyle,
+                notificationsNeedAsking = Build.VERSION.SDK_INT >= 33 &&
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED,
+            ),
+            actions = com.artemiy.player.ui.onboarding.OnboardingActions(
+                requestMusic = { permissionLauncher.launch(audioPermission) },
+                loadFolders = { settings.loadAvailableScanFolders() },
+                toggleFolder = { settings.toggleScanFolder(it) },
+                setThemeMode = { settings.updateThemeMode(it) },
+                setPlayerStyle = { settings.updatePlayerStyle(it) },
+                requestNotifications = {
+                    if (Build.VERSION.SDK_INT >= 33) notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                },
+                finish = {
+                    settings.updateOnboardingDone(true)
+                    showSettings = false
+                },
+            ),
+        )
     }
 
     // Launch cover: the app's background with the "happy" burst playing, instead of watching the
@@ -686,12 +748,12 @@ private fun PlayerApp(settings: SettingsViewModel) {
 }
 
 /** "Играет из" for songs started from a Library page. */
-private fun libraryOrigin(route: com.artemiy.player.ui.library.LibraryRoute, songs: List<Song>): PlayOrigin = when (route) {
-    is com.artemiy.player.ui.library.LibraryRoute.AlbumDetail -> PlayOrigin(route.album.ifBlank { "Альбом" }, SourceArt.Cover(songs.firstOrNull()?.uri))
+private fun libraryOrigin(route: com.artemiy.player.ui.library.LibraryRoute, songs: List<Song>, context: android.content.Context): PlayOrigin = when (route) {
+    is com.artemiy.player.ui.library.LibraryRoute.AlbumDetail -> PlayOrigin(route.album.ifBlank { context.getString(R.string.album) }, SourceArt.Cover(songs.firstOrNull()?.uri))
     is com.artemiy.player.ui.library.LibraryRoute.ArtistDetail -> PlayOrigin(route.artist, SourceArt.Collage(songs))
     is com.artemiy.player.ui.library.LibraryRoute.PlaylistDetail -> PlayOrigin(route.name, SourceArt.Collage(songs))
-    com.artemiy.player.ui.library.LibraryRoute.Songs -> PlayOrigin("Треки", SourceArt.Place(SourcePlace.SONGS))
-    else -> PlayOrigin("Медиатека", SourceArt.Place(SourcePlace.LIBRARY))
+    com.artemiy.player.ui.library.LibraryRoute.Songs -> PlayOrigin(context.getString(R.string.tracks), SourceArt.Place(SourcePlace.SONGS))
+    else -> PlayOrigin(context.getString(R.string.tab_library), SourceArt.Place(SourcePlace.LIBRARY))
 }
 
 /** Classic player opening and closing: one soft spring both ways, settling without a bounce —

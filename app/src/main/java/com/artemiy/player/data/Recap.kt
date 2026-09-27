@@ -44,10 +44,9 @@ fun lastCompleteWeek(now: Long): Pair<Long, Long> {
 /** When the next recap becomes available (the coming Monday). */
 fun nextRecapAt(now: Long): Long = mondayOf(mondayOf(now) + 8 * DAY_MS)
 
-private val DAY_NAMES = mapOf(
-    Calendar.MONDAY to "понедельник", Calendar.TUESDAY to "вторник", Calendar.WEDNESDAY to "среда",
-    Calendar.THURSDAY to "четверг", Calendar.FRIDAY to "пятница", Calendar.SATURDAY to "суббота", Calendar.SUNDAY to "воскресенье",
-)
+/** A weekday's name in the app's language ("понедельник", "Monday"). */
+private fun dayName(day: Int): String? = Calendar.getInstance().apply { set(Calendar.DAY_OF_WEEK, day) }
+    .getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG_STANDALONE, java.util.Locale.getDefault())
 
 /** Null when nothing was played during the last complete week. */
 fun buildRecap(songs: List<Song>, plays: List<SongEvent>, now: Long): Recap? {
@@ -76,7 +75,7 @@ fun buildRecap(songs: List<Song>, plays: List<SongEvent>, now: Long): Recap? {
 
     val calendar = Calendar.getInstance()
     val busiestDay = week.groupingBy { calendar.apply { timeInMillis = it.at }.get(Calendar.DAY_OF_WEEK) }.eachCount()
-        .maxByOrNull { it.value }?.key?.let { DAY_NAMES[it] }
+        .maxByOrNull { it.value }?.key?.let { dayName(it) }
     val busiestPart = week.groupingBy { dayPartOf(calendar.apply { timeInMillis = it.at }.get(Calendar.HOUR_OF_DAY)) }.eachCount()
         .maxByOrNull { it.value }?.key
 

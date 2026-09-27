@@ -1,5 +1,7 @@
 package com.artemiy.player.ui.nowplaying
 
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -783,7 +785,7 @@ fun NowPlayingScreen(
                     },
             ) {
                 Text(
-                    text = song?.title ?: "Ничего не играет",
+                    text = song?.title ?: stringResource(R.string.nothing_playing),
                     color = miniTitleColor,
                     fontSize = 13.sp,
                     lineHeight = 15.6.sp,

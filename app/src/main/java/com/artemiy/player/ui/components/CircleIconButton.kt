@@ -1,5 +1,7 @@
 package com.artemiy.player.ui.components
 
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -102,6 +104,6 @@ fun PlayPillButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(imageVector = AppIcons.Play, contentDescription = null, tint = PlayerColors.OnAccent, modifier = Modifier.size(20.dp))
-        Text(text = "Слушать", color = PlayerColors.OnAccent, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
+        Text(text = stringResource(R.string.action_listen), color = PlayerColors.OnAccent, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
     }
 }

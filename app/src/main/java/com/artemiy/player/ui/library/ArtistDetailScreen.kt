@@ -1,6 +1,10 @@
 package com.artemiy.player.ui.library
 
+import androidx.compose.ui.res.pluralStringResource
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
 import com.artemiy.player.ui.icons.AppIcons
+import com.artemiy.player.ui.theme.inAppFont
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -96,17 +100,17 @@ fun ArtistDetailScreen(
                 text = artist,
                 color = Color.White,
                 fontSize = 30.sp,
-                style = TextStyle(shadow = HeroTextShadow),
+                style = TextStyle(shadow = HeroTextShadow).inAppFont(),
                 fontWeight = FontWeight.ExtraBold,
                 textAlign = TextAlign.Center,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = "${songs.size} песен · ${albums.size} альбомов",
+                text = pluralStringResource(R.plurals.songs_count, songs.size, songs.size) + " · " + pluralStringResource(R.plurals.albums_count, albums.size, albums.size),
                 color = Color.White.copy(alpha = 0.85f),
                 fontSize = 13.sp,
-                style = TextStyle(shadow = HeroTextShadow),
+                style = TextStyle(shadow = HeroTextShadow).inAppFont(),
                 modifier = Modifier.padding(top = 4.dp),
             )
             Row(
@@ -114,9 +118,9 @@ fun ArtistDetailScreen(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                CircleIconButton(icon = AppIcons.Shuffle, description = "Перемешать") { onShuffleAll(songs) }
+                CircleIconButton(icon = AppIcons.Shuffle, description = stringResource(R.string.shuffle)) { onShuffleAll(songs) }
                 PlayPillButton(onClick = { onPlayAll(songs) }, modifier = Modifier.padding(horizontal = 14.dp))
-                CircleIconButton(icon = AppIcons.AddToQueue, description = "Добавить в очередь проигрывания", showCheck = queuedFlash.visible) {
+                CircleIconButton(icon = AppIcons.AddToQueue, description = stringResource(R.string.add_to_play_queue), showCheck = queuedFlash.visible) {
                     showAddToQueueDialog = true
                 }
             }
@@ -136,7 +140,7 @@ fun ArtistDetailScreen(
 
         if (albums.isNotEmpty()) {
             Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)) {
-                Text(text = "Альбомы", color = PlayerColors.TextPrimary, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 10.dp))
+                Text(text = stringResource(R.string.albums), color = PlayerColors.TextPrimary, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 10.dp))
                 albums.chunked(2).forEach { rowAlbums ->
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
@@ -153,7 +157,7 @@ fun ArtistDetailScreen(
                                     modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(10.dp)),
                                 )
                                 Text(
-                                    text = album.ifBlank { "Без альбома" },
+                                    text = album.ifBlank { stringResource(R.string.no_album) },
                                     color = PlayerColors.TextPrimary,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.SemiBold,
@@ -172,7 +176,7 @@ fun ArtistDetailScreen(
         }
 
         Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
-            Text(text = "Треки", color = PlayerColors.TextPrimary, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 10.dp))
+            Text(text = stringResource(R.string.tracks), color = PlayerColors.TextPrimary, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 10.dp))
             songs.forEach { song ->
                 var menuExpanded by remember { mutableStateOf(false) }
                 Row(
@@ -207,47 +211,11 @@ fun ArtistDetailScreen(
 
 @Composable
 private fun AddArtistToQueueDialog(songCount: Int, onDismiss: () -> Unit, onConfirm: () -> Unit) {
-    Dialog(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(18.dp))
-                .background(PlayerColors.SurfaceDim)
-                .padding(20.dp),
-        ) {
-            Text(
-                text = "Добавить в очередь проигрывания?",
-                color = PlayerColors.TextPrimary,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = "Все песни артиста ($songCount) встанут в конец очереди. Та, что играет сейчас, и уже стоящие в очереди не продублируются.",
-                color = PlayerColors.TextSecondary,
-                fontSize = 13.sp,
-                modifier = Modifier.padding(top = 8.dp),
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 18.dp),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                Text(
-                    text = "Нет",
-                    color = PlayerColors.TextSecondary,
-                    fontSize = 13.sp,
-                    modifier = Modifier
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onDismiss() }
-                        .padding(end = 20.dp),
-                )
-                Text(
-                    text = "Да",
-                    color = PlayerColors.TextPrimary,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onConfirm() },
-                )
-            }
-        }
+    com.artemiy.player.ui.components.AppDialog(onDismiss = onDismiss) {
+        com.artemiy.player.ui.components.DialogTitle(stringResource(R.string.add_to_play_queue_q))
+        com.artemiy.player.ui.components.DialogMessage(
+            stringResource(R.string.add_artist_to_queue_msg, songCount),
+        )
+        com.artemiy.player.ui.components.DialogButtons(dismissLabel = stringResource(R.string.no), onDismiss = onDismiss, confirmLabel = stringResource(R.string.add), onConfirm = onConfirm)
     }
 }

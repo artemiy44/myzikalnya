@@ -1,5 +1,8 @@
 package com.artemiy.player.ui.home
 
+import androidx.compose.ui.res.pluralStringResource
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -37,29 +40,29 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private val dayMonth = SimpleDateFormat("d MMMM", Locale("ru"))
+private val dayMonth get() = SimpleDateFormat("d MMMM", Locale.getDefault())
 
 /** "14 – 20 сентября" for a Monday-to-Monday week. */
 fun weekLabel(recap: Recap): String {
     val lastDay = Date(recap.weekEnd - 1)
     val first = Date(recap.weekStart)
-    val sameMonth = SimpleDateFormat("M", Locale("ru")).let { it.format(first) == it.format(lastDay) }
-    val start = if (sameMonth) SimpleDateFormat("d", Locale("ru")).format(first) else dayMonth.format(first)
+    val sameMonth = SimpleDateFormat("M", Locale.getDefault()).let { it.format(first) == it.format(lastDay) }
+    val start = if (sameMonth) SimpleDateFormat("d", Locale.getDefault()).format(first) else dayMonth.format(first)
     return "$start – ${dayMonth.format(lastDay)}"
 }
 
+@Composable
 private fun hoursLabel(minutes: Int): String =
-    if (minutes < 60) "$minutes мин" else "≈ ${"%.1f".format(minutes / 60f).replace('.', ',')} ч"
+    if (minutes < 60) stringResource(R.string.unit_min, minutes) else stringResource(R.string.unit_hours_approx, minutes / 60f)
 
 /** Home's last section: the week's recap, or when the first one will show up. */
 @Composable
 fun RecapCard(recap: Recap?, onOpen: () -> Unit) {
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-        Text(text = "Итоги недели", color = PlayerColors.TextPrimary, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 10.dp))
+        Text(text = stringResource(R.string.weekly_recap), color = PlayerColors.TextPrimary, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 10.dp))
         if (recap == null) {
             Text(
-                text = "Первые итоги появятся в понедельник, ${dayMonth.format(Date(nextRecapAt(System.currentTimeMillis())))} — " +
-                    "после первой полной недели прослушиваний.",
+                text = stringResource(R.string.recap_first_at, dayMonth.format(Date(nextRecapAt(System.currentTimeMillis())))),
                 color = PlayerColors.TextSecondary,
                 fontSize = 13.sp,
             )
@@ -78,14 +81,14 @@ fun RecapCard(recap: Recap?, onOpen: () -> Unit) {
             Column(modifier = Modifier.weight(1f).padding(start = 14.dp)) {
                 Text(text = weekLabel(recap), color = PlayerColors.TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 Text(
-                    text = "${recap.playCount} прослушиваний · ${hoursLabel(recap.minutes)}",
+                    text = pluralStringResource(R.plurals.plays_count, recap.playCount, recap.playCount) + " · " + hoursLabel(recap.minutes),
                     color = PlayerColors.TextSecondary,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(top = 2.dp),
                 )
                 recap.topArtists.firstOrNull()?.let { (artist, _) ->
                     Text(
-                        text = "Главный артист: $artist",
+                        text = stringResource(R.string.recap_top_artist, artist),
                         color = PlayerColors.TextSecondary,
                         fontSize = 12.sp,
                         maxLines = 1,
@@ -105,7 +108,7 @@ fun RecapScreen(recap: Recap, onBack: () -> Unit, onPlay: (Song, List<Song>) -> 
             .background(PlayerColors.Background)
             .statusBarsPadding(),
     ) {
-        LibraryHeader(title = "Итоги недели", showBack = true, onBack = onBack)
+        LibraryHeader(title = stringResource(R.string.weekly_recap), showBack = true, onBack = onBack)
         Column(
             modifier = Modifier
                 .verticalScroll(rememberScrollState())
@@ -116,12 +119,12 @@ fun RecapScreen(recap: Recap, onBack: () -> Unit, onPlay: (Song, List<Song>) -> 
 
             RecapBlock {
                 Row {
-                    RecapStat(value = "${recap.playCount}", label = "прослушиваний", modifier = Modifier.weight(1f))
-                    RecapStat(value = hoursLabel(recap.minutes), label = "музыки", modifier = Modifier.weight(1f))
+                    RecapStat(value = "${recap.playCount}", label = pluralStringResource(R.plurals.plays_word, recap.playCount), modifier = Modifier.weight(1f))
+                    RecapStat(value = hoursLabel(recap.minutes), label = stringResource(R.string.recap_of_music), modifier = Modifier.weight(1f))
                 }
                 recap.topSongs.firstOrNull()?.let { (song, count) ->
                     Text(
-                        text = "Больше всего заслушана «${song.title}» — $count раз.",
+                        text = stringResource(R.string.recap_most_played, song.title, pluralStringResource(R.plurals.times_count, count, count)),
                         color = PlayerColors.TextSecondary,
                         fontSize = 13.sp,
                         modifier = Modifier.padding(top = 12.dp),
@@ -129,13 +132,13 @@ fun RecapScreen(recap: Recap, onBack: () -> Unit, onPlay: (Song, List<Song>) -> 
                 }
             }
 
-            RecapTitle("Топ песен")
+            RecapTitle(stringResource(R.string.recap_top_songs))
             val topSongs = recap.topSongs.map { it.first }
             recap.topSongs.forEachIndexed { index, (song, count) ->
-                RecapSongRow(place = index + 1, song = song, note = "$count раз", onClick = { onPlay(song, topSongs) })
+                RecapSongRow(place = index + 1, song = song, note = pluralStringResource(R.plurals.times_count, count, count), onClick = { onPlay(song, topSongs) })
             }
 
-            RecapTitle("Топ артистов")
+            RecapTitle(stringResource(R.string.recap_top_artists))
             RecapBlock {
                 recap.topArtists.forEachIndexed { index, (artist, count) ->
                     Row(modifier = Modifier.padding(vertical = 4.dp)) {
@@ -147,16 +150,16 @@ fun RecapScreen(recap: Recap, onBack: () -> Unit, onPlay: (Song, List<Song>) -> 
             }
 
             if (recap.topGenre != null || recap.busiestDay != null || recap.busiestPart != null) {
-                RecapTitle("Как ты слушал")
+                RecapTitle(stringResource(R.string.recap_how))
                 RecapBlock {
-                    recap.topGenre?.let { RecapFact("Любимый жанр недели", it) }
-                    recap.busiestDay?.let { RecapFact("Самый музыкальный день", it) }
-                    recap.busiestPart?.let { RecapFact("Чаще всего слушал", it.label) }
+                    recap.topGenre?.let { RecapFact(stringResource(R.string.recap_top_genre), it) }
+                    recap.busiestDay?.let { RecapFact(stringResource(R.string.recap_busiest_day), it) }
+                    recap.busiestPart?.let { RecapFact(stringResource(R.string.recap_busiest_part), stringResource(it.labelRes)) }
                 }
             }
 
             if (recap.newByArtist.isNotEmpty()) {
-                RecapTitle("Новое в медиатеке")
+                RecapTitle(stringResource(R.string.recap_new_in_library))
                 RecapBlock {
                     recap.newByArtist.forEach { (artist, songs) ->
                         RecapFact(artist, "+${songs.size}")
@@ -165,7 +168,7 @@ fun RecapScreen(recap: Recap, onBack: () -> Unit, onPlay: (Song, List<Song>) -> 
             }
 
             if (recap.forgotten.isNotEmpty()) {
-                RecapTitle("Давно не включал")
+                RecapTitle(stringResource(R.string.recap_forgotten))
                 recap.forgotten.forEach { song ->
                     RecapSongRow(place = null, song = song, note = null, onClick = { onPlay(song, recap.forgotten) })
                 }

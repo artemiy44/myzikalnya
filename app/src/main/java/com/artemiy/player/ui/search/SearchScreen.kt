@@ -1,6 +1,9 @@
 package com.artemiy.player.ui.search
 
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
 import com.artemiy.player.ui.icons.AppIcons
+import com.artemiy.player.ui.theme.inAppFont
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -86,7 +89,7 @@ fun SearchScreen(
             .statusBarsPadding(),
     ) {
         Text(
-            text = "Поиск",
+            text = stringResource(R.string.tab_search),
             color = PlayerColors.TextPrimary,
             fontSize = 28.sp,
             fontWeight = FontWeight.ExtraBold,
@@ -111,7 +114,7 @@ fun SearchScreen(
             Box(modifier = Modifier.weight(1f).padding(horizontal = 10.dp)) {
                 if (query.isEmpty()) {
                     Text(
-                        text = "Название, исполнитель, строчка из песни",
+                        text = stringResource(R.string.search_hint),
                         color = PlayerColors.TextTertiary,
                         fontSize = 15.sp,
                     )
@@ -120,7 +123,7 @@ fun SearchScreen(
                     value = query,
                     onValueChange = { query = it },
                     singleLine = true,
-                    textStyle = TextStyle(color = PlayerColors.TextPrimary, fontSize = 15.sp),
+                    textStyle = TextStyle(color = PlayerColors.TextPrimary, fontSize = 15.sp).inAppFont(),
                     cursorBrush = androidx.compose.ui.graphics.SolidColor(PlayerColors.TextPrimary),
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -128,7 +131,7 @@ fun SearchScreen(
             if (query.isNotEmpty()) {
                 Icon(
                     imageVector = AppIcons.Close,
-                    contentDescription = "Очистить",
+                    contentDescription = stringResource(R.string.clear),
                     tint = PlayerColors.TextSecondary,
                     modifier = Modifier
                         .size(18.dp)
@@ -147,7 +150,7 @@ fun SearchScreen(
             ) {
                 EqualizerLoader(color = PlayerColors.TextTertiary, modifier = Modifier.size(18.dp))
                 Text(
-                    text = "Тексты песен ещё собираются ($done из $total) — по тексту найдётся пока не всё",
+                    text = stringResource(R.string.lyrics_indexing, done, total),
                     color = PlayerColors.TextTertiary,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(start = 10.dp),
@@ -159,7 +162,7 @@ fun SearchScreen(
             query.isBlank() -> {
                 Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
                     Text(
-                        text = "Начни вводить, чтобы найти трек, исполнителя, альбом или строчку из песни",
+                        text = stringResource(R.string.search_start_typing),
                         color = PlayerColors.TextSecondary,
                         fontSize = 13.sp,
                     )
@@ -168,7 +171,7 @@ fun SearchScreen(
 
             results.isEmpty() && lyricHits.isEmpty() -> {
                 Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
-                    Text(text = "Ничего не найдено", color = PlayerColors.TextSecondary, fontSize = 13.sp)
+                    Text(text = stringResource(R.string.nothing_found), color = PlayerColors.TextSecondary, fontSize = 13.sp)
                 }
             }
 
@@ -216,7 +219,7 @@ fun SearchScreen(
                     if (lyricHits.isNotEmpty()) {
                         item(key = "lyrics-header") {
                             Text(
-                                text = "В тексте песен",
+                                text = stringResource(R.string.in_lyrics),
                                 color = PlayerColors.TextPrimary,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,

@@ -1,5 +1,7 @@
 package com.artemiy.player.ui.components
 
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -27,40 +29,11 @@ import com.artemiy.player.ui.theme.PlayerColors
 /** "Go to artist" on a song by several artists: which one's page. */
 @Composable
 fun ArtistChoiceDialog(names: List<String>, onPick: (String) -> Unit, onDismiss: () -> Unit) {
-    Dialog(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(18.dp))
-                .background(PlayerColors.SurfaceDim)
-                .padding(vertical = 14.dp),
-        ) {
-            Text(
-                text = "К какому исполнителю?",
-                color = PlayerColors.TextPrimary,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
-            )
+    AppDialog(onDismiss = onDismiss) {
+        DialogTitle(stringResource(R.string.which_artist))
+        Column(modifier = Modifier.padding(top = 12.dp)) {
             names.forEach { name ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onPick(name) }
-                        .padding(horizontal = 20.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(AppIcons.Artist, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(20.dp))
-                    Text(
-                        text = name,
-                        color = PlayerColors.TextPrimary,
-                        fontSize = 15.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(start = 12.dp).weight(1f),
-                    )
-                    Icon(AppIcons.ChevronRight, contentDescription = null, tint = PlayerColors.TextTertiary, modifier = Modifier.size(18.dp))
-                }
+                DialogListRow(icon = AppIcons.Artist, title = name, trailing = AppIcons.ChevronRight, onClick = { onPick(name) })
             }
         }
     }

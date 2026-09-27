@@ -1,0 +1,1369 @@
+{
+ "about_fonts": {
+  "en": "Fonts",
+  "ru": "Шрифты"
+ },
+ "about_libraries": {
+  "en": "Libraries",
+  "ru": "Библиотеки"
+ },
+ "about_license": {
+  "en": "License",
+  "ru": "Лицензия"
+ },
+ "about_source": {
+  "en": "Source code",
+  "ru": "Исходный код"
+ },
+ "about_source_sub": {
+  "en": "On GitHub",
+  "ru": "На GitHub"
+ },
+ "about_tagline": {
+  "en": "A music player for the music on the phone",
+  "ru": "Музыкальный плеер для музыки на телефоне"
+ },
+ "about_welcome_sub": {
+  "en": "The greeting and first setup",
+  "ru": "Приветствие и первая настройка"
+ },
+ "accent_alternative": {
+  "en": "Alternative",
+  "ru": "Альтернатива"
+ },
+ "accent_pastel": {
+  "en": "Pastel",
+  "ru": "Пастель"
+ },
+ "accent_stock": {
+  "en": "GNOME stock",
+  "ru": "Сток GNOME"
+ },
+ "action_listen": {
+  "en": "Play",
+  "ru": "Слушать"
+ },
+ "add": {
+  "en": "Add",
+  "ru": "Добавить"
+ },
+ "add_artist_to_queue_msg": {
+  "en": "All of the artist's songs (%1$d) will go to the end of the queue. The one playing now and those already queued won't be added twice.",
+  "ru": "Все песни артиста (%1$d) встанут в конец очереди. Та, что играет сейчас, и уже стоящие в очереди не продублируются."
+ },
+ "add_to_play_queue": {
+  "en": "Add to the play queue",
+  "ru": "Добавить в очередь проигрывания"
+ },
+ "add_to_play_queue_q": {
+  "en": "Add to the play queue?",
+  "ru": "Добавить в очередь проигрывания?"
+ },
+ "add_to_playlist": {
+  "en": "Add to playlist",
+  "ru": "Добавить в плейлист"
+ },
+ "add_to_queue": {
+  "en": "Add to queue",
+  "ru": "Добавить в очередь"
+ },
+ "add_tracks_to_queue": {
+  "en": "Add tracks to the queue",
+  "ru": "Добавить треки в очередь"
+ },
+ "added": {
+  "en": "Added",
+  "ru": "Добавлено"
+ },
+ "album": {
+  "en": "Album",
+  "ru": "Альбом"
+ },
+ "albums": {
+  "en": "Albums",
+  "ru": "Альбомы"
+ },
+ "albums_count": {
+  "en": {
+   "one": "%d album",
+   "other": "%d albums"
+  },
+  "plural": true,
+  "ru": {
+   "few": "%d альбома",
+   "many": "%d альбомов",
+   "one": "%d альбом",
+   "other": "%d альбома"
+  }
+ },
+ "all": {
+  "en": "All",
+  "ru": "Все"
+ },
+ "allow_access": {
+  "en": "Allow access",
+  "ru": "Разрешить доступ"
+ },
+ "and_others": {
+  "en": "%1$s and others",
+  "ru": "%1$s и другие"
+ },
+ "artists": {
+  "en": "Artists",
+  "ru": "Артисты"
+ },
+ "bg_live": {
+  "en": "Live blur",
+  "ru": "Живой блюр"
+ },
+ "bg_live_sub": {
+  "en": "The blurred cover gently «breathes» — soft movement and zoom.",
+  "ru": "Размытая обложка мягко «дышит» — плавное движение и масштаб."
+ },
+ "bg_none": {
+  "en": "No blur",
+  "ru": "Без блюра"
+ },
+ "bg_none_sub": {
+  "en": "The app's usual background, no cover.",
+  "ru": "Обычный фон приложения, без обложки."
+ },
+ "bg_static": {
+  "en": "Static blur",
+  "ru": "Статичный блюр"
+ },
+ "bg_static_sub": {
+  "en": "The cover is blurred but stays still.",
+  "ru": "Обложка размыта, но неподвижна."
+ },
+ "bye_1": {
+  "en": "All set!",
+  "en_x": "Right, all sorted!",
+  "ru": "Всё готово!",
+  "ru_x": "Ну вот, всё готово!"
+ },
+ "bye_2": {
+  "en": "Mixes and weekly recaps need about nine days to learn the taste.",
+  "en_x": "Mixes and recaps need about nine days to suss out the taste.",
+  "ru": "Миксам и итогам недели нужно около девяти дней, чтобы понять вкус.",
+  "ru_x": "Миксам и итогам недели нужно дней девять, чтобы распробовать вкус."
+ },
+ "bye_3": {
+  "en": "Everything else is in the settings — behind this button on Home.",
+  "en_x": "Everything else lives in the settings — behind this button on Home.",
+  "ru": "Всё остальное — в настройках, вот за этой кнопкой на Главной.",
+  "ru_x": "Всё остальное живёт в настройках — вот за этой кнопкой на Главной."
+ },
+ "bye_4": {
+  "en": "Enjoy the music!",
+  "en_x": "Enjoy the tunes. Cheers!",
+  "ru": "Приятного прослушивания!",
+  "ru_x": "Приятного прослушивания!"
+ },
+ "cancel": {
+  "en": "Cancel",
+  "ru": "Отмена"
+ },
+ "cd_back": {
+  "en": "Back",
+  "ru": "Назад"
+ },
+ "cd_next_track": {
+  "en": "Next track",
+  "ru": "Следующий трек"
+ },
+ "cd_pause": {
+  "en": "Pause",
+  "ru": "Пауза"
+ },
+ "cd_play": {
+  "en": "Play",
+  "ru": "Играть"
+ },
+ "cd_previous_track": {
+  "en": "Previous track",
+  "ru": "Предыдущий трек"
+ },
+ "clear": {
+  "en": "Clear",
+  "ru": "Очистить"
+ },
+ "close": {
+  "en": "Close",
+  "ru": "Закрыть"
+ },
+ "create": {
+  "en": "Create",
+  "ru": "Создать"
+ },
+ "create_playlist": {
+  "en": "Create playlist",
+  "ru": "Создать плейлист"
+ },
+ "daypart_afternoon": {
+  "en": "in the afternoon",
+  "ru": "днём"
+ },
+ "daypart_evening": {
+  "en": "in the evening",
+  "ru": "вечером"
+ },
+ "daypart_morning": {
+  "en": "in the morning",
+  "ru": "утром"
+ },
+ "daypart_night": {
+  "en": "at night",
+  "ru": "ночью"
+ },
+ "delete": {
+  "en": "Delete",
+  "ru": "Удалить"
+ },
+ "delete_playlist": {
+  "en": "Delete playlist",
+  "ru": "Удалить плейлист"
+ },
+ "delete_playlist_msg": {
+  "en": "The tracks themselves stay in the library.",
+  "en_x": "The tracks themselves stay put in the library.",
+  "ru": "Сами треки останутся в медиатеке.",
+  "ru_x": "Песни никуда не денутся — останутся в медиатеке."
+ },
+ "delete_playlist_q": {
+  "en": "Delete the playlist «%1$s»?",
+  "ru": "Удалить плейлист «%1$s»?"
+ },
+ "device_external": {
+  "en": "External device",
+  "ru": "Внешнее устройство"
+ },
+ "device_headphones": {
+  "en": "Headphones",
+  "ru": "Наушники"
+ },
+ "device_usb_audio": {
+  "en": "USB audio",
+  "ru": "USB-аудио"
+ },
+ "device_usb_headphones": {
+  "en": "USB headphones",
+  "ru": "USB-наушники"
+ },
+ "disc_n": {
+  "en": "Disc %1$s",
+  "ru": "Диск %1$s"
+ },
+ "drag": {
+  "en": "Drag",
+  "ru": "Перетащить"
+ },
+ "endless_play": {
+  "en": "Endless play",
+  "ru": "Бесконечное воспроизведение"
+ },
+ "font_note": {
+  "en": "Not every font has the letters of every language — missing ones are taken from the phone's font.",
+  "ru": "Не во всех шрифтах есть буквы любого языка — недостающие берутся из шрифта телефона."
+ },
+ "font_system": {
+  "en": "System",
+  "ru": "Системный"
+ },
+ "go_to_album": {
+  "en": "Go to album",
+  "ru": "Перейти к альбому"
+ },
+ "go_to_artist": {
+  "en": "Go to artist",
+  "ru": "Перейти к исполнителю"
+ },
+ "hello_1": {
+  "en": "Greetings!",
+  "en_x": "Greetings!",
+  "ru": "Приветствую!",
+  "ru_x": "Приветствую!"
+ },
+ "hello_2": {
+  "en": "I'm Lumine, a music player.",
+  "en_x": "I'm Lumine — a music player, at your service.",
+  "ru": "Я — Lumine, музыкальный плеер.",
+  "ru_x": "Я — Lumine, музыкальный плеер. Очень приятно!"
+ },
+ "hello_3": {
+  "en": "I play music straight from the phone — no internet, no subscriptions.",
+  "en_x": "I play music straight off the phone — no internet, no subscriptions, no fuss.",
+  "ru": "Играю музыку прямо с телефона — без интернета и подписок.",
+  "ru_x": "Играю музыку прямо с телефона — без интернета, подписок и лишней суеты."
+ },
+ "hello_4": {
+  "en": "I show song lyrics, make mixes and weekly recaps, and pick music for the mood.",
+  "en_x": "I show lyrics, whip up mixes and weekly recaps, and find music for any mood.",
+  "ru": "Показываю тексты песен, собираю миксы и итоги недели, подбираю музыку под настроение.",
+  "ru_x": "Показываю тексты песен, собираю миксы и итоги недели, подбираю музыку под любое настроение."
+ },
+ "hello_5": {
+  "en": "A couple of steps — and it's time to listen.",
+  "en_x": "Just a couple of steps — and off we go.",
+  "ru": "Пара шагов — и можно слушать.",
+  "ru_x": "Пара шагов — и поехали!"
+ },
+ "hide_romanization": {
+  "en": "Hide romanization",
+  "ru": "Скрыть романизацию"
+ },
+ "home_quick_picks": {
+  "en": "Quick picks",
+  "ru": "Quick picks"
+ },
+ "home_recently_added": {
+  "en": "Recently added",
+  "ru": "Recently added"
+ },
+ "in_lyrics": {
+  "en": "In lyrics",
+  "ru": "В тексте песен"
+ },
+ "info": {
+  "en": "Info",
+  "ru": "Информация"
+ },
+ "info_artist": {
+  "en": "Artist",
+  "ru": "Исполнитель"
+ },
+ "info_artists": {
+  "en": "Artists",
+  "ru": "Исполнители"
+ },
+ "info_bitrate": {
+  "en": "Bitrate",
+  "ru": "Битрейт"
+ },
+ "info_details": {
+  "en": "Details",
+  "ru": "Подробности"
+ },
+ "info_disc": {
+  "en": "Disc",
+  "ru": "Диск"
+ },
+ "info_file": {
+  "en": "File",
+  "ru": "Файл"
+ },
+ "info_genre": {
+  "en": "Genre",
+  "ru": "Жанр"
+ },
+ "info_in_playlists": {
+  "en": "In playlists",
+  "ru": "В плейлистах"
+ },
+ "info_length": {
+  "en": "Length",
+  "ru": "Длительность"
+ },
+ "info_mime": {
+  "en": "MIME type",
+  "ru": "MIME-тип"
+ },
+ "info_no_playlists": {
+  "en": "Not in any playlist",
+  "ru": "Ни в одном плейлисте"
+ },
+ "info_path": {
+  "en": "Path",
+  "ru": "Путь"
+ },
+ "info_sample_rate": {
+  "en": "Sample rate",
+  "ru": "Частота"
+ },
+ "info_size": {
+  "en": "Size",
+  "ru": "Размер"
+ },
+ "info_track_number": {
+  "en": "Track number",
+  "ru": "Номер трека"
+ },
+ "info_year": {
+  "en": "Year",
+  "ru": "Год выпуска"
+ },
+ "lang_choose": {
+  "en": "Choose a language",
+  "ru": "Выбор языка"
+ },
+ "lang_expressive": {
+  "en": "expressive",
+  "ru": "экспрессивный"
+ },
+ "lang_expressive_chip": {
+  "en": "Expressive",
+  "ru": "Экспрессивный"
+ },
+ "lang_expressive_hint": {
+  "en": "The same, just livelier and friendlier",
+  "ru": "То же самое, только живее и дружелюбнее"
+ },
+ "lang_plain_chip": {
+  "en": "Plain",
+  "ru": "Обычный"
+ },
+ "light_concrete": {
+  "en": "Concrete",
+  "ru": "Бетон"
+ },
+ "light_soft": {
+  "en": "Between",
+  "ru": "Между"
+ },
+ "light_white": {
+  "en": "White",
+  "ru": "Белый"
+ },
+ "lyrics": {
+  "en": "Lyrics",
+  "ru": "Текст песни"
+ },
+ "lyrics_indexing": {
+  "en": "Lyrics are still being collected (%1$d of %2$d) — not everything can be found by lyrics yet",
+  "en_x": "Lyrics still being gathered (%1$d of %2$d) — not everything turns up by the words just yet",
+  "ru": "Тексты песен ещё собираются (%1$d из %2$d) — по тексту найдётся пока не всё",
+  "ru_x": "Тексты ещё собираются (%1$d из %2$d) — по словам пока найдётся не всё"
+ },
+ "lyrics_not_found": {
+  "en": "No lyrics found for this track",
+  "en_x": "No words for this one — just the tune",
+  "ru": "Текст для этого трека не найден",
+  "ru_x": "Слов не нашлось — только музыка"
+ },
+ "mix_artist": {
+  "en": "Mix: %1$s",
+  "ru": "Микс: %1$s"
+ },
+ "mix_daypart_afternoon": {
+  "en": "Afternoon mix",
+  "ru": "Дневной микс"
+ },
+ "mix_daypart_evening": {
+  "en": "Evening mix",
+  "ru": "Вечерний микс"
+ },
+ "mix_daypart_morning": {
+  "en": "Morning mix",
+  "ru": "Утренний микс"
+ },
+ "mix_daypart_night": {
+  "en": "Night mix",
+  "ru": "Ночной микс"
+ },
+ "mix_decade": {
+  "en": "The %1$ds",
+  "ru": "%1$d-е"
+ },
+ "mix_deep": {
+  "en": "Deep cuts",
+  "ru": "Глубокие треки"
+ },
+ "mix_favorites": {
+  "en": "Favorites",
+  "ru": "Любимое"
+ },
+ "mix_forgotten": {
+  "en": "Not heard in a while",
+  "ru": "Давно не слушал"
+ },
+ "mix_fresh": {
+  "en": "New and untried",
+  "ru": "Новое, не опробованное"
+ },
+ "mix_genre": {
+  "en": "%1$s mix",
+  "ru": "%1$s-микс"
+ },
+ "mix_label": {
+  "en": "Mix",
+  "ru": "Микс"
+ },
+ "mix_repeat": {
+  "en": "On repeat",
+  "ru": "На повторе"
+ },
+ "mix_updates_daily": {
+  "en": "updated every day",
+  "en_x": "fresh every day",
+  "ru": "обновляется каждый день",
+  "ru_x": "свежий каждый день"
+ },
+ "mixes_collecting": {
+  "en": "Collecting listening stats: %1$d of %2$d days. Mixes will appear once there's enough.",
+  "en_x": "Getting to know the taste: %1$d of %2$d days. Mixes on their way!",
+  "ru": "Идёт сбор статистики прослушиваний: %1$d из %2$d дней. Миксы появятся, когда наберётся база.",
+  "ru_x": "Прислушиваюсь к вкусу: %1$d из %2$d дней. Миксы уже на подходе!"
+ },
+ "mixes_for_you": {
+  "en": "Mixes for you",
+  "ru": "Миксы для тебя"
+ },
+ "mixes_nothing_yet": {
+  "en": "Nothing to make mixes from yet — a little more listening is needed.",
+  "en_x": "Not enough to mix yet — a spot more listening will sort it",
+  "ru": "Пока не из чего собрать миксы — нужно ещё немного прослушиваний.",
+  "ru_x": "Миксам пока не из чего собраться — ещё немного музыки, и всё будет"
+ },
+ "mood_cry": {
+  "en": "Cry",
+  "en_x": "Weepy",
+  "ru": "Поплакать"
+ },
+ "mood_cry_subtitle": {
+  "en": "Slow and piercing",
+  "ru": "Медленное и пронзительное"
+ },
+ "mood_happy": {
+  "en": "Happy",
+  "en_x": "Buzzing",
+  "ru": "Весёлое"
+ },
+ "mood_happy_subtitle": {
+  "en": "Upbeat and bright genres",
+  "ru": "Бодрые и яркие жанры"
+ },
+ "mood_loud": {
+  "en": "Loud",
+  "en_x": "Full Blast",
+  "ru": "Громкое"
+ },
+ "mood_loud_subtitle": {
+  "en": "Energetic and driving",
+  "ru": "Энергичное и драйвовое"
+ },
+ "mood_normal": {
+  "en": "Normal",
+  "en_x": "Mixed Bag",
+  "ru": "Обычное"
+ },
+ "mood_normal_subtitle": {
+  "en": "A bit of everything from the library",
+  "ru": "Всё подряд из медиатеки"
+ },
+ "mood_sad": {
+  "en": "Sad",
+  "en_x": "Gloomy",
+  "ru": "Грустное"
+ },
+ "mood_sad_subtitle": {
+  "en": "Quieter and more lyrical",
+  "ru": "Тише и лиричнее"
+ },
+ "music_access_needed": {
+  "en": "Access to the music on this device is needed",
+  "en_x": "Without access to the music, it's rather quiet in here",
+  "ru": "Нужен доступ к музыке на устройстве",
+  "ru_x": "Без доступа к музыке тут будет тихо"
+ },
+ "name": {
+  "en": "Name",
+  "ru": "Название"
+ },
+ "new_playlist": {
+  "en": "New playlist",
+  "ru": "Новый плейлист"
+ },
+ "no": {
+  "en": "No",
+  "ru": "Нет"
+ },
+ "no_album": {
+  "en": "No album",
+  "ru": "Без альбома"
+ },
+ "no_playlists": {
+  "en": "No playlists yet — the first one is made with the «+» at the top",
+  "en_x": "No playlists yet — the «+» at the top will sort that out",
+  "ru": "Плейлистов пока нет — первый создаётся значком «+» сверху",
+  "ru_x": "Плейлистов ещё нет — «+» сверху это исправит"
+ },
+ "no_track_chosen": {
+  "en": "No track chosen",
+  "en_x": "Time to pop something on",
+  "ru": "Трек не выбран",
+  "ru_x": "Самое время что-нибудь включить"
+ },
+ "no_tracks_found": {
+  "en": "No tracks found",
+  "en_x": "Not a single track about",
+  "ru": "Треки не найдены",
+  "ru_x": "Ни одного трека"
+ },
+ "nothing_found": {
+  "en": "Nothing found",
+  "en_x": "Nothing turned up",
+  "ru": "Ничего не найдено",
+  "ru_x": "Ничего не нашлось"
+ },
+ "nothing_playing": {
+  "en": "Nothing playing",
+  "en_x": "Nothing on at the moment",
+  "ru": "Ничего не играет",
+  "ru_x": "Тишина…"
+ },
+ "onb_allow": {
+  "en": "Allow",
+  "ru": "Разрешить"
+ },
+ "onb_folders_text": {
+  "en": "Music folders can be picked here — then ringtones, voice notes and other sounds stay out of the library. With nothing picked, everything is found.",
+  "en_x": "Music folders can be picked here — then ringtones and voice notes won't barge into the library. Pick nothing, and everything is found.",
+  "ru": "Можно отметить папки с музыкой — тогда рингтоны, голосовые и прочие звуки не попадут в медиатеку. Если ничего не отмечать, найдётся всё.",
+  "ru_x": "Можно отметить папки с музыкой — тогда рингтоны и голосовые не пролезут в медиатеку. Если ничего не отмечать, найдётся всё."
+ },
+ "onb_folders_title": {
+  "en": "Where the music lives",
+  "ru": "Где лежит музыка"
+ },
+ "onb_later": {
+  "en": "Later",
+  "ru": "Позже"
+ },
+ "onb_look_text": {
+  "en": "All of this, plus colours, fonts and icons, can be changed later in the settings.",
+  "en_x": "All of this — plus colours, fonts and icons — can be tweaked later in the settings.",
+  "ru": "Всё это, а ещё цвета, шрифты и иконки, потом меняется в настройках.",
+  "ru_x": "Всё это — и ещё цвета, шрифты и иконки — потом можно подкрутить в настройках."
+ },
+ "onb_look_title": {
+  "en": "Look",
+  "ru": "Внешний вид"
+ },
+ "onb_music_text": {
+  "en": "To find the songs, access to the music on this device is needed. Files never leave it — everything stays here.",
+  "en_x": "To find the songs, access to the music on this phone is needed. Nothing leaves it — promise.",
+  "ru": "Чтобы найти песни, нужен доступ к музыке на устройстве. Файлы никуда не отправляются — всё остаётся здесь.",
+  "ru_x": "Чтобы найти песни, нужен доступ к музыке на телефоне. Всё остаётся здесь — честно-честно."
+ },
+ "onb_music_title": {
+  "en": "Music on the phone",
+  "ru": "Музыка на телефоне"
+ },
+ "onb_next": {
+  "en": "Next",
+  "ru": "Далее"
+ },
+ "onb_not_now": {
+  "en": "Not now",
+  "ru": "Не сейчас"
+ },
+ "onb_notif_text": {
+  "en": "To control the music from the lock screen and the notification shade.",
+  "en_x": "To run the music from the lock screen and the notification shade.",
+  "ru": "Чтобы управлять музыкой с экрана блокировки и из шторки уведомлений.",
+  "ru_x": "Чтобы рулить музыкой с экрана блокировки и из шторки уведомлений."
+ },
+ "onb_notif_title": {
+  "en": "Notifications",
+  "ru": "Уведомления"
+ },
+ "onb_player": {
+  "en": "Player",
+  "ru": "Плеер"
+ },
+ "onb_player_classic_hint": {
+  "en": "Calm, in the spirit of Apple Music: cover, lyrics and queue all in one place.",
+  "ru": "Спокойный, в духе Apple Music: обложка, текст и очередь в одном месте."
+ },
+ "onb_player_expressive_hint": {
+  "en": "Bold, in the spirit of Material: big buttons, a wavy bar and the queue at the bottom.",
+  "ru": "Смелый, в духе Material: крупные кнопки, волнистая полоса и очередь снизу."
+ },
+ "onb_start": {
+  "en": "Start",
+  "ru": "Начать"
+ },
+ "onb_tap_to_continue": {
+  "en": "Tap the screen to go on",
+  "en_x": "Tap the screen to carry on",
+  "ru": "Нажатие по экрану — дальше",
+  "ru_x": "Нажатие по экрану — дальше"
+ },
+ "onb_tap_to_start": {
+  "en": "Tap the screen to begin",
+  "en_x": "Tap the screen and off we go",
+  "ru": "Нажатие по экрану — начать",
+  "ru_x": "Нажатие по экрану — и поехали"
+ },
+ "onb_theme": {
+  "en": "Theme",
+  "ru": "Тема"
+ },
+ "output_device": {
+  "en": "Playback device",
+  "ru": "Устройство воспроизведения"
+ },
+ "play_next": {
+  "en": "Play next",
+  "ru": "Играть следующим"
+ },
+ "player_classic": {
+  "en": "Classic",
+  "ru": "Классический"
+ },
+ "player_expressive": {
+  "en": "Expressive",
+  "ru": "Экспрессивный"
+ },
+ "playing_from": {
+  "en": "Playing from ",
+  "ru": "Играет из "
+ },
+ "playing_from_queue": {
+  "en": "the queue",
+  "ru": "очереди"
+ },
+ "playlist_actions": {
+  "en": "Playlist actions",
+  "ru": "Действия с плейлистом"
+ },
+ "playlist_empty": {
+  "en": "No tracks in this playlist yet",
+  "en_x": "Nothing here yet — plenty of room for good tunes",
+  "ru": "В плейлисте пока нет треков",
+  "ru_x": "Тут пока пусто — самое место для хороших песен"
+ },
+ "playlists": {
+  "en": "Playlists",
+  "ru": "Плейлисты"
+ },
+ "plays_count": {
+  "en": {
+   "one": "%d play",
+   "other": "%d plays"
+  },
+  "plural": true,
+  "ru": {
+   "few": "%d прослушивания",
+   "many": "%d прослушиваний",
+   "one": "%d прослушивание",
+   "other": "%d прослушивания"
+  }
+ },
+ "plays_word": {
+  "en": {
+   "one": "play",
+   "other": "plays"
+  },
+  "plural": true,
+  "ru": {
+   "few": "прослушивания",
+   "many": "прослушиваний",
+   "one": "прослушивание",
+   "other": "прослушивания"
+  }
+ },
+ "queue": {
+  "en": "Queue",
+  "ru": "Очередь"
+ },
+ "quick_picks_empty": {
+  "en": "Frequently played tracks will show up here",
+  "en_x": "The favourites will turn up here soon",
+  "ru": "Здесь появятся часто прослушиваемые треки",
+  "ru_x": "Любимчики скоро появятся здесь"
+ },
+ "recap_busiest_day": {
+  "en": "Most musical day",
+  "en_x": "The most musical day",
+  "ru": "Самый музыкальный день",
+  "ru_x": "Самый музыкальный день"
+ },
+ "recap_busiest_part": {
+  "en": "Most music",
+  "en_x": "Mostly listening",
+  "ru": "Больше всего музыки",
+  "ru_x": "Больше всего музыки"
+ },
+ "recap_first_at": {
+  "en": "The first recap will show up on Monday, %1$s — after the first full week of listening.",
+  "en_x": "The first weekly recap lands on Monday, %1$s — after a full week of listening. Rather exciting!",
+  "ru": "Первые итоги появятся в понедельник, %1$s — после первой полной недели прослушиваний.",
+  "ru_x": "Первые итоги недели — в понедельник, %1$s, после полной недели прослушиваний. Интересно же, что получится!"
+ },
+ "recap_forgotten": {
+  "en": "Not played in a while",
+  "en_x": "Not heard in ages",
+  "ru": "Давно не звучало",
+  "ru_x": "Давненько не звучало"
+ },
+ "recap_how": {
+  "en": "How the week went",
+  "en_x": "How the week sounded",
+  "ru": "Как прошла неделя",
+  "ru_x": "Какой была неделя"
+ },
+ "recap_most_played": {
+  "en": "Most played: «%1$s» — %2$s.",
+  "en_x": "On heavy rotation: «%1$s» — %2$s.",
+  "ru": "Больше всего заслушана «%1$s» — %2$s.",
+  "ru_x": "Заслушано до дыр: «%1$s» — %2$s."
+ },
+ "recap_new_in_library": {
+  "en": "New in the library",
+  "en_x": "Fresh in the library",
+  "ru": "Новое в медиатеке",
+  "ru_x": "Свежее в медиатеке"
+ },
+ "recap_of_music": {
+  "en": "of music",
+  "ru": "музыки"
+ },
+ "recap_top_artist": {
+  "en": "Top artist: %1$s",
+  "en_x": "Star of the week: %1$s",
+  "ru": "Главный артист: %1$s",
+  "ru_x": "Главный герой недели: %1$s"
+ },
+ "recap_top_artists": {
+  "en": "Top artists",
+  "ru": "Топ артистов"
+ },
+ "recap_top_genre": {
+  "en": "Genre of the week",
+  "ru": "Любимый жанр недели"
+ },
+ "recap_top_songs": {
+  "en": "Top songs",
+  "ru": "Топ песен"
+ },
+ "recently_added": {
+  "en": "Recently added",
+  "ru": "Недавно добавленные"
+ },
+ "remove": {
+  "en": "Remove",
+  "ru": "Убрать"
+ },
+ "remove_from_playlist": {
+  "en": "Remove from playlist",
+  "ru": "Убрать из плейлиста"
+ },
+ "rename": {
+  "en": "Rename",
+  "ru": "Переименовать"
+ },
+ "rename_playlist": {
+  "en": "Rename playlist",
+  "ru": "Переименовать плейлист"
+ },
+ "repeat": {
+  "en": "Repeat",
+  "ru": "Повтор"
+ },
+ "sat_muted": {
+  "en": "Muted",
+  "ru": "Приглушённый"
+ },
+ "sat_normal": {
+  "en": "Normal",
+  "ru": "Обычный"
+ },
+ "save": {
+  "en": "Save",
+  "ru": "Сохранить"
+ },
+ "save_to_my_playlists": {
+  "en": "Save to my playlists",
+  "ru": "Сохранить в мои плейлисты"
+ },
+ "saved_to_playlists": {
+  "en": "Saved to playlists",
+  "en_x": "Saved — tucked away in the playlists",
+  "ru": "Сохранено в плейлисты",
+  "ru_x": "Сохранено — теперь живёт в плейлистах"
+ },
+ "search_albums": {
+  "en": "Search albums",
+  "ru": "Поиск по альбомам"
+ },
+ "search_artists": {
+  "en": "Search artists",
+  "ru": "Поиск по артистам"
+ },
+ "search_hint": {
+  "en": "Title, artist, a line from a song",
+  "ru": "Название, исполнитель, строчка из песни"
+ },
+ "search_placeholder": {
+  "en": "Search",
+  "ru": "Поиск"
+ },
+ "search_playlist": {
+  "en": "Search in the playlist",
+  "ru": "Поиск в плейлисте"
+ },
+ "search_start_typing": {
+  "en": "Search for a track, artist, album or a line from a song",
+  "en_x": "A track, an artist, an album or a line from a song — it'll turn up",
+  "ru": "Поиск трека, исполнителя, альбома или строчки из песни",
+  "ru_x": "Трек, исполнитель, альбом или строчка из песни — найдётся всё"
+ },
+ "search_title_artist_album": {
+  "en": "Title, artist, album",
+  "ru": "Название, исполнитель, альбом"
+ },
+ "search_tracks": {
+  "en": "Search tracks",
+  "ru": "Поиск по трекам"
+ },
+ "set_about": {
+  "en": "About",
+  "ru": "О приложении"
+ },
+ "set_about_sub": {
+  "en": "Version, licenses, the welcome screens",
+  "ru": "Версия, лицензии, приветствие"
+ },
+ "set_accent": {
+  "en": "Accent colour",
+  "ru": "Акцентный цвет"
+ },
+ "set_accent_desc": {
+  "en": "Buttons, sliders, switches and the selected tab",
+  "ru": "Кнопки, ползунки, переключатели и выбранная вкладка"
+ },
+ "set_accent_mono": {
+  "en": "Monochrome — no coloured accent",
+  "ru": "Монохром — без цветного акцента"
+ },
+ "set_app_section": {
+  "en": "App",
+  "ru": "Приложение"
+ },
+ "set_appearance": {
+  "en": "Appearance",
+  "ru": "Внешний вид"
+ },
+ "set_appearance_sub": {
+  "en": "Theme, accent, icons, font, text size",
+  "ru": "Тема, акцент, иконки, шрифт, размер текста"
+ },
+ "set_artist_name": {
+  "en": "Artist name",
+  "ru": "Название исполнителя"
+ },
+ "set_bg_mode": {
+  "en": "Background mode",
+  "ru": "Режим фона"
+ },
+ "set_bg_mode_desc": {
+  "en": "How the player's background looks — the same behind the cover, lyrics and queue.",
+  "ru": "Как выглядит фон плеера — одинаково за обложкой, текстом и очередью."
+ },
+ "set_bg_sub": {
+  "en": "Live blur, static blur or no blur",
+  "ru": "Живой блюр, статичный блюр или без блюра"
+ },
+ "set_dark_bg": {
+  "en": "Dark theme background",
+  "ru": "Фон тёмной темы"
+ },
+ "set_dont_split": {
+  "en": "Don't split",
+  "ru": "Не делить"
+ },
+ "set_endless": {
+  "en": "Endless play",
+  "ru": "«Бесконечное» воспроизведение"
+ },
+ "set_endless_desc": {
+  "en": "When the queue is running out and the \"∞\" button is on in the player — what to top it up with.",
+  "ru": "Когда очередь подходит к концу, а в плеере включена кнопка \"∞\" — чем её подмешивать."
+ },
+ "set_endless_genre": {
+  "en": "By genre (radio)",
+  "ru": "По жанру (радио)"
+ },
+ "set_endless_random": {
+  "en": "Random",
+  "ru": "Случайно"
+ },
+ "set_equalizer": {
+  "en": "Equalizer",
+  "ru": "Эквалайзер"
+ },
+ "set_equalizer_sub": {
+  "en": "Open the system one or an installed one",
+  "ru": "Открыть системный или установленный"
+ },
+ "set_folders_after_scan": {
+  "en": "Folders will show up here after the library is scanned.",
+  "ru": "Папки появятся здесь после сканирования медиатеки."
+ },
+ "set_font": {
+  "en": "Font",
+  "ru": "Шрифт"
+ },
+ "set_general": {
+  "en": "General",
+  "ru": "Общие"
+ },
+ "set_general_sub": {
+  "en": "Start tab, splitting artists",
+  "ru": "Вкладка при запуске, деление исполнителей"
+ },
+ "set_icons": {
+  "en": "Icons",
+  "ru": "Иконки"
+ },
+ "set_icons_lucide": {
+  "en": "Soft and rounded — closer to GNOME",
+  "ru": "Мягкие и скруглённые — ближе к GNOME"
+ },
+ "set_icons_tabler": {
+  "en": "Thinner and crisper — closer to Apple Music",
+  "ru": "Тоньше и чётче — ближе к Apple Music"
+ },
+ "set_kept_artists": {
+  "en": "Artists",
+  "ru": "Исполнители"
+ },
+ "set_kept_explain": {
+  "en": "When a song has several artists joined by «&», a comma, «feat.» and so on, it shows up under each of them. Band names that simply contain such signs («Earth, Wind & Fire», «AC/DC») are recognised and kept whole anyway. If a band still gets split, it can be added here.",
+  "en_x": "When a song has several artists joined by «&», a comma, «feat.» and the like, it turns up under each of them. Bands that simply have such signs in their names («Earth, Wind & Fire», «AC/DC») are recognised and kept in one piece. If a band still gets split, it can go here.",
+  "ru": "Если у песни несколько исполнителей через «&», запятую, «feat.» и т. п., она появляется у каждого из них. Названия групп, в которых такие знаки просто есть («Earth, Wind & Fire», «AC/DC»), плеер и так узнаёт и не делит. Если группу всё-таки разделило, её можно добавить сюда."
+ },
+ "set_kept_sub": {
+  "en": "Who not to split into several artists",
+  "ru": "Кого не делить на нескольких исполнителей"
+ },
+ "set_kept_title": {
+  "en": "Whole artists",
+  "ru": "Исполнители целиком"
+ },
+ "set_language": {
+  "en": "Language",
+  "ru": "Язык"
+ },
+ "set_language_sub": {
+  "en": "The app's language and tone",
+  "ru": "Язык и тон приложения"
+ },
+ "set_library": {
+  "en": "Library",
+  "ru": "Библиотека"
+ },
+ "set_library_sub": {
+  "en": "Scanning and music folders",
+  "ru": "Сканирование и папки с музыкой"
+ },
+ "set_light_bg": {
+  "en": "Light theme background",
+  "ru": "Фон светлой темы"
+ },
+ "set_mood_explain": {
+  "en": "Picking by the genre from the file's tags isn't always accurate — tags can be incomplete or not reflect the mood at all. Below, library folders can be marked as one mood or another — this adds to the genre rather than replacing it.",
+  "ru": "Подбор по жанру из тегов файла не всегда точный: теги бывают неполными или вовсе не отражают настроение. Ниже можно отметить, какие папки библиотеки считать тем или иным настроением — это добавится к жанру, а не заменит его."
+ },
+ "set_mood_sub": {
+  "en": "Which folders count as which mood",
+  "ru": "Какие папки считать каким настроением"
+ },
+ "set_no_folders_yet": {
+  "en": "No folders found yet — the library needs a rescan.",
+  "ru": "Папки ещё не найдены — нужно пересканировать медиатеку."
+ },
+ "set_playback": {
+  "en": "Playback",
+  "ru": "Воспроизведение"
+ },
+ "set_playback_sub": {
+  "en": "Equalizer, endless play",
+  "ru": "Эквалайзер, «бесконечное» воспроизведение"
+ },
+ "set_player_background": {
+  "en": "Player background",
+  "ru": "Фон плеера"
+ },
+ "set_player_classic_desc": {
+  "en": "Rounded cover, volume slider; lyrics and queue open in place of the cover",
+  "ru": "Скруглённая обложка, громкость; текст и очередь открываются на месте обложки"
+ },
+ "set_player_expressive_desc": {
+  "en": "Big rounded cover, wavy bar, chunky buttons, queue in a pull-up sheet",
+  "ru": "Большая скруглённая обложка, волнистая полоса, крупные кнопки, очередь в выдвижной шторке"
+ },
+ "set_player_style": {
+  "en": "Player style",
+  "ru": "Стиль плеера"
+ },
+ "set_player_sub": {
+  "en": "Style, background, lyrics",
+  "ru": "Стиль, фон, текст песни"
+ },
+ "set_rescan": {
+  "en": "Rescan the library",
+  "ru": "Пересканировать медиатеку"
+ },
+ "set_saturation": {
+  "en": "Saturation",
+  "ru": "Насыщенность"
+ },
+ "set_scan_all": {
+  "en": "Nothing picked — everything the system considers music is scanned (ringtones and notification sounds sometimes sneak in). With folders picked, only those are scanned.",
+  "ru": "Ничего не выбрано — сканируется всё, что система считает музыкой (иногда туда попадают рингтоны и уведомления). Если отметить папки, сканироваться будут только они."
+ },
+ "set_scan_folders": {
+  "en": "Folders to scan",
+  "ru": "Какие папки сканировать"
+ },
+ "set_scan_picked": {
+  "en": "Only the picked folders and everything in them (subfolders included) are scanned.",
+  "ru": "Сканируются только выбранные папки и всё, что лежит в них (включая подпапки)."
+ },
+ "set_show_welcome": {
+  "en": "Show the welcome again",
+  "ru": "Показать приветствие снова"
+ },
+ "set_split_now": {
+  "en": "Currently split into several artists",
+  "ru": "Сейчас делятся на нескольких исполнителей"
+ },
+ "set_start_tab": {
+  "en": "Open on start",
+  "ru": "Открывать при запуске"
+ },
+ "set_tap_plays": {
+  "en": "Tapping a lyric line starts the music",
+  "ru": "Нажатие на строку текста включает музыку"
+ },
+ "set_tap_plays_sub": {
+  "en": "When the song is paused: jump to the line and carry on playing right away",
+  "ru": "Если песня на паузе: перемотать к строке и сразу продолжить воспроизведение"
+ },
+ "set_tap_to_show": {
+  "en": "%1$s · tap to show the text",
+  "ru": "%1$s · текст — по нажатию"
+ },
+ "set_text_size": {
+  "en": "Text size",
+  "ru": "Размер текста"
+ },
+ "set_third_party": {
+  "en": "Third-party components",
+  "ru": "Сторонние компоненты"
+ },
+ "set_tracks_found": {
+  "en": "Tracks found: %1$d",
+  "ru": "Треков найдено: %1$d"
+ },
+ "set_version": {
+  "en": "Version %1$s",
+  "ru": "Версия %1$s"
+ },
+ "settings": {
+  "en": "Settings",
+  "ru": "Настройки"
+ },
+ "share": {
+  "en": "Share",
+  "ru": "Поделиться"
+ },
+ "show_romanization": {
+  "en": "Show romanization",
+  "ru": "Показать романизацию"
+ },
+ "shuffle": {
+  "en": "Shuffle",
+  "ru": "Перемешать"
+ },
+ "songs_count": {
+  "en": {
+   "one": "%d song",
+   "other": "%d songs"
+  },
+  "plural": true,
+  "ru": {
+   "few": "%d песни",
+   "many": "%d песен",
+   "one": "%d песня",
+   "other": "%d песни"
+  }
+ },
+ "songs_in_library": {
+  "en": {
+   "one": "song in the library",
+   "other": "songs in the library"
+  },
+  "plural": true,
+  "ru": {
+   "few": "песни в медиатеке",
+   "many": "песен в медиатеке",
+   "one": "песня в медиатеке",
+   "other": "песни в медиатеке"
+  }
+ },
+ "sort_added_order": {
+  "en": "In the order added",
+  "ru": "В порядке добавления"
+ },
+ "sort_by_artist": {
+  "en": "By artist",
+  "ru": "По артисту"
+ },
+ "sort_by_count": {
+  "en": "By number of tracks",
+  "ru": "По числу треков"
+ },
+ "sort_by_name": {
+  "en": "Alphabetical",
+  "ru": "По алфавиту"
+ },
+ "sort_by_title": {
+  "en": "By title",
+  "ru": "По названию"
+ },
+ "sort_mode": {
+  "en": "Sorting: %1$s",
+  "ru": "Сортировка: %1$s"
+ },
+ "sort_recent": {
+  "en": "Recently added",
+  "ru": "Недавно добавленные"
+ },
+ "sort_recent_library": {
+  "en": "Recently added to the library",
+  "ru": "Недавно добавленные в медиатеку"
+ },
+ "sort_release_date": {
+  "en": "By release date",
+  "ru": "По дате выпуска"
+ },
+ "tab_home": {
+  "en": "Home",
+  "ru": "Главная"
+ },
+ "tab_library": {
+  "en": "Library",
+  "ru": "Медиатека"
+ },
+ "tab_mood": {
+  "en": "Mood",
+  "ru": "Настроение"
+ },
+ "tab_search": {
+  "en": "Search",
+  "ru": "Поиск"
+ },
+ "theme_dark": {
+  "en": "Dark",
+  "ru": "Тёмная"
+ },
+ "theme_light": {
+  "en": "Light",
+  "ru": "Светлая"
+ },
+ "theme_system": {
+  "en": "Like the system",
+  "ru": "Как в системе"
+ },
+ "this_device": {
+  "en": "This device",
+  "ru": "Это устройство"
+ },
+ "times_count": {
+  "en": {
+   "one": "%d time",
+   "other": "%d times"
+  },
+  "plural": true,
+  "ru": {
+   "few": "%d раза",
+   "many": "%d раз",
+   "one": "%d раз",
+   "other": "%d раза"
+  }
+ },
+ "track_actions": {
+  "en": "Track actions",
+  "ru": "Действия с треком"
+ },
+ "tracks": {
+  "en": "Tracks",
+  "ru": "Треки"
+ },
+ "tracks_count": {
+  "en": {
+   "one": "%d track",
+   "other": "%d tracks"
+  },
+  "plural": true,
+  "ru": {
+   "few": "%d трека",
+   "many": "%d треков",
+   "one": "%d трек",
+   "other": "%d трека"
+  }
+ },
+ "unit_hours_approx": {
+  "en": "≈ %1$.1f h",
+  "ru": "≈ %1$.1f ч"
+ },
+ "unit_kb": {
+  "en": "%1$d KB",
+  "ru": "%1$d КБ"
+ },
+ "unit_kbps": {
+  "en": "%1$d kbps",
+  "ru": "%1$d кбит/с"
+ },
+ "unit_khz": {
+  "en": "%1$.1f kHz",
+  "ru": "%1$.1f кГц"
+ },
+ "unit_mb": {
+  "en": "%1$.1f MB",
+  "ru": "%1$.1f МБ"
+ },
+ "unit_min": {
+  "en": "%1$d min",
+  "ru": "%1$d мин"
+ },
+ "unknown_artist": {
+  "en": "Unknown artist",
+  "ru": "Неизвестный артист"
+ },
+ "untitled": {
+  "en": "Untitled",
+  "ru": "Без названия"
+ },
+ "up_next": {
+  "en": "Up next",
+  "ru": "Далее по очереди"
+ },
+ "view_grid_2": {
+  "en": "Grid (2)",
+  "ru": "Сетка (2)"
+ },
+ "view_grid_3": {
+  "en": "Grid (3)",
+  "ru": "Сетка (3)"
+ },
+ "view_list": {
+  "en": "List",
+  "ru": "Список"
+ },
+ "view_mode": {
+  "en": "View: %1$s",
+  "ru": "Вид: %1$s"
+ },
+ "weekly_recap": {
+  "en": "Weekly recap",
+  "ru": "Итоги недели"
+ },
+ "which_artist": {
+  "en": "Which artist?",
+  "ru": "К какому исполнителю?"
+ }
+}

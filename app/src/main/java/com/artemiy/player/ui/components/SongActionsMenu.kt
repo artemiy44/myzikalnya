@@ -1,5 +1,7 @@
 package com.artemiy.player.ui.components
 
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
 import com.artemiy.player.ui.icons.AppIcons
 import android.content.Intent
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -67,7 +69,7 @@ fun SongActionsMenu(
     Box(modifier = modifier) {
         Icon(
             imageVector = AppIcons.MoreVertical,
-            contentDescription = "Действия с треком",
+            contentDescription = stringResource(R.string.track_actions),
             tint = PlayerColors.TextSecondary,
             modifier = Modifier
                 .size(iconSize)
@@ -128,46 +130,46 @@ private fun SongActionsMenuItems(
     var showInfo by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
-        DropdownMenuItem(
-            text = { Text("Играть следующим") },
-            leadingIcon = { Icon(AppIcons.PlayNext, contentDescription = null) },
+    AppDropdownMenu(expanded = expanded, onDismiss = onDismiss) {
+        AppMenuItem(
+            text = stringResource(R.string.play_next),
+            icon = AppIcons.PlayNext,
             onClick = { onDismiss(); onPlayNext(song) },
         )
-        DropdownMenuItem(
-            text = { Text("Добавить в очередь") },
-            leadingIcon = { Icon(AppIcons.Queue, contentDescription = null) },
+        AppMenuItem(
+            text = stringResource(R.string.add_to_queue),
+            icon = AppIcons.Queue,
             onClick = { onDismiss(); onAddToQueue(song) },
         )
-        DropdownMenuItem(
-            text = { Text("Добавить в плейлист") },
-            leadingIcon = { Icon(AppIcons.AddToPlaylist, contentDescription = null) },
+        AppMenuItem(
+            text = stringResource(R.string.add_to_playlist),
+            icon = AppIcons.AddToPlaylist,
             onClick = { onDismiss(); onAddToPlaylist(song) },
         )
         if (onGoToAlbum != null) {
-            DropdownMenuItem(
-                text = { Text("Перейти к альбому") },
-                leadingIcon = { Icon(AppIcons.Album, contentDescription = null) },
-                onClick = { onDismiss(); onGoToAlbum(song) },
+            AppMenuItem(
+            text = stringResource(R.string.go_to_album),
+            icon = AppIcons.Album,
+            onClick = { onDismiss(); onGoToAlbum(song) },
             )
         }
         if (onGoToArtist != null) {
-            DropdownMenuItem(
-                text = { Text("Перейти к исполнителю") },
-                leadingIcon = { Icon(AppIcons.Artist, contentDescription = null) },
-                onClick = { onDismiss(); onGoToArtist(song) },
+            AppMenuItem(
+            text = stringResource(R.string.go_to_artist),
+            icon = AppIcons.Artist,
+            onClick = { onDismiss(); onGoToArtist(song) },
             )
         }
         if (onRemoveFromPlaylist != null) {
-            DropdownMenuItem(
-                text = { Text("Убрать из плейлиста") },
-                leadingIcon = { Icon(AppIcons.RemoveFromPlaylist, contentDescription = null) },
-                onClick = { onDismiss(); onRemoveFromPlaylist(song) },
+            AppMenuItem(
+            text = stringResource(R.string.remove_from_playlist),
+            icon = AppIcons.RemoveFromPlaylist,
+            onClick = { onDismiss(); onRemoveFromPlaylist(song) },
             )
         }
-        DropdownMenuItem(
-            text = { Text("Поделиться") },
-            leadingIcon = { Icon(AppIcons.Share, contentDescription = null) },
+        AppMenuItem(
+            text = stringResource(R.string.share),
+            icon = AppIcons.Share,
             onClick = {
                 onDismiss()
                 val intent = Intent(Intent.ACTION_SEND).apply {
@@ -178,15 +180,15 @@ private fun SongActionsMenuItems(
                 context.startActivity(Intent.createChooser(intent, song.title))
             },
         )
-        DropdownMenuItem(
-            text = { Text("Информация") },
-            leadingIcon = { Icon(AppIcons.Info, contentDescription = null) },
+        AppMenuItem(
+            text = stringResource(R.string.info),
+            icon = AppIcons.Info,
             onClick = { onDismiss(); showInfo = true },
         )
     }
 
     if (showInfo) {
-        SongInfoDialog(song = song, onDismiss = { showInfo = false })
+        SongInfoSheet(song = song, onDismiss = { showInfo = false })
     }
 }
 
@@ -201,78 +203,3 @@ fun Modifier.songLongPressTrigger(onClick: () -> Unit, onLongPress: () -> Unit):
         onClick = onClick,
         onLongClick = onLongPress,
     )
-
-@Composable
-private fun SongInfoDialog(song: Song, onDismiss: () -> Unit) {
-    Dialog(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(18.dp))
-                .background(PlayerColors.Surface)
-                .padding(20.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "Информация о треке",
-                    color = PlayerColors.TextPrimary,
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
-                Icon(
-                    imageVector = AppIcons.Close,
-                    contentDescription = "Закрыть",
-                    tint = PlayerColors.TextSecondary,
-                    modifier = Modifier
-                        .size(20.dp)
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onDismiss() },
-                )
-            }
-            Column(modifier = Modifier.padding(top = 14.dp)) {
-                InfoRow("Название", song.title)
-                InfoRow("Исполнитель", song.artist)
-                InfoRow("Альбом", song.album.ifBlank { "—" })
-                InfoRow("Жанр", song.genre ?: "—")
-                InfoRow("Год выпуска", song.year?.toString() ?: "—")
-                InfoRow("Длительность", formatDuration(song.durationMs))
-                InfoRow("Папка", song.folder ?: "—")
-            }
-        }
-    }
-}
-
-@Composable
-private fun InfoRow(label: String, value: String) {
-    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-        Text(
-            text = label,
-            color = PlayerColors.TextSecondary,
-            fontSize = 13.sp,
-            modifier = Modifier.weight(1f),
-        )
-        Text(
-            text = value,
-            color = PlayerColors.TextPrimary,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = androidx.compose.ui.text.style.TextAlign.End,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1.4f),
-        )
-    }
-}
-
-private fun formatDuration(ms: Long): String {
-    val totalSeconds = TimeUnit.MILLISECONDS.toSeconds(ms)
-    val minutes = totalSeconds / 60
-    val seconds = totalSeconds % 60
-    return "%d:%02d".format(minutes, seconds)
-}

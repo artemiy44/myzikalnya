@@ -1,5 +1,6 @@
 package com.artemiy.player.ui.theme
 
+import com.artemiy.player.R
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ReadOnlyComposable
@@ -34,6 +35,10 @@ data class PlayerPalette(
 
 val LocalPlayerPalette = staticCompositionLocalOf { NowPlayingPalette }
 
+/** The app's own theme, even inside the player (which swaps in its own palette) — for things that
+ * belong to the app rather than the player, like the track info sheet. */
+val LocalAppPalette = staticCompositionLocalOf { NowPlayingPalette }
+
 /**
  * The current theme's colors. Same names screens have always used — they just follow the theme
  * now instead of being fixed. Readable from any @Composable code.
@@ -43,6 +48,7 @@ object PlayerColors {
     val Surface: Color @Composable @ReadOnlyComposable get() = LocalPlayerPalette.current.surface
     val SurfaceDim: Color @Composable @ReadOnlyComposable get() = LocalPlayerPalette.current.surfaceDim
     val Border: Color @Composable @ReadOnlyComposable get() = LocalPlayerPalette.current.border
+    val Menu: Color @Composable @ReadOnlyComposable get() = LocalPlayerPalette.current.menu
     val TextPrimary: Color @Composable @ReadOnlyComposable get() = LocalPlayerPalette.current.textPrimary
     val TextSecondary: Color @Composable @ReadOnlyComposable get() = LocalPlayerPalette.current.textSecondary
     val TextTertiary: Color @Composable @ReadOnlyComposable get() = LocalPlayerPalette.current.textTertiary
@@ -125,7 +131,11 @@ private val GnomeDark = PlayerPalette(
 enum class ThemeMode { SYSTEM, DARK, LIGHT }
 
 /** The three light backgrounds: plain white, "concrete but lighter", and the tone between. */
-enum class LightVariant(val label: String) { WHITE("Белый"), SOFT("Между"), CONCRETE("Бетон") }
+enum class LightVariant(@androidx.annotation.StringRes val labelRes: Int) {
+    WHITE(R.string.light_white), SOFT(R.string.light_soft), CONCRETE(R.string.light_concrete),
+}
+
+val LightVariant.label: String @Composable get() = androidx.compose.ui.res.stringResource(labelRes)
 
 fun lightPalette(variant: LightVariant): PlayerPalette {
     val (background, surface, surfaceDim, border) = when (variant) {
@@ -150,7 +160,11 @@ fun lightPalette(variant: LightVariant): PlayerPalette {
     )
 }
 
-enum class AccentFamily(val label: String) { STOCK("Сток GNOME"), PASTEL("Пастель"), ALTERNATIVE("Альтернатива") }
+enum class AccentFamily(@androidx.annotation.StringRes val labelRes: Int) {
+    STOCK(R.string.accent_stock), PASTEL(R.string.accent_pastel), ALTERNATIVE(R.string.accent_alternative),
+}
+
+val AccentFamily.label: String @Composable get() = androidx.compose.ui.res.stringResource(labelRes)
 
 /** GNOME's nine stock accents (libadwaita --accent-*), in GNOME's own order. */
 private val GNOME_ACCENTS = listOf(

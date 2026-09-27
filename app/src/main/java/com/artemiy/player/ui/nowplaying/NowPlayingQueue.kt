@@ -1,6 +1,9 @@
 package com.artemiy.player.ui.nowplaying
 
+import com.artemiy.player.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.animateColorAsState
+import com.artemiy.player.ui.theme.inAppFont
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -167,10 +170,10 @@ internal fun QueueList(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(text = "Очередь", color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                Text(text = stringResource(R.string.queue), color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 if (manualQueue.isNotEmpty()) {
                     Text(
-                        text = "Очистить",
+                        text = stringResource(R.string.clear),
                         color = LocalAdaptiveSecondaryColor.current,
                         fontSize = 13.sp,
                         modifier = Modifier
@@ -208,7 +211,7 @@ internal fun QueueList(
         if (continueRows.isNotEmpty()) {
             item(key = "header-continue") {
                 Text(
-                    text = "Далее по очереди",
+                    text = stringResource(R.string.up_next),
                     color = PlayerColors.TextPrimary,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
@@ -279,7 +282,7 @@ internal fun SwipeToRemove(onRemove: () -> Unit, content: @Composable () -> Unit
                 contentAlignment = Alignment.CenterEnd,
             ) {
                 Text(
-                    text = "Убрать",
+                    text = stringResource(R.string.remove),
                     color = Color.White,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
@@ -343,7 +346,7 @@ internal fun AddSongsToQueueRow(onClick: () -> Unit, modifier: Modifier = Modifi
             Icon(imageVector = AppIcons.Add, contentDescription = null, tint = PlayerColors.TextPrimary, modifier = Modifier.size(22.dp))
         }
         Text(
-            text = "Добавить треки в очередь",
+            text = stringResource(R.string.add_tracks_to_queue),
             color = PlayerColors.TextPrimary,
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
@@ -439,7 +442,7 @@ internal fun QueueRow(
         }
         Icon(
             imageVector = AppIcons.DragHandle,
-            contentDescription = "Перетащить",
+            contentDescription = stringResource(R.string.drag),
             tint = LocalAdaptiveSecondaryColor.current,
             modifier = dragHandleModifier
                 .padding(start = 12.dp, end = 4.dp)
@@ -463,21 +466,21 @@ internal fun QueueToggleRow(
     ) {
         QueueToggleButton(
             icon = AppIcons.Shuffle,
-            description = "Перемешать",
+            description = stringResource(R.string.shuffle),
             active = shuffleEnabled,
             onClick = onToggleShuffle,
             modifier = Modifier.weight(1f),
         )
         QueueToggleButton(
             icon = AppIcons.Repeat,
-            description = "Повтор",
+            description = stringResource(R.string.repeat),
             active = repeatEnabled,
             onClick = onToggleRepeat,
             modifier = Modifier.weight(1f),
         )
         QueueToggleButton(
             icon = AppIcons.Infinite,
-            description = "Бесконечное воспроизведение",
+            description = stringResource(R.string.endless_play),
             active = infinitePlayEnabled,
             onClick = onToggleInfinitePlay,
             modifier = Modifier.weight(1f),
@@ -546,10 +549,10 @@ internal fun AddToQueuePicker(songs: List<Song>, onAdd: (Song) -> Unit, onDismis
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(text = "Добавить в очередь", color = PlayerColors.TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+                Text(text = stringResource(R.string.add_to_queue), color = PlayerColors.TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
                 Icon(
                     imageVector = AppIcons.Close,
-                    contentDescription = "Закрыть",
+                    contentDescription = stringResource(R.string.close),
                     tint = PlayerColors.TextSecondary,
                     modifier = Modifier
                         .size(22.dp)
@@ -568,13 +571,13 @@ internal fun AddToQueuePicker(songs: List<Song>, onAdd: (Song) -> Unit, onDismis
                 Icon(imageVector = AppIcons.Search, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(18.dp))
                 Box(modifier = Modifier.weight(1f).padding(horizontal = 10.dp)) {
                     if (query.isEmpty()) {
-                        Text(text = "Название, исполнитель, альбом", color = PlayerColors.TextTertiary, fontSize = 15.sp)
+                        Text(text = stringResource(R.string.search_title_artist_album), color = PlayerColors.TextTertiary, fontSize = 15.sp)
                     }
                     androidx.compose.foundation.text.BasicTextField(
                         value = query,
                         onValueChange = { query = it },
                         singleLine = true,
-                        textStyle = androidx.compose.ui.text.TextStyle(color = PlayerColors.TextPrimary, fontSize = 15.sp),
+                        textStyle = androidx.compose.ui.text.TextStyle(color = PlayerColors.TextPrimary, fontSize = 15.sp).inAppFont(),
                         cursorBrush = androidx.compose.ui.graphics.SolidColor(PlayerColors.TextPrimary),
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -596,7 +599,7 @@ internal fun AddToQueuePicker(songs: List<Song>, onAdd: (Song) -> Unit, onDismis
                         }
                         Icon(
                             imageVector = if (added) AppIcons.Check else AppIcons.Add,
-                            contentDescription = if (added) "Добавлено" else "Добавить",
+                            contentDescription = stringResource(if (added) R.string.added else R.string.add),
                             tint = if (added) PlayerColors.TextSecondary else PlayerColors.TextPrimary,
                             modifier = Modifier
                                 .size(24.dp)
