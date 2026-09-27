@@ -47,7 +47,9 @@ fun Modifier.marquee(enabled: Boolean = true): Modifier {
         .then(
             if (enabled) {
                 Modifier.basicMarquee(
-                    iterations = Int.MAX_VALUE,
+                    // A few rounds, then it rests — scrolling forever kept the screen redrawing
+                    // non-stop. It starts again whenever it's (re)enabled or the text changes.
+                    iterations = 3,
                     initialDelayMillis = 2500,
                     repeatDelayMillis = 2500,
                     spacing = MarqueeSpacing(40.dp),

@@ -57,6 +57,7 @@ import com.artemiy.player.lyrics.ParsedLyrics
 import com.artemiy.player.lyrics.RubySegment
 import com.artemiy.player.ui.components.EqualizerLoader
 import com.artemiy.player.lyrics.withInstrumentalBreaks
+import com.artemiy.player.lyrics.LyricWord
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.requiredSize
@@ -221,6 +222,10 @@ internal fun LyricsView(
             ) {
                 itemsIndexed(lines) { index, line ->
                     val active = index == activeIndex || index in stillSinging
+                    // Only a line being sung follows the smooth per-frame clock; the rest get the
+                    // player's ~10-a-second position — reading the clock made every visible line
+                    // rebuild itself 120 times a second.
+                    val linePositionMs = if (active) smoothPositionMs else positionMs
                     val alpha by animateFloatAsState(if (active) 1f else 0.35f, LINE_CHANGE, label = "lineAlpha")
                     // Every line is laid out at the sung size and inactive ones are only shrunk
                     // visually, so a line wraps the same way whether it's being sung or not —
@@ -241,7 +246,7 @@ internal fun LyricsView(
                             InstrumentalDots(
                                 startMs = line.timeMs,
                                 endMs = breakUntil,
-                                positionMs = smoothPositionMs,
+                                positionMs = linePositionMs,
                                 active = active,
                                 alignEnd = line.voice == LyricVoice.V2,
                             )
@@ -250,7 +255,7 @@ internal fun LyricsView(
                             active = active,
                             alpha = alpha,
                             scale = scale,
-                            positionMs = smoothPositionMs,
+                            positionMs = linePositionMs,
                             nextLineStartMs = nextLineStartMs,
                             showRomanization = showRomanization,
                         )
@@ -262,7 +267,7 @@ internal fun LyricsView(
                                     active = active,
                                     alpha = alpha,
                                     scale = scale,
-                                    positionMs = smoothPositionMs,
+                                    positionMs = linePositionMs,
                                     nextLineStartMs = nextLineStartMs,
                                     showRomanization = showRomanization,
                                 )
@@ -271,7 +276,7 @@ internal fun LyricsView(
                                 Box(modifier = Modifier.lyricScale(scale, alignEnd)) {
                                     SecondaryLyricLine(
                                         line = secondary,
-                                        positionMs = smoothPositionMs,
+                                        positionMs = linePositionMs,
                                         alpha = alpha,
                                         fontSize = (LYRIC_SIZE * 0.62f).sp,
                                         alignEnd = alignEnd,
@@ -287,10 +292,10 @@ internal fun LyricsView(
 }
 
 /** Font size every synced lyric line is laid out at (the size of the line being sung). */
-internal const val LYRIC_SIZE = 31f
+internal const val LYRIC_SIZE = 33f
 
-/** Lines not being sung are drawn at 28/31 of that, by scaling — see the item in [LyricsView]. */
-internal const val INACTIVE_LYRIC_SCALE = 28f / 31f
+/** Lines not being sung are drawn at 30/33 of that, by scaling — see the item in [LyricsView]. */
+internal const val INACTIVE_LYRIC_SCALE = 30f / 33f
 
 /** Visual-only scale, anchored to the side the line is aligned to so it shrinks toward it. */
 internal fun Modifier.lyricScale(scale: Float, alignEnd: Boolean): Modifier = graphicsLayer {
@@ -592,7 +597,12 @@ internal fun WordSyncedLine(
         horizontalArrangement = if (alignEnd) Arrangement.End else Arrangement.Start,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        words.forEachIndexed { index, word ->
+        // Timed pieces with no space between them ("a" + "bout") are one word on screen: kept
+        // together on the same row instead of possibly wrapping between them.
+        wordGroups(words).forEach { group ->
+          Row(modifier = if (readings != null) Modifier.alignBy(LastBaseline) else Modifier) {
+            group.forEach { index ->
+            val word = words[index]
             // The last word's trailing space would leave a gap against the right edge of a v2 line.
             val text = if (index == words.lastIndex) word.text.trimEnd() else word.text
             val reading = readings?.getOrNull(index)
@@ -654,6 +664,8 @@ internal fun WordSyncedLine(
                     }
                 }
             }
+                    }
+          }
         }
     }
 }
@@ -736,3 +748,26 @@ private const val SMOOTH_SNAP_MS = 500L
 private val LINE_EASE = androidx.compose.animation.core.CubicBezierEasing(0.2f, 0f, 0f, 1f)
 private val LINE_SCROLL = tween<Float>(420, easing = LINE_EASE)
 private val LINE_CHANGE = tween<Float>(320, easing = LINE_EASE)
+
+/**
+ * [words] split into what can wrap as a unit: a timed piece that doesn't end in a space runs on
+ * into the next one ("a" + "bout" is "about"). Not between Chinese/Japanese/Korean characters,
+ * though — those lines have no spaces at all, and have to be able to wrap somewhere.
+ */
+private fun wordGroups(words: List<LyricWord>): List<List<Int>> {
+    val groups = mutableListOf<MutableList<Int>>()
+    words.forEachIndexed { index, word ->
+        val previous = words.getOrNull(index - 1)
+        val joins = previous != null && previous.text.isNotEmpty() && !previous.text.last().isWhitespace() &&
+            word.text.isNotEmpty() && !word.text.first().isWhitespace() &&
+            !previous.text.last().isCjk() && !word.text.first().isCjk()
+        if (joins) groups.last().add(index) else groups.add(mutableListOf(index))
+    }
+    return groups
+}
+
+private fun Char.isCjk(): Boolean = when (Character.UnicodeScript.of(code)) {
+    Character.UnicodeScript.HAN, Character.UnicodeScript.HIRAGANA,
+    Character.UnicodeScript.KATAKANA, Character.UnicodeScript.HANGUL -> true
+    else -> false
+}

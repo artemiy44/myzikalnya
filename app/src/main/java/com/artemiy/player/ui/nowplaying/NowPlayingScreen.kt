@@ -60,6 +60,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.animation.EnterTransition
+import androidx.compose.runtime.SideEffect
 import com.artemiy.player.data.PlayerStyle
 import com.artemiy.player.data.Song
 import com.artemiy.player.playback.PlaySource
@@ -136,6 +139,7 @@ fun NowPlayingScreen(
     }
     var centerMode by memory::centerMode
     var controlsVisible by remember { mutableStateOf(true) }
+    var closingFromHidden by remember { mutableStateOf(false) }
     var controlsVisibleBeforeDrag by remember { mutableStateOf(true) }
     var showAddToQueuePicker by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -176,6 +180,9 @@ fun NowPlayingScreen(
     // While opening: the background comes in over the first half, the cover flies all the way,
     // and everything else only shows up over the last quarter.
     val chromeAlpha = { ((expand() - 0.75f) / 0.25f).coerceIn(0f, 1f) }
+    val panelAlpha = { if (closingFromHidden) 0f else chromeAlpha() }
+    // Play/next when the panel was hidden: out of nothing over the first quarter of closing.
+    val growFromNothing = { if (closingFromHidden) ((1f - expand()) / 0.25f).coerceIn(0f, 1f) else 1f }
     var finalArtBounds by remember { mutableStateOf<Rect?>(null) }
     val miniCornerPx = with(LocalDensity.current) { MINI_ART_CORNER.toPx() }
     val artCornerPx = with(LocalDensity.current) { 16.dp.toPx() }
@@ -440,9 +447,35 @@ fun NowPlayingScreen(
                     }
                 }
 
+                // While opening or closing, the panel is always there (at once, no fade): play and
+                // next fly between it and the mini player — hidden with the panel (lyrics/queue hide
+                // it), they'd just pop into the mini player at the end.
+                // Moving between closed and open — fully closed doesn't count (the player is kept, just
+                // hidden, so otherwise one closing ran straight on into the next opening and it never
+                // noticed a new flight had started).
+                val inFlight by remember { derivedStateOf { expand() in 0.001f..0.999f } }
+                // Closing while the panel was hidden (lyrics/queue hide it): the rest of the panel
+                // stays out of sight, and play/next grow out of nothing before flying down.
+                // Opening: the panel is shown, so play/next have somewhere to land.
+                // Decided in the same frame the flight starts (a LaunchedEffect would be a frame late,
+                // flashing the panel for that frame).
+                var wasInFlight by remember { mutableStateOf(false) }
+                SideEffect {
+                    if (inFlight != wasInFlight) {
+                        wasInFlight = inFlight
+                        if (!inFlight) {
+                            closingFromHidden = false
+                        } else if (expand() > 0.5f) {
+                            closingFromHidden = !controlsVisible
+                        } else {
+                            controlsVisible = true
+                            closingFromHidden = false
+                        }
+                    }
+                }
                 androidx.compose.animation.AnimatedVisibility(
-                    visible = controlsVisible,
-                    enter = fadeIn(tween(250)),
+                    visible = controlsVisible || inFlight,
+                    enter = if (inFlight) EnterTransition.None else fadeIn(tween(250)),
                     exit = fadeOut(tween(250)),
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
@@ -473,7 +506,7 @@ fun NowPlayingScreen(
                                 onTarget = { titleTarget = it },
                             ),
                             trailing = {
-                                if (song != null) Box(modifier = Modifier.graphicsLayer { alpha = chromeAlpha() }) {
+                                if (song != null) Box(modifier = Modifier.graphicsLayer { alpha = panelAlpha() }) {
                                     CurrentSongMenuButton(
                                         song = song,
                                         onPlayNext = onPlayNext,
@@ -491,7 +524,7 @@ fun NowPlayingScreen(
                         positionMs = positionMs,
                         durationMs = durationMs,
                         onSeek = onSeek,
-                        modifier = Modifier.padding(top = 18.dp).graphicsLayer { alpha = chromeAlpha() },
+                        modifier = Modifier.padding(top = 18.dp).graphicsLayer { alpha = panelAlpha() },
                     )
 
                     val playerIconColor = PlayerColors.TextPrimary
@@ -501,10 +534,20 @@ fun NowPlayingScreen(
                         onTogglePlayPause = onTogglePlayPause,
                         onSkipNext = onSkipNext,
                         modifier = Modifier.fillMaxWidth().padding(top = 32.dp, bottom = 12.dp),
-                        prevModifier = Modifier.graphicsLayer { alpha = chromeAlpha() },
+                        prevModifier = Modifier.graphicsLayer { alpha = panelAlpha() },
                         // Play and next fly over from the mini player's buttons.
-                        playModifier = Modifier.flyFrom(mini?.play, expand, fromCenter = true),
-                        nextModifier = Modifier.flyFrom(mini?.next, expand, fromCenter = true),
+                        playModifier = Modifier.flyFrom(mini?.play, expand, fromCenter = true).graphicsLayer {
+                            val grow = growFromNothing()
+                            alpha = grow
+                            scaleX = grow
+                            scaleY = grow
+                        },
+                        nextModifier = Modifier.flyFrom(mini?.next, expand, fromCenter = true).graphicsLayer {
+                            val grow = growFromNothing()
+                            alpha = grow
+                            scaleX = grow
+                            scaleY = grow
+                        },
                         // In the mini player's colors at first (dark on a light theme), turning
                         // into the player's own as they fly up — and back when closing.
                         iconTint = {
@@ -513,10 +556,10 @@ fun NowPlayingScreen(
                         },
                     )
 
-                    VolumeRow(modifier = Modifier.padding(top = 28.dp).graphicsLayer { alpha = chromeAlpha() })
+                    VolumeRow(modifier = Modifier.padding(top = 28.dp).graphicsLayer { alpha = panelAlpha() })
 
                     BottomQuickActionsRow(
-                        modifier = Modifier.padding(top = 30.dp).graphicsLayer { alpha = chromeAlpha() },
+                        modifier = Modifier.padding(top = 30.dp).graphicsLayer { alpha = panelAlpha() },
                         lyricsActive = centerMode == CenterMode.Lyrics,
                         queueActive = centerMode == CenterMode.Queue,
                         shuffleEnabled = shuffleEnabled,
