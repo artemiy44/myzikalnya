@@ -20,10 +20,37 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.artemiy.player.ui.theme.NowPlayingPalette
 import com.artemiy.player.ui.theme.PlayerColors
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.Composable
 
 // Bits shared by all of Now Playing's parts.
 
 internal enum class CenterMode { Art, Lyrics, Queue }
+
+/**
+ * Whether the player is actually on screen. The classic player stays built while closed (so
+ * opening it doesn't stall to build it all again) — while hidden, whatever keeps animating by
+ * itself (the living blur, the lyrics' smooth scrolling) stops, so it costs nothing.
+ */
+val LocalNowPlayingActive = compositionLocalOf { true }
+
+/**
+ * What the player was showing — kept by whoever hosts the player (outside it), so closing it and
+ * opening it again comes back to the same view instead of the cover every time.
+ */
+class NowPlayingMemory {
+    /** Classic style: cover, lyrics or queue. */
+    internal var centerMode by mutableStateOf(CenterMode.Art)
+    /** Expressive style: lyrics in place of the cover. */
+    internal var expressiveLyrics by mutableStateOf(false)
+    /** Expressive style: the queue sheet pulled up. */
+    internal var expressiveQueueOpen by mutableStateOf(false)
+}
 
 /** The muted gray used for secondary text/icons on this screen. Normally exactly
  * [PlayerColors.TextSecondary]; over an album-art background it's lifted toward white just enough
@@ -85,4 +112,40 @@ internal fun formatMs(ms: Long): String {
     val minutes = totalSeconds / 60
     val seconds = totalSeconds % 60
     return "%d:%02d".format(minutes, seconds)
+}
+
+/**
+ * For the classic player's opening: draws this element flying from [origin] — the matching piece
+ * of the mini player, in screen coordinates — to where it's actually laid out, as [progress] goes
+ * from 0 to 1. Scaled evenly; lined up on the top-left corner, or on the center.
+ */
+@Composable
+internal fun Modifier.flyFrom(
+    origin: Rect?,
+    progress: () -> Float,
+    fromCenter: Boolean,
+    /** How big it starts, when the bounds' heights don't say (text lines are as tall at 13sp as
+     * at 20sp — the line height is the same). Null = the height ratio. */
+    startScale: Float? = null,
+    /** Fade in over the first part of the way (0..this), e.g. while a look-alike fades out. */
+    fadeInUntil: Float? = null,
+    onTarget: (Rect) -> Unit = {},
+): Modifier {
+    var target by remember { mutableStateOf<Rect?>(null) }
+    return onGloballyPositioned { target = it.boundsInRoot(); onTarget(it.boundsInRoot()) }
+        .graphicsLayer {
+            alpha = if (fadeInUntil != null) (progress() / fadeInUntil).coerceIn(0f, 1f) else 1f
+            val p = FLIGHT_EASING.transform(progress())
+            val to = target
+            if (p < 1f && to != null && origin != null && to.height > 0f) {
+                val scale = androidx.compose.ui.util.lerp(startScale ?: (origin.height / to.height), 1f, p)
+                transformOrigin = if (fromCenter) TransformOrigin.Center else TransformOrigin(0f, 0f)
+                val dx = if (fromCenter) origin.center.x - to.center.x else origin.left - to.left
+                val dy = if (fromCenter) origin.center.y - to.center.y else origin.top - to.top
+                translationX = dx * (1f - p)
+                translationY = dy * (1f - p)
+                scaleX = scale
+                scaleY = scale
+            }
+        }
 }

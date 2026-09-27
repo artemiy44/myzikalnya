@@ -50,6 +50,12 @@ import com.artemiy.player.ui.theme.PaletteScope
 import com.artemiy.player.ui.theme.PlayerColors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.foundation.shape.GenericShape
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.withFrameNanos
 
 // Now Playing's background: live/static blur, scrim, and the adaptive gray text color.
 
@@ -182,26 +188,23 @@ internal fun LiveBlurBackground(art: BackgroundArt?, intensity: LiveBlurIntensit
             // multiplier — the exact bug that made the old color-blob version "teleport" was
             // multiplying a single shared phase before feeding it to sin/cos, which breaks the
             // smooth wrap RepeatMode.Restart otherwise gives for free.
-            val scaleTransition = rememberInfiniteTransition(label = "kenBurnsScale")
-            val scalePhase by scaleTransition.animateFloat(
-                initialValue = 0f,
-                targetValue = (2 * Math.PI).toFloat(),
-                animationSpec = infiniteRepeatable(
-                    animation = tween(26_000, easing = LinearEasing),
-                    repeatMode = RepeatMode.Restart,
-                ),
-                label = "scalePhase",
-            )
-            val panTransition = rememberInfiniteTransition(label = "kenBurnsPan")
-            val panPhase by panTransition.animateFloat(
-                initialValue = 0f,
-                targetValue = (2 * Math.PI).toFloat(),
-                animationSpec = infiniteRepeatable(
-                    animation = tween(34_000, easing = LinearEasing),
-                    repeatMode = RepeatMode.Restart,
-                ),
-                label = "panPhase",
-            )
+            // The drift's own clock — it only runs while the player is on screen, and picks up
+            // where it left off. Two independent periods (scale vs. pan), each read at a straight
+            // 1x multiplier: multiplying one shared phase before sin/cos is what once made an
+            // older version "teleport" at the wrap-around.
+            val active = LocalNowPlayingActive.current
+            var elapsedMs by remember { mutableFloatStateOf(0f) }
+            LaunchedEffect(active) {
+                if (!active) return@LaunchedEffect
+                var last = withFrameNanos { it }
+                while (true) {
+                    val now = withFrameNanos { it }
+                    elapsedMs += (now - last) / 1_000_000f
+                    last = now
+                }
+            }
+            val scalePhase: () -> Float = { (elapsedMs % 26_000f) / 26_000f * (2 * Math.PI).toFloat() }
+            val panPhase: () -> Float = { (elapsedMs % 34_000f) / 34_000f * (2 * Math.PI).toFloat() }
             val panAmplitudePx = with(LocalDensity.current) { 26.dp.toPx() }
 
             Crossfade(
@@ -216,11 +219,11 @@ internal fun LiveBlurBackground(art: BackgroundArt?, intensity: LiveBlurIntensit
                     modifier = Modifier
                         .fillMaxSize()
                         .graphicsLayer {
-                            val scale = 1.2f + 0.08f * kotlin.math.sin(scalePhase)
+                            val scale = 1.2f + 0.08f * kotlin.math.sin(scalePhase())
                             scaleX = scale
                             scaleY = scale
-                            translationX = panAmplitudePx * kotlin.math.cos(panPhase)
-                            translationY = panAmplitudePx * kotlin.math.sin(panPhase)
+                            translationX = panAmplitudePx * kotlin.math.cos(panPhase())
+                            translationY = panAmplitudePx * kotlin.math.sin(panPhase())
                         },
                 )
             }
@@ -244,6 +247,12 @@ internal fun NowPlayingSurface(
     song: Song?,
     mode: NowPlayingBackgroundMode,
     intensity: LiveBlurIntensity,
+    /** The classic player's opening: the background is a sheet growing out of [openFrom] (the
+     * mini player bar, screen coordinates) to the whole screen as [openProgress] goes 0 → 1,
+     * starting out in [openTint] (the bar's own color). */
+    openFrom: Rect? = null,
+    openProgress: () -> Float = { 1f },
+    openTint: Color = Color.Transparent,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val palette = if (mode == NowPlayingBackgroundMode.NONE) LocalPlayerPalette.current else NowPlayingPalette
@@ -286,12 +295,28 @@ internal fun NowPlayingSurface(
         }
         // Eased so it doesn't snap while the background itself is still crossfading to the new track.
         val secondaryColor by animateColorAsState(targetSecondaryColor, tween(600), label = "secondaryColor")
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(PlayerColors.Background),
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
           CompositionLocalProvider(LocalAdaptiveSecondaryColor provides secondaryColor) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        val p = openProgress()
+                        val from = openFrom
+                        if (p < 1f && from != null) {
+                            val top = from.top * (1f - p)
+                            val bottom = from.bottom + (size.height - from.bottom) * p
+                            val corner = SHEET_CORNER.toPx() * (1f - p).coerceAtMost(1f)
+                            clip = true
+                            shape = GenericShape { _, _ ->
+                                addRoundRect(RoundRect(Rect(0f, top, size.width, bottom), CornerRadius(corner)))
+                            }
+                        } else {
+                            clip = false
+                        }
+                    }
+                    .background(PlayerColors.Background),
+            ) {
             when (mode) {
                 NowPlayingBackgroundMode.LIVE_BLUR -> LiveBlurBackground(
                     art = backgroundArt,
@@ -325,8 +350,20 @@ internal fun NowPlayingSurface(
                     // Just the app's own flat background — no album art at all.
                 }
             }
+            // Still the mini player's color at first, giving way to the real background.
+            if (openFrom != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer { alpha = (1f - openProgress() / 0.35f).coerceIn(0f, 1f) }
+                        .background(openTint),
+                )
+            }
+            }
             content()
             }
         }
     }
 }
+
+private val SHEET_CORNER = 18.dp

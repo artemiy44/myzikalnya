@@ -152,8 +152,10 @@ internal fun ExpressiveNowPlaying(
     lyricsRomanization: Boolean,
     onToggleLyricsRomanization: () -> Unit,
     lyricsTapPlays: Boolean,
+    lyricsLoading: Boolean,
+    memory: NowPlayingMemory,
 ) {
-    var showLyrics by remember { mutableStateOf(false) }
+    var showLyrics by memory::expressiveLyrics
     var showAddToQueuePicker by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -185,6 +187,7 @@ internal fun ExpressiveNowPlaying(
                                     if (lyricsTapPlays && !isPlaying) onTogglePlayPause()
                                 },
                                 showRomanization = lyricsRomanization,
+                                loading = lyricsLoading,
                                 contentPadding = PaddingValues(
                                     start = 24.dp,
                                     end = 24.dp,
@@ -285,6 +288,8 @@ internal fun ExpressiveNowPlaying(
                     QueueSongActions(onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
                 },
                 navBottom = navBottom,
+                initiallyOpen = memory.expressiveQueueOpen,
+                onOpenChange = { memory.expressiveQueueOpen = it },
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
         }
@@ -360,7 +365,7 @@ private fun WavySeekBar(positionMs: Long, durationMs: Long, isPlaying: Boolean, 
     val durationNow by rememberUpdatedState(safeDuration)
 
     val amplitude by animateDpAsState(if (isPlaying) 3.dp else 0.dp, tween(400), label = "waveAmplitude")
-    val phase by if (isPlaying) {
+    val phase by if (isPlaying && LocalNowPlayingActive.current) {
         rememberInfiniteTransition(label = "wave").animateFloat(
             initialValue = 0f,
             targetValue = (2 * PI).toFloat(),
@@ -542,17 +547,20 @@ private fun QueueSheet(
     onAddSongsClick: () -> Unit,
     songActions: QueueSongActions,
     navBottom: androidx.compose.ui.unit.Dp,
+    initiallyOpen: Boolean,
+    onOpenChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
-    val openness = remember { Animatable(0f) }
+    val openness = remember { Animatable(if (initiallyOpen) 1f else 0f) }
     val travelPx = with(density) { (fullHeight - barHeight).toPx() }.coerceAtLeast(1f)
 
     fun settle(open: Boolean) {
+        onOpenChange(open)
         scope.launch { openness.animateTo(if (open) 1f else 0f, spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow)) }
     }
-    BackHandler(enabled = openness.targetValue > 0.5f) { settle(false) }
+    BackHandler(enabled = openness.targetValue > 0.5f && LocalNowPlayingActive.current) { settle(false) }
 
     val dragState = rememberDraggableState { delta ->
         scope.launch { openness.snapTo((openness.value - delta / travelPx).coerceIn(0f, 1f)) }

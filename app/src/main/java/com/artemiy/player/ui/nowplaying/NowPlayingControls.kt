@@ -64,6 +64,8 @@ internal fun NowPlayingMiniHeader(
     onGoToAlbum: (Song) -> Unit,
     onGoToArtist: (Song) -> Unit,
     trailing: @Composable () -> Unit = {},
+    artModifier: Modifier = Modifier,
+    textModifier: Modifier = Modifier,
 ) {
     Row(
         modifier = Modifier
@@ -77,14 +79,18 @@ internal fun NowPlayingMiniHeader(
             size = ART_SIZE_THUMB,
             modifier = Modifier
                 .size(52.dp)
+                .then(artModifier)
                 .clip(RoundedCornerShape(10.dp)),
         )
-        Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+        Column(modifier = Modifier.weight(1f).padding(start = 12.dp).then(textModifier)) {
             Text(
                 text = song?.title ?: "Ничего не играет",
                 color = PlayerColors.TextPrimary,
                 fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
+                // Weight and line spacing matched to the mini player's text at this size, which
+                // flies up into here when the player opens on lyrics or the queue.
+                lineHeight = HEADER_LINE_HEIGHT,
+                fontWeight = FontWeight.ExtraBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.then(
@@ -97,6 +103,7 @@ internal fun NowPlayingMiniHeader(
                 text = song?.artist ?: "",
                 color = LocalAdaptiveSecondaryColor.current,
                 fontSize = 15.sp,
+                lineHeight = HEADER_LINE_HEIGHT,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.then(
@@ -109,6 +116,9 @@ internal fun NowPlayingMiniHeader(
         trailing()
     }
 }
+
+/** 15.6sp (the mini player's line spacing) × 17/13 (header title against the mini title). */
+private val HEADER_LINE_HEIGHT = 20.4.sp
 
 /** The "⋮" next to the current song's title (Art view and Queue header). */
 @Composable
@@ -341,17 +351,20 @@ internal fun SongTitleRow(
     onGoToAlbum: (Song) -> Unit,
     onGoToArtist: (Song) -> Unit,
     trailing: @Composable () -> Unit,
+    textModifier: Modifier = Modifier,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(modifier = Modifier.weight(1f)) {
+        Column(modifier = Modifier.weight(1f).then(textModifier)) {
             Text(
                 text = song?.title ?: "Ничего не играет",
                 color = PlayerColors.TextPrimary,
                 fontSize = 20.sp,
+                // Fixed, since the mini player's text is spaced to match it scaled down.
+                lineHeight = 24.sp,
                 fontWeight = FontWeight.ExtraBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -368,6 +381,7 @@ internal fun SongTitleRow(
                 text = song?.artist ?: "",
                 color = LocalAdaptiveSecondaryColor.current,
                 fontSize = 18.sp,
+                lineHeight = 24.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.then(
@@ -424,6 +438,9 @@ internal fun TransportControls(
     onTogglePlayPause: () -> Unit,
     onSkipNext: () -> Unit,
     modifier: Modifier = Modifier,
+    prevModifier: Modifier = Modifier,
+    playModifier: Modifier = Modifier,
+    nextModifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier,
@@ -437,6 +454,7 @@ internal fun TransportControls(
             tint = PlayerColors.TextPrimary,
             modifier = Modifier
                 .size(40.dp)
+                .then(prevModifier)
                 .pressScale(skipPreviousInteraction)
                 .clickable(interactionSource = skipPreviousInteraction, indication = null) { onSkipPrevious() },
         )
@@ -447,6 +465,7 @@ internal fun TransportControls(
             modifier = Modifier
                 .padding(horizontal = 46.dp)
                 .size(58.dp)
+                .then(playModifier)
                 .pressScale(playInteraction)
                 .clickable(interactionSource = playInteraction, indication = null) { onTogglePlayPause() },
         )
@@ -457,6 +476,7 @@ internal fun TransportControls(
             tint = PlayerColors.TextPrimary,
             modifier = Modifier
                 .size(40.dp)
+                .then(nextModifier)
                 .pressScale(skipNextInteraction)
                 .clickable(interactionSource = skipNextInteraction, indication = null) { onSkipNext() },
         )

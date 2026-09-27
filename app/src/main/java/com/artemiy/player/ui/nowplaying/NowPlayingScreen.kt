@@ -43,6 +43,23 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.artemiy.player.data.LiveBlurIntensity
 import com.artemiy.player.data.NowPlayingBackgroundMode
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.util.lerp
+import com.artemiy.player.ui.components.MINI_ART_CORNER
+import com.artemiy.player.ui.components.MiniPlayerAnchors
+import com.artemiy.player.ui.theme.PlayerColors
+import androidx.compose.ui.unit.IntOffset
+import kotlin.math.roundToInt
+import androidx.compose.foundation.layout.offset
+import androidx.compose.material3.Text
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.animation.core.Easing
+import androidx.compose.animation.core.LinearEasing
 import com.artemiy.player.data.PlayerStyle
 import com.artemiy.player.data.Song
 import com.artemiy.player.playback.PlaySource
@@ -90,6 +107,12 @@ fun NowPlayingScreen(
     lyricsTapPlays: Boolean = false,
     playerStyle: PlayerStyle = PlayerStyle.CLASSIC,
     playingFrom: PlaySource? = null,
+    lyricsLoading: Boolean = false,
+    /** Classic style: how far the player is open (0 = still the mini player, 1 = open). */
+    expand: () -> Float = { 1f },
+    /** Classic style: where the mini player's pieces are — the player grows out of it. */
+    mini: MiniPlayerAnchors? = null,
+    memory: NowPlayingMemory = remember { NowPlayingMemory() },
 ) {
     if (playerStyle == PlayerStyle.EXPRESSIVE) {
         ExpressiveNowPlaying(
@@ -106,10 +129,12 @@ fun NowPlayingScreen(
             backgroundMode = nowPlayingBackgroundMode, blurIntensity = liveBlurIntensity,
             lyricsRomanization = lyricsRomanization, onToggleLyricsRomanization = onToggleLyricsRomanization,
             lyricsTapPlays = lyricsTapPlays,
+            lyricsLoading = lyricsLoading,
+            memory = memory,
         )
         return
     }
-    var centerMode by remember { mutableStateOf(CenterMode.Art) }
+    var centerMode by memory::centerMode
     var controlsVisible by remember { mutableStateOf(true) }
     var controlsVisibleBeforeDrag by remember { mutableStateOf(true) }
     var showAddToQueuePicker by remember { mutableStateOf(false) }
@@ -148,7 +173,26 @@ fun NowPlayingScreen(
         animationSpec = tween(300),
         label = "artScale",
     )
-    NowPlayingSurface(song = song, mode = nowPlayingBackgroundMode, intensity = liveBlurIntensity) {
+    // While opening: the background comes in over the first half, the cover flies all the way,
+    // and everything else only shows up over the last quarter.
+    val chromeAlpha = { ((expand() - 0.75f) / 0.25f).coerceIn(0f, 1f) }
+    var finalArtBounds by remember { mutableStateOf<Rect?>(null) }
+    val miniCornerPx = with(LocalDensity.current) { MINI_ART_CORNER.toPx() }
+    val artCornerPx = with(LocalDensity.current) { 16.dp.toPx() }
+    // The sheet starts as the mini player bar itself (in its own color) and grows to the full screen.
+    // The mini player's own colors are read here, before the player's palette takes over.
+    val miniColor = PlayerColors.SurfaceDim
+    val miniTitleColor = PlayerColors.TextPrimary
+    val miniArtistColor = PlayerColors.TextSecondary
+    var titleTarget by remember { mutableStateOf<Rect?>(null) }
+    NowPlayingSurface(
+        song = song,
+        mode = nowPlayingBackgroundMode,
+        intensity = liveBlurIntensity,
+        openFrom = mini?.bar,
+        openProgress = expand,
+        openTint = miniColor,
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -167,6 +211,7 @@ fun NowPlayingScreen(
                 Box(
                     modifier = Modifier
                         .size(width = 36.dp, height = 5.dp)
+                        .graphicsLayer { alpha = chromeAlpha() }
                         .clip(RoundedCornerShape(3.dp))
                         .background(LocalAdaptiveSecondaryColor.current)
                         .clickable(
@@ -200,12 +245,47 @@ fun NowPlayingScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .aspectRatio(1f)
-                                .scale(artScale)
-                                .clip(RoundedCornerShape(16.dp)),
+                                .onGloballyPositioned { finalArtBounds = it.boundsInRoot() }
+                                // Flying in from (or back to) the mini player's cover: drawn at the
+                                // in-between position and size, its corners in between too.
+                                .graphicsLayer {
+                                    val p = FLIGHT_EASING.transform(expand())
+                                    val to = finalArtBounds
+                                    val from = mini?.art
+                                    if (p < 1f && to != null && from != null && to.width > 0f) {
+                                        // Aim for the cover as it'll actually sit — a touch smaller
+                                        // while paused — so there's no jump when it lands.
+                                        val endW = to.width * artScale
+                                        val endH = to.height * artScale
+                                        val endLeft = to.center.x - endW / 2
+                                        val endTop = to.center.y - endH / 2
+                                        val left = lerp(from.left, endLeft, p)
+                                        val top = lerp(from.top, endTop, p)
+                                        val width = lerp(from.width, endW, p)
+                                        val height = lerp(from.height, endH, p)
+                                        transformOrigin = TransformOrigin(0f, 0f)
+                                        translationX = left - to.left
+                                        translationY = top - to.top
+                                        scaleX = width / to.width
+                                        scaleY = height / to.height
+                                        // The clip is drawn before the scaling, so the on-screen radius
+                                        // is divided back up by the scale.
+                                        val onScreen = lerp(miniCornerPx, artCornerPx, p)
+                                        shape = RoundedCornerShape(onScreen * to.width / width)
+                                    } else {
+                                        // Settled: the paused shrink happens here too, so the
+                                        // rounded clip shrinks along with the picture.
+                                        transformOrigin = TransformOrigin.Center
+                                        scaleX = artScale
+                                        scaleY = artScale
+                                        shape = RoundedCornerShape(artCornerPx)
+                                    }
+                                    clip = true
+                                },
                         )
                     }
 
-                    CenterMode.Lyrics -> {
+                    CenterMode.Lyrics -> Box(modifier = Modifier.fillMaxSize().graphicsLayer { alpha = chromeAlpha() }) {
                         LyricsView(
                             lyrics = lyrics,
                             positionMs = positionMs,
@@ -223,6 +303,7 @@ fun NowPlayingScreen(
                                 if (lyricsTapPlays && !isPlaying) onTogglePlayPause()
                             },
                             showRomanization = lyricsRomanization,
+                            loading = lyricsLoading,
                             // Extra FADE_SPAN at both ends: otherwise the first/last lines can't
                             // scroll out of the fade zone (nothing above/below them to scroll)
                             // and stay stuck half-faded, reading as gray.
@@ -248,7 +329,7 @@ fun NowPlayingScreen(
                     // The toggle row floats fixed under the header (same idea as the header
                     // itself) — the list scrolls underneath BOTH of them and fades out as it
                     // approaches, exactly like Lyrics does under its header.
-                    CenterMode.Queue -> Box(modifier = Modifier.fillMaxSize()) {
+                    CenterMode.Queue -> Box(modifier = Modifier.fillMaxSize().graphicsLayer { alpha = chromeAlpha() }) {
                         QueueList(
                             manualQueue = manualQueue,
                             continueQueue = continueQueue,
@@ -324,7 +405,19 @@ fun NowPlayingScreen(
                             onCollapse = { centerMode = CenterMode.Art },
                             onGoToAlbum = onGoToAlbum,
                             onGoToArtist = onGoToArtist,
+                            // Opening/closing on lyrics or the queue: the mini player's cover and
+                            // text fly to (and from) this header instead of the big cover.
+                            artModifier = Modifier.flyFrom(mini?.art, expand, fromCenter = true),
+                            textModifier = Modifier.flyFrom(
+                                mini?.text,
+                                expand,
+                                fromCenter = false,
+                                startScale = 13f / 17f,
+                                fadeInUntil = TEXT_HANDOFF,
+                                onTarget = { titleTarget = it },
+                            ),
                             trailing = {
+                                Box(modifier = Modifier.graphicsLayer { alpha = chromeAlpha() }) {
                                 when {
                                     centerMode == CenterMode.Lyrics && lyrics?.hasRomanization() == true -> RomanizationToggle(
                                         enabled = lyricsRomanization,
@@ -338,6 +431,7 @@ fun NowPlayingScreen(
                                         onGoToAlbum = onGoToAlbum,
                                         onGoToArtist = onGoToArtist,
                                     )
+                                }
                                 }
                             },
                         )
@@ -367,8 +461,17 @@ fun NowPlayingScreen(
                             song = song,
                             onGoToAlbum = onGoToAlbum,
                             onGoToArtist = onGoToArtist,
+                            // Title and artist fly over from the mini player's text.
+                            textModifier = Modifier.flyFrom(
+                                mini?.text,
+                                expand,
+                                fromCenter = false,
+                                startScale = MINI_TITLE_SCALE,
+                                fadeInUntil = TEXT_HANDOFF,
+                                onTarget = { titleTarget = it },
+                            ),
                             trailing = {
-                                if (song != null) {
+                                if (song != null) Box(modifier = Modifier.graphicsLayer { alpha = chromeAlpha() }) {
                                     CurrentSongMenuButton(
                                         song = song,
                                         onPlayNext = onPlayNext,
@@ -382,7 +485,12 @@ fun NowPlayingScreen(
                         )
                     }
 
-                    SeekBar(positionMs = positionMs, durationMs = durationMs, onSeek = onSeek, modifier = Modifier.padding(top = 18.dp))
+                    SeekBar(
+                        positionMs = positionMs,
+                        durationMs = durationMs,
+                        onSeek = onSeek,
+                        modifier = Modifier.padding(top = 18.dp).graphicsLayer { alpha = chromeAlpha() },
+                    )
 
                     TransportControls(
                         isPlaying = isPlaying,
@@ -390,12 +498,16 @@ fun NowPlayingScreen(
                         onTogglePlayPause = onTogglePlayPause,
                         onSkipNext = onSkipNext,
                         modifier = Modifier.fillMaxWidth().padding(top = 32.dp, bottom = 12.dp),
+                        prevModifier = Modifier.graphicsLayer { alpha = chromeAlpha() },
+                        // Play and next fly over from the mini player's buttons.
+                        playModifier = Modifier.flyFrom(mini?.play, expand, fromCenter = true),
+                        nextModifier = Modifier.flyFrom(mini?.next, expand, fromCenter = true),
                     )
 
-                    VolumeRow(modifier = Modifier.padding(top = 28.dp))
+                    VolumeRow(modifier = Modifier.padding(top = 28.dp).graphicsLayer { alpha = chromeAlpha() })
 
                     BottomQuickActionsRow(
-                        modifier = Modifier.padding(top = 30.dp),
+                        modifier = Modifier.padding(top = 30.dp).graphicsLayer { alpha = chromeAlpha() },
                         lyricsActive = centerMode == CenterMode.Lyrics,
                         queueActive = centerMode == CenterMode.Queue,
                         shuffleEnabled = shuffleEnabled,
@@ -414,6 +526,51 @@ fun NowPlayingScreen(
             }
         }
 
+        // A look-alike of the mini player's text — same size, weight and colors — riding along at
+        // first and fading out as the player's own title fades in, so grabbing the bar doesn't
+        // change how its text looks.
+        val miniText = mini?.text
+        // How much bigger the text it hands over to is: the Art view's title, or the header's.
+        val handoffScale = if (centerMode == CenterMode.Art) 20f / 13f else 17f / 13f
+        if (miniText != null) {
+            Column(
+                modifier = Modifier
+                    .offset { IntOffset(miniText.left.roundToInt(), miniText.top.roundToInt()) }
+                    .width(with(LocalDensity.current) { miniText.width.toDp() })
+                    .graphicsLayer {
+                        alpha = (1f - expand() / TEXT_HANDOFF).coerceIn(0f, 1f)
+                        val p = FLIGHT_EASING.transform(expand())
+                        val to = titleTarget
+                        if (to != null) {
+                            transformOrigin = TransformOrigin(0f, 0f)
+                            translationX = (to.left - miniText.left) * p
+                            translationY = (to.top - miniText.top) * p
+                            val scale = lerp(1f, handoffScale, p)
+                            scaleX = scale
+                            scaleY = scale
+                        }
+                    },
+            ) {
+                Text(
+                    text = song?.title ?: "Ничего не играет",
+                    color = miniTitleColor,
+                    fontSize = 13.sp,
+                    lineHeight = 15.6.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = song?.artist ?: "",
+                    color = miniArtistColor,
+                    fontSize = 11.sp,
+                    lineHeight = 15.6.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+
         if (showAddToQueuePicker) {
             AddToQueuePicker(
                 songs = allSongs,
@@ -423,3 +580,13 @@ fun NowPlayingScreen(
         }
     }
 }
+
+/** How the flying pieces (cover, text, buttons) move against the opening — evenly, in step with
+ * the sheet's edge. (Easing them on their own made them run ahead of it.) */
+internal val FLIGHT_EASING: Easing = LinearEasing
+
+/** The mini player's title (13sp) against the big player's (20sp). */
+private const val MINI_TITLE_SCALE = 13f / 20f
+
+/** How far into the opening the mini player's text has handed over to the player's own. */
+private const val TEXT_HANDOFF = 0.15f

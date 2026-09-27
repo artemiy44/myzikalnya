@@ -6,6 +6,21 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.layout
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import com.artemiy.player.data.PlayerStyle
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -62,6 +77,9 @@ import com.artemiy.player.playback.SourceArt
 import com.artemiy.player.playback.SourcePlace
 import com.artemiy.player.ui.components.AppTab
 import com.artemiy.player.ui.components.MiniPlayer
+import com.artemiy.player.ui.components.MiniPlayerAnchors
+import com.artemiy.player.ui.nowplaying.LocalNowPlayingActive
+import com.artemiy.player.ui.nowplaying.NowPlayingMemory
 import com.artemiy.player.ui.components.PlayerBottomBar
 import com.artemiy.player.ui.home.HomeScreen
 import com.artemiy.player.ui.home.HomeViewModel
@@ -150,14 +168,45 @@ private fun PlayerApp(settings: SettingsViewModel) {
     val libraryBackStack = remember { mutableStateListOf<LibraryRoute>(LibraryRoute.Home) }
     var addToPlaylistSongs by remember { mutableStateOf<List<Song>?>(null) }
 
+    // How far the player is open, 0 (just the mini player) to 1. The classic player animates its
+    // opening from the mini player on this — tapped, or dragged up with a finger; the expressive
+    // one simply appears.
+    // Kept within 0..1 — a spring overshooting past "open" would flash the cover at full size. And
+    // run out to a hair from the end: by default a spring stops 1% short and snaps the rest, which
+    // made the cover and text hop a few pixels as the animation finished.
+    val nowPlayingExpand = remember { Animatable(0f, visibilityThreshold = 0.0005f).apply { updateBounds(0f, 1f) } }
+    val scope = rememberCoroutineScope()
+    val miniAnchors = remember { MiniPlayerAnchors() }
+    // What the player was showing last time (lyrics, queue...), to open it the same way again.
+    val nowPlayingMemory = remember { NowPlayingMemory() }
+    val classicPlayer = settings.playerStyle == PlayerStyle.CLASSIC
+
+    /** [velocity]: how fast a finger was moving it when let go, in "whole openings" per second —
+     * the animation carries on from that speed instead of starting from standstill. */
+    fun openNowPlaying(velocity: Float = 0f) {
+        showNowPlaying = true
+        scope.launch {
+            if (classicPlayer) nowPlayingExpand.animateTo(1f, NOW_PLAYING_SPRING, initialVelocity = velocity)
+            else nowPlayingExpand.snapTo(1f)
+        }
+    }
+
+    fun closeNowPlaying(animated: Boolean = true, velocity: Float = 0f) {
+        scope.launch {
+            if (classicPlayer && animated) nowPlayingExpand.animateTo(0f, NOW_PLAYING_SPRING, initialVelocity = velocity)
+            else nowPlayingExpand.snapTo(0f)
+            showNowPlaying = false
+        }
+    }
+
     fun goToAlbum(song: Song) {
-        showNowPlaying = false
+        closeNowPlaying(animated = false)
         selectedTab = AppTab.Library
         libraryBackStack.add(LibraryRoute.AlbumDetail(song.album, song.artist))
     }
 
     fun goToArtist(song: Song) {
-        showNowPlaying = false
+        closeNowPlaying(animated = false)
         selectedTab = AppTab.Library
         libraryBackStack.add(LibraryRoute.ArtistDetail(song.artist))
     }
@@ -173,7 +222,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
         val pool = songsForMood(songs, mood, settings.moodFolders[mood] ?: emptySet())
         if (pool.isNotEmpty()) {
             playback.play(pool.first(), pool, PlayOrigin("Настроение", SourceArt.Place(SourcePlace.MOOD)))
-            showNowPlaying = true
+            openNowPlaying()
         }
     }
 
@@ -242,7 +291,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
     }
 
     if (showNowPlaying) {
-        BackHandler { showNowPlaying = false }
+        BackHandler { closeNowPlaying() }
     }
 
     // Dark status/nav bar icons on a light theme — except over the Now Playing screen's blur
@@ -265,6 +314,9 @@ private fun PlayerApp(settings: SettingsViewModel) {
         BackHandler { showSettings = false }
     }
 
+    // The drag distance that opens the player all the way — most of the screen's height.
+    val expandTravelPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() } * 0.8f
+
     CompositionLocalProvider(LocalStatusBarIconsOverride provides statusBarOverride) {
     Scaffold(
         containerColor = PlayerColors.Background,
@@ -281,8 +333,27 @@ private fun PlayerApp(settings: SettingsViewModel) {
                     artist = playback.currentSong?.artist ?: "Трек не выбран",
                     albumArtUri = playback.currentSong?.uri,
                     isPlaying = playback.isPlaying,
-                    onOpen = { if (playback.currentSong != null) showNowPlaying = true },
+                    onOpen = { if (playback.currentSong != null) openNowPlaying() },
                     onTogglePlayPause = { playback.togglePlayPause() },
+                    onSkipNext = { playback.skipNext() },
+                    artVisible = !(showNowPlaying && classicPlayer),
+                    anchors = miniAnchors,
+                    // Drag it up to pull the classic player open with the finger.
+                    modifier = Modifier.draggable(
+                        orientation = Orientation.Vertical,
+                        enabled = classicPlayer && playback.currentSong != null,
+                        state = rememberDraggableState { delta ->
+                            showNowPlaying = true
+                            scope.launch {
+                                nowPlayingExpand.snapTo((nowPlayingExpand.value - delta / expandTravelPx).coerceIn(0f, 1f))
+                            }
+                        },
+                        onDragStopped = { velocity ->
+                            val open = velocity < -800f || (velocity <= 800f && nowPlayingExpand.value > 0.35f)
+                            val speed = -velocity / expandTravelPx
+                            if (open) openNowPlaying(speed) else closeNowPlaying(velocity = speed)
+                        },
+                    ),
                 )
                 PlayerBottomBar(selected = selectedTab, onSelect = { selectedTab = it })
             }
@@ -320,7 +391,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                             recap = home.recap,
                             onSongClick = { song, list, origin ->
                                 playback.play(song, list, origin)
-                                showNowPlaying = true
+                                openNowPlaying()
                             },
                             onSaveMix = { mix ->
                                 // A snapshot: the mix itself changes daily, the saved playlist doesn't.
@@ -342,7 +413,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                             onRequestPermission = { permissionLauncher.launch(audioPermission) },
                             onSongClick = { song, list ->
                                 playback.play(song, list, libraryBackStack.lastOrNull()?.let { libraryOrigin(it, list) })
-                                showNowPlaying = true
+                                openNowPlaying()
                             },
                             onPlayNext = { song -> playback.playNext(song) },
                             onAddToQueue = { song -> playback.addToQueue(song) },
@@ -355,7 +426,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                             songs = songs,
                             onSongClick = { song, list ->
                                 playback.play(song, list, PlayOrigin("Поиск", SourceArt.Place(SourcePlace.SEARCH)))
-                                showNowPlaying = true
+                                openNowPlaying()
                             },
                             onPlayNext = { song -> playback.playNext(song) },
                             onAddToQueue = { song -> playback.addToQueue(song) },
@@ -371,15 +442,52 @@ private fun PlayerApp(settings: SettingsViewModel) {
         }
     }
 
-    if (showNowPlaying) {
+    // The player is built once, a moment after there's first something to play, and from then on
+    // only hidden and shown — building it from scratch on every open cost a visible stall right
+    // as the opening animation started (and taking it apart, one at the end of closing).
+    var nowPlayingPrepared by remember { mutableStateOf(false) }
+    LaunchedEffect(appReady, playback.currentSong != null) {
+        if (appReady && playback.currentSong != null && !nowPlayingPrepared) {
+            delay(1500)
+            nowPlayingPrepared = true
+        }
+    }
+
+    if (showNowPlaying || nowPlayingPrepared) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                // Hidden: parked off screen and not drawn, rather than taken apart. Only the
+                // placement changes when it's shown or hidden — nothing is rebuilt.
+                .layout { measurable, constraints ->
+                    val placeable = measurable.measure(constraints)
+                    layout(placeable.width, placeable.height) {
+                        placeable.place(if (showNowPlaying) 0 else -placeable.width * 2, 0)
+                    }
+                }
+                .graphicsLayer { alpha = if (showNowPlaying) 1f else 0f }
+                // Classic player: swipe it down to close — following the finger, like opening.
+                // Lists inside (lyrics, queue) keep their own vertical scrolling.
+                .draggable(
+                    orientation = Orientation.Vertical,
+                    enabled = classicPlayer && showNowPlaying,
+                    state = rememberDraggableState { delta ->
+                        scope.launch {
+                            nowPlayingExpand.snapTo((nowPlayingExpand.value - delta / expandTravelPx).coerceIn(0f, 1f))
+                        }
+                    },
+                    onDragStopped = { velocity ->
+                        val close = velocity > 800f || (velocity >= -800f && nowPlayingExpand.value < 0.65f)
+                        val speed = -velocity / expandTravelPx
+                        if (close) closeNowPlaying(velocity = speed) else openNowPlaying(speed)
+                    },
+                )
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
                 ) {},
         ) {
+          CompositionLocalProvider(LocalNowPlayingActive provides showNowPlaying) {
             NowPlayingScreen(
                 song = playback.currentSong,
                 isPlaying = playback.isPlaying,
@@ -391,7 +499,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 repeatEnabled = playback.repeatEnabled,
                 infinitePlayEnabled = playback.infinitePlayEnabled,
                 lyrics = playback.lyrics,
-                onClose = { showNowPlaying = false },
+                onClose = { closeNowPlaying() },
                 onTogglePlayPause = { playback.togglePlayPause() },
                 onSkipNext = { playback.skipNext() },
                 onSkipPrevious = { playback.skipPrevious() },
@@ -416,7 +524,12 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 lyricsTapPlays = settings.lyricsTapPlays,
                 playerStyle = settings.playerStyle,
                 playingFrom = playback.playingFrom,
+                expand = { nowPlayingExpand.value },
+                mini = miniAnchors,
+                memory = nowPlayingMemory,
+                lyricsLoading = playback.lyricsLoading,
             )
+          }
         }
     }
 
@@ -523,3 +636,8 @@ private fun libraryOrigin(route: com.artemiy.player.ui.library.LibraryRoute, son
     com.artemiy.player.ui.library.LibraryRoute.Songs -> PlayOrigin("Треки", SourceArt.Place(SourcePlace.SONGS))
     else -> PlayOrigin("Медиатека", SourceArt.Place(SourcePlace.LIBRARY))
 }
+
+/** Classic player opening and closing: one soft spring both ways, settling without a bounce —
+ * and carried right to the end: the spring's own default is to stop 1% short and jump the rest,
+ * which showed as the cover, title and buttons hopping a few pixels as it finished. */
+private val NOW_PLAYING_SPRING = spring(dampingRatio = 1f, stiffness = 320f, visibilityThreshold = 0.0005f)

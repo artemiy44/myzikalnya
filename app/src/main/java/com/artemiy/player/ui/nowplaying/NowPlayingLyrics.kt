@@ -54,6 +54,7 @@ import com.artemiy.player.lyrics.LyricLine
 import com.artemiy.player.lyrics.LyricVoice
 import com.artemiy.player.lyrics.ParsedLyrics
 import com.artemiy.player.lyrics.RubySegment
+import com.artemiy.player.ui.components.EqualizerLoader
 import com.artemiy.player.ui.theme.PlayerColors
 
 // The Lyrics view: synced/unsynced lines, word sweep, glow, romanization readings.
@@ -70,24 +71,35 @@ internal fun LyricsView(
     onLineClick: (timeMs: Long) -> Unit,
     showRomanization: Boolean,
     contentPadding: PaddingValues = PaddingValues(top = 16.dp, bottom = 220.dp),
+    loading: Boolean = false,
 ) {
     // The controller only reports a fresh position every ~100ms, which is far too coarse for a
     // per-word karaoke sweep — it'd visibly step instead of glide. Interpolate every frame
     // between polls using elapsed wall-clock time, and resync to the real value on every poll
     // (or on seek/pause/play) so drift never exceeds one poll interval.
     var smoothPositionMs by remember { mutableStateOf(positionMs) }
-    LaunchedEffect(positionMs, isPlaying) {
+    val active = LocalNowPlayingActive.current
+    LaunchedEffect(positionMs, isPlaying, active) {
         val anchorReal = android.os.SystemClock.elapsedRealtime()
         smoothPositionMs = positionMs
-        if (!isPlaying) return@LaunchedEffect
+        if (!isPlaying || !active) return@LaunchedEffect
         while (true) {
             withFrameMillis { }
             smoothPositionMs = positionMs + (android.os.SystemClock.elapsedRealtime() - anchorReal)
         }
     }
     when (lyrics) {
-        null -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(
+        // Centered in the visible gap between the header and the controls, not in the whole area
+        // (whose lower part sits under the controls).
+        null -> Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = contentPadding.calculateTopPadding(), bottom = contentPadding.calculateBottomPadding()),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (loading && active) {
+                EqualizerLoader(color = LocalAdaptiveSecondaryColor.current, modifier = Modifier.size(44.dp))
+            } else Text(
                 text = "Текст для этого трека не найден",
                 color = LocalAdaptiveSecondaryColor.current,
                 fontSize = 14.sp,

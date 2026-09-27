@@ -40,6 +40,7 @@ import com.artemiy.player.data.Song
 import com.artemiy.player.data.normalizeForSearch
 import com.artemiy.player.ui.components.AlbumArt
 import com.artemiy.player.ui.components.SongActionsMenu
+import com.artemiy.player.ui.components.EqualizerLoader
 import com.artemiy.player.ui.theme.PlayerColors
 import kotlinx.coroutines.delay
 
@@ -140,12 +141,18 @@ fun SearchScreen(
 
         if (query.isNotBlank() && lyricsIndexProgress != null) {
             val (done, total) = lyricsIndexProgress
-            Text(
-                text = "Тексты песен ещё собираются ($done из $total) — по тексту найдётся пока не всё",
-                color = PlayerColors.TextTertiary,
-                fontSize = 12.sp,
+            Row(
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-            )
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                EqualizerLoader(color = PlayerColors.TextTertiary, modifier = Modifier.size(18.dp))
+                Text(
+                    text = "Тексты песен ещё собираются ($done из $total) — по тексту найдётся пока не всё",
+                    color = PlayerColors.TextTertiary,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(start = 10.dp),
+                )
+            }
         }
 
         when {

@@ -93,11 +93,17 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
     var lyrics by mutableStateOf<ParsedLyrics?>(null)
         private set
 
+    /** True while the current song's lyrics are still being read — so "not found" isn't shown
+     * for lyrics that simply haven't loaded yet. */
+    var lyricsLoading by mutableStateOf(false)
+        private set
+
     private var lyricsJob: Job? = null
 
     private fun loadLyricsFor(song: Song?) {
         lyricsJob?.cancel()
         lyrics = null
+        lyricsLoading = song != null
         if (song == null) return
         lyricsJob = viewModelScope.launch {
             // MetadataRetriever spins up its own decoder pipeline to read tags. Give the
@@ -111,6 +117,7 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
                 .getOrNull()
             Log.d(TAG, "Lyrics for ${song.title}: ${result?.let { it::class.simpleName } ?: "none"} (${System.currentTimeMillis() - start}ms)")
             lyrics = result
+            lyricsLoading = false
             // Shown right away without romanization, then swapped for the romanized version — the
             // first Japanese song has to load Kuromoji's dictionary, which takes a moment.
             if (result != null) {

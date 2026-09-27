@@ -743,6 +743,12 @@ private val THIRD_PARTY = listOf(
         files = listOf("phosphor-mit.txt"),
     ),
     ThirdPartyComponent(
+        name = "SVG Spinners",
+        authors = "Utkarsh Verma",
+        license = "MIT",
+        files = listOf("svg-spinners-mit.txt"),
+    ),
+    ThirdPartyComponent(
         name = "Reorderable",
         authors = "Calvin Liang",
         license = "Apache License 2.0",
