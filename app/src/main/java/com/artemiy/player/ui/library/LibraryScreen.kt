@@ -54,7 +54,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.artemiy.player.data.ArtistNames
 import com.artemiy.player.data.LibraryViewMode
+import com.artemiy.player.data.artists
 import com.artemiy.player.data.PlaylistWithCount
 import com.artemiy.player.data.Song
 import com.artemiy.player.ui.components.AlbumArt
@@ -235,8 +237,12 @@ fun LibraryScreen(
                 }
 
                 else -> {
-                    val artistGroups = remember(songs) {
-                        songs.groupBy { it.artist }
+                    // A song credited to several artists ("Ado & Eve") is listed under each of them.
+                    val keptArtists = ArtistNames.userKept
+                    val artistNamesVersion = ArtistNames.version
+                    val artistGroups = remember(songs, keptArtists, artistNamesVersion) {
+                        songs.flatMap { song -> song.artists().map { it to song } }
+                            .groupBy({ it.first }, { it.second })
                             .map { (artist, list) -> ArtistGroup(artist, list) }
                     }
                     val albumGroups = remember(songs) {
@@ -428,7 +434,10 @@ fun LibraryScreen(
                                 },
                                 onSongClick = { song, list -> onSongClick(song, list) },
                                 onAlbumClick = { album ->
-                                    push(LibraryRoute.AlbumDetail(album, r.artist))
+                                    // Albums are keyed by their songs' full artist line ("Ado & Eve"),
+                                    // not by this one artist.
+                                    val albumArtist = artistSongs.firstOrNull { it.album == album }?.artist ?: r.artist
+                                    push(LibraryRoute.AlbumDetail(album, albumArtist))
                                 },
                                 onPlayNext = onPlayNext,
                                 onAddToQueue = onAddToQueue,

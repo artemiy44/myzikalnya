@@ -81,7 +81,7 @@ fun buildMixes(songs: List<Song>, plays: List<SongEvent>, skips: List<SongEvent>
     candidates += "favorites" to { "Любимое" to ranked(allCounts, 3).take(MIX_SIZE) }
 
     val topArtists = monthCounts.entries
-        .mapNotNull { (id, count) -> byId[id]?.let { it.artist to count } }
+        .flatMap { (id, count) -> byId[id]?.artists().orEmpty().map { it to count } }
         .groupBy({ it.first }, { it.second }).mapValues { it.value.sum() }
         .filterValues { it >= 3 }.entries.sortedByDescending { it.value }.map { it.key }
     val topGenres = monthCounts.entries
@@ -90,10 +90,10 @@ fun buildMixes(songs: List<Song>, plays: List<SongEvent>, skips: List<SongEvent>
         .values.sortedByDescending { it.second }.map { it.first }
 
     fun artistMix(artist: String): Pair<String, List<Song>>? {
-        val own = songs.filter { it.artist == artist }.sortedByDescending { allCounts[it.id] ?: 0 }
+        val own = songs.filter { artist in it.artists() }.sortedByDescending { allCounts[it.id] ?: 0 }
         val genre = own.mapNotNull(::primaryGenre).groupingBy { it.lowercase() }.eachCount().maxByOrNull { it.value }?.key
         val similar = if (genre == null) emptyList() else songs.filter {
-            it.artist != artist && primaryGenre(it)?.lowercase() == genre && it.id !in skippedLately
+            artist !in it.artists() && primaryGenre(it)?.lowercase() == genre && it.id !in skippedLately
         }.shuffled(random)
         return "Микс: $artist" to (own.take(12) + similar).take(MIX_SIZE).shuffled(random)
     }
@@ -166,7 +166,7 @@ fun buildMixes(songs: List<Song>, plays: List<SongEvent>, skips: List<SongEvent>
 
 /** "A, B, C, D и другие" — the mix's most frequent artists first. */
 fun artistsLine(songs: List<Song>, shown: Int = 4): String {
-    val artists = songs.groupingBy { it.artist }.eachCount().entries.sortedByDescending { it.value }.map { it.key }
+    val artists = songs.flatMap { it.artists() }.groupingBy { it }.eachCount().entries.sortedByDescending { it.value }.map { it.key }
     val head = artists.take(shown).joinToString(", ")
     return if (artists.size > shown) "$head и другие" else head
 }

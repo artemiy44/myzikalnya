@@ -81,6 +81,9 @@ import com.artemiy.player.playback.SourceArt
 import com.artemiy.player.playback.SourcePlace
 import com.artemiy.player.ui.components.AppTab
 import com.artemiy.player.ui.components.MiniPlayer
+import com.artemiy.player.ui.components.ArtistChoiceDialog
+import com.artemiy.player.data.ArtistNames
+import com.artemiy.player.data.artists
 import com.artemiy.player.ui.components.MiniPlayerAnchors
 import com.artemiy.player.ui.nowplaying.LocalNowPlayingActive
 import com.artemiy.player.ui.nowplaying.NowPlayingMemory
@@ -209,10 +212,18 @@ private fun PlayerApp(settings: SettingsViewModel) {
         libraryBackStack.add(LibraryRoute.AlbumDetail(song.album, song.artist))
     }
 
-    fun goToArtist(song: Song) {
+    fun goToArtistNamed(name: String) {
         closeNowPlaying(animated = false)
         selectedTab = AppTab.Library
-        libraryBackStack.add(LibraryRoute.ArtistDetail(song.artist))
+        libraryBackStack.add(LibraryRoute.ArtistDetail(name))
+    }
+
+    // Several artists on one song: ask which one's page to open.
+    var artistChoice by remember { mutableStateOf<List<String>?>(null) }
+
+    fun goToArtist(song: Song) {
+        val names = song.artists()
+        if (names.size > 1) artistChoice = names else goToArtistNamed(names.firstOrNull() ?: song.artist)
     }
 
     var permissionGranted by remember {
@@ -255,6 +266,8 @@ private fun PlayerApp(settings: SettingsViewModel) {
         if (permissionGranted) {
             // Off the main thread — it's what made the launch animation stutter.
             val fresh = withContext(Dispatchers.IO) { querySongs(context, settings.scanFolders) }
+            // Each artist's usual spelling, so "Eve" and "EVE" end up as one artist.
+            withContext(Dispatchers.Default) { ArtistNames.learn(fresh) }
             songs.clear()
             songs.addAll(fresh)
             libraryLoaded = true
@@ -278,6 +291,8 @@ private fun PlayerApp(settings: SettingsViewModel) {
         if (rescanTrigger > 0 && permissionGranted) {
             // Off the main thread — it's what made the launch animation stutter.
             val fresh = withContext(Dispatchers.IO) { querySongs(context, settings.scanFolders) }
+            // Each artist's usual spelling, so "Eve" and "EVE" end up as one artist.
+            withContext(Dispatchers.Default) { ArtistNames.learn(fresh) }
             songs.clear()
             songs.addAll(fresh)
             lyricsSearch.sync(fresh, isPlaying = { playback.isPlaying })
@@ -609,6 +624,12 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 iconSet = settings.iconSet,
                 onIconSetChange = { settings.updateIconSet(it) },
                 onBack = { showSettings = false },
+                keptArtists = settings.keptArtists,
+                onAddKeptArtist = { settings.addKeptArtist(it) },
+                onRemoveKeptArtist = { settings.removeKeptArtist(it) },
+                splitArtistLines = remember(songs.size, settings.keptArtists) {
+                    songs.map { it.artist }.distinct().filter { ArtistNames.split(it).size > 1 }.sortedBy { it.lowercase() }
+                },
             )
         }
     }
@@ -629,6 +650,17 @@ private fun PlayerApp(settings: SettingsViewModel) {
         ) {
             LoadingBurst(color = PlayerColors.AccentStandalone, modifier = Modifier.size(96.dp))
         }
+    }
+
+    artistChoice?.let { names ->
+        ArtistChoiceDialog(
+            names = names,
+            onPick = { name ->
+                artistChoice = null
+                goToArtistNamed(name)
+            },
+            onDismiss = { artistChoice = null },
+        )
     }
 
     addToPlaylistSongs?.let { songsToAdd ->

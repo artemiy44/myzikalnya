@@ -73,6 +73,7 @@ private enum class SettingsRoute(val title: String, val parent: SettingsRoute?) 
     Mood("Настроение", Main),
     Player("Плеер", Main),
     NowPlayingBackground("Фон плеера", Player),
+    KeptArtists("Исполнители", General),
     About("О приложении", Main),
 }
 
@@ -111,6 +112,11 @@ fun SettingsScreen(
     iconSet: IconSet,
     onIconSetChange: (IconSet) -> Unit,
     onBack: () -> Unit,
+    keptArtists: Set<String> = emptySet(),
+    onAddKeptArtist: (String) -> Unit = {},
+    onRemoveKeptArtist: (String) -> Unit = {},
+    /** Artist lines from the library that currently count as several artists. */
+    splitArtistLines: List<String> = emptyList(),
 ) {
     val context = LocalContext.current
     var route by remember { mutableStateOf(SettingsRoute.Main) }
@@ -150,7 +156,17 @@ fun SettingsScreen(
 
             when (page) {
                 SettingsRoute.Main -> SettingsCategories(onOpen = { route = it })
-                SettingsRoute.General -> GeneralContent(startTab = startTab, onStartTabChange = onStartTabChange)
+                SettingsRoute.General -> GeneralContent(
+                    startTab = startTab,
+                    onStartTabChange = onStartTabChange,
+                    onOpenKeptArtists = { route = SettingsRoute.KeptArtists },
+                )
+                SettingsRoute.KeptArtists -> KeptArtistsContent(
+                    kept = keptArtists,
+                    splitLines = splitArtistLines,
+                    onAdd = onAddKeptArtist,
+                    onRemove = onRemoveKeptArtist,
+                )
                 SettingsRoute.Appearance, SettingsRoute.Library, SettingsRoute.Playback,
                 SettingsRoute.Mood, SettingsRoute.Player -> SettingsSectionContent(
                     section = page,
@@ -339,7 +355,7 @@ private fun ColorSwatch(color: androidx.compose.ui.graphics.Color, selected: Boo
 }
 
 @Composable
-private fun GeneralContent(startTab: AppTab, onStartTabChange: (AppTab) -> Unit) {
+private fun GeneralContent(startTab: AppTab, onStartTabChange: (AppTab) -> Unit, onOpenKeptArtists: () -> Unit) {
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
@@ -355,6 +371,122 @@ private fun GeneralContent(startTab: AppTab, onStartTabChange: (AppTab) -> Unit)
                 }
             }
         }
+        Spacer(modifier = Modifier.height(12.dp))
+        SettingsCard {
+            SettingsRow(
+                icon = AppIcons.Artist,
+                title = "Исполнители целиком",
+                subtitle = "Кого не делить на нескольких исполнителей",
+                onClick = onOpenKeptArtists,
+                showChevron = true,
+            )
+        }
+    }
+}
+
+/**
+ * The user's own "keep these whole" artist names. The app already splits "A & B, C" into three
+ * artists and knows plenty of bands that only look like that ("Earth, Wind & Fire", "AC/DC");
+ * this is for the ones it doesn't know. Lines from the library that are being split right now are
+ * offered below, one tap to keep them whole.
+ */
+@Composable
+private fun KeptArtistsContent(
+    kept: Set<String>,
+    splitLines: List<String>,
+    onAdd: (String) -> Unit,
+    onRemove: (String) -> Unit,
+) {
+    var input by remember { mutableStateOf("") }
+    Column(
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp)
+            .navigationBarsPadding(),
+    ) {
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = "Если у песни несколько исполнителей через «&», запятую, «feat.» и т. п., она появляется у каждого " +
+                "из них. Названия групп, в которых такие знаки просто есть («Earth, Wind & Fire», «AC/DC»), плеер " +
+                "и так узнаёт и не делит. Если он всё-таки разделил группу, добавь её сюда.",
+            color = PlayerColors.TextSecondary,
+            fontSize = 12.sp,
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        SettingsCard {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(PlayerColors.SurfaceDim)
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                ) {
+                    if (input.isEmpty()) Text(text = "Название исполнителя", color = PlayerColors.TextTertiary, fontSize = 14.sp)
+                    androidx.compose.foundation.text.BasicTextField(
+                        value = input,
+                        onValueChange = { input = it },
+                        singleLine = true,
+                        textStyle = androidx.compose.ui.text.TextStyle(color = PlayerColors.TextPrimary, fontSize = 14.sp),
+                        cursorBrush = androidx.compose.ui.graphics.SolidColor(PlayerColors.Accent),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                Text(
+                    text = "Добавить",
+                    color = if (input.isBlank()) PlayerColors.TextTertiary else PlayerColors.TextPrimary,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .padding(start = 14.dp)
+                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                            if (input.isNotBlank()) {
+                                onAdd(input)
+                                input = ""
+                            }
+                        },
+                )
+            }
+            kept.sorted().forEach { name ->
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(text = name, color = PlayerColors.TextPrimary, fontSize = 14.sp, modifier = Modifier.weight(1f))
+                    Icon(
+                        imageVector = AppIcons.Close,
+                        contentDescription = "Убрать",
+                        tint = PlayerColors.TextSecondary,
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onRemove(name) },
+                    )
+                }
+            }
+        }
+        val suggestions = splitLines.filter { line -> kept.none { it.equals(line, ignoreCase = true) } }
+        if (suggestions.isNotEmpty()) {
+            SectionTitle("Сейчас делятся на нескольких исполнителей")
+            SettingsCard {
+                suggestions.forEachIndexed { index, line ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = if (index == 0) 0.dp else 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(text = line, color = PlayerColors.TextPrimary, fontSize = 14.sp, modifier = Modifier.weight(1f))
+                        Icon(
+                            imageVector = AppIcons.Add,
+                            contentDescription = "Не делить",
+                            tint = PlayerColors.TextSecondary,
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onAdd(line) },
+                        )
+                    }
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(20.dp))
     }
 }
 

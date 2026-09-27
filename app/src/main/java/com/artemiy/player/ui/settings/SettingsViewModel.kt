@@ -11,6 +11,7 @@ import com.artemiy.player.data.InfinitePlayMode
 import com.artemiy.player.data.LibraryViewMode
 import com.artemiy.player.data.LiveBlurIntensity
 import com.artemiy.player.data.Mood
+import com.artemiy.player.data.ArtistNames
 import com.artemiy.player.data.NowPlayingBackgroundMode
 import com.artemiy.player.data.PlayerStyle
 import com.artemiy.player.data.SettingsRepository
@@ -80,6 +81,10 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     var iconSet by mutableStateOf(IconSet.LUCIDE)
         private set
 
+    /** Artist names never split into several artists (on top of the built-in list). */
+    var keptArtists by mutableStateOf<Set<String>>(emptySet())
+        private set
+
     /** False until the saved choice has been read — the app waits for it before picking a tab. */
     var startTabLoaded by mutableStateOf(false)
         private set
@@ -135,6 +140,12 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             repository.accent.collect { accent = AccentChoice.fromKey(it) }
+        }
+        viewModelScope.launch {
+            repository.keptArtists.collect { value ->
+                keptArtists = value
+                ArtistNames.userKept = value
+            }
         }
         viewModelScope.launch {
             repository.iconSet.collect { value ->
@@ -266,5 +277,21 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         val updated = if (folder in scanFolders) scanFolders - folder else scanFolders + folder
         scanFolders = updated
         viewModelScope.launch { repository.setScanFolders(updated) }
+    }
+
+    fun addKeptArtist(name: String) {
+        val clean = name.trim()
+        if (clean.isEmpty()) return
+        val updated = keptArtists + clean
+        keptArtists = updated
+        ArtistNames.userKept = updated
+        viewModelScope.launch { repository.setKeptArtists(updated) }
+    }
+
+    fun removeKeptArtist(name: String) {
+        val updated = keptArtists - name
+        keptArtists = updated
+        ArtistNames.userKept = updated
+        viewModelScope.launch { repository.setKeptArtists(updated) }
     }
 }

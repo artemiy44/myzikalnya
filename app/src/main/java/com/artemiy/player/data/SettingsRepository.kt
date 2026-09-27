@@ -31,6 +31,7 @@ class SettingsRepository(private val context: Context) {
         const val MIN_FONT_SCALE = 0.9f
         const val MAX_FONT_SCALE = 1.35f
         val SCAN_FOLDERS_KEY = stringSetPreferencesKey("scan_folders")
+        val KEPT_ARTISTS_KEY = stringSetPreferencesKey("kept_artists")
         val INFINITE_PLAY_MODE_KEY = stringPreferencesKey("infinite_play_mode")
         val NOW_PLAYING_BACKGROUND_MODE_KEY = stringPreferencesKey("now_playing_background_mode")
         val PLAYER_STYLE_KEY = stringPreferencesKey("player_style")
@@ -181,6 +182,13 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setIconSet(value: String) {
         context.settingsDataStore.edit { it[ICON_SET_KEY] = value }
+    }
+
+    /** Artist names the user wants kept whole, never split into several artists. */
+    val keptArtists: Flow<Set<String>> = context.settingsDataStore.data.map { it[KEPT_ARTISTS_KEY] ?: emptySet() }
+
+    suspend fun setKeptArtists(value: Set<String>) {
+        context.settingsDataStore.edit { it[KEPT_ARTISTS_KEY] = value }
     }
 
     suspend fun setStartTab(value: String) {

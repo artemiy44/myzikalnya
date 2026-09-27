@@ -58,12 +58,13 @@ fun buildRecap(songs: List<Song>, plays: List<SongEvent>, now: Long): Recap? {
 
     val songCounts = week.groupingBy { it.songId }.eachCount()
     val topSongs = songCounts.entries.sortedByDescending { it.value }.take(5).map { byId.getValue(it.key) to it.value }
-    val artistCounts = week.groupBy { byId.getValue(it.songId).artist }.mapValues { it.value.size }
+    val artistCounts = week.flatMap { byId.getValue(it.songId).artists() }.groupingBy { it }.eachCount()
     val topArtists = artistCounts.entries.sortedByDescending { it.value }.take(5).map { it.key to it.value }
     val minutes = (week.sumOf { byId.getValue(it.songId).durationMs } / 60_000L).toInt()
 
     val newByArtist = songs.filter { it.dateAddedMs in start until end }
-        .groupBy { it.artist }.entries.sortedByDescending { it.value.size }.take(5).map { it.key to it.value }
+        .flatMap { song -> song.artists().map { it to song } }.groupBy({ it.first }, { it.second })
+        .entries.sortedByDescending { it.value.size }.take(5).map { it.key to it.value }
 
     val allCounts = plays.groupingBy { it.songId }.eachCount()
     val lastPlayed = plays.groupBy { it.songId }.mapValues { (_, events) -> events.maxOf { it.at } }
