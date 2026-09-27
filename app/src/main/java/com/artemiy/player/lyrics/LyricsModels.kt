@@ -28,6 +28,9 @@ data class LyricLine(
     val ruby: List<RubySegment>? = null,
     /** Romanization for a word-synced line: one reading per entry of [words], same order. */
     val wordReadings: List<String?>? = null,
+    /** Not sung at all: an instrumental break lasting until this time, shown as three dots.
+     * Added for display by [withInstrumentalBreaks]. */
+    val instrumentalUntilMs: Long? = null,
 ) {
     val hasRomanization: Boolean get() = ruby != null || wordReadings != null
 }

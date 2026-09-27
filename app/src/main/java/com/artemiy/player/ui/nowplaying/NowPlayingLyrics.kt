@@ -55,6 +55,12 @@ import com.artemiy.player.lyrics.LyricVoice
 import com.artemiy.player.lyrics.ParsedLyrics
 import com.artemiy.player.lyrics.RubySegment
 import com.artemiy.player.ui.components.EqualizerLoader
+import com.artemiy.player.lyrics.withInstrumentalBreaks
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
 import com.artemiy.player.ui.theme.PlayerColors
 
 // The Lyrics view: synced/unsynced lines, word sweep, glow, romanization readings.
@@ -130,8 +136,10 @@ internal fun LyricsView(
         is ParsedLyrics.Synced -> {
             // -1 during an instrumental intro, before the first line starts — must stay -1, not
             // be clamped to 0, or line 0 lights up (big font, autoscroll, gray first word) early.
-            val activeIndex = remember(lyrics, positionMs) {
-                lyrics.lines.indexOfLast { it.timeMs <= positionMs }
+            // The lines plus instrumental breaks (three dots) where nothing is sung.
+            val lines = remember(lyrics) { withInstrumentalBreaks(lyrics.lines) }
+            val activeIndex = remember(lines, positionMs) {
+                lines.indexOfLast { it.timeMs <= positionMs }
             }
             val listState = rememberLazyListState()
             var lastAnchorBottomPx by remember { mutableStateOf(anchorBottomPx) }
@@ -174,7 +182,7 @@ internal fun LyricsView(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = contentPadding,
             ) {
-                itemsIndexed(lyrics.lines) { index, line ->
+                itemsIndexed(lines) { index, line ->
                     val active = index == activeIndex
                     val alpha by animateFloatAsState(if (active) 1f else 0.35f, label = "lineAlpha")
                     // Every line is laid out at the sung size and inactive ones are only shrunk
@@ -190,8 +198,17 @@ internal fun LyricsView(
                                 indication = null,
                             ) { onLineClick(line.timeMs) },
                     ) {
-                        val nextLineStartMs = lyrics.lines.getOrNull(index + 1)?.timeMs
-                        SungLine(
+                        val nextLineStartMs = lines.getOrNull(index + 1)?.timeMs
+                        val breakUntil = line.instrumentalUntilMs
+                        if (breakUntil != null) {
+                            InstrumentalDots(
+                                startMs = line.timeMs,
+                                endMs = breakUntil,
+                                positionMs = smoothPositionMs,
+                                active = active,
+                                alignEnd = line.voice == LyricVoice.V2,
+                            )
+                        } else SungLine(
                             line = line,
                             active = active,
                             alpha = alpha,
@@ -571,3 +588,65 @@ internal fun WordSyncedLine(
         }
     }
 }
+
+/**
+ * An instrumental break: three dots that only exist while it's their turn — until then they take
+ * no room at all. When the break comes they open a gap between the lines and appear, light up one
+ * after another as the next line gets closer (each glowing like a sung line once lit), and just
+ * before the singing starts again they fold away, letting the lines close back up.
+ */
+@Composable
+internal fun InstrumentalDots(startMs: Long, endMs: Long, positionMs: Long, active: Boolean, alignEnd: Boolean) {
+    val span = (endMs - startMs).coerceAtLeast(1L).toFloat()
+    val progress = ((positionMs - startMs) / span).coerceIn(0f, 1f)
+    val origin = androidx.compose.ui.graphics.TransformOrigin(if (alignEnd) 1f else 0f, 0.5f)
+    androidx.compose.animation.AnimatedVisibility(
+        visible = active && positionMs < endMs - DOTS_FOLD_EARLY_MS,
+        // No clipping while opening/closing — it would cut the dots' glow off.
+        enter = androidx.compose.animation.expandVertically(tween(380), clip = false) +
+            androidx.compose.animation.fadeIn(tween(320, delayMillis = 80)) +
+            androidx.compose.animation.scaleIn(tween(380), initialScale = 0.5f, transformOrigin = origin),
+        exit = androidx.compose.animation.scaleOut(tween(260), targetScale = 0f, transformOrigin = origin) +
+            androidx.compose.animation.fadeOut(tween(220)) +
+            androidx.compose.animation.shrinkVertically(tween(320, delayMillis = 120), clip = false),
+    ) {
+        val color = PlayerColors.TextPrimary
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+            horizontalArrangement = if (alignEnd) Arrangement.End else Arrangement.Start,
+        ) {
+            repeat(3) { i ->
+                // Each dot fills over its own third of the break, and glows like a sung line
+                // as it lights up.
+                val lit = (progress * 3f - i).coerceIn(0f, 1f)
+                Box(
+                    modifier = Modifier.padding(end = if (i < 2) 12.dp else 0.dp).size(14.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    // The halo: a bit bigger than the dot and blurred a bit less than text's glow —
+                    // a dot is much smaller than a letter, and the same blur would dissolve it.
+                    Box(
+                        modifier = Modifier
+                            .requiredSize(20.dp)
+                            .graphicsLayer {
+                                alpha = lit * LYRIC_GLOW_ALPHA
+                                compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.ModulateAlpha
+                            }
+                            .blur(12.dp, androidx.compose.ui.draw.BlurredEdgeTreatment.Unbounded)
+                            .clip(CircleShape)
+                            .background(color),
+                    )
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clip(CircleShape)
+                            .background(color.copy(alpha = 0.3f + 0.7f * lit)),
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** The dots fold away this long before the next line starts, so it's already back in place. */
+private const val DOTS_FOLD_EARLY_MS = 450L
