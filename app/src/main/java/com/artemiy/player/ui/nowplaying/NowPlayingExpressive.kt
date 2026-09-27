@@ -636,10 +636,12 @@ private fun QueueSheet(
                     imageVector = when (output.kind) {
                         OutputKind.PHONE -> AppIcons.DevicePhone
                         OutputKind.HEADPHONES -> AppIcons.DeviceHeadphones
+                        OutputKind.EARBUDS -> AppIcons.DeviceEarbuds
                         OutputKind.SPEAKER -> AppIcons.DeviceSpeaker
                         OutputKind.BLUETOOTH -> AppIcons.DeviceBluetooth
                         OutputKind.USB -> AppIcons.DeviceUsb
                         OutputKind.TV -> AppIcons.DeviceTv
+                        OutputKind.CAR -> AppIcons.DeviceCar
                     },
                     contentDescription = output.name ?: "Это устройство",
                     tint = if (output.kind == OutputKind.PHONE) LocalAdaptiveSecondaryColor.current else PlayerColors.TextPrimary,

@@ -2,6 +2,7 @@ package com.artemiy.player.playback
 
 import android.content.Context
 import android.Manifest
+import android.bluetooth.BluetoothClass
 import android.bluetooth.BluetoothManager
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -28,7 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.delay
 
-enum class OutputKind { PHONE, HEADPHONES, SPEAKER, BLUETOOTH, USB, TV }
+enum class OutputKind { PHONE, HEADPHONES, EARBUDS, SPEAKER, BLUETOOTH, USB, TV, CAR }
 
 /** Where the music is coming out right now — [name] is null for the phone's own speaker. */
 data class OutputDevice(val kind: OutputKind, val name: String?, val isBluetooth: Boolean = false)
@@ -79,13 +80,33 @@ private fun hasBluetoothConnect(context: Context): Boolean =
     Build.VERSION.SDK_INT < 31 ||
         ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
 
-/** The name the user gave a Bluetooth device in the system settings, when Android lets us read it. */
-private fun bluetoothAlias(context: Context, info: AudioDeviceInfo): String? {
+/**
+ * What the Bluetooth device itself says about itself, when Android lets us ask ("Nearby devices"):
+ * the name the user gave it, and what kind of thing it is — headphones, an in-ear headset
+ * (earbuds report themselves as that), a speaker, a car... Null parts = unknown.
+ */
+private class BluetoothDetails(val alias: String?, val kind: OutputKind?)
+
+private fun bluetoothDetails(context: Context, info: AudioDeviceInfo): BluetoothDetails? {
     if (Build.VERSION.SDK_INT < 30 || !hasBluetoothConnect(context)) return null
     val address = info.address.takeIf { it.isNotBlank() } ?: return null
-    return runCatching {
-        context.getSystemService(BluetoothManager::class.java)?.adapter?.getRemoteDevice(address)?.alias
-    }.getOrNull()?.trim()?.takeIf { it.isNotEmpty() }
+    val device = runCatching { context.getSystemService(BluetoothManager::class.java)?.adapter?.getRemoteDevice(address) }
+        .getOrNull() ?: return null
+    val alias = runCatching { device.alias }.getOrNull()?.trim()?.takeIf { it.isNotEmpty() }
+    val kind = when (runCatching { device.bluetoothClass?.deviceClass }.getOrNull()) {
+        BluetoothClass.Device.AUDIO_VIDEO_HEADPHONES -> OutputKind.HEADPHONES
+        BluetoothClass.Device.AUDIO_VIDEO_WEARABLE_HEADSET,
+        BluetoothClass.Device.AUDIO_VIDEO_HANDSFREE -> OutputKind.EARBUDS
+        BluetoothClass.Device.AUDIO_VIDEO_LOUDSPEAKER,
+        BluetoothClass.Device.AUDIO_VIDEO_PORTABLE_AUDIO,
+        BluetoothClass.Device.AUDIO_VIDEO_HIFI_AUDIO -> OutputKind.SPEAKER
+        BluetoothClass.Device.AUDIO_VIDEO_CAR_AUDIO -> OutputKind.CAR
+        BluetoothClass.Device.AUDIO_VIDEO_VIDEO_DISPLAY_AND_LOUDSPEAKER,
+        BluetoothClass.Device.AUDIO_VIDEO_VIDEO_MONITOR,
+        BluetoothClass.Device.AUDIO_VIDEO_SET_TOP_BOX -> OutputKind.TV
+        else -> null
+    }
+    return BluetoothDetails(alias, kind)
 }
 
 private val MEDIA_ATTRIBUTES = AudioAttributes.Builder()
@@ -107,7 +128,12 @@ private fun currentOutput(audio: AudioManager, context: Context): OutputDevice {
         ?: runCatching { audio.getDevices(AudioManager.GET_DEVICES_OUTPUTS).maxByOrNull { priorityOf(it.type) } }.getOrNull()
         ?: return PHONE
     val described = describe(info)
-    return if (described.isBluetooth) bluetoothAlias(context, info)?.let { described.copy(name = it) } ?: described else described
+    if (!described.isBluetooth) return described
+    val details = bluetoothDetails(context, info) ?: return described
+    return described.copy(
+        name = details.alias ?: described.name,
+        kind = details.kind ?: described.kind,
+    )
 }
 
 private fun priorityOf(type: Int): Int = when (type) {
@@ -139,12 +165,15 @@ private fun describe(info: AudioDeviceInfo): OutputDevice {
     }
 }
 
-private val HEADPHONE_HINTS = listOf("bud", "ear", "pod", "head", "наушн", "wh-", "wf-", "freeclip")
+private val EARBUD_HINTS = listOf("bud", "pod", "ear", "freeclip", "wf-", "капл")
+private val HEADPHONE_HINTS = listOf("head", "наушн", "wh-", "major", "momentum", "qc")
 private val SPEAKER_HINTS = listOf("speaker", "колонк", "boom", "flip", "charge", "jbl", "sound", "station", "станция", "алиса", "home")
 
+/** For devices that don't say what they are: a guess from the name. */
 private fun bluetoothKindFromName(name: String?): OutputKind {
     val lower = name?.lowercase() ?: return OutputKind.BLUETOOTH
     return when {
+        EARBUD_HINTS.any { it in lower } -> OutputKind.EARBUDS
         HEADPHONE_HINTS.any { it in lower } -> OutputKind.HEADPHONES
         SPEAKER_HINTS.any { it in lower } -> OutputKind.SPEAKER
         else -> OutputKind.BLUETOOTH

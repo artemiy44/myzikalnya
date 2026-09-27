@@ -1085,3 +1085,29 @@ internal val TablerLyricsBubble: ImageVector by lazy {
         path("M9 18h-3a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-3l-3 3l-3 -3", fill = false, stroke = true)
     }
 }
+
+internal val LucideDeviceCar: ImageVector by lazy {
+    iconVector("LucideDeviceCar", scale = LUCIDE_SCALE) {
+        path("M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2", fill = false, stroke = true)
+        path("M5 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0", fill = false, stroke = true)
+        path("M9 17h6", fill = false, stroke = true)
+        path("M15 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0", fill = false, stroke = true)
+    }
+}
+
+internal val TablerDeviceCar: ImageVector by lazy {
+    iconVector("TablerDeviceCar") {
+        path("M5 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0", fill = false, stroke = true)
+        path("M15 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0", fill = false, stroke = true)
+        path("M5 17h-2v-6l2 -5h9l4 5h1a2 2 0 0 1 2 2v4h-2m-4 0h-6m-6 -6h15m-6 0v-5", fill = false, stroke = true)
+    }
+}
+
+// Earbuds — Tabler's "device-airpods", used for both icon sets (Lucide has no earbuds).
+internal val SharedDeviceEarbuds: ImageVector by lazy {
+    iconVector("SharedDeviceEarbuds") {
+        path("M6 4a4 4 0 0 1 4 3.8l0 .2v10.5a1.5 1.5 0 0 1 -3 0v-6.5h-1a4 4 0 0 1 -4 -3.8l0 -.2a4 4 0 0 1 4 -4", fill = false, stroke = true)
+        path("M18 4a4 4 0 0 0 -4 3.8l0 .2v10.5a1.5 1.5 0 0 0 3 0v-6.5h1a4 4 0 0 0 4 -3.8l0 -.2a4 4 0 0 0 -4 -4", fill = false, stroke = true)
+    }
+}
+

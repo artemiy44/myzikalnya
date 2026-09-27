@@ -270,10 +270,12 @@ internal fun BottomQuickActionsRow(
                 imageVector = when (output.kind) {
                     OutputKind.PHONE -> AppIcons.DevicePhone
                     OutputKind.HEADPHONES -> AppIcons.DeviceHeadphones
+                    OutputKind.EARBUDS -> AppIcons.DeviceEarbuds
                     OutputKind.SPEAKER -> AppIcons.DeviceSpeaker
                     OutputKind.BLUETOOTH -> AppIcons.DeviceBluetooth
                     OutputKind.USB -> AppIcons.DeviceUsb
                     OutputKind.TV -> AppIcons.DeviceTv
+                    OutputKind.CAR -> AppIcons.DeviceCar
                 },
                 contentDescription = "Устройство воспроизведения",
                 // Lit up while playing through something other than the phone itself.

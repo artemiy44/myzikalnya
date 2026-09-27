@@ -95,6 +95,9 @@ object AppIcons {
     val DeviceBluetooth: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideDeviceBluetooth, TablerDeviceBluetooth)
     val DeviceUsb: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideDeviceUsb, TablerDeviceUsb)
     val DeviceTv: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideDeviceTv, TablerDeviceTv)
+    val DeviceCar: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideDeviceCar, TablerDeviceCar)
+    /** Earbuds — the same drawing in both sets (Lucide has none of its own). */
+    val DeviceEarbuds: ImageVector get() = SharedDeviceEarbuds
 
     // The "Экспрессивный" player's own takes: skip with a bar (⏮ ⏭), lyrics as a speech bubble.
     val SkipBack: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideSkipBack, TablerSkipBack)
