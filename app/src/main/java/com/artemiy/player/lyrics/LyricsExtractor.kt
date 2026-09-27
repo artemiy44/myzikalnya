@@ -75,6 +75,19 @@ object LyricsExtractor {
     private fun addText(raw: String, synced: MutableList<ParsedLyrics.Synced>, onUnsynced: (String) -> Unit) {
         if (raw.isBlank()) return
         val lines = parsePlainLrc(raw)
-        if (lines.isNotEmpty()) synced.add(ParsedLyrics.Synced(lines)) else onUnsynced(raw)
+        if (lines.isEmpty()) {
+            onUnsynced(raw)
+            return
+        }
+        // Some files put every line at the same moment ("[00:00.000]" on all of them) — synced in
+        // form only. Lines sharing a moment count as one line with a translation under it, which
+        // turned the whole song into a single giant "line". Fewer distinct moments than a third
+        // of the lines (a real translation pairs them up: half) means it's plain text really.
+        val all = lines.flatMap { listOf(it) + it.secondary }
+        if (all.size >= 4 && all.map { it.timeMs }.distinct().size * 3 < all.size) {
+            onUnsynced(all.joinToString("\n") { it.text })
+            return
+        }
+        synced.add(ParsedLyrics.Synced(lines))
     }
 }

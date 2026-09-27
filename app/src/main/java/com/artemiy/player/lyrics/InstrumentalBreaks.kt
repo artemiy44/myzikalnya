@@ -18,6 +18,14 @@ private const val SHORTEST_BREAK_MS = 2_000L
 private const val HELD_LAST_WORD_MS = 2_000L
 
 /**
+ * Plain LRC doesn't say how long a line is sung at all, so dots never start sooner than this after
+ * the line began (unless it looks even longer) — and then only if there's still [LRC_MIN_DOTS_MS]
+ * left before the next line, not just a flash.
+ */
+private const val LRC_MIN_LINE_MS = 9_000L
+private const val LRC_MIN_DOTS_MS = 3_000L
+
+/**
  * [lines] with instrumental breaks added as their own "lines" (see [LyricLine.instrumentalUntilMs]):
  * - lines with no text at all (how some files mark a break) become one;
  * - an intro of [INTRO_MIN_MS] or more before the first line gets one;
@@ -42,7 +50,10 @@ fun withInstrumentalBreaks(lines: List<LyricLine>): List<LyricLine> {
         out += line
         if (next == null || next.isBlankLine()) return@forEachIndexed
         val done = line.estimatedEndMs(next.timeMs)
-        if (next.timeMs - done >= GAP_MIN_MS) {
+        // Timed words say when the line is really done; for plain LRC [done] already includes a
+        // generous wait, so a shorter stretch after it is enough.
+        val minGap = if (line.words.isNullOrEmpty() && line.endTimeMs == null) LRC_MIN_DOTS_MS else GAP_MIN_MS
+        if (next.timeMs - done >= minGap) {
             out += LyricLine(timeMs = done, text = "", voice = line.voice, instrumentalUntilMs = next.timeMs)
         }
     }
@@ -55,7 +66,7 @@ private fun LyricLine.isBlankLine(): Boolean = text.isBlank() && secondary.isEmp
  * When this line is actually done being sung. The file says so when its last word has an end
  * time before the next line; many files instead stretch the last word right up to the next line,
  * so then it's taken as held [HELD_LAST_WORD_MS]. Plain LRC lines have no word timing at all —
- * guessed from their length instead.
+ * taken as lasting at least [LRC_MIN_LINE_MS], longer if their length suggests so.
  */
 private fun LyricLine.estimatedEndMs(nextStartMs: Long): Long {
     val end = endTimeMs
@@ -65,6 +76,22 @@ private fun LyricLine.estimatedEndMs(nextStartMs: Long): Long {
         val last = words.last()
         return if (last.text.isBlank()) last.timeMs else minOf(nextStartMs, last.timeMs + HELD_LAST_WORD_MS)
     }
-    val guess = (text.length * 75L + 800L).coerceIn(1_500L, 7_000L)
-    return minOf(nextStartMs, timeMs + guess)
+    return minOf(nextStartMs, timeMs + maxOf(LRC_MIN_LINE_MS, singingGuessMs(text)))
+}
+
+/**
+ * Roughly how long a line takes to sing, from its text: a Japanese/Chinese/Korean character is a
+ * whole syllable (~0.3s), a Latin/Cyrillic letter a fraction of one.
+ */
+private fun singingGuessMs(text: String): Long {
+    var ms = 800L
+    for (c in text) {
+        if (c.isWhitespace()) continue
+        ms += when (Character.UnicodeScript.of(c.code)) {
+            Character.UnicodeScript.HAN, Character.UnicodeScript.HIRAGANA,
+            Character.UnicodeScript.KATAKANA, Character.UnicodeScript.HANGUL -> 300L
+            else -> 75L
+        }
+    }
+    return ms
 }
