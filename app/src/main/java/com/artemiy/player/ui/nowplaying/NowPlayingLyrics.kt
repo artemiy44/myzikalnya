@@ -31,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.BlurredEdgeTreatment
@@ -85,13 +86,40 @@ internal fun LyricsView(
     // (or on seek/pause/play) so drift never exceeds one poll interval.
     var smoothPositionMs by remember { mutableStateOf(positionMs) }
     val active = LocalNowPlayingActive.current
-    LaunchedEffect(positionMs, isPlaying, active) {
-        val anchorReal = android.os.SystemClock.elapsedRealtime()
+    // Where the player last said it was, and when (the poll comes ~10 times a second).
+    val lastPoll = remember { longArrayOf(positionMs, android.os.SystemClock.elapsedRealtime()) }
+    LaunchedEffect(positionMs) {
+        lastPoll[0] = positionMs
+        lastPoll[1] = android.os.SystemClock.elapsedRealtime()
+        // Paused (e.g. seeking while paused): no clock running, just show where it is.
+        if (!isPlaying || !active) smoothPositionMs = positionMs
+    }
+    LaunchedEffect(isPlaying, active) {
+        // Starting (again, e.g. after a pause): the last poll is "now" — a paused player keeps
+        // reporting the same position, so its timestamp would be from when it stopped, and the
+        // clock would leap ahead by the whole pause for a moment.
+        lastPoll[0] = positionMs
+        lastPoll[1] = android.os.SystemClock.elapsedRealtime()
         smoothPositionMs = positionMs
         if (!isPlaying || !active) return@LaunchedEffect
+        // One continuous clock for the whole time it plays (restarting it on every poll lost a
+        // frame each time and made it lag behind). It never jumps and never runs backwards — that
+        // made the sweep twitch back — it just runs a touch faster or slower than real time until
+        // it matches where the player really is. Only a seek (a big difference) is taken at once.
+        var smooth = smoothPositionMs.toDouble()
+        var lastFrame = withFrameNanos { it }
         while (true) {
-            withFrameMillis { }
-            smoothPositionMs = positionMs + (android.os.SystemClock.elapsedRealtime() - anchorReal)
+            val frame = withFrameNanos { it }
+            val dt = (frame - lastFrame) / 1_000_000.0
+            lastFrame = frame
+            val target = lastPoll[0] + (android.os.SystemClock.elapsedRealtime() - lastPoll[1])
+            val error = target - smooth
+            smooth = if (kotlin.math.abs(error) > SMOOTH_SNAP_MS) {
+                target.toDouble()
+            } else {
+                smooth + dt * (1.0 + error / 250.0).coerceIn(0.5, 1.5)
+            }
+            smoothPositionMs = smooth.toLong()
         }
     }
     when (lyrics) {
@@ -141,6 +169,15 @@ internal fun LyricsView(
             val activeIndex = remember(lines, positionMs) {
                 lines.indexOfLast { it.timeMs <= positionMs }
             }
+            // Lines still being finished while a later one has already started: the file gives
+            // them an end time past the next line's start (overlapping vocals). They stay lit and
+            // keep their sweep going until then, alongside the new one.
+            val stillSinging = remember(lines, positionMs, activeIndex) {
+                (0 until activeIndex.coerceAtLeast(0)).filterTo(HashSet()) { i ->
+                    val line = lines[i]
+                    line.instrumentalUntilMs == null && (line.endTimeMs ?: Long.MIN_VALUE) > positionMs
+                }
+            }
             val listState = rememberLazyListState()
             var lastAnchorBottomPx by remember { mutableStateOf(anchorBottomPx) }
             LaunchedEffect(activeIndex, anchorTopPx, anchorBottomPx) {
@@ -161,11 +198,11 @@ internal fun LyricsView(
                     // offset is measured from the end of the top content padding, not from the
                     // top of the list (viewportStartOffset == -beforeContentPadding).
                     val itemCenterOnScreen = itemInfo.offset + itemInfo.size / 2f - info.viewportStartOffset
-                    // Panel show/hide: a quick, eased glide to the new spot. Line changes keep
-                    // the default spring they've always had.
+                    // Panel show/hide: a quick, eased glide to the new spot. Line changes: a soft,
+                    // unhurried spring (the default one snapped over a little abruptly).
                     listState.animateScrollBy(
                         itemCenterOnScreen - anchor,
-                        if (panelToggled) tween(320, easing = FastOutSlowInEasing) else spring(),
+                        if (panelToggled) tween(320, easing = FastOutSlowInEasing) else LINE_SCROLL,
                     )
                 } else {
                     // Big jump (e.g. track just changed) — land roughly nearby first.
@@ -183,12 +220,12 @@ internal fun LyricsView(
                 contentPadding = contentPadding,
             ) {
                 itemsIndexed(lines) { index, line ->
-                    val active = index == activeIndex
-                    val alpha by animateFloatAsState(if (active) 1f else 0.35f, label = "lineAlpha")
+                    val active = index == activeIndex || index in stillSinging
+                    val alpha by animateFloatAsState(if (active) 1f else 0.35f, LINE_CHANGE, label = "lineAlpha")
                     // Every line is laid out at the sung size and inactive ones are only shrunk
                     // visually, so a line wraps the same way whether it's being sung or not —
                     // re-laying it out at a bigger font made words jump to the next row mid-song.
-                    val scale by animateFloatAsState(if (active) 1f else INACTIVE_LYRIC_SCALE, label = "lineScale")
+                    val scale by animateFloatAsState(if (active) 1f else INACTIVE_LYRIC_SCALE, LINE_CHANGE, label = "lineScale")
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -277,6 +314,10 @@ internal fun SungLine(
     nextLineStartMs: Long?,
     showRomanization: Boolean,
 ) = Column(modifier = Modifier.fillMaxWidth().lyricScale(scale, line.voice == LyricVoice.V2)) {
+    // A line just becoming the sung one: its words start out fully lit (as an inactive line shows
+    // them) and ease down to the "not sung yet" brightness together with the line brightening —
+    // switching them at once made every line flicker darker for a moment.
+    val unsungAlpha by animateFloatAsState(if (active) 0.55f else 1f, LINE_CHANGE, label = "unsungWords")
     val fontSize = LYRIC_SIZE
     val alignEnd = line.voice == LyricVoice.V2
     val background = line.background
@@ -292,8 +333,8 @@ internal fun SungLine(
                 // so it lines up pixel-for-pixel with the crisp text on top and sweeps forward in
                 // lockstep instead of glowing ahead of what's been sung.
                 Box {
-                    WordSyncedLine(line, positionMs, alpha, fontSize.sp, nextLineStartMs, alignEnd, 8.dp, bottomPadding, readings = readings, glow = true)
-                    WordSyncedLine(line, positionMs, alpha, fontSize.sp, nextLineStartMs, alignEnd, 8.dp, bottomPadding, readings = readings)
+                    WordSyncedLine(line, positionMs, alpha, fontSize.sp, nextLineStartMs, alignEnd, 8.dp, bottomPadding, readings = readings, glow = true, unsungAlpha = unsungAlpha)
+                    WordSyncedLine(line, positionMs, alpha, fontSize.sp, nextLineStartMs, alignEnd, 8.dp, bottomPadding, readings = readings, unsungAlpha = unsungAlpha)
                 }
             } else {
                 WordSyncedLine(line, positionMs, alpha, fontSize.sp, nextLineStartMs, alignEnd, 8.dp, bottomPadding, readings = readings, sweep = false)
@@ -518,6 +559,8 @@ internal fun WordSyncedLine(
     readings: List<String?>? = null,
     sweep: Boolean = true,
     glow: Boolean = false,
+    /** How bright not-yet-sung words are — eased down as the line becomes the sung one. */
+    unsungAlpha: Float = 0.55f,
 ) {
     val words = line.words ?: return
     val sungColor = if (glow) PlayerColors.TextPrimary.copy(alpha = LYRIC_GLOW_ALPHA) else PlayerColors.TextPrimary
@@ -526,7 +569,7 @@ internal fun WordSyncedLine(
     // reads as dim/gray for most of its duration since only one short word is ever fully white.
     // In the glow pass, "not yet sung" is fully transparent instead — the glow must only sit
     // behind text that has actually been reached, never ahead of the sweep.
-    val unsungColor = if (glow) Color.Transparent else PlayerColors.TextPrimary.copy(alpha = 0.55f)
+    val unsungColor = if (glow) Color.Transparent else PlayerColors.TextPrimary.copy(alpha = unsungAlpha)
     val sungStyle = TextStyle(color = sungColor, fontSize = fontSize, fontWeight = FontWeight.ExtraBold)
     val unsungStyle = TextStyle(color = unsungColor, fontSize = fontSize, fontWeight = FontWeight.ExtraBold)
     // Exactly one word is ever "in progress" at a time — found the same way the active *line* is
@@ -534,6 +577,12 @@ internal fun WordSyncedLine(
     // guarantees only a single word animates even when the line wraps onto two visual rows, and
     // keeps already-sung/not-yet-sung words from flickering due to their own window's edge cases.
     val currentIndex = if (sweep) words.indexOfLast { it.timeMs <= positionMs }.coerceAtLeast(0) else words.size
+    fun endOf(index: Int): Long = when {
+        index + 1 < words.size -> words[index + 1].timeMs
+        line.endTimeMs != null -> line.endTimeMs
+        nextLineStartMs != null -> nextLineStartMs
+        else -> words[index].timeMs + 400L
+    }
     FlowRow(
         modifier = Modifier
             .fillMaxWidth()
@@ -547,8 +596,19 @@ internal fun WordSyncedLine(
             // The last word's trailing space would leave a gap against the right edge of a v2 line.
             val text = if (index == words.lastIndex) word.text.trimEnd() else word.text
             val reading = readings?.getOrNull(index)
+            // A word held for a long time ("fooor...") swells a little and glows brighter while it
+            // lasts, then settles back.
+            val held = sweep && index == currentIndex && word.text.isNotBlank() &&
+                endOf(index) - word.timeMs >= HELD_WORD_MS && positionMs < endOf(index)
+            val swell by animateFloatAsState(if (held) 1f else 0f, tween(700, easing = FastOutSlowInEasing), label = "heldWord")
             Column(
                 modifier = Modifier
+                    .graphicsLayer {
+                        val grow = 1f + HELD_WORD_GROWTH * swell
+                        scaleX = grow
+                        scaleY = grow
+                        transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0.5f, 0.7f)
+                    }
                     // Latin and Japanese glyphs sit at different heights in the same font; lining
                     // up the lyric text's baseline keeps "high" level with the kanji around it.
                     .then(if (readings != null) Modifier.alignBy(LastBaseline) else Modifier)
@@ -559,12 +619,7 @@ internal fun WordSyncedLine(
                     index < currentIndex -> Text(text = text, style = sungStyle)
                     index > currentIndex -> Text(text = text, style = unsungStyle)
                     else -> {
-                        val wordEndMs = when {
-                            index + 1 < words.size -> words[index + 1].timeMs
-                            line.endTimeMs != null -> line.endTimeMs
-                            nextLineStartMs != null -> nextLineStartMs
-                            else -> word.timeMs + 400L
-                        }
+                        val wordEndMs = endOf(index)
                         val progress = if (wordEndMs > word.timeMs) {
                             ((positionMs - word.timeMs).toFloat() / (wordEndMs - word.timeMs)).coerceIn(0f, 1f)
                         } else 1f
@@ -574,12 +629,26 @@ internal fun WordSyncedLine(
                         // own measured width, is a much more direct and reliably-correct reveal.
                         Box {
                             Text(text = text, style = unsungStyle)
+                            // The sung copy, revealed up to `progress` with a soft edge rather than a
+                            // hard cut; the reveal runs a little past the word so it ends fully lit.
                             Text(
                                 text = text,
-                                style = sungStyle,
-                                modifier = Modifier.drawWithContent {
-                                    clipRect(right = size.width * progress) { this@drawWithContent.drawContent() }
-                                },
+                                style = if (glow && held) sungStyle.copy(color = PlayerColors.TextPrimary) else sungStyle,
+                                modifier = Modifier
+                                    .graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
+                                    .drawWithContent {
+                                        drawContent()
+                                        val soft = SWEEP_EDGE.toPx()
+                                        val edge = progress * (size.width + soft)
+                                        drawRect(
+                                            brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                                                listOf(Color.Black, Color.Transparent),
+                                                startX = edge - soft,
+                                                endX = edge,
+                                            ),
+                                            blendMode = androidx.compose.ui.graphics.BlendMode.DstIn,
+                                        )
+                                    },
                             )
                         }
                     }
@@ -650,3 +719,20 @@ internal fun InstrumentalDots(startMs: Long, endMs: Long, positionMs: Long, acti
 
 /** The dots fold away this long before the next line starts, so it's already back in place. */
 private const val DOTS_FOLD_EARLY_MS = 450L
+
+/** A word held at least this long counts as a long, stretched note. */
+private const val HELD_WORD_MS = 3_000L
+
+/** How much bigger a held word gets while it lasts. */
+private const val HELD_WORD_GROWTH = 0.08f
+
+/** Width of the soft edge on the karaoke sweep. */
+private val SWEEP_EDGE = 16.dp
+
+/** Beyond this, the smoothed lyric clock takes the player's position as is (a seek, not drift). */
+private const val SMOOTH_SNAP_MS = 500L
+
+/** Moving on to the next line: a quick start easing out into place — decisive, but not a snap. */
+private val LINE_EASE = androidx.compose.animation.core.CubicBezierEasing(0.2f, 0f, 0f, 1f)
+private val LINE_SCROLL = tween<Float>(420, easing = LINE_EASE)
+private val LINE_CHANGE = tween<Float>(320, easing = LINE_EASE)

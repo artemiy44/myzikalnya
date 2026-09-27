@@ -7,6 +7,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -63,6 +65,11 @@ fun AlbumDetailScreen(
     onAddToPlaylist: (Song) -> Unit,
     onGoToArtist: (Song) -> Unit,
 ) {
+    // In album order: disc, then track number from the tags (untagged ones last, by title).
+    val songs = remember(songs) {
+        songs.sortedWith(compareBy<Song>({ it.discNumber ?: 0 }, { it.trackNumber ?: Int.MAX_VALUE }, { it.title.lowercase() }))
+    }
+    val multiDisc = remember(songs) { songs.mapNotNull { it.discNumber }.distinct().size > 1 }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -109,7 +116,16 @@ fun AlbumDetailScreen(
         }
 
         Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
-            songs.forEach { song ->
+            songs.forEachIndexed { index, song ->
+                if (multiDisc && song.discNumber != songs.getOrNull(index - 1)?.discNumber) {
+                    Text(
+                        text = "Диск ${song.discNumber ?: "?"}",
+                        color = PlayerColors.TextSecondary,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = if (index == 0) 0.dp else 14.dp, bottom = 4.dp),
+                    )
+                }
                 var menuExpanded by remember { mutableStateOf(false) }
                 Row(
                     modifier = Modifier
@@ -121,8 +137,17 @@ fun AlbumDetailScreen(
                         .padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    AlbumArt(uri = song.uri, modifier = Modifier.size(52.dp).clip(RoundedCornerShape(10.dp)))
-                    Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                    // The track's number instead of the same cover on every row — it's the album's
+                    // page, the cover is right there at the top.
+                    Text(
+                        text = song.trackNumber?.toString() ?: "–",
+                        color = PlayerColors.TextSecondary,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.width(30.dp),
+                    )
+                    Column(modifier = Modifier.weight(1f).padding(start = 10.dp).heightIn(min = 44.dp), verticalArrangement = Arrangement.Center) {
                         Text(text = song.title, color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Text(text = song.artist, color = PlayerColors.TextSecondary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }

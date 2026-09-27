@@ -29,6 +29,10 @@ data class Song(
      * fingerprint, e.g. for knowing when its cached lyrics need re-reading. */
     val modifiedAtS: Long = 0,
     val sizeBytes: Long = 0,
+    /** Position on its album from the file's tags (null = untagged), and which disc of a
+     * multi-disc album it's on — for listing an album in order. */
+    val trackNumber: Int? = null,
+    val discNumber: Int? = null,
 )
 
 /**
@@ -57,6 +61,7 @@ fun querySongs(context: Context, scanFolders: Set<String> = emptySet()): List<So
         add(MediaStore.Audio.Media.DATE_MODIFIED)
         add(MediaStore.Audio.Media.SIZE)
         add(MediaStore.Audio.Media.YEAR)
+        add(MediaStore.Audio.Media.TRACK)
         if (readGenreDirectly) add(MediaStore.Audio.Media.GENRE)
         if (readRelativePath) add(MediaStore.Audio.Media.RELATIVE_PATH) else add(MediaStore.Audio.Media.DATA)
     }.toTypedArray()
@@ -73,6 +78,7 @@ fun querySongs(context: Context, scanFolders: Set<String> = emptySet()): List<So
         val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
         val dateAddedCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
         val yearCol = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR)
+        val trackCol = cursor.getColumnIndex(MediaStore.Audio.Media.TRACK)
         val modifiedCol = cursor.getColumnIndex(MediaStore.Audio.Media.DATE_MODIFIED)
         val sizeCol = cursor.getColumnIndex(MediaStore.Audio.Media.SIZE)
         val genreCol = if (readGenreDirectly) cursor.getColumnIndex(MediaStore.Audio.Media.GENRE) else -1
@@ -96,6 +102,10 @@ fun querySongs(context: Context, scanFolders: Set<String> = emptySet()): List<So
                 folder = segments.lastOrNull(),
                 pathSegments = segments,
                 year = (if (yearCol >= 0) cursor.getInt(yearCol) else 0).takeIf { it > 0 },
+                // MediaStore packs disc and track together: 1007 = disc 1, track 7 (plain 7 when
+                // the file has no disc number).
+                trackNumber = (if (trackCol >= 0) cursor.getInt(trackCol) else 0).let { it % 1000 }.takeIf { it > 0 },
+                discNumber = (if (trackCol >= 0) cursor.getInt(trackCol) else 0).let { it / 1000 }.takeIf { it > 0 },
                 modifiedAtS = if (modifiedCol >= 0) cursor.getLong(modifiedCol) else 0,
                 sizeBytes = if (sizeCol >= 0) cursor.getLong(sizeCol) else 0,
             )
