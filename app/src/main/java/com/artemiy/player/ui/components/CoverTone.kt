@@ -13,8 +13,10 @@ import com.artemiy.player.ui.theme.PlayerColors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/** The main colour of a set of covers: hue in degrees and saturation, 0..1. */
-class CoverTone(val hue: Float, val saturation: Float)
+/** The main colour of a set of covers: hue in degrees and saturation, 0..1 — and how much of the
+ * covers is coloured at all ([colourful], 0..1: nearly grey covers with a small red detail are
+ * "red" but only a little). */
+class CoverTone(val hue: Float, val saturation: Float, val colourful: Float = 1f)
 
 /**
  * The shared colour of [songs]' covers (up to four different albums): the hue their most colourful
@@ -41,6 +43,7 @@ private fun toneOf(bitmaps: List<Bitmap>): CoverTone? {
     var y = 0.0
     var satSum = 0.0
     var weightSum = 0.0
+    var samples = 0
     val steps = 20
     for (source in bitmaps) {
         val bmp = if (source.config == Bitmap.Config.HARDWARE) source.copy(Bitmap.Config.ARGB_8888, false) ?: continue else source
@@ -48,6 +51,7 @@ private fun toneOf(bitmaps: List<Bitmap>): CoverTone? {
             val px = bmp.getPixel(i * (bmp.width - 1) / (steps - 1), j * (bmp.height - 1) / (steps - 1))
             android.graphics.Color.colorToHSV(px, hsv)
             val weight = (hsv[1] * hsv[2]).toDouble().let { it * it }
+            samples++
             if (weight < 0.01) continue
             val angle = Math.toRadians(hsv[0].toDouble())
             x += kotlin.math.cos(angle) * weight
@@ -58,7 +62,7 @@ private fun toneOf(bitmaps: List<Bitmap>): CoverTone? {
     }
     if (weightSum < 0.5) return null
     val hue = ((Math.toDegrees(kotlin.math.atan2(y, x)) + 360.0) % 360.0).toFloat()
-    return CoverTone(hue, (satSum / weightSum).toFloat())
+    return CoverTone(hue, (satSum / weightSum).toFloat(), (weightSum / samples.coerceAtLeast(1)).toFloat())
 }
 
 /** The tone of a single cover (the one playing, say). */

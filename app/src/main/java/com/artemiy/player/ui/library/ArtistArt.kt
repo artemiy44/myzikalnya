@@ -52,7 +52,7 @@ fun BoxScope.ArtistGenreArt(artist: String, songs: List<Song>) {
     // and below it they covered the header's fade into the page — a hard edge, and the gradient
     // showing under the header.
     Canvas(modifier = Modifier.matchParentSize().clipToBounds()) {
-        val colors = palette(tone, seed)
+        val colors = palette(tone)
         drawRect(Brush.linearGradient(listOf(colors[0], colors[1]), start = Offset(0f, 0f), end = Offset(size.width, size.height)))
         // Two soft glows of neighbouring hues, for some depth.
         glow(colors[2], Offset(size.width * 0.85f, size.height * 0.2f), size.maxDimension * 0.55f)
@@ -97,18 +97,28 @@ private fun DrawScope.glow(color: Color, center: Offset, radius: Float) {
     drawCircle(Brush.radialGradient(listOf(color, color.copy(alpha = 0f)), center, radius), radius, center)
 }
 
-/** Background colours from the covers' tone: a deep and a lighter shade, and two glows of
- * neighbouring hues. Covers without colour get a hue from the name. */
-private fun palette(tone: CoverTone?, seed: Int): List<Color> {
-    val hue = tone?.hue ?: ((seed and Int.MAX_VALUE) % 360).toFloat()
-    val sat = (tone?.saturation ?: 0.35f).coerceIn(0.25f, 0.7f)
+/**
+ * Background colours from the covers' tone: a deep and a lighter shade, and two glows staying
+ * close to that hue. As colourful as the covers themselves are — mostly grey covers with a
+ * touch of pink give a grey tinged with pink, not a pink picture — and a quiet graphite for
+ * covers with no colour at all.
+ */
+private fun palette(tone: CoverTone?): List<Color> {
+    val hue = tone?.hue ?: GRAPHITE_HUE
+    val amount = ((tone?.colourful ?: 0f) / FULLY_COLOURFUL).coerceIn(0f, 1f)
+    val sat = if (tone == null) GRAPHITE_SAT else (tone.saturation.coerceIn(0.25f, 0.7f) * (0.12f + 0.88f * amount)).coerceAtLeast(GRAPHITE_SAT)
     return listOf(
         Color.hsl(hue, sat * 0.8f, 0.14f),
-        Color.hsl((hue + 28f) % 360f, sat, 0.32f),
-        Color.hsl((hue + 330f) % 360f, sat, 0.45f, alpha = 0.55f),
-        Color.hsl((hue + 60f) % 360f, sat * 0.9f, 0.4f, alpha = 0.4f),
+        Color.hsl((hue + 10f) % 360f, sat, 0.32f),
+        Color.hsl((hue + 350f) % 360f, sat, 0.45f, alpha = 0.55f),
+        Color.hsl((hue + 20f) % 360f, sat * 0.9f, 0.4f, alpha = 0.4f),
     )
 }
+
+/** Covers this colourful (share of strongly coloured pixels, weighted) count as fully so. */
+private const val FULLY_COLOURFUL = 0.18f
+private const val GRAPHITE_HUE = 230f
+private const val GRAPHITE_SAT = 0.06f
 
 /** The artist's main genres, up to three with a real share of the songs, one per picture. */
 private fun topGenres(songs: List<Song>): List<String> {
