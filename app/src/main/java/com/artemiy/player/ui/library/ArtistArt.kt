@@ -105,7 +105,10 @@ private fun DrawScope.glow(color: Color, center: Offset, radius: Float) {
  */
 private fun palette(tone: CoverTone?): List<Color> {
     val hue = tone?.hue ?: GRAPHITE_HUE
-    val amount = ((tone?.colourful ?: 0f) / FULLY_COLOURFUL).coerceIn(0f, 1f)
+    // How colourful the covers are, and how much they agree: covers of every colour at once
+    // (an artist of singles, each its own) give a quiet ground, not whichever colour won.
+    val agreement = tone?.agreement ?: 0f
+    val amount = ((tone?.colourful ?: 0f) / FULLY_COLOURFUL).coerceIn(0f, 1f) * (0.25f + 0.75f * agreement * agreement)
     val sat = if (tone == null) GRAPHITE_SAT else (tone.saturation.coerceIn(0.25f, 0.7f) * (0.12f + 0.88f * amount)).coerceAtLeast(GRAPHITE_SAT)
     return listOf(
         Color.hsl(hue, sat * 0.8f, 0.14f),
