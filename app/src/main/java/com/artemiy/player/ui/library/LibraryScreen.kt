@@ -1128,8 +1128,10 @@ private fun ArtistsGrid(groups: List<ArtistGroup>, columns: Int, state: LazyGrid
         state = state,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(bottom = LocalBarsInset.current),
-        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 4.dp),
+        // The gaps as the grid's own padding, not around it: clipped 4 dp short, the tiles left a
+        // bare strip under the floating mini player.
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 4.dp + LocalBarsInset.current),
+        modifier = Modifier.fillMaxSize(),
     ) {
         gridItems(groups, key = { it.name }) { group ->
             val coverUri = remember(group) { group.songs.minByOrNull { it.album.lowercase() }?.uri }
@@ -1224,8 +1226,10 @@ private fun AlbumsGrid(groups: List<AlbumGroup>, columns: Int, state: LazyGridSt
         state = state,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(bottom = LocalBarsInset.current),
-        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 4.dp),
+        // The gaps as the grid's own padding, not around it: clipped 4 dp short, the tiles left a
+        // bare strip under the floating mini player.
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 4.dp + LocalBarsInset.current),
+        modifier = Modifier.fillMaxSize(),
     ) {
         gridItems(groups) { group ->
             var menuOpen by remember { mutableStateOf(false) }
@@ -1603,8 +1607,10 @@ private fun TagGrid(
         columns = GridCells.Fixed(2),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(bottom = LocalBarsInset.current),
-        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 4.dp),
+        // The gaps as the grid's own padding, not around it: clipped 4 dp short, the tiles left a
+        // bare strip under the floating mini player.
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 4.dp + LocalBarsInset.current),
+        modifier = Modifier.fillMaxSize(),
     ) {
         gridItems(groups, key = { it.key ?: "\u0000none" }) { group ->
             Column(
