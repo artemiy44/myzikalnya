@@ -279,11 +279,11 @@ private enum class GenreArt { BOLT, ZIGZAG, BUBBLES, SQUARE_WAVE, BARS, FLOW, PI
 /** Keyword → picture. Checked in order, so more specific words come first ("synthpop" is
  * electronic, "k-pop" is pop). */
 private val GENRE_ART = listOf(
-    listOf("metal", "металл", "hardcore", "grind", "djent") to GenreArt.ZIGZAG,
+    listOf("metal", "металл", "hardcore", "grind", "djent", "industrial", "индастриал", "noise", "goth", "гот") to GenreArt.ZIGZAG,
     listOf("hip", "rap", "рэп", "хип", "trap", "drill", "grime") to GenreArt.BARS,
-    listOf("electr", "электр", "techno", "house", "trance", "edm", "dance", "dubstep", "drum", "dnb", "synth", "idm", "garage", "breakbeat", "phonk") to GenreArt.SQUARE_WAVE,
+    listOf("electr", "электр", "techno", "house", "trance", "edm", "dance", "dubstep", "drum", "dnb", "synth", "idm", "garage", "breakbeat", "phonk", "ebm", "darkwave") to GenreArt.SQUARE_WAVE,
     listOf("punk", "rock", "рок", "grunge", "garage rock") to GenreArt.BOLT,
-    listOf("pop", "поп", "idol", "city") to GenreArt.BUBBLES,
+    listOf("pop", "поп", "idol", "city", "vocaloid", "вокалоид") to GenreArt.BUBBLES,
     listOf("jazz", "джаз", "blues", "блюз", "soul", "соул", "r&b", "rnb", "funk", "фанк", "swing", "gospel") to GenreArt.FLOW,
     listOf("classic", "класси", "piano", "фортеп", "orchestr", "opera", "опер", "baroque", "chamber", "symphon") to GenreArt.PIANO,
     listOf("ambient", "эмбиент", "chill", "lo-fi", "lofi", "new age", "drone", "downtempo", "relax", "sleep") to GenreArt.HILLS,
