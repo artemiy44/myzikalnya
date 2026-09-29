@@ -497,9 +497,16 @@ internal fun BackgroundVocals(
     val grownSize = baseSize + 3f
     val scale by animateFloatAsState(if (singing) 1f else baseSize / grownSize, label = "backgroundScale")
     val backgroundAlpha = alpha * 0.85f
+    // Like the main line: the not-yet-sung words ease back to full as the line ends, instead of
+    // all lighting up in one frame (a flicker at the end of every line with backing vocals).
+    val unsungAlpha by animateFloatAsState(if (lineActive) 0.55f else 1f, LINE_CHANGE, label = "backgroundUnsung")
     Box(modifier = Modifier.lyricScale(scale, alignEnd)) {
         if (words != null) {
-            WordSyncedLine(background, positionMs, backgroundAlpha, grownSize.sp, null, alignEnd, 6.dp, 8.dp, sweep = lineActive)
+            // The same glow as the main line's, following the words as they're sung — only softer.
+            if (lineActive) {
+                WordSyncedLine(background, positionMs, backgroundAlpha * BACKGROUND_GLOW, grownSize.sp, null, alignEnd, 6.dp, 8.dp, glow = true, unsungAlpha = unsungAlpha)
+            }
+            WordSyncedLine(background, positionMs, backgroundAlpha, grownSize.sp, null, alignEnd, 6.dp, 8.dp, sweep = lineActive, unsungAlpha = unsungAlpha)
         } else {
             PlainLyricLine(background.text, backgroundAlpha, grownSize, alignEnd, 6.dp, 8.dp)
         }
@@ -624,6 +631,9 @@ internal fun SecondaryLyricLine(
         )
     }
 }
+
+/** How strong backing vocals glow, next to the main line's glow. */
+private const val BACKGROUND_GLOW = 0.5f
 
 /** Shared by the eLRC and plain-LRC glow passes so both look identical. */
 internal val LYRIC_GLOW_BLUR = 18.dp
