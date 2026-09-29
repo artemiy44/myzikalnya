@@ -33,6 +33,22 @@ data class IndexedSignature(val songId: Long, val signature: String)
 
 data class LyricsMatch(val songId: Long, val text: String)
 
+/**
+ * Whether a lyrics search is worth running yet: three letters in most languages (one or two
+ * match far too many lines), but a single character in Japanese, Chinese and Korean — there one
+ * kanji or kana is already a whole word.
+ */
+fun lyricsQueryLongEnough(query: String): Boolean =
+    query.length >= 3 || query.any { it.isCjk() }
+
+private fun Char.isCjk(): Boolean = when (Character.UnicodeScript.of(code)) {
+    Character.UnicodeScript.HAN,
+    Character.UnicodeScript.HIRAGANA,
+    Character.UnicodeScript.KATAKANA,
+    Character.UnicodeScript.HANGUL -> true
+    else -> false
+}
+
 /** Case-insensitive for every alphabet (SQLite's own LIKE only folds ASCII), "ё" = "е", and
  * curly apostrophes = straight ones. Keeps the string length unchanged for the characters it
  * touches, so a match position in the normalized text is also valid in the original. */

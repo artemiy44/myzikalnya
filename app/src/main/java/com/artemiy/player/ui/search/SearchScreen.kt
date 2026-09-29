@@ -64,7 +64,7 @@ fun SearchScreen(
     // Waits for a pause in typing before hitting the lyrics database.
     val lyricHits by produceState(emptyList<LyricsHit>(), query, lyricsIndexProgress == null) {
         val q = query.trim()
-        value = if (q.length < 3) {
+        value = if (!com.artemiy.player.data.lyricsQueryLongEnough(q)) {
             emptyList()
         } else {
             delay(300)

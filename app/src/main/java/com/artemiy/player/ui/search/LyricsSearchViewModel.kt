@@ -71,7 +71,7 @@ class LyricsSearchViewModel(app: Application) : AndroidViewModel(app) {
 
     suspend fun search(query: String, songs: List<Song>): List<LyricsHit> {
         val needle = normalizeForSearch(query.trim())
-        if (needle.length < 3) return emptyList()
+        if (!com.artemiy.player.data.lyricsQueryLongEnough(needle)) return emptyList()
         val escaped = needle.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
         val byId = songs.associateBy { it.id }
         return dao.search(escaped, limit = 100).mapNotNull { match ->
