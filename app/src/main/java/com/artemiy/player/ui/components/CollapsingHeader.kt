@@ -104,72 +104,74 @@ fun CollapsingHeader(
         }
     }
     val expressive = expressiveUi
-    Column(modifier = modifier.fillMaxSize().nestedScroll(connection)) {
-        Layout(
-            modifier = Modifier.fillMaxWidth().clipToBounds(),
-            content = {
-                // Some air above the big title: it has room to leave, and looks settled at rest.
-                Box(modifier = Modifier.padding(top = EXTRA_TOP)) { bigHeader() }
-                // The slim bar: back arrow, the title small in the middle, the page's own button.
-                Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
-                    if (onBack != null) {
-                        Icon(
-                            imageVector = AppIcons.Back,
-                            contentDescription = stringResource(R.string.cd_back),
-                            tint = PlayerColors.TextPrimary,
-                            modifier = Modifier
-                                .align(Alignment.CenterStart)
-                                .size(24.dp)
-                                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onBack() },
-                        )
+    val compactH = compactPx.roundToInt()
+    Box(modifier = modifier.fillMaxSize().nestedScroll(connection)) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // The big header: it goes up with the page, all of its height, one to one — on pages
+            // with a fixed search field only down to the bar's height, so the field stays clear.
+            Layout(
+                modifier = Modifier.fillMaxWidth().clipToBounds(),
+                content = { Box(modifier = Modifier.padding(top = EXTRA_TOP)) { bigHeader() } },
+            ) { measurables, constraints ->
+                val big = measurables[0].measure(constraints.copy(minHeight = 0))
+                val floor = if (fade) 0 else minOf(compactH, big.height)
+                range[0] = (big.height - floor).coerceAtLeast(0).toFloat()
+                val height = (big.height - folded.coerceIn(0f, range[0])).roundToInt().coerceAtLeast(floor)
+                layout(constraints.maxWidth, height) {
+                    big.placeWithLayer(0, height - big.height) {
+                        val p = progress()
+                        alpha = (1f - p * 1.25f).coerceIn(0f, 1f)
+                        scaleX = 1f - p * 0.12f
+                        scaleY = 1f - p * 0.12f
+                        transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0f, 1f)
                     }
-                    Text(
-                        text = title,
-                        color = PlayerColors.TextPrimary,
-                        fontSize = if (expressive) 17.sp else 16.sp,
-                        fontWeight = if (expressive) FontWeight.ExtraBold else FontWeight.Bold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.align(Alignment.Center).padding(horizontal = 44.dp),
-                    )
-                    if (trailing != null) Box(modifier = Modifier.align(Alignment.CenterEnd)) { trailing() }
                 }
-                Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(if (fade) PlayerColors.Border else Color.Transparent))
-            },
-        ) { measurables, constraints ->
-            val width = constraints.maxWidth
-            val big = measurables[0].measure(constraints.copy(minHeight = 0))
-            val compactH = compactPx.roundToInt()
-            range[0] = (big.height - compactH).coerceAtLeast(0).toFloat()
-            val height = (big.height - folded.coerceIn(0f, range[0])).roundToInt().coerceAtLeast(minOf(compactH, big.height))
-            val bar = measurables[1].measure(Constraints.fixed(width, compactH))
-            val line = measurables[2].measure(Constraints.fixed(width, 1.dp.roundToPx()))
-            layout(width, height) {
-                // The big header rises faster than the page, shrinking a little and fading, as the
-                // small title comes in above it — plainly moving even though the header is short.
-                big.placeWithLayer(0, height - big.height) {
-                    val p = progress()
-                    alpha = (1f - p * 1.4f).coerceIn(0f, 1f)
-                    translationY = -p * TITLE_RISE.toPx()
-                    scaleX = 1f - p * 0.18f
-                    scaleY = 1f - p * 0.18f
-                    transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0f, 1f)
-                }
-                bar.placeWithLayer(0, 0) { alpha = ((progress() - 0.55f) / 0.45f).coerceIn(0f, 1f) }
-                line.placeWithLayer(0, height - line.height) { alpha = progress() * 0.8f }
             }
+            Box(modifier = Modifier.weight(1f)) { Column(modifier = Modifier.fillMaxSize(), content = content) }
         }
-        Box(modifier = Modifier.weight(1f)) {
-            Column(modifier = Modifier.fillMaxSize(), content = content)
-            // The content fades into the bar at its top edge — no hard cut where it passes under.
-            if (fade) Box(
+        // The slim bar, over the page: it comes in as the big title is nearly gone under it —
+        // back arrow, the title small in the middle, the page's own button, a hairline — and the
+        // page fades softly into it rather than being cut off.
+        Column(modifier = Modifier.fillMaxWidth().graphicsLayer { alpha = ((progress() - 0.6f) / 0.4f).coerceIn(0f, 1f) }) {
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(FADE_HEIGHT)
-                    .graphicsLayer { alpha = progress() }
-                    .background(Brush.verticalGradient(listOf(PlayerColors.Background, Color.Transparent))),
-            )
+                    .height(COMPACT_HEIGHT)
+                    .background(PlayerColors.Background)
+                    .padding(horizontal = 20.dp),
+            ) {
+                if (onBack != null) {
+                    Icon(
+                        imageVector = AppIcons.Back,
+                        contentDescription = stringResource(R.string.cd_back),
+                        tint = PlayerColors.TextPrimary,
+                        modifier = Modifier
+                            .align(Alignment.CenterStart)
+                            .size(24.dp)
+                            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onBack() },
+                    )
+                }
+                Text(
+                    text = title,
+                    color = PlayerColors.TextPrimary,
+                    fontSize = if (expressive) 17.sp else 16.sp,
+                    fontWeight = if (expressive) FontWeight.ExtraBold else FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.align(Alignment.Center).padding(horizontal = 44.dp),
+                )
+                if (trailing != null) Box(modifier = Modifier.align(Alignment.CenterEnd)) { trailing() }
+            }
+            if (fade) {
+                Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(PlayerColors.Border))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(FADE_HEIGHT)
+                        .background(Brush.verticalGradient(listOf(PlayerColors.Background, Color.Transparent))),
+                )
+            }
         }
     }
 }
@@ -177,4 +179,3 @@ fun CollapsingHeader(
 private val COMPACT_HEIGHT = 52.dp
 private val FADE_HEIGHT = 20.dp
 private val EXTRA_TOP = 8.dp
-private val TITLE_RISE = 28.dp
