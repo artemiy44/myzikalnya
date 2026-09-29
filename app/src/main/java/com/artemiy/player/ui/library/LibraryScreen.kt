@@ -751,6 +751,8 @@ fun LibraryScreen(
                     bigHeader = { LibraryHeader(title = pageTitle, showBack = route != LibraryRoute.Home, onBack = goBack, trailing = pageTrailing) },
                     onBack = if (route != LibraryRoute.Home) goBack else null,
                     trailing = pageTrailing,
+                    // Pages with a search field fixed under the title: no fade over it.
+                    fade = route != LibraryRoute.Artists && route != LibraryRoute.Albums && route != LibraryRoute.Songs,
                     content = pageContent,
                 )
             }

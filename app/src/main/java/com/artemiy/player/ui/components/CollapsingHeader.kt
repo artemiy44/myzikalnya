@@ -57,13 +57,20 @@ fun CollapsingHeader(
     modifier: Modifier = Modifier,
     onBack: (() -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
+    /** Off for pages whose top holds a fixed search field: the soft fade (and the line) would lie
+     * over it like a shadow. */
+    fade: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val density = LocalDensity.current
     val compactPx = with(density) { COMPACT_HEIGHT.toPx() }
-    // How far the header has folded, in px, and how far it can (its full height less the bar's).
+    val foldDistancePx = with(density) { FOLD_DISTANCE.toPx() }
+    // How much of a scroll has gone into folding the header, in px — spread over at least
+    // FOLD_DISTANCE, so the title leaves with the finger rather than in one flick — and how much
+    // the header itself shrinks (its full height less the bar's).
     var folded by remember { mutableFloatStateOf(0f) }
     val range = remember { floatArrayOf(0f) }
+    val shrink = remember { floatArrayOf(0f) }
     val progress = { if (range[0] > 0f) (folded / range[0]).coerceIn(0f, 1f) else 0f }
     val connection = remember {
         object : NestedScrollConnection {
@@ -89,7 +96,8 @@ fun CollapsingHeader(
         Layout(
             modifier = Modifier.fillMaxWidth().clipToBounds(),
             content = {
-                Box { bigHeader() }
+                // Some air above the big title: it has room to leave, and looks settled at rest.
+                Box(modifier = Modifier.padding(top = EXTRA_TOP)) { bigHeader() }
                 // The slim bar: back arrow, the title small in the middle, the page's own button.
                 Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
                     if (onBack != null) {
@@ -115,14 +123,15 @@ fun CollapsingHeader(
                     )
                     if (trailing != null) Box(modifier = Modifier.align(Alignment.CenterEnd)) { trailing() }
                 }
-                Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(PlayerColors.Border))
+                Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(if (fade) PlayerColors.Border else Color.Transparent))
             },
         ) { measurables, constraints ->
             val width = constraints.maxWidth
             val big = measurables[0].measure(constraints.copy(minHeight = 0))
             val compactH = compactPx.roundToInt()
-            range[0] = (big.height - compactH).coerceAtLeast(0).toFloat()
-            val height = (big.height - folded.coerceIn(0f, range[0])).roundToInt().coerceAtLeast(minOf(compactH, big.height))
+            shrink[0] = (big.height - compactH).coerceAtLeast(0).toFloat()
+            range[0] = if (shrink[0] > 0f) maxOf(shrink[0], foldDistancePx) else 0f
+            val height = (big.height - shrink[0] * progress()).roundToInt().coerceAtLeast(minOf(compactH, big.height))
             val bar = measurables[1].measure(Constraints.fixed(width, compactH))
             val line = measurables[2].measure(Constraints.fixed(width, 1.dp.roundToPx()))
             layout(width, height) {
@@ -135,7 +144,7 @@ fun CollapsingHeader(
         Box(modifier = Modifier.weight(1f)) {
             Column(modifier = Modifier.fillMaxSize(), content = content)
             // The content fades into the bar at its top edge — no hard cut where it passes under.
-            Box(
+            if (fade) Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(FADE_HEIGHT)
@@ -148,3 +157,5 @@ fun CollapsingHeader(
 
 private val COMPACT_HEIGHT = 52.dp
 private val FADE_HEIGHT = 20.dp
+private val EXTRA_TOP = 16.dp
+private val FOLD_DISTANCE = 140.dp
