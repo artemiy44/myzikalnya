@@ -132,11 +132,21 @@ fun CollapsingHeader(
         // The slim bar, over the page: it comes in as the big title is nearly gone under it —
         // back arrow, the title small in the middle, the page's own button, a hairline — and the
         // page fades softly into it rather than being cut off.
+        // Once it's there it's solid to the touch too: what's gone under it (a search field) can't
+        // be tapped through it. (Read through derivedStateOf — the fold moves every frame.)
+        val barShown by remember { androidx.compose.runtime.derivedStateOf { progress() > 0.6f } }
         Column(modifier = Modifier.fillMaxWidth().graphicsLayer { alpha = ((progress() - 0.6f) / 0.4f).coerceIn(0f, 1f) }) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(COMPACT_HEIGHT)
+                    .then(
+                        if (barShown) {
+                            Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {}
+                        } else {
+                            Modifier
+                        },
+                    )
                     .background(PlayerColors.Background)
                     .padding(horizontal = 20.dp),
             ) {
