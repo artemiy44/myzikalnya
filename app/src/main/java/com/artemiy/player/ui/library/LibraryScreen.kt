@@ -451,7 +451,7 @@ fun LibraryScreen(
                                             when (artistSort) {
                                                 ArtistSort.NAME -> indexLetter(g.name)
                                                 ArtistSort.COUNT -> g.songs.size.toString()
-                                                ArtistSort.RECENT -> monthYear(g.songs.maxOf { it.dateAddedMs }, locale)
+                                                ArtistSort.RECENT -> monthYear(g.songs.maxOf { it.dateAddedMs }, locale, dateSpan(filtered.map { a -> a.songs.maxOf { it.dateAddedMs } }))
                                             }
                                         }
                                     },
@@ -512,7 +512,7 @@ fun LibraryScreen(
                                                 AlbumSort.NAME -> indexLetter(g.album)
                                                 AlbumSort.COUNT -> g.songs.size.toString()
                                                 AlbumSort.ARTIST -> indexLetter(g.artist)
-                                                AlbumSort.RECENT -> monthYear(g.songs.maxOf { it.dateAddedMs }, locale)
+                                                AlbumSort.RECENT -> monthYear(g.songs.maxOf { it.dateAddedMs }, locale, dateSpan(filtered.map { a -> a.songs.maxOf { it.dateAddedMs } }))
                                             }
                                         }
                                     },
@@ -588,7 +588,7 @@ fun LibraryScreen(
                                         label = { i ->
                                         filtered.getOrNull(i)?.let { song ->
                                             when (songSort) {
-                                                SongSort.RECENT -> monthYear(song.dateAddedMs, locale)
+                                                SongSort.RECENT -> monthYear(song.dateAddedMs, locale, dateSpan(filtered.map { it.dateAddedMs }))
                                                 SongSort.RELEASE_DATE -> song.year?.toString() ?: "?"
                                                 SongSort.TITLE -> indexLetter(song.title)
                                                 SongSort.ARTIST -> indexLetter(song.artist)
@@ -1720,3 +1720,6 @@ private fun TagGrid(
     FastScroller(target = rememberScrollTarget(state), label = { groups.getOrNull(it)?.let { g -> g.name ?: "?" } })
     }
 }
+
+/** How far apart the earliest and latest of [times] are (for the fast scroller's date pill). */
+private fun dateSpan(times: List<Long>): Long = if (times.isEmpty()) 0L else times.max() - times.min()

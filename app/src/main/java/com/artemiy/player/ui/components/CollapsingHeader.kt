@@ -212,5 +212,8 @@ fun Modifier.fadesWithHeader(): Modifier {
 }
 
 private val COMPACT_HEIGHT = 52.dp
+
+/** How tall the folded header's bar is — what a page's own overlays keep clear of. */
+val HeaderBarHeight = COMPACT_HEIGHT
 private val FADE_HEIGHT = 20.dp
 private val EXTRA_TOP = 8.dp

@@ -107,6 +107,11 @@ fun BoxScope.FastScroller(target: ScrollTarget, label: (Int) -> String? = { null
         val room = (target.total() - target.visible()).coerceAtLeast(1)
         return (target.firstIndex().toFloat() / room).coerceIn(0f, 1f)
     }
+    // Keeps clear of the page header's bar once it's folded over the top of the list.
+    val fold = LocalHeaderFold.current
+    val barPx = with(density) { HeaderBarHeight.toPx() }
+    fun clearance(): Int = (barPx * fold()).roundToInt()
+    fun thumbTop(): Int = clearance() + ((trackHeight - thumbPx - clearance()).coerceAtLeast(0) * fraction()).roundToInt()
     val thumbWidth by animateDpAsState(
         when {
             dragging -> if (expressive) 10.dp else 8.dp
@@ -117,7 +122,7 @@ fun BoxScope.FastScroller(target: ScrollTarget, label: (Int) -> String? = { null
     )
     var jump by remember { mutableStateOf<Job?>(null) }
     fun scrollToY(y: Float) {
-        val f = ((y - thumbPx / 2f) / (trackHeight - thumbPx).coerceAtLeast(1)).coerceIn(0f, 1f)
+        val f = ((y - clearance() - thumbPx / 2f) / (trackHeight - thumbPx - clearance()).coerceAtLeast(1)).coerceIn(0f, 1f)
         val index = (f * (target.total() - 1)).roundToInt()
         jump?.cancel()
         jump = scope.launch { target.scrollTo(index) }
@@ -153,7 +158,7 @@ fun BoxScope.FastScroller(target: ScrollTarget, label: (Int) -> String? = { null
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(end = 3.dp)
-                .offset { IntOffset(0, ((trackHeight - thumbPx) * fraction()).roundToInt()) }
+                .offset { IntOffset(0, thumbTop()) }
                 .graphicsLayer { alpha = shown.value }
                 .width(thumbWidth)
                 .height(THUMB_HEIGHT)
@@ -175,8 +180,7 @@ fun BoxScope.FastScroller(target: ScrollTarget, label: (Int) -> String? = { null
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .offset {
-                    val thumbTop = topPx + ((trackHeight - thumbPx) * fraction()).roundToInt()
-                    IntOffset(-(TOUCH_WIDTH + 10.dp).roundToPx(), thumbTop + thumbPx / 2 - pillHeight / 2)
+                    IntOffset(-(TOUCH_WIDTH + 10.dp).roundToPx(), topPx + thumbTop() + thumbPx / 2 - pillHeight / 2)
                 }
                 .onSizeChanged { pillHeight = it.height }
                 .clip(if (expressive) CircleShape else RoundedCornerShape(10.dp))
@@ -190,14 +194,20 @@ fun BoxScope.FastScroller(target: ScrollTarget, label: (Int) -> String? = { null
 fun indexLetter(text: String): String =
     text.firstOrNull { it.isLetterOrDigit() }?.uppercaseChar()?.toString() ?: "#"
 
-/** "September 2026" (in the app's language) for a moment in time — the pill of a list by date. */
-fun monthYear(millis: Long, locale: java.util.Locale = java.util.Locale.getDefault()): String {
-    val pattern = android.text.format.DateFormat.getBestDateTimePattern(locale, "LLLLyyyy")
+/**
+ * The pill of a list by date, in the app's language: "September 2026" — or, when the whole list
+ * was added within a few months ([spanMs] from its first to its last), "29 September", since a
+ * month and year would then say the same thing all the way down.
+ */
+fun monthYear(millis: Long, locale: java.util.Locale = java.util.Locale.getDefault(), spanMs: Long = Long.MAX_VALUE): String {
+    val skeleton = if (spanMs < DAYS_FOR_MONTHS * 86_400_000L) "dMMMM" else "LLLLyyyy"
+    val pattern = android.text.format.DateFormat.getBestDateTimePattern(locale, skeleton)
     return java.text.SimpleDateFormat(pattern, locale).format(java.util.Date(millis))
         .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
 }
 
 private const val MIN_ITEMS = 40
+private const val DAYS_FOR_MONTHS = 120
 private const val HIDE_AFTER_MS = 2_000L
 private val TOUCH_WIDTH = 20.dp
 private val THUMB_HEIGHT = 48.dp
