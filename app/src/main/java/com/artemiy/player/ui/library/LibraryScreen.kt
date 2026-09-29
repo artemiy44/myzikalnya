@@ -754,9 +754,9 @@ internal fun LibraryHeader(
                 contentDescription = stringResource(R.string.cd_back),
                 tint = PlayerColors.TextPrimary,
                 modifier = Modifier
+                    .padding(end = 12.dp)
                     .size(24.dp)
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onBack() }
-                    .padding(end = 12.dp),
+                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onBack() },
             )
         }
         Text(

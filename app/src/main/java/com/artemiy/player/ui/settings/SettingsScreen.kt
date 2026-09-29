@@ -160,11 +160,11 @@ fun SettingsScreen(
                     contentDescription = stringResource(R.string.cd_back),
                     tint = PlayerColors.TextPrimary,
                     modifier = Modifier
+                        .padding(end = 12.dp)
                         .size(24.dp)
                         .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
                             page.parent?.let { route = it } ?: onBack()
-                        }
-                        .padding(end = 12.dp),
+                        },
                 )
                 Text(
                     text = stringResource(page.titleRes),

@@ -214,9 +214,14 @@ data class AccentChoice(val family: AccentFamily, val index: Int) {
 
 /** GNOME's trick for accent-colored text: clamp its lightness so it stays readable on the
  * background (Oklab L ≤ 0.5 on light themes, ≥ 0.85 on dark ones). */
+/** Oklab lightness an accent needs as text/icons on a dark ground: about 5:1 against it. */
+private const val STANDALONE_MIN_LIGHTNESS_ON_DARK = 0.70f
+
 private fun standaloneAccent(accent: Color, onLight: Boolean): Color {
     val oklab = accent.convert(ColorSpaces.Oklab)
-    val l = if (onLight) minOf(oklab.red, 0.5f) else maxOf(oklab.red, 0.85f)
+    // Only as much lighter (on dark) or darker (on light) as it takes to read well — lifted all
+    // the way to 0.85 a saturated red came out pastel pink, not the red that was picked.
+    val l = if (onLight) minOf(oklab.red, 0.5f) else maxOf(oklab.red, STANDALONE_MIN_LIGHTNESS_ON_DARK)
     // A saturated color pushed that light doesn't exist on screen; letting the conversion clip it
     // shifts its hue (GNOME blue turned turquoise). Instead give up just enough saturation to fit,
     // keeping the hue itself.
