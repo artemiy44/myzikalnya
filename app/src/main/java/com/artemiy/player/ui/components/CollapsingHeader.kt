@@ -29,6 +29,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -192,11 +193,22 @@ fun CollapsingHeader(
  * to fade away with it instead of being cut off by the bar. */
 val LocalHeaderFold = androidx.compose.runtime.staticCompositionLocalOf<() -> Float> { { 0f } }
 
-/** Fades with the page's folding header: gone by the time it would pass under the bar. */
+/**
+ * Leaves with the page's folding header: fades, and gives up its height as it goes — so what's
+ * below comes right up under the bar, with no empty band where it used to be.
+ */
 @Composable
 fun Modifier.fadesWithHeader(): Modifier {
     val fold = LocalHeaderFold.current
-    return graphicsLayer { alpha = (1f - fold() * 1.6f).coerceIn(0f, 1f) }
+    return this.layout { measurable, constraints ->
+            val placeable = measurable.measure(constraints)
+            val f = fold()
+            val height = (placeable.height * (1f - f)).roundToInt()
+            layout(placeable.width, height) {
+                // Slides up as it shrinks, fading out.
+                placeable.placeWithLayer(0, height - placeable.height) { alpha = (1f - f * 1.6f).coerceIn(0f, 1f) }
+            }
+        }
 }
 
 private val COMPACT_HEIGHT = 52.dp
