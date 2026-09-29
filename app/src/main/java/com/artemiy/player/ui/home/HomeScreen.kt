@@ -142,14 +142,23 @@ fun HomeScreen(
                         .fillMaxSize()
                         .background(PlayerColors.Background),
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(mainScroll).barsInset()
-                            .statusBarsPadding()
-                            .padding(bottom = 20.dp),
-                        verticalArrangement = Arrangement.spacedBy(22.dp),
-                    ) {
+                    // The big title folds into a slim bar as the page scrolls (see CollapsingHeader),
+                    // the settings button along with it.
+                    val settingsButton: @Composable () -> Unit = {
+                        Icon(
+                            imageVector = AppIcons.Settings,
+                            contentDescription = stringResource(R.string.settings),
+                            tint = PlayerColors.TextPrimary,
+                            modifier = Modifier
+                                .size(22.dp)
+                                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onSettingsClick() },
+                        )
+                    }
+                    Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
+                    com.artemiy.player.ui.components.CollapsingHeader(
+                        title = stringResource(R.string.tab_home),
+                        trailing = settingsButton,
+                        bigHeader = {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -178,6 +187,15 @@ fun HomeScreen(
                                 )
                             }
                         }
+                        },
+                    ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(mainScroll).barsInset()
+                            .padding(top = 22.dp, bottom = 20.dp),
+                        verticalArrangement = Arrangement.spacedBy(22.dp),
+                    ) {
                         val menuActions = SongMenuActions(onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
                         MixesSection(mixes = mixes, statDays = statDays, onOpen = { route = HomeRoute.OpenMix(it.id) })
                         SongRowSection(
@@ -196,8 +214,9 @@ fun HomeScreen(
                             onSeeAll = { route = HomeRoute.RecentlyAddedAll },
                         )
                         RecapCard(recap = recap, onOpen = { route = HomeRoute.WeekRecap })
+                                        }
                     }
-                    StatusBarFade()
+                    }
                 }
             }
         }

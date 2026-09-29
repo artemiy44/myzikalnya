@@ -151,6 +151,12 @@ fun SettingsScreen(
                 .background(PlayerColors.Background)
                 .statusBarsPadding(),
         ) {
+            val goBack = { page.parent?.let { route = it } ?: onBack(); Unit }
+            // The big title folds into a slim bar as the page scrolls (see CollapsingHeader).
+            com.artemiy.player.ui.components.CollapsingHeader(
+                title = stringResource(page.titleRes),
+                onBack = goBack,
+                bigHeader = {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(20.dp, 20.dp, 20.dp, 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -172,6 +178,8 @@ fun SettingsScreen(
                     style = com.artemiy.player.ui.theme.pageTitleStyle,
                 )
             }
+                },
+            ) {
 
             when (page) {
                 SettingsRoute.Main -> SettingsCategories(onOpen = { route = it })
@@ -237,7 +245,8 @@ fun SettingsScreen(
                 SettingsRoute.About -> AboutContent(onShowOnboarding = onShowOnboarding)
                 SettingsRoute.Language -> LanguageContent()
             }
-        }
+                    }
+}
     }
 }
 

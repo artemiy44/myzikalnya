@@ -29,6 +29,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -217,42 +218,39 @@ fun LibraryScreen(
                 .background(PlayerColors.Background)
                 .then(if (edgeToEdge) Modifier else Modifier.statusBarsPadding()),
         ) {
-            if (!edgeToEdge) {
-                LibraryHeader(
-                    title = when (val r = route) {
-                        LibraryRoute.Home -> stringResource(R.string.tab_library)
-                        LibraryRoute.Playlists -> stringResource(R.string.playlists)
-                        LibraryRoute.Artists -> stringResource(R.string.artists)
-                        LibraryRoute.Albums -> stringResource(R.string.albums)
-                        LibraryRoute.Songs -> stringResource(R.string.tracks)
-                        LibraryRoute.Years -> stringResource(R.string.years)
-                        LibraryRoute.Genres -> stringResource(R.string.genres)
-                        is LibraryRoute.YearDetail, is LibraryRoute.GenreDetail -> "" // their own hero header
-                        is LibraryRoute.AlbumDetail -> r.album
-                        is LibraryRoute.PlaylistDetail -> r.name
-                        is LibraryRoute.ArtistDetail -> "" // handled by its own hero header
-                    },
-                    showBack = route != LibraryRoute.Home,
-                    onBack = { backStack.removeAt(backStack.lastIndex) },
-                    trailing = when (route) {
-                        LibraryRoute.Playlists -> {
-                            {
-                                Icon(
-                                    imageVector = AppIcons.Add,
-                                    contentDescription = stringResource(R.string.new_playlist),
-                                    tint = PlayerColors.TextPrimary,
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) {
-                                            showCreatePlaylist = true
-                                        },
-                                )
-                            }
-                        }
-                        else -> null
-                    },
-                )
+            // The big title folds into a slim bar as the page scrolls (see CollapsingHeader).
+            val pageTitle = when (val r = route) {
+                LibraryRoute.Home -> stringResource(R.string.tab_library)
+                LibraryRoute.Playlists -> stringResource(R.string.playlists)
+                LibraryRoute.Artists -> stringResource(R.string.artists)
+                LibraryRoute.Albums -> stringResource(R.string.albums)
+                LibraryRoute.Songs -> stringResource(R.string.tracks)
+                LibraryRoute.Years -> stringResource(R.string.years)
+                LibraryRoute.Genres -> stringResource(R.string.genres)
+                is LibraryRoute.YearDetail, is LibraryRoute.GenreDetail -> "" // their own hero header
+                is LibraryRoute.AlbumDetail -> r.album
+                is LibraryRoute.PlaylistDetail -> r.name
+                is LibraryRoute.ArtistDetail -> "" // handled by its own hero header
             }
+            val pageTrailing: (@Composable () -> Unit)? = when (route) {
+                LibraryRoute.Playlists -> {
+                    {
+                        Icon(
+                            imageVector = AppIcons.Add,
+                            contentDescription = stringResource(R.string.new_playlist),
+                            tint = PlayerColors.TextPrimary,
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) {
+                                    showCreatePlaylist = true
+                                },
+                        )
+                    }
+                }
+                else -> null
+            }
+            val goBack = { backStack.removeAt(backStack.lastIndex); Unit }
+            val pageContent: @Composable ColumnScope.() -> Unit = {
 
             when {
                 !permissionGranted -> {
@@ -744,7 +742,19 @@ fun LibraryScreen(
                     }
                 }
             }
-        }
+                    }
+            if (edgeToEdge) {
+                pageContent()
+            } else {
+                com.artemiy.player.ui.components.CollapsingHeader(
+                    title = pageTitle,
+                    bigHeader = { LibraryHeader(title = pageTitle, showBack = route != LibraryRoute.Home, onBack = goBack, trailing = pageTrailing) },
+                    onBack = if (route != LibraryRoute.Home) goBack else null,
+                    trailing = pageTrailing,
+                    content = pageContent,
+                )
+            }
+}
     }
 
     if (showCreatePlaylist) {

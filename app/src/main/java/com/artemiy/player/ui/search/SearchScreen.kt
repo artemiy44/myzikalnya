@@ -88,12 +88,18 @@ fun SearchScreen(
             .background(PlayerColors.Background)
             .statusBarsPadding(),
     ) {
-        Text(
-            text = stringResource(R.string.tab_search),
-            color = PlayerColors.TextPrimary,
-            style = com.artemiy.player.ui.theme.pageTitleStyle,
-            modifier = Modifier.padding(20.dp, 20.dp, 20.dp, 12.dp),
-        )
+      // The big title folds into a slim bar as the results scroll; the search field stays put.
+      com.artemiy.player.ui.components.CollapsingHeader(
+        title = stringResource(R.string.tab_search),
+        bigHeader = {
+            Text(
+                text = stringResource(R.string.tab_search),
+                color = PlayerColors.TextPrimary,
+                style = com.artemiy.player.ui.theme.pageTitleStyle,
+                modifier = Modifier.padding(20.dp, 20.dp, 20.dp, 12.dp),
+            )
+        },
+      ) {
 
         Row(
             modifier = Modifier
@@ -266,7 +272,8 @@ fun SearchScreen(
                 }
             }
         }
-    }
+          }
+}
 }
 
 /** The lyric line with the searched-for part in bright bold. */
