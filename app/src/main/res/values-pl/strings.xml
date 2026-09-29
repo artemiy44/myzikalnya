@@ -13,6 +13,7 @@
     <string name="accent_stock">Standard GNOME</string>
     <string name="action_listen">Słuchaj</string>
     <string name="add">Dodaj</string>
+    <string name="add_all_to_queue_msg">Wszystkie te utwory (%1$d) trafią na koniec kolejki. Grany teraz i te już w kolejce nie zostaną dodane ponownie.</string>
     <string name="add_artist_to_queue_msg">Wszystkie utwory wykonawcy (%1$d) trafią na koniec kolejki. Ten, który gra teraz, i te, które już są w kolejce, nie zostaną zdublowane.</string>
     <string name="add_to_play_queue">Dodaj do kolejki odtwarzania</string>
     <string name="add_to_play_queue_q">Dodać do kolejki odtwarzania?</string>
@@ -63,6 +64,7 @@
     <string name="endless_play">Odtwarzanie bez końca</string>
     <string name="font_note">Nie każda czcionka ma litery każdego języka — brakujące są brane z czcionki telefonu.</string>
     <string name="font_system">Systemowa</string>
+    <string name="genres">Gatunki</string>
     <string name="go_to_album">Przejdź do albumu</string>
     <string name="go_to_artist">Przejdź do wykonawcy</string>
     <string name="hello_1">Witam!</string>
@@ -132,9 +134,11 @@
     <string name="new_playlist">Nowa playlista</string>
     <string name="no">Nie</string>
     <string name="no_album">Bez albumu</string>
+    <string name="no_genre">Bez gatunku</string>
     <string name="no_playlists">Nie ma jeszcze playlist — pierwszą tworzy się ikoną „+” u góry</string>
     <string name="no_track_chosen">Nie wybrano utworu</string>
     <string name="no_tracks_found">Nie znaleziono utworów</string>
+    <string name="no_year">Bez roku</string>
     <string name="nothing_found">Nic nie znaleziono</string>
     <string name="nothing_playing">Nic nie gra</string>
     <string name="onb_allow">Zezwól</string>
@@ -312,6 +316,7 @@
     <string name="view_mode">Widok: %1$s</string>
     <string name="weekly_recap">Podsumowanie tygodnia</string>
     <string name="which_artist">Do którego wykonawcy?</string>
+    <string name="years">Lata</string>
     <plurals name="albums_count">
         <item quantity="one">%d album</item>
         <item quantity="few">%d albumy</item>

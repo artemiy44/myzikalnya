@@ -13,6 +13,7 @@
     <string name="accent_stock">Стандарт GNOME</string>
     <string name="action_listen">Слухати</string>
     <string name="add">Додати</string>
+    <string name="add_all_to_queue_msg">Усі ці пісні (%1$d) стануть у кінець черги. Та, що грає зараз, і вже наявні в черзі не дублюватимуться.</string>
     <string name="add_artist_to_queue_msg">Усі пісні виконавця (%1$d) стануть у кінець черги. Та, що грає зараз, і ті, що вже в черзі, не продублюються.</string>
     <string name="add_to_play_queue">Додати до черги відтворення</string>
     <string name="add_to_play_queue_q">Додати до черги відтворення?</string>
@@ -63,6 +64,7 @@
     <string name="endless_play">Безкінечне відтворення</string>
     <string name="font_note">Не в усіх шрифтах є літери будь-якої мови — відсутні беруться зі шрифту телефона.</string>
     <string name="font_system">Системний</string>
+    <string name="genres">Жанри</string>
     <string name="go_to_album">Перейти до альбому</string>
     <string name="go_to_artist">Перейти до виконавця</string>
     <string name="hello_1">Вітаю!</string>
@@ -132,9 +134,11 @@
     <string name="new_playlist">Новий плейлист</string>
     <string name="no">Ні</string>
     <string name="no_album">Без альбому</string>
+    <string name="no_genre">Без жанру</string>
     <string name="no_playlists">Плейлистів поки немає — перший створюється значком «+» угорі</string>
     <string name="no_track_chosen">Трек не вибрано</string>
     <string name="no_tracks_found">Треків не знайдено</string>
+    <string name="no_year">Без року</string>
     <string name="nothing_found">Нічого не знайдено</string>
     <string name="nothing_playing">Нічого не грає</string>
     <string name="onb_allow">Дозволити</string>
@@ -312,6 +316,7 @@
     <string name="view_mode">Вигляд: %1$s</string>
     <string name="weekly_recap">Підсумки тижня</string>
     <string name="which_artist">До якого виконавця?</string>
+    <string name="years">Роки</string>
     <plurals name="albums_count">
         <item quantity="one">%d альбом</item>
         <item quantity="few">%d альбоми</item>

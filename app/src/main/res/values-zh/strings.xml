@@ -13,6 +13,7 @@
     <string name="accent_stock">GNOME 默认</string>
     <string name="action_listen">播放</string>
     <string name="add">添加</string>
+    <string name="add_all_to_queue_msg">这些歌曲（%1$d 首）将加入队列末尾。正在播放的和已在队列中的不会重复添加。</string>
     <string name="add_artist_to_queue_msg">该艺人的全部歌曲（%1$d 首）将加到队列末尾。正在播放的和已在队列中的不会重复添加。</string>
     <string name="add_to_play_queue">添加到播放队列</string>
     <string name="add_to_play_queue_q">添加到播放队列？</string>
@@ -63,6 +64,7 @@
     <string name="endless_play">无尽播放</string>
     <string name="font_note">并非每种字体都包含所有语言的字符——缺少的字符会使用手机的字体显示。</string>
     <string name="font_system">系统</string>
+    <string name="genres">流派</string>
     <string name="go_to_album">前往专辑</string>
     <string name="go_to_artist">前往艺人</string>
     <string name="hello_1">你好！</string>
@@ -132,9 +134,11 @@
     <string name="new_playlist">新建歌单</string>
     <string name="no">否</string>
     <string name="no_album">无专辑</string>
+    <string name="no_genre">无流派</string>
     <string name="no_playlists">还没有歌单——可以用顶部的“+”创建第一个</string>
     <string name="no_track_chosen">未选择曲目</string>
     <string name="no_tracks_found">未找到曲目</string>
+    <string name="no_year">无年份</string>
     <string name="nothing_found">没有找到结果</string>
     <string name="nothing_playing">未在播放</string>
     <string name="onb_allow">允许</string>
@@ -312,6 +316,7 @@
     <string name="view_mode">视图：%1$s</string>
     <string name="weekly_recap">每周回顾</string>
     <string name="which_artist">前往哪位艺人？</string>
+    <string name="years">年份</string>
     <plurals name="albums_count">
         <item quantity="other">%d 张专辑</item>
     </plurals>

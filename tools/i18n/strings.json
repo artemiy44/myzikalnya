@@ -47,6 +47,10 @@
   "en": "Add",
   "ru": "Добавить"
  },
+ "add_all_to_queue_msg": {
+  "en": "All these songs (%1$d) will go to the end of the queue. The one playing now and those already queued won't be added twice.",
+  "ru": "Все эти песни (%1$d) встанут в конец очереди. Та, что играет сейчас, и уже стоящие в очереди не продублируются."
+ },
  "add_artist_to_queue_msg": {
   "en": "All of the artist's songs (%1$d) will go to the end of the queue. The one playing now and those already queued won't be added twice.",
   "ru": "Все песни артиста (%1$d) встанут в конец очереди. Та, что играет сейчас, и уже стоящие в очереди не продублируются."
@@ -269,6 +273,10 @@
  "font_system": {
   "en": "System",
   "ru": "Системный"
+ },
+ "genres": {
+  "en": "Genres",
+  "ru": "Жанры"
  },
  "go_to_album": {
   "en": "Go to album",
@@ -581,6 +589,10 @@
   "en": "No album",
   "ru": "Без альбома"
  },
+ "no_genre": {
+  "en": "No genre",
+  "ru": "Без жанра"
+ },
  "no_playlists": {
   "en": "No playlists yet — the first one is made with the «+» at the top",
   "en_x": "No playlists yet — the «+» at the top will sort that out",
@@ -598,6 +610,10 @@
   "en_x": "Not a single track about",
   "ru": "Треки не найдены",
   "ru_x": "Ни одного трека"
+ },
+ "no_year": {
+  "en": "No year",
+  "ru": "Без года"
  },
  "nothing_found": {
   "en": "Nothing found",
@@ -1427,5 +1443,9 @@
  "which_artist": {
   "en": "Which artist?",
   "ru": "К какому исполнителю?"
+ },
+ "years": {
+  "en": "Years",
+  "ru": "Годы"
  }
 }

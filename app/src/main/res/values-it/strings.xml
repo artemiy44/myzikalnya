@@ -13,6 +13,7 @@
     <string name="accent_stock">GNOME standard</string>
     <string name="action_listen">Ascolta</string>
     <string name="add">Aggiungi</string>
+    <string name="add_all_to_queue_msg">Tutti questi brani (%1$d) finiranno in fondo alla coda. Quello in riproduzione e quelli già in coda non verranno ripetuti.</string>
     <string name="add_artist_to_queue_msg">Tutti i brani dell’artista (%1$d) finiranno in fondo alla coda. Quello in riproduzione e quelli già in coda non verranno duplicati.</string>
     <string name="add_to_play_queue">Aggiungi alla coda di riproduzione</string>
     <string name="add_to_play_queue_q">Aggiungere alla coda di riproduzione?</string>
@@ -63,6 +64,7 @@
     <string name="endless_play">Riproduzione infinita</string>
     <string name="font_note">Non tutti i caratteri hanno le lettere di ogni lingua — quelle mancanti vengono prese dal carattere del telefono.</string>
     <string name="font_system">Di sistema</string>
+    <string name="genres">Generi</string>
     <string name="go_to_album">Vai all’album</string>
     <string name="go_to_artist">Vai all’artista</string>
     <string name="hello_1">Saluti!</string>
@@ -132,9 +134,11 @@
     <string name="new_playlist">Nuova playlist</string>
     <string name="no">No</string>
     <string name="no_album">Senza album</string>
+    <string name="no_genre">Senza genere</string>
     <string name="no_playlists">Nessuna playlist per ora — la prima si crea con il «+» in alto</string>
     <string name="no_track_chosen">Nessun brano scelto</string>
     <string name="no_tracks_found">Nessun brano trovato</string>
+    <string name="no_year">Senza anno</string>
     <string name="nothing_found">Nessun risultato</string>
     <string name="nothing_playing">Nessuna riproduzione</string>
     <string name="onb_allow">Consenti</string>
@@ -312,6 +316,7 @@
     <string name="view_mode">Vista: %1$s</string>
     <string name="weekly_recap">Riepilogo della settimana</string>
     <string name="which_artist">Quale artista?</string>
+    <string name="years">Anni</string>
     <plurals name="albums_count">
         <item quantity="one">%d album</item>
         <item quantity="many">%d album</item>

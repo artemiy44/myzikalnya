@@ -77,6 +77,13 @@ fun ArtistDetailScreen(
     albums: List<Pair<String, List<Song>>>,
     /** What a long-pressed album offers (see AlbumActionsMenuPopup). */
     albumMenu: @Composable (List<Song>, Boolean, () -> Unit) -> Unit = { _, _, _ -> },
+    /** The page can be a year's or a genre's too: its name in the header ([artist] still seeds
+     * the header picture), a huge [bigMark] behind it ("2024"), what each song row says under
+     * its title, and how "add all to the queue" is worded. */
+    title: String = artist,
+    bigMark: String? = null,
+    songSubtitle: (Song) -> String = { it.album.ifBlank { artist } },
+    queueMessageRes: Int = R.string.add_artist_to_queue_msg,
     onBack: () -> Unit,
     onPlayAll: (List<Song>) -> Unit,
     onShuffleAll: (List<Song>) -> Unit,
@@ -108,10 +115,23 @@ fun ArtistDetailScreen(
             topTint = androidx.compose.ui.graphics.Color.White,
             onBack = onBack,
             height = COLLAGE_HERO_HEIGHT,
-            art = { ArtistGenreArt(artist, songs) },
+            art = {
+                ArtistGenreArt(artist, songs)
+                if (bigMark != null) {
+                    Text(
+                        text = bigMark,
+                        color = Color.White.copy(alpha = 0.16f),
+                        fontSize = 150.sp,
+                        fontFamily = com.artemiy.player.ui.mood.Unbounded,
+                        maxLines = 1,
+                        softWrap = false,
+                        modifier = Modifier.align(Alignment.Center).padding(bottom = 90.dp),
+                    )
+                }
+            },
         ) {
             Text(
-                text = artist,
+                text = title,
                 color = Color.White,
                 fontSize = 30.sp,
                 style = TextStyle(shadow = HeroTextShadow).inAppFont(),
@@ -142,6 +162,7 @@ fun ArtistDetailScreen(
         if (showAddToQueueDialog) {
             AddArtistToQueueDialog(
                 songCount = songs.size,
+                messageRes = queueMessageRes,
                 onDismiss = { showAddToQueueDialog = false },
                 onConfirm = {
                     showAddToQueueDialog = false
@@ -209,7 +230,7 @@ fun ArtistDetailScreen(
                     AlbumArt(uri = song.uri, modifier = Modifier.size(52.dp).clip(RoundedCornerShape(10.dp)))
                     Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
                         Text(text = song.title, color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(text = song.album.ifBlank { artist }, color = PlayerColors.TextSecondary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(text = songSubtitle(song), color = PlayerColors.TextSecondary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     SongActionsMenuPopup(
                         song = song,
@@ -227,11 +248,11 @@ fun ArtistDetailScreen(
 }
 
 @Composable
-private fun AddArtistToQueueDialog(songCount: Int, onDismiss: () -> Unit, onConfirm: () -> Unit) {
+private fun AddArtistToQueueDialog(songCount: Int, messageRes: Int, onDismiss: () -> Unit, onConfirm: () -> Unit) {
     com.artemiy.player.ui.components.AppDialog(onDismiss = onDismiss) {
         com.artemiy.player.ui.components.DialogTitle(stringResource(R.string.add_to_play_queue_q))
         com.artemiy.player.ui.components.DialogMessage(
-            stringResource(R.string.add_artist_to_queue_msg, songCount),
+            stringResource(messageRes, songCount),
         )
         com.artemiy.player.ui.components.DialogButtons(dismissLabel = stringResource(R.string.no), onDismiss = onDismiss, confirmLabel = stringResource(R.string.add), onConfirm = onConfirm)
     }

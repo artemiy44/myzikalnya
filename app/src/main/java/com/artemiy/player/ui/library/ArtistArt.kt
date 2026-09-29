@@ -74,6 +74,21 @@ fun BoxScope.ArtistGenreArt(artist: String, songs: List<Song>) {
     }
 }
 
+/**
+ * Just the colours of [ArtistGenreArt] — the covers' tone as a gradient with its two glows, no
+ * pictures on top — for small tiles (a year, a genre) that put their own mark over it.
+ */
+@Composable
+fun BoxScope.ToneBackdrop(songs: List<Song>) {
+    val tone = rememberCoverTone(songs)
+    Canvas(modifier = Modifier.matchParentSize()) {
+        val colors = palette(tone)
+        drawRect(Brush.linearGradient(listOf(colors[0], colors[1]), start = Offset(0f, 0f), end = Offset(size.width, size.height)))
+        glow(colors[2], Offset(size.width * 0.85f, size.height * 0.2f), size.maxDimension * 0.55f)
+        glow(colors[3], Offset(size.width * 0.1f, size.height * 0.8f), size.maxDimension * 0.5f)
+    }
+}
+
 /** Where and how big each genre's picture goes: the main one large, the others smaller. */
 private class Layer(val x: Float, val y: Float, val scale: Float, val angle: Float, val alpha: Float)
 

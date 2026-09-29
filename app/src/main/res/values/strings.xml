@@ -13,6 +13,7 @@
     <string name="accent_stock">GNOME stock</string>
     <string name="action_listen">Play</string>
     <string name="add">Add</string>
+    <string name="add_all_to_queue_msg">All these songs (%1$d) will go to the end of the queue. The one playing now and those already queued won\'t be added twice.</string>
     <string name="add_artist_to_queue_msg">All of the artist\'s songs (%1$d) will go to the end of the queue. The one playing now and those already queued won\'t be added twice.</string>
     <string name="add_to_play_queue">Add to the play queue</string>
     <string name="add_to_play_queue_q">Add to the play queue?</string>
@@ -67,6 +68,7 @@
     <string name="endless_play">Endless play</string>
     <string name="font_note">Not every font has the letters of every language — missing ones are taken from the phone\'s font.</string>
     <string name="font_system">System</string>
+    <string name="genres">Genres</string>
     <string name="go_to_album">Go to album</string>
     <string name="go_to_artist">Go to artist</string>
     <string name="hello_1">Greetings!</string>
@@ -138,9 +140,11 @@
     <string name="new_playlist">New playlist</string>
     <string name="no">No</string>
     <string name="no_album">No album</string>
+    <string name="no_genre">No genre</string>
     <string name="no_playlists">No playlists yet — the first one is made with the «+» at the top</string>
     <string name="no_track_chosen">No track chosen</string>
     <string name="no_tracks_found">No tracks found</string>
+    <string name="no_year">No year</string>
     <string name="nothing_found">Nothing found</string>
     <string name="nothing_playing">Nothing playing</string>
     <string name="onb_allow">Allow</string>
@@ -342,4 +346,5 @@
     <string name="view_mode">View: %1$s</string>
     <string name="weekly_recap">Weekly recap</string>
     <string name="which_artist">Which artist?</string>
+    <string name="years">Years</string>
 </resources>

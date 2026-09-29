@@ -13,6 +13,7 @@
     <string name="accent_stock">GNOME-Standard</string>
     <string name="action_listen">Anhören</string>
     <string name="add">Hinzufügen</string>
+    <string name="add_all_to_queue_msg">Alle diese Songs (%1$d) kommen ans Ende der Warteschlange. Der laufende und bereits eingereihte werden nicht doppelt hinzugefügt.</string>
     <string name="add_artist_to_queue_msg">Alle Songs des Künstlers (%1$d) kommen ans Ende der Warteschlange. Der aktuell laufende und die bereits eingereihten werden nicht doppelt hinzugefügt.</string>
     <string name="add_to_play_queue">Zur Wiedergabeliste hinzufügen</string>
     <string name="add_to_play_queue_q">Zur Wiedergabeliste hinzufügen?</string>
@@ -63,6 +64,7 @@
     <string name="endless_play">Endloswiedergabe</string>
     <string name="font_note">Nicht jede Schrift hat die Buchstaben jeder Sprache — fehlende kommen aus der Schrift des Telefons.</string>
     <string name="font_system">System</string>
+    <string name="genres">Genres</string>
     <string name="go_to_album">Zum Album</string>
     <string name="go_to_artist">Zum Künstler</string>
     <string name="hello_1">Seid gegrüßt!</string>
@@ -132,9 +134,11 @@
     <string name="new_playlist">Neue Playlist</string>
     <string name="no">Nein</string>
     <string name="no_album">Kein Album</string>
+    <string name="no_genre">Ohne Genre</string>
     <string name="no_playlists">Noch keine Playlists — die erste entsteht über das „+“ oben</string>
     <string name="no_track_chosen">Kein Titel gewählt</string>
     <string name="no_tracks_found">Keine Titel gefunden</string>
+    <string name="no_year">Ohne Jahr</string>
     <string name="nothing_found">Nichts gefunden</string>
     <string name="nothing_playing">Es läuft nichts</string>
     <string name="onb_allow">Erlauben</string>
@@ -312,6 +316,7 @@
     <string name="view_mode">Ansicht: %1$s</string>
     <string name="weekly_recap">Wochenrückblick</string>
     <string name="which_artist">Welcher Künstler?</string>
+    <string name="years">Jahre</string>
     <plurals name="albums_count">
         <item quantity="one">%d Album</item>
         <item quantity="other">%d Alben</item>

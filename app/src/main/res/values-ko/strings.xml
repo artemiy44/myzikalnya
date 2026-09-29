@@ -13,6 +13,7 @@
     <string name="accent_stock">GNOME 기본</string>
     <string name="action_listen">재생</string>
     <string name="add">추가</string>
+    <string name="add_all_to_queue_msg">이 곡들(%1$d곡)이 대기열 끝에 추가돼요. 지금 재생 중인 곡과 이미 대기열에 있는 곡은 중복되지 않아요.</string>
     <string name="add_artist_to_queue_msg">이 아티스트의 모든 곡(%1$d곡)이 대기열 끝에 추가됩니다. 지금 재생 중인 곡과 이미 대기열에 있는 곡은 중복되지 않습니다.</string>
     <string name="add_to_play_queue">재생 대기열에 추가</string>
     <string name="add_to_play_queue_q">재생 대기열에 추가할까요?</string>
@@ -63,6 +64,7 @@
     <string name="endless_play">무한 재생</string>
     <string name="font_note">모든 글꼴이 모든 언어의 글자를 갖고 있지는 않습니다 — 없는 글자는 휴대폰 글꼴로 표시됩니다.</string>
     <string name="font_system">시스템</string>
+    <string name="genres">장르</string>
     <string name="go_to_album">앨범으로 이동</string>
     <string name="go_to_artist">아티스트로 이동</string>
     <string name="hello_1">반갑습니다!</string>
@@ -132,9 +134,11 @@
     <string name="new_playlist">새 플레이리스트</string>
     <string name="no">아니요</string>
     <string name="no_album">앨범 없음</string>
+    <string name="no_genre">장르 없음</string>
     <string name="no_playlists">아직 플레이리스트가 없어요 — 위쪽 «+»로 첫 번째를 만들 수 있어요</string>
     <string name="no_track_chosen">선택한 곡 없음</string>
     <string name="no_tracks_found">곡을 찾지 못했습니다</string>
+    <string name="no_year">연도 없음</string>
     <string name="nothing_found">검색 결과 없음</string>
     <string name="nothing_playing">재생 중인 곡 없음</string>
     <string name="onb_allow">허용</string>
@@ -312,6 +316,7 @@
     <string name="view_mode">보기: %1$s</string>
     <string name="weekly_recap">주간 요약</string>
     <string name="which_artist">어느 아티스트로 갈까요?</string>
+    <string name="years">연도</string>
     <plurals name="albums_count">
         <item quantity="other">앨범 %d개</item>
     </plurals>

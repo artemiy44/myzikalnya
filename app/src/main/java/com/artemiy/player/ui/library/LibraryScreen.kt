@@ -5,6 +5,8 @@ import com.artemiy.player.ui.theme.barsInset
 import com.artemiy.player.ui.components.pressScale
 import androidx.compose.ui.res.pluralStringResource
 import com.artemiy.player.R
+import com.artemiy.player.ui.home.drawGenreMotif
+import com.artemiy.player.ui.library.ToneBackdrop
 import com.artemiy.player.ui.components.inAlbumOrder
 import com.artemiy.player.ui.components.groupedCard
 import com.artemiy.player.ui.components.staggeredEntrance
@@ -104,6 +106,12 @@ sealed class LibraryRoute {
     data object Artists : LibraryRoute()
     data object Albums : LibraryRoute()
     data object Songs : LibraryRoute()
+    data object Years : LibraryRoute()
+    data object Genres : LibraryRoute()
+    /** A year's page; null = songs whose tags have no year. */
+    data class YearDetail(val year: Int?) : LibraryRoute()
+    /** A genre's page, by its [genreKey]; null = songs whose tags have no genre. */
+    data class GenreDetail(val key: String?) : LibraryRoute()
     data class ArtistDetail(val artist: String) : LibraryRoute()
     data class AlbumDetail(val album: String, val artist: String) : LibraryRoute()
     data class PlaylistDetail(val playlistId: Long, val name: String) : LibraryRoute()
@@ -111,6 +119,13 @@ sealed class LibraryRoute {
 
 private data class ArtistGroup(val name: String, val songs: List<Song>)
 private data class AlbumGroup(val album: String, val artist: String, val songs: List<Song>)
+
+/** Songs gathered by a tag — a year, or a genre. [key] null = the tag is missing; [name] is how
+ * it's shown (the library's usual spelling of the genre). */
+private data class TagGroup(val key: String?, val name: String?, val songs: List<Song>)
+
+/** Two spellings of one genre are one ("J-Pop", "jpop", "J Pop"); different genres never merge. */
+private fun genreKey(genre: String): String = genre.lowercase().filter { it.isLetterOrDigit() }
 
 /** What makes two songs the same album: its name and artist line, ignoring case and spacing. */
 private fun albumKey(album: String, artist: String): String = ArtistNames.key(album) + "\u0000" + ArtistNames.key(artist)
@@ -192,7 +207,8 @@ fun LibraryScreen(
     // predictive back gesture) slides away with the page underneath showing.
     AnimatedBackStack(stack = backStack, onBack = { backStack.removeAt(backStack.lastIndex) }) { route ->
         // Artist/album/playlist pages run their header art up under the status bar themselves.
-        val edgeToEdge = route is LibraryRoute.ArtistDetail || route is LibraryRoute.AlbumDetail || route is LibraryRoute.PlaylistDetail
+        val edgeToEdge = route is LibraryRoute.ArtistDetail || route is LibraryRoute.AlbumDetail || route is LibraryRoute.PlaylistDetail ||
+            route is LibraryRoute.YearDetail || route is LibraryRoute.GenreDetail
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -207,6 +223,9 @@ fun LibraryScreen(
                         LibraryRoute.Artists -> stringResource(R.string.artists)
                         LibraryRoute.Albums -> stringResource(R.string.albums)
                         LibraryRoute.Songs -> stringResource(R.string.tracks)
+                        LibraryRoute.Years -> stringResource(R.string.years)
+                        LibraryRoute.Genres -> stringResource(R.string.genres)
+                        is LibraryRoute.YearDetail, is LibraryRoute.GenreDetail -> "" // their own hero header
                         is LibraryRoute.AlbumDetail -> r.album
                         is LibraryRoute.PlaylistDetail -> r.name
                         is LibraryRoute.ArtistDetail -> "" // handled by its own hero header
@@ -278,6 +297,18 @@ fun LibraryScreen(
                         songs.groupBy { albumKey(it.album, it.artist) }
                             .map { (_, list) -> AlbumGroup(mostCommon(list.map { it.album }), mostCommon(list.map { it.artist }), list) }
                     }
+                    // Newest year first; the songs without one lead the list.
+                    val yearGroups = remember(songs) {
+                        songs.groupBy { it.year }
+                            .map { (year, list) -> TagGroup(year?.toString(), year?.toString(), list) }
+                            .sortedWith(compareBy<TagGroup>({ it.key != null }, { -(it.key?.toIntOrNull() ?: 0) }))
+                    }
+                    // Biggest genre first; the songs without one lead the list.
+                    val genreGroups = remember(songs) {
+                        songs.groupBy { com.artemiy.player.data.primaryGenre(it)?.let(::genreKey)?.takeIf { k -> k.isNotEmpty() } }
+                            .map { (key, list) -> TagGroup(key, key?.let { mostCommon(list.mapNotNull { s -> com.artemiy.player.data.primaryGenre(s) }) }, list) }
+                            .sortedWith(compareBy<TagGroup>({ it.key != null }, { -it.songs.size }))
+                    }
 
                     // Long-press menus: a whole album at once, or one song of a card.
                     val albumMenu: @Composable (List<Song>, Boolean, () -> Unit) -> Unit = { list, expanded, dismiss ->
@@ -304,12 +335,54 @@ fun LibraryScreen(
                             onGoToArtist = onGoToArtist,
                         )
                     }
+                    // A year's or a genre's page: the artist page's layout, with the tag as its name.
+                    @Composable
+                    fun TagDetail(group: TagGroup?, title: String, bigMark: String?) {
+                        val tagSongs = group?.songs ?: emptyList()
+                        val tagAlbums = remember(tagSongs) {
+                            tagSongs.groupBy { albumKey(it.album, it.artist) }
+                                .map { (_, list) -> mostCommon(list.map { it.album }) to list }
+                                .sortedBy { it.first.lowercase() }
+                        }
+                        ArtistDetailScreen(
+                            artist = "tag:" + (group?.key ?: title),
+                            title = title,
+                            bigMark = bigMark,
+                            songSubtitle = { it.artist },
+                            queueMessageRes = R.string.add_all_to_queue_msg,
+                            songs = tagSongs,
+                            albums = tagAlbums,
+                            albumMenu = albumMenu,
+                            onBack = { backStack.removeAt(backStack.lastIndex) },
+                            onPlayAll = { list -> if (list.isNotEmpty()) onSongClick(list.first(), list) },
+                            onShuffleAll = { list ->
+                                if (list.isNotEmpty()) {
+                                    val shuffled = list.shuffled()
+                                    onSongClick(shuffled.first(), shuffled)
+                                }
+                            },
+                            onSongClick = { song, list -> onSongClick(song, list) },
+                            onAlbumClick = { album ->
+                                tagSongs.firstOrNull { it.album == album }?.let { push(LibraryRoute.AlbumDetail(it.album, it.artist)) }
+                            },
+                            onPlayNext = onPlayNext,
+                            onAddToQueue = onAddToQueue,
+                            onAddAllToQueue = onAddAllToQueue,
+                            onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
+                            onGoToAlbum = onGoToAlbum,
+                        )
+                    }
+
                     when (val r = route) {
                         LibraryRoute.Home -> LibraryHomeList(
                             playlistCount = playlistsVm.playlists.size,
                             artistCount = artistGroups.size,
                             albumCount = albumGroups.size,
                             songCount = songs.size,
+                            yearCount = yearGroups.count { it.key != null },
+                            genreCount = genreGroups.count { it.key != null },
+                            onOpenYears = { push(LibraryRoute.Years) },
+                            onOpenGenres = { push(LibraryRoute.Genres) },
                             recentSongs = remember(songs) { songs.sortedByDescending { it.dateAddedMs }.take(12) },
                             onOpenPlaylists = { push(LibraryRoute.Playlists) },
                             onOpenArtists = { push(LibraryRoute.Artists) },
@@ -468,6 +541,45 @@ fun LibraryScreen(
                                     )
                                 }
                             }
+                        }
+
+                        LibraryRoute.Years -> TagGrid(
+                            groups = yearGroups,
+                            onOpen = { push(LibraryRoute.YearDetail(it.key?.toIntOrNull())) },
+                            name = { it.name ?: stringResource(R.string.no_year) },
+                        ) { group -> TileMark(if (group.key == null) "?" else shortYear(group.key)) }
+
+                        LibraryRoute.Genres -> TagGrid(
+                            groups = genreGroups,
+                            onOpen = { push(LibraryRoute.GenreDetail(it.key)) },
+                            name = { it.name ?: stringResource(R.string.no_genre) },
+                        ) { group ->
+                            if (group.name == null) {
+                                TileMark("?")
+                            } else {
+                                val seed = remember(group.name) { group.name.lowercase().hashCode() }
+                                androidx.compose.foundation.Canvas(modifier = Modifier.matchParentSize()) {
+                                    drawGenreMotif(group.name, seed)
+                                }
+                            }
+                        }
+
+                        is LibraryRoute.YearDetail -> {
+                            val group = yearGroups.firstOrNull { it.key == r.year?.toString() }
+                            TagDetail(
+                                group = group,
+                                title = r.year?.toString() ?: stringResource(R.string.no_year),
+                                bigMark = r.year?.let { shortYear(it.toString()) } ?: "?",
+                            )
+                        }
+
+                        is LibraryRoute.GenreDetail -> {
+                            val group = genreGroups.firstOrNull { it.key == r.key }
+                            TagDetail(
+                                group = group,
+                                title = group?.name ?: stringResource(R.string.no_genre),
+                                bigMark = if (r.key == null) "?" else null,
+                            )
                         }
 
                         is LibraryRoute.ArtistDetail -> {
@@ -777,6 +889,10 @@ private fun LibraryHomeList(
     artistCount: Int,
     albumCount: Int,
     songCount: Int,
+    yearCount: Int,
+    genreCount: Int,
+    onOpenYears: () -> Unit,
+    onOpenGenres: () -> Unit,
     recentSongs: List<Song>,
     onOpenPlaylists: () -> Unit,
     onOpenArtists: () -> Unit,
@@ -793,10 +909,12 @@ private fun LibraryHomeList(
             .padding(bottom = 20.dp),
     ) {
         Column(modifier = Modifier.padding(horizontal = com.artemiy.player.ui.components.pageGutter)) {
-            LibraryRow(stringResource(R.string.playlists), playlistCount, AppIcons.Playlist, onOpenPlaylists, Modifier.staggeredEntrance(0, entrance).groupedCard(0, 4))
-            LibraryRow(stringResource(R.string.artists), artistCount, AppIcons.Artist, onOpenArtists, Modifier.staggeredEntrance(1, entrance).groupedCard(1, 4))
-            LibraryRow(stringResource(R.string.albums), albumCount, AppIcons.Album, onOpenAlbums, Modifier.staggeredEntrance(2, entrance).groupedCard(2, 4))
-            LibraryRow(stringResource(R.string.tracks), songCount, AppIcons.Songs, onOpenSongs, Modifier.staggeredEntrance(3, entrance).groupedCard(3, 4))
+            LibraryRow(stringResource(R.string.playlists), playlistCount, AppIcons.Playlist, onOpenPlaylists, Modifier.staggeredEntrance(0, entrance).groupedCard(0, 6))
+            LibraryRow(stringResource(R.string.artists), artistCount, AppIcons.Artist, onOpenArtists, Modifier.staggeredEntrance(1, entrance).groupedCard(1, 6))
+            LibraryRow(stringResource(R.string.albums), albumCount, AppIcons.Album, onOpenAlbums, Modifier.staggeredEntrance(2, entrance).groupedCard(2, 6))
+            LibraryRow(stringResource(R.string.tracks), songCount, AppIcons.Songs, onOpenSongs, Modifier.staggeredEntrance(3, entrance).groupedCard(3, 6))
+            LibraryRow(stringResource(R.string.years), yearCount, AppIcons.Years, onOpenYears, Modifier.staggeredEntrance(4, entrance).groupedCard(4, 6))
+            LibraryRow(stringResource(R.string.genres), genreCount, AppIcons.Genres, onOpenGenres, Modifier.staggeredEntrance(5, entrance).groupedCard(5, 6))
         }
 
         if (recentSongs.isNotEmpty()) {
@@ -1446,5 +1564,73 @@ private fun PlaylistNameDialog(
             onConfirm = { if (name.isNotBlank()) onConfirm(name) },
             confirmEnabled = name.isNotBlank(),
         )
+    }
+}
+
+/** "'24" for 2024 — how a year is drawn on its tile and behind its page's name. */
+private fun shortYear(year: String): String = "'" + year.takeLast(2)
+
+/** A big mark in the middle of a year's or genre's tile: "'24", or "?" for the missing tag. */
+@Composable
+private fun androidx.compose.foundation.layout.BoxScope.TileMark(text: String) {
+    Text(
+        text = text,
+        color = Color.White.copy(alpha = 0.92f),
+        fontSize = 46.sp,
+        fontFamily = com.artemiy.player.ui.mood.Unbounded,
+        maxLines = 1,
+        softWrap = false,
+        modifier = Modifier.align(Alignment.Center),
+    )
+}
+
+/**
+ * Years or genres as tiles, two to a row: each in the colours of its songs' covers with [mark]
+ * on it, its name and how many songs under it.
+ */
+@Composable
+private fun TagGrid(
+    groups: List<TagGroup>,
+    onOpen: (TagGroup) -> Unit,
+    name: @Composable (TagGroup) -> String,
+    mark: @Composable androidx.compose.foundation.layout.BoxScope.(TagGroup) -> Unit,
+) {
+    val expressive = com.artemiy.player.ui.theme.expressiveUi
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(bottom = LocalBarsInset.current),
+        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 4.dp),
+    ) {
+        gridItems(groups, key = { it.key ?: "\u0000none" }) { group ->
+            Column(
+                modifier = Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onOpen(group) },
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f)
+                        .clip(RoundedCornerShape(if (expressive) 22.dp else 12.dp)),
+                ) {
+                    ToneBackdrop(group.songs)
+                    mark(group)
+                }
+                Text(
+                    text = name(group),
+                    color = PlayerColors.TextPrimary,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 6.dp),
+                )
+                Text(
+                    text = androidx.compose.ui.res.pluralStringResource(R.plurals.songs_count, group.songs.size, group.songs.size),
+                    color = PlayerColors.TextSecondary,
+                    fontSize = 11.sp,
+                )
+            }
+        }
     }
 }

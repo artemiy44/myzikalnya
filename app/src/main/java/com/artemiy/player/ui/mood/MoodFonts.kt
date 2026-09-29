@@ -51,7 +51,7 @@ import kotlin.math.sin
 // приложении"); "Обычное" keeps the app's font. Sizes differ since the faces differ a lot in
 // width: Unbounded and Climate Crisis are very wide, Caveat small and narrow.
 
-private val Unbounded = FontFamily(
+internal val Unbounded = FontFamily(
     Font(R.font.mood_unbounded, FontWeight.Black, variationSettings = FontVariation.Settings(FontVariation.weight(900))),
 )
 private val PlaypenSans = FontFamily(Font(R.font.mood_playpen_sans, FontWeight.Light))

@@ -1133,3 +1133,40 @@ internal val TablerLanguage: ImageVector by lazy {
     }
 }
 
+
+internal val LucideCalendar: ImageVector by lazy {
+    iconVector("LucideCalendar", scale = LUCIDE_SCALE) {
+        path("M8 2v4", fill = false, stroke = true)
+        path("M16 2v4", fill = false, stroke = true)
+        path("M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2z", fill = false, stroke = true)
+        path("M3 10h18", fill = false, stroke = true)
+    }
+}
+
+internal val TablerCalendar: ImageVector by lazy {
+    iconVector("TablerCalendar") {
+        path("M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z", fill = false, stroke = true)
+        path("M16 3v4", fill = false, stroke = true)
+        path("M8 3v4", fill = false, stroke = true)
+        path("M4 11h16", fill = false, stroke = true)
+        path("M11 15h1", fill = false, stroke = true)
+        path("M12 15v3", fill = false, stroke = true)
+    }
+}
+
+internal val LucideShapes: ImageVector by lazy {
+    iconVector("LucideShapes", scale = LUCIDE_SCALE) {
+        path("M8.3 10a0.7 0.7 0 0 1 -0.626 -1.079L11.4 3a0.7 0.7 0 0 1 1.198 -0.043L16.3 8.9a0.7 0.7 0 0 1 -0.572 1.1z", fill = false, stroke = true)
+        path("M4 14h5a1 1 0 0 1 1 1v5a1 1 0 0 1 -1 1h-5a1 1 0 0 1 -1 -1v-5a1 1 0 0 1 1 -1z", fill = false, stroke = true)
+        path("M14 17.5a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0", fill = false, stroke = true)
+    }
+}
+
+internal val TablerCategory: ImageVector by lazy {
+    iconVector("TablerCategory") {
+        path("M4 4h6v6h-6z", fill = false, stroke = true)
+        path("M14 4h6v6h-6z", fill = false, stroke = true)
+        path("M4 14h6v6h-6z", fill = false, stroke = true)
+        path("M14 17a3 3 0 1 0 6 0a3 3 0 1 0 -6 0", fill = false, stroke = true)
+    }
+}

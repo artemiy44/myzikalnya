@@ -13,6 +13,7 @@
     <string name="accent_stock">GNOME varsayılanı</string>
     <string name="action_listen">Dinle</string>
     <string name="add">Ekle</string>
+    <string name="add_all_to_queue_msg">Bu şarkıların hepsi (%1$d) sıranın sonuna eklenecek. Çalan şarkı ve sırada olanlar tekrar eklenmeyecek.</string>
     <string name="add_artist_to_queue_msg">Sanatçının tüm şarkıları (%1$d) kuyruğun sonuna eklenecek. Şu an çalan ve zaten kuyrukta olanlar ikinci kez eklenmez.</string>
     <string name="add_to_play_queue">Çalma kuyruğuna ekle</string>
     <string name="add_to_play_queue_q">Çalma kuyruğuna eklensin mi?</string>
@@ -63,6 +64,7 @@
     <string name="endless_play">Sonsuz çalma</string>
     <string name="font_note">Her yazı tipinde her dilin harfleri yoktur — eksik olanlar telefonun yazı tipinden alınır.</string>
     <string name="font_system">Sistem</string>
+    <string name="genres">Türler</string>
     <string name="go_to_album">Albüme git</string>
     <string name="go_to_artist">Sanatçıya git</string>
     <string name="hello_1">Selamlar!</string>
@@ -132,9 +134,11 @@
     <string name="new_playlist">Yeni çalma listesi</string>
     <string name="no">Hayır</string>
     <string name="no_album">Albüm yok</string>
+    <string name="no_genre">Türü yok</string>
     <string name="no_playlists">Henüz çalma listesi yok — ilki üstteki «+» ile oluşturulur</string>
     <string name="no_track_chosen">Parça seçilmedi</string>
     <string name="no_tracks_found">Parça bulunamadı</string>
+    <string name="no_year">Yılı yok</string>
     <string name="nothing_found">Hiçbir şey bulunamadı</string>
     <string name="nothing_playing">Hiçbir şey çalmıyor</string>
     <string name="onb_allow">İzin ver</string>
@@ -312,6 +316,7 @@
     <string name="view_mode">Görünüm: %1$s</string>
     <string name="weekly_recap">Haftalık özet</string>
     <string name="which_artist">Hangi sanatçı?</string>
+    <string name="years">Yıllar</string>
     <plurals name="albums_count">
         <item quantity="one">%d albüm</item>
         <item quantity="other">%d albüm</item>

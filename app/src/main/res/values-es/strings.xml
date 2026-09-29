@@ -13,6 +13,7 @@
     <string name="accent_stock">GNOME estándar</string>
     <string name="action_listen">Escuchar</string>
     <string name="add">Añadir</string>
+    <string name="add_all_to_queue_msg">Todas estas canciones (%1$d) irán al final de la cola. La que suena ahora y las que ya están en cola no se repetirán.</string>
     <string name="add_artist_to_queue_msg">Todas las canciones del artista (%1$d) irán al final de la cola. La que suena ahora y las que ya están en la cola no se duplicarán.</string>
     <string name="add_to_play_queue">Añadir a la cola de reproducción</string>
     <string name="add_to_play_queue_q">¿Añadir a la cola de reproducción?</string>
@@ -63,6 +64,7 @@
     <string name="endless_play">Reproducción sin fin</string>
     <string name="font_note">No todas las fuentes tienen las letras de todos los idiomas: las que faltan se toman de la fuente del teléfono.</string>
     <string name="font_system">Del sistema</string>
+    <string name="genres">Géneros</string>
     <string name="go_to_album">Ir al álbum</string>
     <string name="go_to_artist">Ir al artista</string>
     <string name="hello_1">¡Saludos!</string>
@@ -132,9 +134,11 @@
     <string name="new_playlist">Nueva lista</string>
     <string name="no">No</string>
     <string name="no_album">Sin álbum</string>
+    <string name="no_genre">Sin género</string>
     <string name="no_playlists">Aún no hay listas: la primera se crea con el «+» de arriba</string>
     <string name="no_track_chosen">Ninguna pista elegida</string>
     <string name="no_tracks_found">No se encontraron pistas</string>
+    <string name="no_year">Sin año</string>
     <string name="nothing_found">No se encontró nada</string>
     <string name="nothing_playing">No suena nada</string>
     <string name="onb_allow">Permitir</string>
@@ -312,6 +316,7 @@
     <string name="view_mode">Vista: %1$s</string>
     <string name="weekly_recap">Resumen semanal</string>
     <string name="which_artist">¿Qué artista?</string>
+    <string name="years">Años</string>
     <plurals name="albums_count">
         <item quantity="one">%d álbum</item>
         <item quantity="many">%d álbumes</item>

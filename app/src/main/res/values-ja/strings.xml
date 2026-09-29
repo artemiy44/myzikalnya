@@ -13,6 +13,7 @@
     <string name="accent_stock">GNOME 標準</string>
     <string name="action_listen">再生</string>
     <string name="add">追加</string>
+    <string name="add_all_to_queue_msg">これらの曲（%1$d 曲）がキューの最後に追加されます。再生中の曲とキューにある曲は重複しません。</string>
     <string name="add_artist_to_queue_msg">このアーティストの全曲（%1$d 曲）をキューの最後に追加します。再生中の曲とすでにキューにある曲は重複しません。</string>
     <string name="add_to_play_queue">再生キューに追加</string>
     <string name="add_to_play_queue_q">再生キューに追加しますか？</string>
@@ -63,6 +64,7 @@
     <string name="endless_play">エンドレス再生</string>
     <string name="font_note">すべてのフォントがあらゆる言語の文字を持っているわけではありません — 足りない文字はスマホのフォントで表示されます。</string>
     <string name="font_system">システム</string>
+    <string name="genres">ジャンル</string>
     <string name="go_to_album">アルバムへ</string>
     <string name="go_to_artist">アーティストへ</string>
     <string name="hello_1">ごきげんよう！</string>
@@ -132,9 +134,11 @@
     <string name="new_playlist">新しいプレイリスト</string>
     <string name="no">いいえ</string>
     <string name="no_album">アルバムなし</string>
+    <string name="no_genre">ジャンルなし</string>
     <string name="no_playlists">プレイリストはまだありません — 上の「+」から作成できます</string>
     <string name="no_track_chosen">曲が選ばれていません</string>
     <string name="no_tracks_found">曲が見つかりません</string>
+    <string name="no_year">年不明</string>
     <string name="nothing_found">見つかりませんでした</string>
     <string name="nothing_playing">再生していません</string>
     <string name="onb_allow">許可</string>
@@ -312,6 +316,7 @@
     <string name="view_mode">表示：%1$s</string>
     <string name="weekly_recap">週間まとめ</string>
     <string name="which_artist">どのアーティスト？</string>
+    <string name="years">年</string>
     <plurals name="albums_count">
         <item quantity="other">%d 枚のアルバム</item>
     </plurals>

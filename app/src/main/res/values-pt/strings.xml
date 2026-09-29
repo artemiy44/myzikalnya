@@ -13,6 +13,7 @@
     <string name="accent_stock">Padrão do GNOME</string>
     <string name="action_listen">Ouvir</string>
     <string name="add">Adicionar</string>
+    <string name="add_all_to_queue_msg">Todas estas músicas (%1$d) vão para o fim da fila. A que está tocando e as que já estão na fila não serão repetidas.</string>
     <string name="add_artist_to_queue_msg">Todas as músicas do artista (%1$d) vão para o fim da fila. A que está tocando e as que já estão na fila não serão duplicadas.</string>
     <string name="add_to_play_queue">Adicionar à fila de reprodução</string>
     <string name="add_to_play_queue_q">Adicionar à fila de reprodução?</string>
@@ -63,6 +64,7 @@
     <string name="endless_play">Reprodução sem fim</string>
     <string name="font_note">Nem toda fonte tem as letras de todos os idiomas — as que faltam vêm da fonte do telefone.</string>
     <string name="font_system">Do sistema</string>
+    <string name="genres">Gêneros</string>
     <string name="go_to_album">Ir para o álbum</string>
     <string name="go_to_artist">Ir para o artista</string>
     <string name="hello_1">Saudações!</string>
@@ -132,9 +134,11 @@
     <string name="new_playlist">Nova playlist</string>
     <string name="no">Não</string>
     <string name="no_album">Sem álbum</string>
+    <string name="no_genre">Sem gênero</string>
     <string name="no_playlists">Ainda não há playlists — a primeira se cria com o «+» no topo</string>
     <string name="no_track_chosen">Nenhuma faixa escolhida</string>
     <string name="no_tracks_found">Nenhuma faixa encontrada</string>
+    <string name="no_year">Sem ano</string>
     <string name="nothing_found">Nada encontrado</string>
     <string name="nothing_playing">Nada tocando</string>
     <string name="onb_allow">Permitir</string>
@@ -312,6 +316,7 @@
     <string name="view_mode">Visualização: %1$s</string>
     <string name="weekly_recap">Resumo da semana</string>
     <string name="which_artist">Qual artista?</string>
+    <string name="years">Anos</string>
     <plurals name="albums_count">
         <item quantity="one">%d álbum</item>
         <item quantity="many">%d álbuns</item>

@@ -13,6 +13,7 @@
     <string name="accent_stock">Сток GNOME</string>
     <string name="action_listen">Слушать</string>
     <string name="add">Добавить</string>
+    <string name="add_all_to_queue_msg">Все эти песни (%1$d) встанут в конец очереди. Та, что играет сейчас, и уже стоящие в очереди не продублируются.</string>
     <string name="add_artist_to_queue_msg">Все песни артиста (%1$d) встанут в конец очереди. Та, что играет сейчас, и уже стоящие в очереди не продублируются.</string>
     <string name="add_to_play_queue">Добавить в очередь проигрывания</string>
     <string name="add_to_play_queue_q">Добавить в очередь проигрывания?</string>
@@ -69,6 +70,7 @@
     <string name="endless_play">Бесконечное воспроизведение</string>
     <string name="font_note">Не во всех шрифтах есть буквы любого языка — недостающие берутся из шрифта телефона.</string>
     <string name="font_system">Системный</string>
+    <string name="genres">Жанры</string>
     <string name="go_to_album">Перейти к альбому</string>
     <string name="go_to_artist">Перейти к исполнителю</string>
     <string name="hello_1">Приветствую!</string>
@@ -140,9 +142,11 @@
     <string name="new_playlist">Новый плейлист</string>
     <string name="no">Нет</string>
     <string name="no_album">Без альбома</string>
+    <string name="no_genre">Без жанра</string>
     <string name="no_playlists">Плейлистов пока нет — первый создаётся значком «+» сверху</string>
     <string name="no_track_chosen">Трек не выбран</string>
     <string name="no_tracks_found">Треки не найдены</string>
+    <string name="no_year">Без года</string>
     <string name="nothing_found">Ничего не найдено</string>
     <string name="nothing_playing">Ничего не играет</string>
     <string name="onb_allow">Разрешить</string>
@@ -356,4 +360,5 @@
     <string name="view_mode">Вид: %1$s</string>
     <string name="weekly_recap">Итоги недели</string>
     <string name="which_artist">К какому исполнителю?</string>
+    <string name="years">Годы</string>
 </resources>
