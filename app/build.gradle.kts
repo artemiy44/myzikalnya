@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -21,14 +23,30 @@ android {
         compose = true
     }
 
+    // The release key lives outside the project (never in git): keys/keystore.properties next to
+    // it says where the key file is and its passwords. Without that file, releases are signed
+    // with the debug key as before.
+    val releaseKeyProps = rootProject.file("../keys/keystore.properties")
+    if (releaseKeyProps.exists()) {
+        val props = Properties().apply { releaseKeyProps.inputStream().use { load(it) } }
+        signingConfigs {
+            create("release") {
+                storeFile = file(props.getProperty("storeFile"))
+                storePassword = props.getProperty("storePassword")
+                keyAlias = props.getProperty("keyAlias")
+                keyPassword = props.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
-        // The build to actually use on the phone: not debuggable, so Android fully optimizes it
-        // (a debug build runs Compose several times slower). Signed with the same debug key, so
-        // it installs over a debug build and keeps all the app's data.
+        // The build to actually use: not debuggable, so Android fully optimizes it (a debug
+        // build runs Compose several times slower). Signed with the release key when there is
+        // one (see above), otherwise with the debug key.
         release {
             isDebuggable = false
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
     }
 
