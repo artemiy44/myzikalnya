@@ -65,11 +65,18 @@ fun CollapsingHeader(
 ) {
     val density = LocalDensity.current
     val compactPx = with(density) { COMPACT_HEIGHT.toPx() }
-    // How far the header has folded, in px, and how far it can (its full height less the bar's).
-    // It moves with the finger, one to one.
+    val trailPx = with(density) { TITLE_TRAIL.toPx() }
+    // How far the header has folded, in px, and how far it can (its full height less the bar's):
+    // it only ever folds down to the bar, so the page never runs in under it. Past that the big
+    // title keeps leaving while the list itself scrolls on ([trail], up to TITLE_TRAIL) — one to
+    // one with the finger all along, and long enough to see.
     var folded by remember { mutableFloatStateOf(0f) }
+    var trail by remember { mutableFloatStateOf(0f) }
     val range = remember { floatArrayOf(0f) }
-    val progress = { if (range[0] > 0f) (folded / range[0]).coerceIn(0f, 1f) else 0f }
+    val progress = {
+        val total = range[0] + trailPx
+        if (total > 0f) ((folded + trail) / total).coerceIn(0f, 1f) else 0f
+    }
     val connection = remember {
         object : NestedScrollConnection {
             // Scrolling down: the header folds before the list moves.
@@ -82,6 +89,8 @@ fun CollapsingHeader(
 
             // Scrolling back up: only once the list is at its top does the header unfold.
             override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+                // The list's own scrolling carries the title the rest of the way (and back).
+                if (folded >= range[0] || consumed.y > 0f) trail = (trail - consumed.y).coerceIn(0f, trailPx)
                 if (available.y <= 0f) return Offset.Zero
                 val before = folded
                 folded = (folded - available.y).coerceIn(0f, range[0])
@@ -116,7 +125,7 @@ fun CollapsingHeader(
                 content = { Box(modifier = Modifier.padding(top = EXTRA_TOP)) { bigHeader() } },
             ) { measurables, constraints ->
                 val big = measurables[0].measure(constraints.copy(minHeight = 0))
-                val floor = if (fade) 0 else minOf(compactH, big.height)
+                val floor = minOf(compactH, big.height)
                 range[0] = (big.height - floor).coerceAtLeast(0).toFloat()
                 val height = (big.height - folded.coerceIn(0f, range[0])).roundToInt().coerceAtLeast(floor)
                 layout(constraints.maxWidth, height) {
@@ -137,8 +146,11 @@ fun CollapsingHeader(
         // page fades softly into it rather than being cut off.
         // Once it's there it's solid to the touch too: what's gone under it (a search field) can't
         // be tapped through it. (Read through derivedStateOf — the fold moves every frame.)
-        val barShown by remember { androidx.compose.runtime.derivedStateOf { progress() > 0.6f } }
-        Column(modifier = Modifier.fillMaxWidth().graphicsLayer { alpha = ((progress() - 0.6f) / 0.4f).coerceIn(0f, 1f) }) {
+        val barShown by remember { androidx.compose.runtime.derivedStateOf { progress() > 0.7f } }
+        // Comes in (and goes) as a short fade of its own, not tied to the finger — never left
+        // half-there when the scrolling stops midway.
+        val barAlpha by androidx.compose.animation.core.animateFloatAsState(if (barShown) 1f else 0f, androidx.compose.animation.core.tween(200), label = "headerBar")
+        Column(modifier = Modifier.fillMaxWidth().graphicsLayer { alpha = barAlpha }) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -214,3 +226,4 @@ fun Modifier.fadesWithHeader(): Modifier {
 private val COMPACT_HEIGHT = 52.dp
 private val FADE_HEIGHT = 20.dp
 private val EXTRA_TOP = 8.dp
+private val TITLE_TRAIL = 56.dp
