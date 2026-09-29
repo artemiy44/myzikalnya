@@ -75,6 +75,8 @@ fun ArtistDetailScreen(
     artist: String,
     songs: List<Song>,
     albums: List<Pair<String, List<Song>>>,
+    /** What a long-pressed album offers (see AlbumActionsMenuPopup). */
+    albumMenu: @Composable (List<Song>, Boolean, () -> Unit) -> Unit = { _, _, _ -> },
     onBack: () -> Unit,
     onPlayAll: (List<Song>) -> Unit,
     onShuffleAll: (List<Song>) -> Unit,
@@ -158,11 +160,13 @@ fun ArtistDetailScreen(
                         horizontalArrangement = Arrangement.spacedBy(14.dp),
                     ) {
                         rowAlbums.forEach { (album, albumSongs) ->
+                            var albumMenuOpen by remember { mutableStateOf(false) }
                             Column(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onAlbumClick(album) },
+                                    .songLongPressTrigger(onClick = { onAlbumClick(album) }, onLongPress = { albumMenuOpen = true }),
                             ) {
+                                albumMenu(albumSongs, albumMenuOpen) { albumMenuOpen = false }
                                 AlbumArt(
                                     uri = albumSongs.firstOrNull()?.uri,
                                     modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(if (com.artemiy.player.ui.theme.expressiveUi) 22.dp else 10.dp)),

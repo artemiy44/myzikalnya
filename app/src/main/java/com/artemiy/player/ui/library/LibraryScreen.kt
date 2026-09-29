@@ -5,6 +5,7 @@ import com.artemiy.player.ui.theme.barsInset
 import com.artemiy.player.ui.components.pressScale
 import androidx.compose.ui.res.pluralStringResource
 import com.artemiy.player.R
+import com.artemiy.player.ui.components.inAlbumOrder
 import com.artemiy.player.ui.components.groupedCard
 import com.artemiy.player.ui.components.staggeredEntrance
 import com.artemiy.player.ui.components.rememberEntrance
@@ -278,6 +279,31 @@ fun LibraryScreen(
                             .map { (_, list) -> AlbumGroup(mostCommon(list.map { it.album }), mostCommon(list.map { it.artist }), list) }
                     }
 
+                    // Long-press menus: a whole album at once, or one song of a card.
+                    val albumMenu: @Composable (List<Song>, Boolean, () -> Unit) -> Unit = { list, expanded, dismiss ->
+                        com.artemiy.player.ui.components.AlbumActionsMenuPopup(
+                            songs = remember(list) { list.inAlbumOrder() },
+                            expanded = expanded,
+                            onDismiss = dismiss,
+                            onPlay = { ordered -> if (ordered.isNotEmpty()) onSongClick(ordered.first(), ordered) },
+                            onPlayNext = onPlayNext,
+                            onAddAllToQueue = onAddAllToQueue,
+                            onAddToPlaylist = onAddToPlaylist,
+                            onGoToArtist = if (route is LibraryRoute.ArtistDetail) null else ({ list.firstOrNull()?.let(onGoToArtist) }),
+                        )
+                    }
+                    val songMenu: @Composable (Song, Boolean, () -> Unit) -> Unit = { song, expanded, dismiss ->
+                        com.artemiy.player.ui.components.SongActionsMenuPopup(
+                            song = song,
+                            expanded = expanded,
+                            onDismiss = dismiss,
+                            onPlayNext = onPlayNext,
+                            onAddToQueue = onAddToQueue,
+                            onAddToPlaylist = { onAddToPlaylist(listOf(it)) },
+                            onGoToAlbum = onGoToAlbum,
+                            onGoToArtist = onGoToArtist,
+                        )
+                    }
                     when (val r = route) {
                         LibraryRoute.Home -> LibraryHomeList(
                             playlistCount = playlistsVm.playlists.size,
@@ -290,6 +316,7 @@ fun LibraryScreen(
                             onOpenAlbums = { push(LibraryRoute.Albums) },
                             onOpenSongs = { push(LibraryRoute.Songs) },
                             onSongClick = { song, list -> onSongClick(song, list) },
+                            songMenu = songMenu,
                         )
 
                         LibraryRoute.Playlists -> PlaylistsList(
@@ -369,12 +396,14 @@ fun LibraryScreen(
                                     ViewMode.LIST -> AlbumsList(
                                         groups = filtered,
                                         state = albumsListState,
+                                        menu = albumMenu,
                                         onAlbumClick = { push(LibraryRoute.AlbumDetail(it.album, it.artist)) },
                                     )
                                     ViewMode.GRID_2, ViewMode.GRID_3 -> AlbumsGrid(
                                         groups = filtered,
                                         columns = if (albumViewMode == ViewMode.GRID_2) 2 else 3,
                                         state = albumsGridState,
+                                        menu = albumMenu,
                                         onAlbumClick = { push(LibraryRoute.AlbumDetail(it.album, it.artist)) },
                                     )
                                 }
@@ -452,6 +481,7 @@ fun LibraryScreen(
                                 artist = r.artist,
                                 songs = artistSongs,
                                 albums = artistAlbums,
+                                albumMenu = albumMenu,
                                 onBack = { backStack.removeAt(backStack.lastIndex) },
                                 onPlayAll = { list -> if (list.isNotEmpty()) onSongClick(list.first(), list) },
                                 onShuffleAll = { list ->
@@ -753,6 +783,7 @@ private fun LibraryHomeList(
     onOpenAlbums: () -> Unit,
     onOpenSongs: () -> Unit,
     onSongClick: (Song, List<Song>) -> Unit,
+    songMenu: @Composable (Song, Boolean, () -> Unit) -> Unit,
 ) {
     val entrance = rememberEntrance()
     Column(
@@ -782,13 +813,13 @@ private fun LibraryHomeList(
                         horizontalArrangement = Arrangement.spacedBy(14.dp),
                     ) {
                         rowSongs.forEach { song ->
+                            var menuOpen by remember { mutableStateOf(false) }
                             Column(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) {
-                                        onSongClick(song, recentSongs)
-                                    },
+                                    .songLongPressTrigger(onClick = { onSongClick(song, recentSongs) }, onLongPress = { menuOpen = true }),
                             ) {
+                                songMenu(song, menuOpen) { menuOpen = false }
                                 AlbumArt(
                                     uri = song.uri,
                                     modifier = Modifier
@@ -1015,21 +1046,23 @@ private fun ArtistsGrid(groups: List<ArtistGroup>, columns: Int, state: LazyGrid
 }
 
 @Composable
-private fun AlbumsList(groups: List<AlbumGroup>, state: LazyListState, onAlbumClick: (AlbumGroup) -> Unit) {
+private fun AlbumsList(groups: List<AlbumGroup>, state: LazyListState, menu: @Composable (List<Song>, Boolean, () -> Unit) -> Unit, onAlbumClick: (AlbumGroup) -> Unit) {
     val entrance = rememberEntrance()
     LazyColumn(modifier = Modifier.fillMaxWidth(), state = state, contentPadding = PaddingValues(bottom = LocalBarsInset.current)) {
         itemsIndexed(groups, key = { _, group -> "${group.album}|${group.artist}" }) { index, group ->
             val expressive = com.artemiy.player.ui.theme.expressiveUi
+            var menuOpen by remember { mutableStateOf(false) }
             Row(
                 modifier = Modifier
                     .then(if (expressive) Modifier.padding(horizontal = 12.dp) else Modifier)
                     .staggeredEntrance(index, entrance)
                     .groupedCard(index, groups.size)
                     .fillMaxWidth()
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onAlbumClick(group) }
+                    .songLongPressTrigger(onClick = { onAlbumClick(group) }, onLongPress = { menuOpen = true })
                     .padding(horizontal = if (expressive) 0.dp else 20.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                menu(group.songs, menuOpen) { menuOpen = false }
                 AlbumArt(
                     uri = group.songs.firstOrNull()?.uri,
                     modifier = Modifier
@@ -1064,7 +1097,7 @@ private fun AlbumsList(groups: List<AlbumGroup>, state: LazyListState, onAlbumCl
 }
 
 @Composable
-private fun AlbumsGrid(groups: List<AlbumGroup>, columns: Int, state: LazyGridState, onAlbumClick: (AlbumGroup) -> Unit) {
+private fun AlbumsGrid(groups: List<AlbumGroup>, columns: Int, state: LazyGridState, menu: @Composable (List<Song>, Boolean, () -> Unit) -> Unit, onAlbumClick: (AlbumGroup) -> Unit) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
         state = state,
@@ -1074,10 +1107,12 @@ private fun AlbumsGrid(groups: List<AlbumGroup>, columns: Int, state: LazyGridSt
         modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 4.dp),
     ) {
         gridItems(groups) { group ->
+            var menuOpen by remember { mutableStateOf(false) }
             Column(
                 modifier = Modifier
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onAlbumClick(group) },
+                    .songLongPressTrigger(onClick = { onAlbumClick(group) }, onLongPress = { menuOpen = true }),
             ) {
+                menu(group.songs, menuOpen) { menuOpen = false }
                 AlbumArt(
                     uri = group.songs.firstOrNull()?.uri,
                     modifier = Modifier

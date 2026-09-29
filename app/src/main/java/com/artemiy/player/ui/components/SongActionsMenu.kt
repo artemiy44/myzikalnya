@@ -203,3 +203,37 @@ fun Modifier.songLongPressTrigger(onClick: () -> Unit, onLongPress: () -> Unit):
         onClick = onClick,
         onLongClick = onLongPress,
     )
+
+/**
+ * A long-pressed album (or any group of songs shown as one tile): play it, shuffle it, or line
+ * it all up — next, or at the end of the queue — add it to a playlist, or go to its artist.
+ * [songs] are expected in album order.
+ */
+@Composable
+fun AlbumActionsMenuPopup(
+    songs: List<Song>,
+    expanded: Boolean,
+    onDismiss: () -> Unit,
+    onPlay: (List<Song>) -> Unit,
+    onPlayNext: (Song) -> Unit,
+    onAddAllToQueue: (List<Song>) -> Unit,
+    onAddToPlaylist: (List<Song>) -> Unit,
+    onGoToArtist: (() -> Unit)? = null,
+) {
+    AppDropdownMenu(expanded = expanded, onDismiss = onDismiss) {
+        AppMenuItem(text = stringResource(R.string.action_listen), icon = AppIcons.Play, onClick = { onDismiss(); onPlay(songs) })
+        AppMenuItem(text = stringResource(R.string.shuffle), icon = AppIcons.Shuffle, onClick = { onDismiss(); onPlay(songs.shuffled()) })
+        // "Next" puts each song right after the one playing — the album goes in back to front,
+        // so it ends up in order.
+        AppMenuItem(text = stringResource(R.string.play_next), icon = AppIcons.PlayNext, onClick = { onDismiss(); songs.asReversed().forEach(onPlayNext) })
+        AppMenuItem(text = stringResource(R.string.add_to_queue), icon = AppIcons.Queue, onClick = { onDismiss(); onAddAllToQueue(songs) })
+        AppMenuItem(text = stringResource(R.string.add_to_playlist), icon = AppIcons.AddToPlaylist, onClick = { onDismiss(); onAddToPlaylist(songs) })
+        if (onGoToArtist != null) {
+            AppMenuItem(text = stringResource(R.string.go_to_artist), icon = AppIcons.Artist, onClick = { onDismiss(); onGoToArtist() })
+        }
+    }
+}
+
+/** An album's songs in the order the album has them: by disc, then track number. */
+fun List<Song>.inAlbumOrder(): List<Song> =
+    sortedWith(compareBy<Song>({ it.discNumber ?: 1 }, { it.trackNumber ?: Int.MAX_VALUE }, { it.title.lowercase() }))
