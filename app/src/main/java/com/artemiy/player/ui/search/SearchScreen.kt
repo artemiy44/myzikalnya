@@ -91,7 +91,6 @@ fun SearchScreen(
       // The big title folds into a slim bar as the results scroll; the search field stays put.
       com.artemiy.player.ui.components.CollapsingHeader(
         title = stringResource(R.string.tab_search),
-        fade = false,
         bigHeader = {
             Text(
                 text = stringResource(R.string.tab_search),
