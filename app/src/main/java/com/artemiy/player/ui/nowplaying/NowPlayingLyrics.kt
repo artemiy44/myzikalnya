@@ -146,14 +146,36 @@ internal fun LyricsView(
             modifier = Modifier.fillMaxSize().padding(contentPadding).padding(top = 12.dp),
             contentAlignment = Alignment.TopStart,
         ) {
-            Text(
-                text = stringResource(R.string.lyrics_not_found),
-                color = LocalAdaptiveSecondaryColor.current,
-                fontSize = 24.sp,
-                lineHeight = 30.sp,
-                fontWeight = FontWeight.ExtraBold,
-                style = TextStyle().inAppFont(),
-            )
+            // As big as the lyrics would be, and broken into rows the same way they are — no lone
+            // last word ("…just the / tune").
+            val message = stringResource(R.string.lyrics_not_found)
+            val color = LocalAdaptiveSecondaryColor.current
+            val words = remember(message) { if (message.contains(' ')) WORD_UNIT.findAll(message).map { it.value }.toList() else null }
+            if (words == null) {
+                Text(
+                    text = message,
+                    color = color,
+                    fontSize = NO_LYRICS_SIZE,
+                    lineHeight = NO_LYRICS_SIZE * 1.25f,
+                    fontWeight = FontWeight.ExtraBold,
+                    style = TextStyle(lineBreak = androidx.compose.ui.text.style.LineBreak.Heading).inAppFont(),
+                )
+            } else {
+                BalancedFlow(words = words, alignEnd = false, rowGap = 0.dp) {
+                    words.forEachIndexed { i, word ->
+                        Text(
+                            text = if (i == words.lastIndex) word.trimEnd() else word,
+                            color = color,
+                            fontSize = NO_LYRICS_SIZE,
+                            lineHeight = NO_LYRICS_SIZE * 1.25f,
+                            fontWeight = FontWeight.ExtraBold,
+                            maxLines = 1,
+                            softWrap = false,
+                            style = TextStyle().inAppFont(),
+                        )
+                    }
+                }
+            }
         }
 
         is ParsedLyrics.Unsynced -> {
@@ -658,6 +680,8 @@ internal fun PlainLyricLine(
         }
     }
 }
+
+private val NO_LYRICS_SIZE = 30.sp
 
 /** A word and the space after it. */
 private val WORD_UNIT = Regex("\\S+\\s*")
