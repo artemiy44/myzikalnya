@@ -5,6 +5,10 @@ import com.artemiy.player.ui.theme.barsInset
 import com.artemiy.player.ui.components.pressScale
 import androidx.compose.ui.res.pluralStringResource
 import com.artemiy.player.R
+import com.artemiy.player.ui.components.monthYear
+import com.artemiy.player.ui.components.indexLetter
+import com.artemiy.player.ui.components.rememberScrollTarget
+import com.artemiy.player.ui.components.FastScroller
 import com.artemiy.player.ui.components.fadesWithHeader
 import com.artemiy.player.ui.home.drawGenreMotif
 import com.artemiy.player.ui.library.ToneBackdrop
@@ -202,6 +206,9 @@ fun LibraryScreen(
     var songSort by remember { mutableStateOf(SongSort.RECENT) }
     val songViewMode = ViewMode.valueOf(settingsVm.viewMode("songs").name)
     val playlistViewMode = ViewMode.valueOf(settingsVm.viewMode("playlist").name)
+
+    // The app's own language, for the fast scroller's "September 2026".
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
 
     fun push(r: LibraryRoute) {
         backStack.add(r)
@@ -423,6 +430,7 @@ fun LibraryScreen(
                                     viewMode = artistViewMode,
                                     onViewModeCycle = { settingsVm.setViewMode("artists", LibraryViewMode.valueOf(artistViewMode.next().name)) },
                                 )
+                                Box(modifier = Modifier.weight(1f)) {
                                 when (artistViewMode) {
                                     ViewMode.LIST -> ArtistsList(
                                         groups = filtered,
@@ -434,6 +442,19 @@ fun LibraryScreen(
                                         columns = if (artistViewMode == ViewMode.GRID_2) 2 else 3,
                                         state = artistsGridState,
                                         onArtistClick = { push(LibraryRoute.ArtistDetail(it.name)) },
+                                    )
+                                }
+                                    FastScroller(
+                                        target = if (artistViewMode == ViewMode.LIST) rememberScrollTarget(artistsListState) else rememberScrollTarget(artistsGridState),
+                                        label = { i ->
+                                        filtered.getOrNull(i)?.let { g ->
+                                            when (artistSort) {
+                                                ArtistSort.NAME -> indexLetter(g.name)
+                                                ArtistSort.COUNT -> g.songs.size.toString()
+                                                ArtistSort.RECENT -> monthYear(g.songs.maxOf { it.dateAddedMs }, locale)
+                                            }
+                                        }
+                                    },
                                     )
                                 }
                             }
@@ -467,6 +488,7 @@ fun LibraryScreen(
                                     viewMode = albumViewMode,
                                     onViewModeCycle = { settingsVm.setViewMode("albums", LibraryViewMode.valueOf(albumViewMode.next().name)) },
                                 )
+                                Box(modifier = Modifier.weight(1f)) {
                                 when (albumViewMode) {
                                     ViewMode.LIST -> AlbumsList(
                                         groups = filtered,
@@ -480,6 +502,20 @@ fun LibraryScreen(
                                         state = albumsGridState,
                                         menu = albumMenu,
                                         onAlbumClick = { push(LibraryRoute.AlbumDetail(it.album, it.artist)) },
+                                    )
+                                }
+                                    FastScroller(
+                                        target = if (albumViewMode == ViewMode.LIST) rememberScrollTarget(albumsListState) else rememberScrollTarget(albumsGridState),
+                                        label = { i ->
+                                        filtered.getOrNull(i)?.let { g ->
+                                            when (albumSort) {
+                                                AlbumSort.NAME -> indexLetter(g.album)
+                                                AlbumSort.COUNT -> g.songs.size.toString()
+                                                AlbumSort.ARTIST -> indexLetter(g.artist)
+                                                AlbumSort.RECENT -> monthYear(g.songs.maxOf { it.dateAddedMs }, locale)
+                                            }
+                                        }
+                                    },
                                     )
                                 }
                             }
@@ -523,6 +559,7 @@ fun LibraryScreen(
                                     )
                                     }
                                 }
+                                Box(modifier = Modifier.weight(1f)) {
                                 when (songViewMode) {
                                     ViewMode.LIST -> SongList(
                                         songs = filtered,
@@ -544,6 +581,20 @@ fun LibraryScreen(
                                         onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
                                         onGoToAlbum = onGoToAlbum,
                                         onGoToArtist = onGoToArtist,
+                                    )
+                                }
+                                    FastScroller(
+                                        target = if (songViewMode == ViewMode.LIST) rememberScrollTarget(songsListState) else rememberScrollTarget(songsGridState),
+                                        label = { i ->
+                                        filtered.getOrNull(i)?.let { song ->
+                                            when (songSort) {
+                                                SongSort.RECENT -> monthYear(song.dateAddedMs, locale)
+                                                SongSort.RELEASE_DATE -> song.year?.toString() ?: "?"
+                                                SongSort.TITLE -> indexLetter(song.title)
+                                                SongSort.ARTIST -> indexLetter(song.artist)
+                                            }
+                                        }
+                                    },
                                     )
                                 }
                             }
@@ -1625,6 +1676,7 @@ private fun TagGrid(
     mark: @Composable androidx.compose.foundation.layout.BoxScope.(TagGroup) -> Unit,
 ) {
     val expressive = com.artemiy.player.ui.theme.expressiveUi
+    Box(modifier = Modifier.fillMaxSize()) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         state = state,
@@ -1664,5 +1716,7 @@ private fun TagGrid(
                 )
             }
         }
+    }
+    FastScroller(target = rememberScrollTarget(state), label = { groups.getOrNull(it)?.let { g -> g.name ?: "?" } })
     }
 }
