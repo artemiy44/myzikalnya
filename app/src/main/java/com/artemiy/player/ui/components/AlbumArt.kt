@@ -9,6 +9,7 @@ import android.util.LruCache
 import android.util.Size
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -106,6 +107,26 @@ fun AlbumArt(uri: Uri?, modifier: Modifier = Modifier, size: Int = ART_SIZE_THUM
             modifier = modifier,
         )
     } else {
-        Box(modifier = modifier.background(placeholderArtBrush()))
+        MissingArt(modifier)
+    }
+}
+
+/**
+ * A song without a cover: plain white with a black "♫" in a light theme, black with a white one
+ * in a dark theme — whatever the size, list row to the big player.
+ */
+@Composable
+fun MissingArt(modifier: Modifier = Modifier) {
+    val light = LocalPlayerPalette.current.isLight
+    androidx.compose.foundation.layout.BoxWithConstraints(
+        modifier = modifier.background(if (light) Color.White else Color.Black),
+        contentAlignment = androidx.compose.ui.Alignment.Center,
+    ) {
+        androidx.compose.material3.Icon(
+            imageVector = com.artemiy.player.ui.icons.TablerSongs,
+            contentDescription = null,
+            tint = if (light) Color.Black else Color.White,
+            modifier = androidx.compose.ui.Modifier.size(minOf(maxWidth, maxHeight) * 0.4f),
+        )
     }
 }

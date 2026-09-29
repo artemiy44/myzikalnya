@@ -55,7 +55,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.artemiy.player.data.PlayerStyle
-import com.artemiy.player.ui.components.EqualizerLoader
+import com.artemiy.player.ui.components.LoadingMark
 import com.artemiy.player.ui.components.pressScale
 import com.artemiy.player.ui.mood.TalkingBurst
 import com.artemiy.player.ui.settings.FolderChips
@@ -163,7 +163,7 @@ fun OnboardingScreen(state: OnboardingState, actions: OnboardingActions) {
                     if (state.musicAllowed) {
                         Box(modifier = Modifier.fillMaxWidth().padding(top = 28.dp), contentAlignment = Alignment.Center) {
                             if (!state.libraryLoaded) {
-                                EqualizerLoader(color = PlayerColors.AccentStandalone, modifier = Modifier.size(44.dp))
+                                LoadingMark(color = PlayerColors.AccentStandalone, modifier = Modifier.size(44.dp))
                             } else {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
@@ -189,7 +189,7 @@ fun OnboardingScreen(state: OnboardingState, actions: OnboardingActions) {
                     ) {
                         Spacer(modifier = Modifier.height(20.dp))
                         if (state.availableFolders.isEmpty()) {
-                            EqualizerLoader(color = PlayerColors.AccentStandalone, modifier = Modifier.size(36.dp).align(Alignment.CenterHorizontally))
+                            LoadingMark(color = PlayerColors.AccentStandalone, modifier = Modifier.size(36.dp).align(Alignment.CenterHorizontally))
                         } else {
                             FolderChips(
                                 availableFolders = state.availableFolders,

@@ -54,8 +54,6 @@
     <string name="daypart_evening">in the evening</string>
     <string name="daypart_morning">in the morning</string>
     <string name="daypart_night">at night</string>
-    <string name="debug_showcase">Placeholder showcase</string>
-    <string name="debug_showcase_sub">Debug build only: every empty and loading state on one page</string>
     <string name="delete">Delete</string>
     <string name="delete_playlist">Delete playlist</string>
     <string name="delete_playlist_msg">The tracks themselves stay in the library.</string>

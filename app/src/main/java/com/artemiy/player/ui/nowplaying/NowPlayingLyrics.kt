@@ -62,7 +62,7 @@ import com.artemiy.player.lyrics.LyricLine
 import com.artemiy.player.lyrics.LyricVoice
 import com.artemiy.player.lyrics.ParsedLyrics
 import com.artemiy.player.lyrics.RubySegment
-import com.artemiy.player.ui.components.EqualizerLoader
+import com.artemiy.player.ui.components.LoadingMark
 import com.artemiy.player.lyrics.withInstrumentalBreaks
 import com.artemiy.player.lyrics.LyricWord
 import androidx.compose.foundation.shape.CircleShape
@@ -133,19 +133,26 @@ internal fun LyricsView(
     when (lyrics) {
         // Centered in the visible gap between the header and the controls, not in the whole area
         // (whose lower part sits under the controls).
-        null -> Box(
+        null -> if (loading && active) Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = contentPadding.calculateTopPadding(), bottom = contentPadding.calculateBottomPadding()),
             contentAlignment = Alignment.Center,
         ) {
-            if (loading && active) {
-                EqualizerLoader(color = LocalAdaptiveSecondaryColor.current, modifier = Modifier.size(44.dp))
-            } else Text(
+            LoadingMark(color = LocalAdaptiveSecondaryColor.current, modifier = Modifier.size(44.dp))
+        } else Box(
+            // No lyrics: said where they'd have begun — top left, in the lyrics' own weight —
+            // rather than floating in the middle between the header and the controls.
+            modifier = Modifier.fillMaxSize().padding(contentPadding).padding(top = 12.dp),
+            contentAlignment = Alignment.TopStart,
+        ) {
+            Text(
                 text = stringResource(R.string.lyrics_not_found),
                 color = LocalAdaptiveSecondaryColor.current,
-                fontSize = 14.sp,
-                modifier = Modifier.padding(horizontal = 12.dp),
+                fontSize = 24.sp,
+                lineHeight = 30.sp,
+                fontWeight = FontWeight.ExtraBold,
+                style = TextStyle().inAppFont(),
             )
         }
 

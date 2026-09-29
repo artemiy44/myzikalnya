@@ -43,7 +43,7 @@ import com.artemiy.player.data.Song
 import com.artemiy.player.data.normalizeForSearch
 import com.artemiy.player.ui.components.AlbumArt
 import com.artemiy.player.ui.components.SongActionsMenu
-import com.artemiy.player.ui.components.EqualizerLoader
+import com.artemiy.player.ui.components.LoadingMark
 import com.artemiy.player.ui.theme.PlayerColors
 import kotlinx.coroutines.delay
 
@@ -137,7 +137,7 @@ fun SearchScreen(
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                EqualizerLoader(color = PlayerColors.TextTertiary, modifier = Modifier.size(18.dp))
+                LoadingMark(color = PlayerColors.TextTertiary, modifier = Modifier.size(18.dp))
                 Text(
                     text = stringResource(R.string.lyrics_indexing, done, total),
                     color = PlayerColors.TextTertiary,

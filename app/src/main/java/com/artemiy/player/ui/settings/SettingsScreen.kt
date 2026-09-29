@@ -84,7 +84,6 @@ private enum class SettingsRoute(val titleRes: Int, val parent: SettingsRoute?) 
     KeptArtists(R.string.set_kept_artists, General),
     Language(R.string.set_language, Main),
     About(R.string.set_about, Main),
-    Showcase(R.string.debug_showcase, About),
 }
 
 @Composable
@@ -235,8 +234,7 @@ fun SettingsScreen(
                     intensity = liveBlurIntensity,
                     onIntensityChange = onLiveBlurIntensityChange,
                 )
-                SettingsRoute.About -> AboutContent(onShowOnboarding = onShowOnboarding, onOpenShowcase = { route = SettingsRoute.Showcase })
-                SettingsRoute.Showcase -> ShowcaseContent()
+                SettingsRoute.About -> AboutContent(onShowOnboarding = onShowOnboarding)
                 SettingsRoute.Language -> LanguageContent()
             }
         }
@@ -1084,7 +1082,7 @@ private const val RELEASE_NAME = "Akashi"
 private const val RELEASE_NAME_JP = "灯"
 
 @Composable
-private fun AboutContent(onShowOnboarding: () -> Unit, onOpenShowcase: () -> Unit = {}) {
+private fun AboutContent(onShowOnboarding: () -> Unit) {
     val context = LocalContext.current
     val version = remember {
         runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "?"
@@ -1130,10 +1128,6 @@ private fun AboutContent(onShowOnboarding: () -> Unit, onOpenShowcase: () -> Uni
         Spacer(modifier = Modifier.height(12.dp))
         SettingsCard {
             SettingsRow(AppIcons.Refresh, stringResource(R.string.set_show_welcome), stringResource(R.string.about_welcome_sub), onShowOnboarding, showChevron = true)
-            if (isDebugBuild()) {
-                CategoryDivider()
-                SettingsRow(AppIcons.Info, stringResource(R.string.debug_showcase), stringResource(R.string.debug_showcase_sub), onOpenShowcase, showChevron = true)
-            }
             CategoryDivider()
             SettingsRow(AppIcons.Share, stringResource(R.string.about_source), stringResource(R.string.about_source_sub), {
                 runCatching {
