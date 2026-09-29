@@ -167,8 +167,15 @@ object LyricsRomanizer {
     private fun japaneseSegments(text: String): List<RubySegment> {
         val segments = mutableListOf<RubySegment>()
         val tokens = tokenizer.tokenize(text)
+        // An opening bracket ("「") belongs to the word after it, not the one before — glued to
+        // the previous word it ended up alone at the end of a row, and its word on the next.
+        var opening = ""
         tokens.forEachIndexed { i, token ->
             val surface = token.surface
+            if (token.partOfSpeechLevel1 == "記号" && surface.all { it in OPENING_BRACKETS }) {
+                opening += surface
+                return@forEachIndexed
+            }
             if (surface.isBlank()) {
                 // Keep the original spacing — it belongs to the piece before it.
                 if (segments.isNotEmpty()) segments[segments.lastIndex] = segments.last().let { it.copy(text = it.text + surface) }
@@ -195,21 +202,26 @@ object LyricsRomanizer {
             val previousPos1 = tokens.getOrNull(i - 1)?.partOfSpeechLevel1
             val attach = pos1 == "記号" || pos2 == "接尾" || (pos1 == "助詞" && pos2 == "接続助詞") ||
                 (pos1 == "助動詞" && previousPos1 in setOf("動詞", "形容詞", "助動詞"))
-            if (attach && segments.isNotEmpty()) {
+            if (attach && segments.isNotEmpty() && opening.isEmpty()) {
                 val last = segments.last()
                 segments[segments.lastIndex] = RubySegment(last.text + surface, (last.reading ?: "") + piece)
             } else {
-                segments += RubySegment(surface, piece)
+                segments += RubySegment(opening + surface, piece)
+                opening = ""
             }
         }
+        if (opening.isNotEmpty()) segments += RubySegment(opening, null)
         return segments
     }
+
+    private const val OPENING_BRACKETS = "「『（(【〈《〔［｛“‘"
 
     private val HAN = Regex("\\p{IsHan}+")
 
     private val JAPANESE_PUNCTUATION = mapOf(
-        "、" to ",", "。" to ".", "！" to "!", "？" to "?", "「" to "\"", "」" to "\"",
-        "『" to "\"", "』" to "\"", "…" to "...", "・" to " ", "〜" to "~", "～" to "~",
+        // Brackets are already there in the lyric itself; the romaji above it goes without them.
+        "、" to ",", "。" to ".", "！" to "!", "？" to "?", "「" to "", "」" to "",
+        "『" to "", "』" to "", "…" to "...", "・" to " ", "〜" to "~", "～" to "~",
     )
 
     private val KANA_DIGRAPHS = mapOf(

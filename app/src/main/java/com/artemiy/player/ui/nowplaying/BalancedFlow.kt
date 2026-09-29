@@ -74,7 +74,17 @@ internal fun breakRows(widths: List<Int>, words: List<String>, maxWidth: Int): L
     if (n == 0) return emptyList()
     if (widths.sum() <= maxWidth) return listOf(0 until n)
 
-    val rowCount = greedyRows(widths, maxWidth).size
+    // As few rows as it takes; one more when the words that must stay together don't allow it.
+    val fewest = greedyRows(widths, maxWidth).size
+    for (rowCount in fewest..minOf(n, fewest + 1)) {
+        bestRows(widths, words, maxWidth, rowCount)?.let { return it }
+    }
+    return greedyRows(widths, maxWidth)
+}
+
+/** The best-scoring split of the words into exactly [rowCount] rows, or null when there's none. */
+private fun bestRows(widths: List<Int>, words: List<String>, maxWidth: Int, rowCount: Int): List<IntRange>? {
+    val n = widths.size
     val target = widths.sum().toFloat() / rowCount
     // best[k][i]: the cheapest way to set the first i words in k rows; from[k][i]: where its last row starts.
     val inf = Float.MAX_VALUE
@@ -91,6 +101,9 @@ internal fun breakRows(widths: List<Int>, words: List<String>, maxWidth: Int): L
                 val before = best[k - 1][start]
                 if (before == inf) continue
                 val isLast = i == n
+                // Japanese line-breaking rules: never a row ending on an opening bracket, nor one
+                // starting with a closing bracket or a full stop.
+                if (!isLast && !canBreakBetween(words.getOrNull(i - 1), words.getOrNull(i))) continue
                 var cost = before + rowCost(rowWidth, target, maxWidth, i - start, n, rowCount, isLast)
                 if (!isLast) cost += breakCost(words.getOrNull(i - 1))
                 if (cost < best[k][i]) {
@@ -100,7 +113,7 @@ internal fun breakRows(widths: List<Int>, words: List<String>, maxWidth: Int): L
             }
         }
     }
-    if (best[rowCount][n] == inf) return greedyRows(widths, maxWidth)
+    if (best[rowCount][n] == inf) return null
     val rows = ArrayList<IntRange>(rowCount)
     var end = n
     for (k in rowCount downTo 1) {
@@ -110,6 +123,18 @@ internal fun breakRows(widths: List<Int>, words: List<String>, maxWidth: Int): L
     }
     return rows
 }
+
+private fun canBreakBetween(before: String?, after: String?): Boolean {
+    val end = before?.trimEnd()?.lastOrNull()
+    val start = after?.trimStart()?.firstOrNull()
+    return !(end != null && end in NO_ROW_END) && !(start != null && start in NO_ROW_START)
+}
+
+/** Kinsoku: what may not end a row… */
+private const val NO_ROW_END = "「『（(【〈《〔［｛“‘"
+
+/** …and what may not start one. */
+private const val NO_ROW_START = "」』）)】〉》〕］｝”’、。，．・：；！？!?,.…ーぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮ々"
 
 private fun greedyRows(widths: List<Int>, maxWidth: Int): List<IntRange> {
     val rows = ArrayList<IntRange>()
