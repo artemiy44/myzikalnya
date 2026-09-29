@@ -106,6 +106,7 @@ fun CollapsingHeader(
     val expressive = expressiveUi
     val compactH = compactPx.roundToInt()
     Box(modifier = modifier.fillMaxSize().nestedScroll(connection)) {
+      androidx.compose.runtime.CompositionLocalProvider(LocalHeaderFold provides progress) {
         Column(modifier = Modifier.fillMaxSize()) {
             // The big header: it goes up with the page, all of its height, one to one — on pages
             // with a fixed search field only down to the bar's height, so the field stays clear.
@@ -129,6 +130,7 @@ fun CollapsingHeader(
             }
             Box(modifier = Modifier.weight(1f)) { Column(modifier = Modifier.fillMaxSize(), content = content) }
         }
+      }
         // The slim bar, over the page: it comes in as the big title is nearly gone under it —
         // back arrow, the title small in the middle, the page's own button, a hairline — and the
         // page fades softly into it rather than being cut off.
@@ -184,6 +186,17 @@ fun CollapsingHeader(
             }
         }
     }
+}
+
+/** How far the page's header has folded, 0..1 — for what sits just under it (a search field)
+ * to fade away with it instead of being cut off by the bar. */
+val LocalHeaderFold = androidx.compose.runtime.staticCompositionLocalOf<() -> Float> { { 0f } }
+
+/** Fades with the page's folding header: gone by the time it would pass under the bar. */
+@Composable
+fun Modifier.fadesWithHeader(): Modifier {
+    val fold = LocalHeaderFold.current
+    return graphicsLayer { alpha = (1f - fold() * 1.6f).coerceIn(0f, 1f) }
 }
 
 private val COMPACT_HEIGHT = 52.dp

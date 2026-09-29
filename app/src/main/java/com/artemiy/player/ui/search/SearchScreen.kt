@@ -1,5 +1,6 @@
 package com.artemiy.player.ui.search
 
+import com.artemiy.player.ui.components.fadesWithHeader
 import com.artemiy.player.R
 import androidx.compose.ui.res.stringResource
 import com.artemiy.player.ui.icons.AppIcons
@@ -103,6 +104,7 @@ fun SearchScreen(
 
         Row(
             modifier = Modifier
+                .fadesWithHeader()
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
                 .clip(if (com.artemiy.player.ui.theme.expressiveUi) RoundedCornerShape(percent = 50) else RoundedCornerShape(12.dp))

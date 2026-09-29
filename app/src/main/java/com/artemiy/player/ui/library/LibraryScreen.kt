@@ -5,6 +5,7 @@ import com.artemiy.player.ui.theme.barsInset
 import com.artemiy.player.ui.components.pressScale
 import androidx.compose.ui.res.pluralStringResource
 import com.artemiy.player.R
+import com.artemiy.player.ui.components.fadesWithHeader
 import com.artemiy.player.ui.home.drawGenreMotif
 import com.artemiy.player.ui.library.ToneBackdrop
 import com.artemiy.player.ui.components.inAlbumOrder
@@ -1035,6 +1036,7 @@ internal fun <T> ListToolbar(
     var menuExpanded by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier
+            .fadesWithHeader()
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
