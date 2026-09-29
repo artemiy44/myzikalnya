@@ -146,8 +146,16 @@ fun CollapsingHeader(
             val bar = measurables[1].measure(Constraints.fixed(width, compactH))
             val line = measurables[2].measure(Constraints.fixed(width, 1.dp.roundToPx()))
             layout(width, height) {
-                // The big header slides up and away as the space shrinks.
-                big.placeWithLayer(0, height - big.height) { alpha = (1f - progress() * 1.4f).coerceIn(0f, 1f) }
+                // The big header rises faster than the page, shrinking a little and fading, as the
+                // small title comes in above it — plainly moving even though the header is short.
+                big.placeWithLayer(0, height - big.height) {
+                    val p = progress()
+                    alpha = (1f - p * 1.4f).coerceIn(0f, 1f)
+                    translationY = -p * TITLE_RISE.toPx()
+                    scaleX = 1f - p * 0.18f
+                    scaleY = 1f - p * 0.18f
+                    transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0f, 1f)
+                }
                 bar.placeWithLayer(0, 0) { alpha = ((progress() - 0.55f) / 0.45f).coerceIn(0f, 1f) }
                 line.placeWithLayer(0, height - line.height) { alpha = progress() * 0.8f }
             }
@@ -168,4 +176,5 @@ fun CollapsingHeader(
 
 private val COMPACT_HEIGHT = 52.dp
 private val FADE_HEIGHT = 20.dp
-private val EXTRA_TOP = 40.dp
+private val EXTRA_TOP = 8.dp
+private val TITLE_RISE = 28.dp
