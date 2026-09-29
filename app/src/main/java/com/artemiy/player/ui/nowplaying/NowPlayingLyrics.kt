@@ -499,14 +499,18 @@ internal fun BackgroundVocals(
     val backgroundAlpha = alpha * 0.85f
     // Like the main line: the not-yet-sung words ease back to full as the line ends, instead of
     // all lighting up in one frame (a flicker at the end of every line with backing vocals).
-    val unsungAlpha by animateFloatAsState(if (lineActive) 0.55f else 1f, LINE_CHANGE, label = "backgroundUnsung")
+    // Backing vocals often go on after the main line is done: their words keep lighting up as
+    // they're sung, rather than all at once the moment the main line ends (a flash of white).
+    // Once they've begun, they stay swept — past the end every word is sung anyway.
+    val swept = lineActive || positionMs >= startMs
+    val unsungAlpha by animateFloatAsState(if (swept) 0.55f else 1f, LINE_CHANGE, label = "backgroundUnsung")
     Box(modifier = Modifier.lyricScale(scale, alignEnd)) {
         if (words != null) {
             // The same glow as the main line's, following the words as they're sung — only softer.
             if (lineActive) {
                 WordSyncedLine(background, positionMs, backgroundAlpha * BACKGROUND_GLOW, grownSize.sp, null, alignEnd, 6.dp, 8.dp, glow = true, unsungAlpha = unsungAlpha)
             }
-            WordSyncedLine(background, positionMs, backgroundAlpha, grownSize.sp, null, alignEnd, 6.dp, 8.dp, sweep = lineActive, unsungAlpha = unsungAlpha)
+            WordSyncedLine(background, positionMs, backgroundAlpha, grownSize.sp, null, alignEnd, 6.dp, 8.dp, sweep = swept, unsungAlpha = unsungAlpha)
         } else {
             PlainLyricLine(background.text, backgroundAlpha, grownSize, alignEnd, 6.dp, 8.dp)
         }
