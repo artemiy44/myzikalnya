@@ -274,16 +274,26 @@ private fun DrawScope.drawMoon(seed: Int) {
 
 // ---------- Genres ----------
 
-private enum class GenreArt { BOLT, ZIGZAG, BUBBLES, SQUARE_WAVE, BARS, FLOW, PIANO, HILLS, STRINGS, TRIANGLES, FILM, DOT_RINGS }
+private enum class GenreArt {
+    BOLT, ZIGZAG, BUBBLES, SQUARE_WAVE, BARS, FLOW, PIANO, HILLS, STRINGS, TRIANGLES, FILM, DOT_RINGS,
+    SEIGAIHA, SPARKLES, CROSSES, HAZE, CRESCENDO, BASS_RINGS, ARCHES,
+}
 
 /** Keyword → picture. Checked in order, so more specific words come first ("synthpop" is
  * electronic, "k-pop" is pop). */
 private val GENRE_ART = listOf(
-    listOf("metal", "металл", "hardcore", "grind", "djent", "industrial", "индастриал", "noise", "goth", "гот") to GenreArt.ZIGZAG,
+    listOf("post-rock", "post rock", "postrock", "пост-рок", "построк") to GenreArt.CRESCENDO,
+    listOf("j-rock", "jrock", "j rock", "visual kei", "visual-kei", "вижуал", "джей-рок") to GenreArt.SEIGAIHA,
+    listOf("shoegaze", "шугейз", "dream pop", "dream-pop", "dreampop", "дрим-поп") to GenreArt.HAZE,
+    listOf("vocaloid", "вокалоид", "anime", "аниме", "anison", "j-pop", "jpop", "j pop", "джей-поп") to GenreArt.SPARKLES,
+    listOf("punk", "панк") to GenreArt.CROSSES,
+    listOf("phonk", "фонк") to GenreArt.BASS_RINGS,
+    listOf("goth", "гот", "darkwave", "dark wave", "deathrock", "coldwave") to GenreArt.ARCHES,
+    listOf("metal", "металл", "hardcore", "grind", "djent", "industrial", "индастриал", "noise") to GenreArt.ZIGZAG,
     listOf("hip", "rap", "рэп", "хип", "trap", "drill", "grime") to GenreArt.BARS,
-    listOf("electr", "электр", "techno", "house", "trance", "edm", "dance", "dubstep", "drum", "dnb", "synth", "idm", "garage", "breakbeat", "phonk", "ebm", "darkwave") to GenreArt.SQUARE_WAVE,
-    listOf("punk", "rock", "рок", "grunge", "garage rock") to GenreArt.BOLT,
-    listOf("pop", "поп", "idol", "city", "vocaloid", "вокалоид") to GenreArt.BUBBLES,
+    listOf("electr", "электр", "techno", "house", "trance", "edm", "dance", "dubstep", "drum", "dnb", "synth", "idm", "garage", "breakbeat", "ebm") to GenreArt.SQUARE_WAVE,
+    listOf("rock", "рок", "grunge", "garage rock") to GenreArt.BOLT,
+    listOf("pop", "поп", "idol", "city") to GenreArt.BUBBLES,
     listOf("jazz", "джаз", "blues", "блюз", "soul", "соул", "r&b", "rnb", "funk", "фанк", "swing", "gospel") to GenreArt.FLOW,
     listOf("classic", "класси", "piano", "фортеп", "orchestr", "opera", "опер", "baroque", "chamber", "symphon") to GenreArt.PIANO,
     listOf("ambient", "эмбиент", "chill", "lo-fi", "lofi", "new age", "drone", "downtempo", "relax", "sleep") to GenreArt.HILLS,
@@ -322,6 +332,13 @@ private fun DrawScope.drawGenre(genre: String, seed: Int) {
         GenreArt.TRIANGLES -> drawTriangles(seed)
         GenreArt.FILM -> drawFilmStrip()
         GenreArt.DOT_RINGS -> drawDotRings()
+        GenreArt.SEIGAIHA -> drawSeigaiha()
+        GenreArt.SPARKLES -> drawSparkles(seed)
+        GenreArt.CROSSES -> drawCrosses(seed)
+        GenreArt.HAZE -> drawHaze(seed)
+        GenreArt.CRESCENDO -> drawCrescendo()
+        GenreArt.BASS_RINGS -> drawBassRings(seed)
+        GenreArt.ARCHES -> drawArches()
     }
 }
 
@@ -528,4 +545,145 @@ fun DrawScope.drawMixMotifDrifting(motif: String, textMeasurer: TextMeasurer, ph
     val dx = s * 0.03f * cos(phase)
     val dy = s * 0.02f * sin(phase * 2f)
     translate(dx, dy) { drawMixMotif(motif, textMeasurer) }
+}
+
+/** J-rock, visual kei: seigaiha, the Japanese "waves of the sea" — rows of fanned half-rings,
+ * each row tucked under the one in front. */
+private fun DrawScope.drawSeigaiha() {
+    val r = s * 0.13f
+    // Drawn on a layer of its own, so each scale can wipe out what's behind it.
+    drawContext.canvas.saveLayer(Rect(0f, 0f, w, h), androidx.compose.ui.graphics.Paint())
+    var row = 0
+    var y = h * 0.32f
+    while (y < h + r) {
+        var x = if (row % 2 == 0) 0f else r
+        while (x < w + r) {
+            val c = Offset(x, y)
+            drawCircle(Color.Black, r, c, blendMode = androidx.compose.ui.graphics.BlendMode.Clear)
+            for (k in 1..4) drawCircle(ink(0.22f - k * 0.03f), r * k / 4f, c, style = Stroke(s * 0.009f))
+            x += r * 2
+        }
+        y += r * 0.55f
+        row++
+    }
+    drawContext.canvas.restore()
+}
+
+/** Vocaloid, anime, J-pop: four-pointed sparkles, a couple big and a scatter of small ones. */
+private fun DrawScope.drawSparkles(seed: Int) {
+    val random = Random(seed)
+    fun sparkle(c: Offset, r: Float, alpha: Float) {
+        val inner = r * 0.18f
+        val path = Path().apply {
+            moveTo(c.x, c.y - r)
+            quadraticTo(c.x + inner, c.y - inner, c.x + r, c.y)
+            quadraticTo(c.x + inner, c.y + inner, c.x, c.y + r)
+            quadraticTo(c.x - inner, c.y + inner, c.x - r, c.y)
+            quadraticTo(c.x - inner, c.y - inner, c.x, c.y - r)
+            close()
+        }
+        drawPath(path, ink(alpha))
+    }
+    sparkle(Offset(w * 0.7f, h * 0.48f), s * 0.24f, 0.28f)
+    sparkle(Offset(w * 0.34f, h * 0.72f), s * 0.14f, 0.22f)
+    repeat(9) {
+        sparkle(
+            Offset(w * (0.1f + random.nextFloat() * 0.85f), h * (0.25f + random.nextFloat() * 0.7f)),
+            s * (0.025f + random.nextFloat() * 0.05f),
+            0.14f + random.nextFloat() * 0.18f,
+        )
+    }
+}
+
+/** Punk: rough crosses scrawled at odd angles, like marker on a wall. */
+private fun DrawScope.drawCrosses(seed: Int) {
+    val random = Random(seed)
+    val spots = listOf(Offset(0.7f, 0.5f) to 0.2f, Offset(0.3f, 0.75f) to 0.13f, Offset(0.88f, 0.85f) to 0.1f, Offset(0.48f, 0.34f) to 0.08f, Offset(0.15f, 0.45f) to 0.07f)
+    for ((spot, size) in spots) {
+        val c = Offset(w * spot.x, h * spot.y)
+        val r = s * size
+        rotate(-20f + random.nextFloat() * 40f, c) {
+            // Each stroke a little off — scrawled by hand, not ruled.
+            fun jitter() = (random.nextFloat() - 0.5f) * r * 0.25f
+            val width = s * (0.02f + size * 0.12f)
+            val alpha = 0.18f + random.nextFloat() * 0.14f
+            drawLine(ink(alpha), c + Offset(-r + jitter(), -r + jitter()), c + Offset(r + jitter(), r + jitter()), width, StrokeCap.Square)
+            drawLine(ink(alpha), c + Offset(r + jitter(), -r + jitter()), c + Offset(-r + jitter(), r + jitter()), width, StrokeCap.Square)
+        }
+    }
+}
+
+/** Shoegaze, dream pop: wide, soft waves washing over each other — everything blurs into one. */
+private fun DrawScope.drawHaze(seed: Int) {
+    val random = Random(seed)
+    for (i in 0 until 5) {
+        val y0 = h * (0.38f + i * 0.13f)
+        val path = Path().apply {
+            moveTo(-w * 0.2f, y0)
+            cubicTo(
+                w * 0.25f, y0 - h * (0.12f + random.nextFloat() * 0.14f),
+                w * 0.7f, y0 + h * (0.12f + random.nextFloat() * 0.14f),
+                w * 1.2f, y0 - h * 0.04f,
+            )
+        }
+        drawPath(path, ink(0.07f + random.nextFloat() * 0.06f), style = Stroke(s * (0.1f + random.nextFloat() * 0.08f), cap = StrokeCap.Round))
+    }
+}
+
+/** Post-rock: lines rising slowly from nothing to a towering crescendo. */
+private fun DrawScope.drawCrescendo() {
+    val count = 26
+    val base = h * 0.94f
+    for (i in 0 until count) {
+        val t = i / (count - 1f)
+        val x = w * (0.04f + t * 0.92f)
+        val height = h * (0.03f + 0.62f * t * t * t)
+        drawLine(ink(0.1f + t * 0.2f), Offset(x, base), Offset(x, base - height), s * 0.012f, StrokeCap.Round)
+    }
+}
+
+/** Phonk: a speaker, and the shock of its bass going out in thick broken rings. */
+private fun DrawScope.drawBassRings(seed: Int) {
+    val random = Random(seed)
+    val c = Offset(w * 0.68f, h * 0.62f)
+    drawCircle(ink(0.28f), s * 0.07f, c)
+    drawCircle(ink(0.2f), s * 0.12f, c, style = Stroke(s * 0.018f))
+    for (ring in 1..4) {
+        val r = s * (0.12f + ring * 0.12f)
+        var angle = random.nextFloat() * 360f
+        var drawn = 0f
+        // Each ring torn into a few pieces with gaps between.
+        while (drawn < 330f) {
+            val piece = 40f + random.nextFloat() * 70f
+            val gap = 10f + random.nextFloat() * 25f
+            drawArc(
+                ink(0.26f - ring * 0.045f), angle, piece, useCenter = false,
+                topLeft = c - Offset(r, r), size = Size(r * 2, r * 2),
+                style = Stroke(s * (0.05f - ring * 0.008f), cap = StrokeCap.Butt),
+            )
+            angle += piece + gap
+            drawn += piece + gap
+        }
+    }
+}
+
+/** Goth, darkwave: pointed arches, one inside the other, like a cathedral's windows. */
+private fun DrawScope.drawArches() {
+    fun arch(cx: Float, base: Float, halfWidth: Float, legHeight: Float, apex: Float, alpha: Float) {
+        val path = Path().apply {
+            moveTo(cx - halfWidth, base)
+            lineTo(cx - halfWidth, base - legHeight)
+            quadraticTo(cx - halfWidth, apex + (base - legHeight - apex) * 0.35f, cx, apex)
+            quadraticTo(cx + halfWidth, apex + (base - legHeight - apex) * 0.35f, cx + halfWidth, base - legHeight)
+            lineTo(cx + halfWidth, base)
+        }
+        drawPath(path, ink(alpha), style = Stroke(s * 0.012f, join = StrokeJoin.Miter))
+    }
+    val base = h * 1.02f
+    for ((cx, big) in listOf(w * 0.64f to 1f, w * 0.24f to 0.62f)) {
+        for (k in 0 until 4) {
+            val shrink = 1f - k * 0.2f
+            arch(cx, base, s * 0.2f * big * shrink, h * 0.3f * big * shrink, base - h * 0.78f * big * shrink, 0.24f - k * 0.04f)
+        }
+    }
 }
