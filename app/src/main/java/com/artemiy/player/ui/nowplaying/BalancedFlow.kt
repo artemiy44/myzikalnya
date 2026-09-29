@@ -172,8 +172,8 @@ private fun breakCost(word: String?): Float {
 
 private const val LONELY_WORD = 0.8f
 private const val LONELY_LAST_WORD = 1.2f
-private const val PHRASE_BREAK_BONUS = 0.6f
-private const val CLINGING_WORD_COST = 0.5f
+private const val PHRASE_BREAK_BONUS = 1.0f
+private const val CLINGING_WORD_COST = 1.0f
 
 private const val PHRASE_END = ",.;:!?…、。，！？」』)）"
 
