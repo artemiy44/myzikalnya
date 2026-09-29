@@ -43,6 +43,11 @@ android {
         // The build to actually use: not debuggable, so Android fully optimizes it (a debug
         // build runs Compose several times slower). Signed with the release key when there is
         // one (see above), otherwise with the debug key.
+        // Debug builds carry the same signature, so they install over the release and back
+        // again without losing the app's data (Android refuses an update with another key).
+        debug {
+            signingConfigs.findByName("release")?.let { signingConfig = it }
+        }
         release {
             isDebuggable = false
             isMinifyEnabled = false
