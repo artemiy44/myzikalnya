@@ -64,13 +64,10 @@ fun CollapsingHeader(
 ) {
     val density = LocalDensity.current
     val compactPx = with(density) { COMPACT_HEIGHT.toPx() }
-    val foldDistancePx = with(density) { FOLD_DISTANCE.toPx() }
-    // How much of a scroll has gone into folding the header, in px — spread over at least
-    // FOLD_DISTANCE, so the title leaves with the finger rather than in one flick — and how much
-    // the header itself shrinks (its full height less the bar's).
+    // How far the header has folded, in px, and how far it can (its full height less the bar's).
+    // It moves with the finger, one to one.
     var folded by remember { mutableFloatStateOf(0f) }
     val range = remember { floatArrayOf(0f) }
-    val shrink = remember { floatArrayOf(0f) }
     val progress = { if (range[0] > 0f) (folded / range[0]).coerceIn(0f, 1f) else 0f }
     val connection = remember {
         object : NestedScrollConnection {
@@ -88,6 +85,21 @@ fun CollapsingHeader(
                 val before = folded
                 folded = (folded - available.y).coerceIn(0f, range[0])
                 return Offset(0f, before - folded)
+            }
+
+            // Let go (or a fling runs out) halfway: the header settles to whichever end is nearer —
+            // a fling up to the top opens it all the way — instead of stopping mid-fold.
+            override suspend fun onPostFling(consumed: androidx.compose.ui.unit.Velocity, available: androidx.compose.ui.unit.Velocity): androidx.compose.ui.unit.Velocity {
+                val full = range[0]
+                if (full <= 0f || folded <= 0f || folded >= full) return androidx.compose.ui.unit.Velocity.Zero
+                val target = when {
+                    available.y > 0f -> 0f
+                    available.y < 0f -> full
+                    folded < full / 2 -> 0f
+                    else -> full
+                }
+                androidx.compose.animation.core.animate(folded, target, animationSpec = androidx.compose.animation.core.spring(stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow)) { value, _ -> folded = value }
+                return available
             }
         }
     }
@@ -129,9 +141,8 @@ fun CollapsingHeader(
             val width = constraints.maxWidth
             val big = measurables[0].measure(constraints.copy(minHeight = 0))
             val compactH = compactPx.roundToInt()
-            shrink[0] = (big.height - compactH).coerceAtLeast(0).toFloat()
-            range[0] = if (shrink[0] > 0f) maxOf(shrink[0], foldDistancePx) else 0f
-            val height = (big.height - shrink[0] * progress()).roundToInt().coerceAtLeast(minOf(compactH, big.height))
+            range[0] = (big.height - compactH).coerceAtLeast(0).toFloat()
+            val height = (big.height - folded.coerceIn(0f, range[0])).roundToInt().coerceAtLeast(minOf(compactH, big.height))
             val bar = measurables[1].measure(Constraints.fixed(width, compactH))
             val line = measurables[2].measure(Constraints.fixed(width, 1.dp.roundToPx()))
             layout(width, height) {
@@ -157,5 +168,4 @@ fun CollapsingHeader(
 
 private val COMPACT_HEIGHT = 52.dp
 private val FADE_HEIGHT = 20.dp
-private val EXTRA_TOP = 16.dp
-private val FOLD_DISTANCE = 140.dp
+private val EXTRA_TOP = 40.dp
