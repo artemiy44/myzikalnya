@@ -9,3 +9,8 @@ captures/
 .cxx/
 *.apk
 *.aab
+
+# Signing keys and their passwords never go in git
+*.jks
+*.keystore
+keystore.properties

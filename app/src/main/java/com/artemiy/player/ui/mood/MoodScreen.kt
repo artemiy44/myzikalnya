@@ -1,5 +1,7 @@
 package com.artemiy.player.ui.mood
 
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import com.artemiy.player.data.subtitle
 import com.artemiy.player.R
 import androidx.compose.ui.res.stringResource
@@ -161,6 +163,9 @@ fun MoodScreen(onPlayMood: (Mood) -> Unit, genresFor: (Mood) -> List<String>) {
                 .graphicsLayer { alpha = ringAlpha.value },
         )
 
+        // The ring, glyph and titles centre on what the floating bars leave visible (in the
+        // expressive style the page runs on under them); the particles fill the whole screen.
+        Box(modifier = Modifier.fillMaxSize().padding(bottom = com.artemiy.player.ui.theme.LocalBarsInset.current)) {
         GlowingRing(
             color = ringColor,
             from = RING_SHAPES.getValue(from),
@@ -247,6 +252,8 @@ fun MoodScreen(onPlayMood: (Mood) -> Unit, genresFor: (Mood) -> List<String>) {
                     )
                 }
             }
+        }
+
         }
 
         Column(
@@ -420,6 +427,32 @@ private fun DrawScope.morphedLoop(
 @Composable
 private fun MoodPlayButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     val interaction = remember { MutableInteractionSource() }
+    if (com.artemiy.player.ui.theme.expressiveUi) {
+        // Expressive: like the pages' button group — a big play symbol that swells under the
+        // finger on a bouncy spring, its round ends tightening.
+        val pressed by interaction.collectIsPressedAsState()
+        val bounce = androidx.compose.animation.core.spring<androidx.compose.ui.unit.Dp>(
+            dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
+            stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow,
+        )
+        val width by androidx.compose.animation.core.animateDpAsState(if (pressed) 150.dp else 124.dp, bounce, label = "moodPlayWidth")
+        val corner by androidx.compose.animation.core.animateDpAsState(
+            if (pressed) 18.dp else 36.dp,
+            androidx.compose.animation.core.spring(stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow),
+            label = "moodPlayCorner",
+        )
+        Box(
+            modifier = modifier
+                .size(width = width, height = 72.dp)
+                .clip(RoundedCornerShape(corner))
+                .background(PlayerColors.TextPrimary)
+                .clickable(interactionSource = interaction, indication = null, onClick = onClick),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(imageVector = AppIcons.Play, contentDescription = stringResource(R.string.action_listen), tint = PlayerColors.Background, modifier = Modifier.size(34.dp))
+        }
+        return
+    }
     Row(
         modifier = modifier
             .pressScale(interaction, pressedScale = 0.93f)

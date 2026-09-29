@@ -1063,6 +1063,10 @@ private val THIRD_PARTY = listOf(
     ),
 )
 
+/** This build's name, shown under the version in «О приложении». */
+private const val RELEASE_NAME = "Akashi"
+private const val RELEASE_NAME_JP = "灯"
+
 @Composable
 private fun AboutContent(onShowOnboarding: () -> Unit) {
     val context = LocalContext.current
@@ -1090,6 +1094,15 @@ private fun AboutContent(onShowOnboarding: () -> Unit) {
                 modifier = Modifier.padding(top = 14.dp),
             )
             Text(text = stringResource(R.string.set_version, version), color = PlayerColors.TextSecondary, fontSize = 13.sp)
+            // Each build's own name — "Akashi" (灯), an old Japanese word for a lamp's light: the
+            // app finally seeing the light beyond one computer and one phone.
+            Text(
+                text = "$RELEASE_NAME · $RELEASE_NAME_JP",
+                color = PlayerColors.AccentStandalone,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(top = 2.dp),
+            )
             Text(
                 text = stringResource(R.string.about_tagline),
                 color = PlayerColors.TextSecondary,
