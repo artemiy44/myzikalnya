@@ -46,4 +46,5 @@
     <string name="saved_to_playlists">Saved — tucked away in the playlists</string>
     <string name="search_start_typing">A track, an artist, an album or a line from a song — it\'ll turn up</string>
     <string name="set_kept_explain">When a song has several artists joined by «&amp;», a comma, «feat.» and the like, it turns up under each of them. Bands that simply have such signs in their names («Earth, Wind &amp; Fire», «AC/DC») are recognised and kept in one piece. If a band still gets split, it can go here.</string>
+    <string name="ui_style_expressive_note">Big bold headers, floating bars, chunky cards and fun shapes!</string>
 </resources>

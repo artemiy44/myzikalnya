@@ -91,8 +91,7 @@ fun SearchScreen(
         Text(
             text = stringResource(R.string.tab_search),
             color = PlayerColors.TextPrimary,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.ExtraBold,
+            style = com.artemiy.player.ui.theme.pageTitleStyle,
             modifier = Modifier.padding(20.dp, 20.dp, 20.dp, 12.dp),
         )
 
@@ -100,9 +99,9 @@ fun SearchScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
-                .clip(RoundedCornerShape(12.dp))
+                .clip(if (com.artemiy.player.ui.theme.expressiveUi) RoundedCornerShape(percent = 50) else RoundedCornerShape(12.dp))
                 .background(PlayerColors.Surface)
-                .padding(horizontal = 14.dp, vertical = 11.dp),
+                .padding(horizontal = if (com.artemiy.player.ui.theme.expressiveUi) 18.dp else 14.dp, vertical = if (com.artemiy.player.ui.theme.expressiveUi) 14.dp else 11.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
@@ -166,7 +165,7 @@ fun SearchScreen(
             }
 
             else -> {
-                LazyColumn(modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
+                LazyColumn(modifier = Modifier.fillMaxWidth().padding(top = 12.dp), contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = com.artemiy.player.ui.theme.LocalBarsInset.current)) {
                     items(results, key = { "title-${it.id}" }) { song ->
                         Row(
                             modifier = Modifier

@@ -1,7 +1,11 @@
 package com.artemiy.player.ui.home
 
+import com.artemiy.player.ui.theme.barsInset
 import androidx.compose.ui.res.pluralStringResource
 import com.artemiy.player.R
+import com.artemiy.player.ui.components.groupedCard
+import com.artemiy.player.ui.components.staggeredEntrance
+import com.artemiy.player.ui.components.rememberEntrance
 import androidx.compose.ui.res.stringResource
 import com.artemiy.player.ui.icons.AppIcons
 import com.artemiy.player.ui.theme.inAppFont
@@ -77,7 +81,7 @@ fun MixCard(mix: Mix, onClick: () -> Unit) {
         modifier = Modifier
             .width(200.dp)
             .height(250.dp)
-            .clip(RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(if (com.artemiy.player.ui.theme.expressiveUi) 26.dp else 18.dp))
             .background(mixBrush(mix.colorIndex))
             .drawBehind { drawMixMotif(mix.motif, textMeasurer) }
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress, onClick = onClick)
@@ -141,8 +145,9 @@ fun MixScreen(
     onGoToAlbum: (Song) -> Unit,
     onGoToArtist: (Song) -> Unit,
 ) {
+    val entrance = rememberEntrance()
     val savedFlash = rememberCheckFlash()
-    Column(modifier = Modifier.fillMaxSize().background(PlayerColors.Background).verticalScroll(rememberScrollState())) {
+    Column(modifier = Modifier.fillMaxSize().background(PlayerColors.Background).verticalScroll(rememberScrollState()).barsInset()) {
         HeroOverArt(
             topTint = Color.White,
             onBack = onBack,
@@ -189,21 +194,23 @@ fun MixScreen(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                CircleIconButton(icon = AppIcons.Shuffle, description = stringResource(R.string.shuffle)) {
+                CircleIconButton(icon = AppIcons.Shuffle, description = stringResource(R.string.shuffle), edge = com.artemiy.player.ui.components.GroupEdge.Start) {
                     mix.songs.shuffled().let { onPlay(it.first(), it) }
                 }
-                PlayPillButton(onClick = { onPlay(mix.songs.first(), mix.songs) }, modifier = Modifier.padding(horizontal = 14.dp))
-                CircleIconButton(icon = AppIcons.Add, description = stringResource(R.string.save_to_my_playlists), showCheck = savedFlash.visible) {
+                PlayPillButton(onClick = { onPlay(mix.songs.first(), mix.songs) }, modifier = Modifier.padding(horizontal = com.artemiy.player.ui.components.heroButtonGap))
+                CircleIconButton(icon = AppIcons.Add, description = stringResource(R.string.save_to_my_playlists), edge = com.artemiy.player.ui.components.GroupEdge.End, showCheck = savedFlash.visible) {
                     onSaveAsPlaylist(mix)
                     savedFlash.flash()
                 }
             }
         }
 
-        Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
-            mix.songs.forEach { song ->
+        Column(modifier = Modifier.padding(horizontal = com.artemiy.player.ui.components.pageGutter, vertical = 12.dp)) {
+            mix.songs.forEachIndexed { index, song ->
                 Row(
                     modifier = Modifier
+                        .staggeredEntrance(index, entrance)
+                    .groupedCard(index, mix.songs.size)
                         .fillMaxWidth()
                         .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onPlay(song, mix.songs) }
                         .padding(vertical = 8.dp),

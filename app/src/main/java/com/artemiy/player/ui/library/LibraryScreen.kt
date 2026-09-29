@@ -1,8 +1,13 @@
 package com.artemiy.player.ui.library
 
+import com.artemiy.player.ui.theme.LocalBarsInset
+import com.artemiy.player.ui.theme.barsInset
 import com.artemiy.player.ui.components.pressScale
 import androidx.compose.ui.res.pluralStringResource
 import com.artemiy.player.R
+import com.artemiy.player.ui.components.groupedCard
+import com.artemiy.player.ui.components.staggeredEntrance
+import com.artemiy.player.ui.components.rememberEntrance
 import androidx.compose.ui.res.stringResource
 import com.artemiy.player.ui.icons.AppIcons
 import com.artemiy.player.ui.theme.inAppFont
@@ -17,6 +22,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,6 +44,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -667,10 +674,10 @@ private fun PlaylistHero(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            CircleIconButton(icon = AppIcons.Shuffle, description = stringResource(R.string.shuffle), onClick = onShuffle)
-            PlayPillButton(onClick = onPlay, modifier = Modifier.padding(horizontal = 14.dp))
+            CircleIconButton(icon = AppIcons.Shuffle, description = stringResource(R.string.shuffle), edge = com.artemiy.player.ui.components.GroupEdge.Start, onClick = onShuffle)
+            PlayPillButton(onClick = onPlay, modifier = Modifier.padding(horizontal = com.artemiy.player.ui.components.heroButtonGap))
             Box {
-                CircleIconButton(icon = AppIcons.More, description = stringResource(R.string.playlist_actions)) { menuExpanded = true }
+                CircleIconButton(icon = AppIcons.More, description = stringResource(R.string.playlist_actions), edge = com.artemiy.player.ui.components.GroupEdge.End) { menuExpanded = true }
                 AppDropdownMenu(expanded = menuExpanded, onDismiss = { menuExpanded = false }) {
                     AppMenuItem(text = stringResource(R.string.rename), icon = AppIcons.Edit, onClick = { menuExpanded = false; onRename() })
                     AppMenuItem(text = stringResource(R.string.delete_playlist), icon = AppIcons.Delete, destructive = true, onClick = { menuExpanded = false; onDelete() })
@@ -716,8 +723,7 @@ internal fun LibraryHeader(
         Text(
             text = title,
             color = PlayerColors.TextPrimary,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.ExtraBold,
+            style = com.artemiy.player.ui.theme.pageTitleStyle,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
@@ -739,25 +745,25 @@ private fun LibraryHomeList(
     onOpenSongs: () -> Unit,
     onSongClick: (Song, List<Song>) -> Unit,
 ) {
+    val entrance = rememberEntrance()
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()).barsInset()
             .padding(bottom = 20.dp),
     ) {
-        Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-            LibraryRow(stringResource(R.string.playlists), playlistCount, AppIcons.Playlist, onOpenPlaylists)
-            LibraryRow(stringResource(R.string.artists), artistCount, AppIcons.Artist, onOpenArtists)
-            LibraryRow(stringResource(R.string.albums), albumCount, AppIcons.Album, onOpenAlbums)
-            LibraryRow(stringResource(R.string.tracks), songCount, AppIcons.Songs, onOpenSongs)
+        Column(modifier = Modifier.padding(horizontal = com.artemiy.player.ui.components.pageGutter)) {
+            LibraryRow(stringResource(R.string.playlists), playlistCount, AppIcons.Playlist, onOpenPlaylists, Modifier.staggeredEntrance(0, entrance).groupedCard(0, 4))
+            LibraryRow(stringResource(R.string.artists), artistCount, AppIcons.Artist, onOpenArtists, Modifier.staggeredEntrance(1, entrance).groupedCard(1, 4))
+            LibraryRow(stringResource(R.string.albums), albumCount, AppIcons.Album, onOpenAlbums, Modifier.staggeredEntrance(2, entrance).groupedCard(2, 4))
+            LibraryRow(stringResource(R.string.tracks), songCount, AppIcons.Songs, onOpenSongs, Modifier.staggeredEntrance(3, entrance).groupedCard(3, 4))
         }
 
         if (recentSongs.isNotEmpty()) {
             Text(
                 text = stringResource(R.string.recently_added),
                 color = PlayerColors.TextPrimary,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
+                style = com.artemiy.player.ui.theme.sectionTitleStyle,
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
             )
             Column(modifier = Modifier.padding(horizontal = 20.dp)) {
@@ -810,22 +816,23 @@ private fun LibraryHomeList(
 }
 
 @Composable
-private fun LibraryRow(label: String, count: Int, icon: ImageVector, onClick: () -> Unit) {
+private fun LibraryRow(label: String, count: Int, icon: ImageVector, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val expressive = com.artemiy.player.ui.theme.expressiveUi
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onClick() }
-            .padding(vertical = 13.dp),
+            .padding(vertical = if (expressive) 10.dp else 13.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
             modifier = Modifier
                 .size(52.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(PlayerColors.Surface),
+                .clip(RoundedCornerShape(if (expressive) 16.dp else 10.dp))
+                .background(com.artemiy.player.ui.components.tonalAccent),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(imageVector = icon, contentDescription = null, tint = PlayerColors.TextPrimary, modifier = Modifier.size(24.dp))
+            Icon(imageVector = icon, contentDescription = null, tint = if (expressive) PlayerColors.AccentStandalone else PlayerColors.TextPrimary, modifier = Modifier.size(24.dp))
         }
         Text(
             text = label,
@@ -912,21 +919,27 @@ internal fun <T> ListToolbar(
 
 @Composable
 private fun ArtistsList(groups: List<ArtistGroup>, state: LazyListState, onArtistClick: (ArtistGroup) -> Unit) {
-    LazyColumn(modifier = Modifier.fillMaxWidth(), state = state) {
-        items(groups, key = { it.name }) { group ->
+    val entrance = rememberEntrance()
+    LazyColumn(modifier = Modifier.fillMaxWidth(), state = state, contentPadding = PaddingValues(bottom = LocalBarsInset.current)) {
+        itemsIndexed(groups, key = { _, group -> group.name }) { index, group ->
             val coverUri = remember(group) { group.songs.minByOrNull { it.album.lowercase() }?.uri }
+            val expressive = com.artemiy.player.ui.theme.expressiveUi
+            val interaction = remember { MutableInteractionSource() }
             Row(
                 modifier = Modifier
+                    .then(if (expressive) Modifier.padding(horizontal = 12.dp) else Modifier)
+                    .staggeredEntrance(index, entrance)
+                    .groupedCard(index, groups.size)
                     .fillMaxWidth()
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onArtistClick(group) }
-                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                    .clickable(interactionSource = interaction, indication = com.artemiy.player.ui.components.SoftPress) { onArtistClick(group) }
+                    .padding(horizontal = if (expressive) 0.dp else 20.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 AlbumArt(
                     uri = coverUri,
                     modifier = Modifier
                         .size(52.dp)
-                        .clip(RoundedCornerShape(26.dp)),
+                        .clip(com.artemiy.player.ui.components.artistShape(group.name, interaction)),
                 )
                 Text(
                     text = group.name,
@@ -954,13 +967,15 @@ private fun ArtistsGrid(groups: List<ArtistGroup>, columns: Int, state: LazyGrid
         state = state,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(bottom = LocalBarsInset.current),
         modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 4.dp),
     ) {
         gridItems(groups, key = { it.name }) { group ->
             val coverUri = remember(group) { group.songs.minByOrNull { it.album.lowercase() }?.uri }
+            val interaction = remember { MutableInteractionSource() }
             Column(
                 modifier = Modifier
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onArtistClick(group) },
+                    .clickable(interactionSource = interaction, indication = com.artemiy.player.ui.components.SoftPress) { onArtistClick(group) },
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 AlbumArt(
@@ -968,7 +983,7 @@ private fun ArtistsGrid(groups: List<ArtistGroup>, columns: Int, state: LazyGrid
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f)
-                        .clip(RoundedCornerShape(percent = 50)),
+                        .clip(com.artemiy.player.ui.components.artistShape(group.name, interaction)),
                 )
                 Text(
                     text = group.name,
@@ -992,20 +1007,25 @@ private fun ArtistsGrid(groups: List<ArtistGroup>, columns: Int, state: LazyGrid
 
 @Composable
 private fun AlbumsList(groups: List<AlbumGroup>, state: LazyListState, onAlbumClick: (AlbumGroup) -> Unit) {
-    LazyColumn(modifier = Modifier.fillMaxWidth(), state = state) {
-        items(groups, key = { "${it.album}|${it.artist}" }) { group ->
+    val entrance = rememberEntrance()
+    LazyColumn(modifier = Modifier.fillMaxWidth(), state = state, contentPadding = PaddingValues(bottom = LocalBarsInset.current)) {
+        itemsIndexed(groups, key = { _, group -> "${group.album}|${group.artist}" }) { index, group ->
+            val expressive = com.artemiy.player.ui.theme.expressiveUi
             Row(
                 modifier = Modifier
+                    .then(if (expressive) Modifier.padding(horizontal = 12.dp) else Modifier)
+                    .staggeredEntrance(index, entrance)
+                    .groupedCard(index, groups.size)
                     .fillMaxWidth()
                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onAlbumClick(group) }
-                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                    .padding(horizontal = if (expressive) 0.dp else 20.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 AlbumArt(
                     uri = group.songs.firstOrNull()?.uri,
                     modifier = Modifier
                         .size(52.dp)
-                        .clip(RoundedCornerShape(10.dp)),
+                        .clip(RoundedCornerShape(if (expressive) 14.dp else 10.dp)),
                 )
                 Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
                     Text(
@@ -1041,6 +1061,7 @@ private fun AlbumsGrid(groups: List<AlbumGroup>, columns: Int, state: LazyGridSt
         state = state,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(bottom = LocalBarsInset.current),
         modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 4.dp),
     ) {
         gridItems(groups) { group ->
@@ -1053,7 +1074,7 @@ private fun AlbumsGrid(groups: List<AlbumGroup>, columns: Int, state: LazyGridSt
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f)
-                        .clip(RoundedCornerShape(10.dp)),
+                        .clip(RoundedCornerShape(if (com.artemiy.player.ui.theme.expressiveUi) 22.dp else 10.dp)),
                 )
                 Text(
                     text = group.album.ifBlank { stringResource(R.string.no_album) },
@@ -1095,7 +1116,7 @@ internal fun SongsGrid(
         state = state,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = if (header != null) 0.dp else 4.dp, bottom = 4.dp),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = if (header != null) 0.dp else 4.dp, bottom = 4.dp + LocalBarsInset.current),
         modifier = Modifier.fillMaxSize(),
     ) {
         if (header != null) {
@@ -1170,14 +1191,19 @@ internal fun SongList(
     onRemoveFromPlaylist: ((Song) -> Unit)? = null,
     header: (@Composable () -> Unit)? = null,
 ) {
-    LazyColumn(modifier = Modifier.fillMaxWidth(), state = state) {
+    val entrance = rememberEntrance()
+    LazyColumn(modifier = Modifier.fillMaxWidth(), state = state, contentPadding = PaddingValues(bottom = LocalBarsInset.current)) {
         if (header != null) item(key = "header") { header() }
-        items(songs, key = { it.id }) { song ->
+        itemsIndexed(songs, key = { _, song -> song.id }) { index, song ->
+            val expressive = com.artemiy.player.ui.theme.expressiveUi
             Row(
                 modifier = Modifier
+                    .then(if (expressive) Modifier.padding(horizontal = 12.dp) else Modifier)
+                    .staggeredEntrance(index, entrance)
+                    .groupedCard(index, songs.size)
                     .fillMaxWidth()
                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onSongClick(song) }
-                    .padding(horizontal = 20.dp, vertical = 10.dp),
+                    .padding(horizontal = if (expressive) 0.dp else 20.dp, vertical = if (expressive) 12.dp else 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -1215,12 +1241,82 @@ internal fun SongList(
 
 @Composable
 internal fun PlayShuffleRow(onPlay: () -> Unit, onShuffle: () -> Unit) {
+    if (com.artemiy.player.ui.theme.expressiveUi) {
+        ExpressivePlayShuffle(onPlay, onShuffle)
+        return
+    }
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         PlayShuffleButton(icon = AppIcons.Play, label = stringResource(R.string.action_listen), onClick = onPlay, modifier = Modifier.weight(1f))
         PlayShuffleButton(icon = AppIcons.Shuffle, label = stringResource(R.string.shuffle), onClick = onShuffle, modifier = Modifier.weight(1f))
+    }
+}
+
+/**
+ * Expressive: one connected button group — "Listen" filled, "Shuffle" tonal, round on the outside
+ * and tight where they meet. The pressed half grows a bit wider (squeezing its neighbour) and
+ * rounds its inner corners.
+ */
+@Composable
+private fun ExpressivePlayShuffle(onPlay: () -> Unit, onShuffle: () -> Unit) {
+    val playInteraction = remember { MutableInteractionSource() }
+    val shuffleInteraction = remember { MutableInteractionSource() }
+    val playPressed by playInteraction.collectIsPressedAsState()
+    val shufflePressed by shuffleInteraction.collectIsPressedAsState()
+    val spec = androidx.compose.animation.core.spring<Float>(dampingRatio = 0.6f, stiffness = 600f)
+    val playWeight by androidx.compose.animation.core.animateFloatAsState(if (playPressed) 1.18f else 1f, spec, label = "playWeight")
+    val shuffleWeight by androidx.compose.animation.core.animateFloatAsState(if (shufflePressed) 1.18f else 1f, spec, label = "shuffleWeight")
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        GroupButton(
+            icon = AppIcons.Play,
+            label = stringResource(R.string.action_listen),
+            fill = PlayerColors.Accent,
+            ink = PlayerColors.OnAccent,
+            shape = com.artemiy.player.ui.components.morphingShape(playInteraction, startPercent = 50, endPercent = 16, pressedPercent = 50),
+            interaction = playInteraction,
+            onClick = onPlay,
+            modifier = Modifier.weight(playWeight),
+        )
+        GroupButton(
+            icon = AppIcons.Shuffle,
+            label = stringResource(R.string.shuffle),
+            fill = androidx.compose.ui.graphics.lerp(PlayerColors.Surface, PlayerColors.AccentStandalone, 0.16f),
+            ink = PlayerColors.TextPrimary,
+            shape = com.artemiy.player.ui.components.morphingShape(shuffleInteraction, startPercent = 16, endPercent = 50, pressedPercent = 50),
+            interaction = shuffleInteraction,
+            onClick = onShuffle,
+            modifier = Modifier.weight(shuffleWeight),
+        )
+    }
+}
+
+@Composable
+private fun GroupButton(
+    icon: ImageVector,
+    label: String,
+    fill: Color,
+    ink: Color,
+    shape: androidx.compose.ui.graphics.Shape,
+    interaction: MutableInteractionSource,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .height(56.dp)
+            .clip(shape)
+            .background(fill)
+            .clickable(interactionSource = interaction, indication = null, onClick = onClick),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(imageVector = icon, contentDescription = null, tint = ink, modifier = Modifier.size(20.dp))
+        Text(text = label, color = ink, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, modifier = Modifier.padding(start = 8.dp))
     }
 }
 
@@ -1254,7 +1350,7 @@ private fun PlaylistsList(playlists: List<PlaylistWithCount>, onPlaylistClick: (
         }
         return
     }
-    LazyColumn(modifier = Modifier.fillMaxWidth()) {
+    LazyColumn(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(bottom = LocalBarsInset.current)) {
         items(playlists, key = { it.id }) { playlist ->
             Row(
                 modifier = Modifier

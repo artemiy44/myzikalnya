@@ -90,6 +90,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     var appFont by mutableStateOf(com.artemiy.player.ui.theme.AppFont.DEFAULT)
         private set
 
+    var uiStyle by mutableStateOf(com.artemiy.player.ui.theme.UiStyle.CLASSIC)
+        private set
+
     /** Null until read from storage — so the welcome screens don't flash up for a returning user. */
     var onboardingDone by mutableStateOf<Boolean?>(null)
         private set
@@ -173,6 +176,12 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             repository.onboardingDone.collect { onboardingDone = it }
+        }
+        viewModelScope.launch {
+            repository.uiStyle.collect { value ->
+                uiStyle = value?.let { runCatching { com.artemiy.player.ui.theme.UiStyle.valueOf(it) }.getOrNull() }
+                    ?: com.artemiy.player.ui.theme.UiStyle.CLASSIC
+            }
         }
         viewModelScope.launch {
             repository.appFont.collect { value ->
@@ -281,6 +290,11 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     fun updateAppFont(font: com.artemiy.player.ui.theme.AppFont) {
         appFont = font
         viewModelScope.launch { repository.setAppFont(font.name) }
+    }
+
+    fun updateUiStyle(style: com.artemiy.player.ui.theme.UiStyle) {
+        uiStyle = style
+        viewModelScope.launch { repository.setUiStyle(style.name) }
     }
 
     fun updateStartTab(tab: AppTab) {

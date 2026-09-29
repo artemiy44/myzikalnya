@@ -265,6 +265,7 @@
     <string name="set_text_size">文字サイズ</string>
     <string name="set_third_party">サードパーティのコンポーネント</string>
     <string name="set_tracks_found">見つかった曲：%1$d</string>
+    <string name="set_ui_style">インターフェースのスタイル</string>
     <string name="set_version">バージョン %1$s</string>
     <string name="settings">設定</string>
     <string name="share">共有</string>
@@ -289,6 +290,10 @@
     <string name="this_device">このデバイス</string>
     <string name="track_actions">曲の操作</string>
     <string name="tracks">曲</string>
+    <string name="ui_style_classic">クラシック</string>
+    <string name="ui_style_classic_note">落ち着いたフラットな、いつもの見た目。</string>
+    <string name="ui_style_expressive">エクスプレッシブ</string>
+    <string name="ui_style_expressive_note">大きな見出し、浮かぶバー、丸いカード、遊び心のある形。</string>
     <string name="unit_hours_approx">約 %1$.1f 時間</string>
     <string name="unit_kb">%1$d KB</string>
     <string name="unit_kbps">%1$d kbps</string>

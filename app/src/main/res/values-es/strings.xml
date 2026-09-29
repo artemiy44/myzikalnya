@@ -265,6 +265,7 @@
     <string name="set_text_size">Tamaño del texto</string>
     <string name="set_third_party">Componentes de terceros</string>
     <string name="set_tracks_found">Pistas encontradas: %1$d</string>
+    <string name="set_ui_style">Estilo de la interfaz</string>
     <string name="set_version">Versión %1$s</string>
     <string name="settings">Ajustes</string>
     <string name="share">Compartir</string>
@@ -289,6 +290,10 @@
     <string name="this_device">Este dispositivo</string>
     <string name="track_actions">Acciones de la pista</string>
     <string name="tracks">Pistas</string>
+    <string name="ui_style_classic">Clásico</string>
+    <string name="ui_style_classic_note">Tranquilo y plano: el aspecto de siempre.</string>
+    <string name="ui_style_expressive">Expresivo</string>
+    <string name="ui_style_expressive_note">Títulos grandes, barras flotantes, tarjetas redondeadas y formas divertidas.</string>
     <string name="unit_hours_approx">≈ %1$.1f h</string>
     <string name="unit_kb">%1$d KB</string>
     <string name="unit_kbps">%1$d kbps</string>

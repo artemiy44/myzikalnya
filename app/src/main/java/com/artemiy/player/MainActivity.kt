@@ -142,7 +142,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
             val palette = appPalette(settings.themeMode, settings.lightVariant, settings.darkVariant, settings.accent, isSystemInDarkTheme())
-            CompositionLocalProvider(LocalIconSet provides settings.iconSet) {
+            CompositionLocalProvider(
+                LocalIconSet provides settings.iconSet,
+                com.artemiy.player.ui.theme.LocalUiStyle provides settings.uiStyle,
+            ) {
                 PlayerTheme(palette = palette, appTextScale = settings.fontScale, font = settings.appFont) {
                     PlayerApp(settings)
                 }
@@ -213,14 +216,19 @@ private fun PlayerApp(settings: SettingsViewModel) {
 
     /** [velocity]: how fast a finger was moving it when let go, in "whole openings" per second —
      * the animation carries on from that speed instead of starting from standstill. */
+    // On its way down (swiped or closed): the back gesture leaves it alone.
+    var nowPlayingClosing by remember { mutableStateOf(false) }
+
     fun openNowPlaying(velocity: Float = 0f) {
         showNowPlaying = true
+        nowPlayingClosing = false
         scope.launch {
             nowPlayingExpand.animateTo(1f, if (classicPlayer) NOW_PLAYING_SPRING else EXPRESSIVE_SPRING, initialVelocity = velocity)
         }
     }
 
     fun closeNowPlaying(animated: Boolean = true, velocity: Float = 0f) {
+        nowPlayingClosing = true
         scope.launch {
             if (animated) nowPlayingExpand.animateTo(0f, if (classicPlayer) NOW_PLAYING_SPRING else EXPRESSIVE_SPRING, initialVelocity = velocity)
             else nowPlayingExpand.snapTo(0f)
@@ -351,9 +359,14 @@ private fun PlayerApp(settings: SettingsViewModel) {
     // back open.
     // (Not while the expressive player's queue sheet is pulled up: back closes that first.)
     if (showNowPlaying) {
-        androidx.activity.compose.PredictiveBackHandler(enabled = classicPlayer || !nowPlayingMemory.expressiveQueueOpen) { progress ->
+        androidx.activity.compose.PredictiveBackHandler(
+            enabled = !nowPlayingClosing && (classicPlayer || !nowPlayingMemory.expressiveQueueOpen),
+        ) { progress ->
+            // Picked up from wherever the player is right now (it may still be opening) — never
+            // pulled back up to "almost open" first.
+            val start = nowPlayingExpand.value
             try {
-                progress.collect { event -> nowPlayingExpand.snapTo(1f - BACK_PEEK * event.progress) }
+                progress.collect { event -> nowPlayingExpand.snapTo(minOf(start, 1f - BACK_PEEK * event.progress)) }
                 closeNowPlaying()
             } catch (e: kotlinx.coroutines.CancellationException) {
                 kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
@@ -392,7 +405,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
         containerColor = PlayerColors.Background,
         bottomBar = {
             Column {
-                Box(
+                if (!com.artemiy.player.ui.theme.expressiveUi) Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(1.dp)
@@ -439,10 +452,16 @@ private fun PlayerApp(settings: SettingsViewModel) {
             }
         }
     ) { innerPadding ->
+        // Expressive: the tab pages run on under the floating mini player and tab bar (nothing
+        // behind those), padding their scrolling ends instead; classic keeps them above the bars.
+        val floatingBars = com.artemiy.player.ui.theme.expressiveUi
+        CompositionLocalProvider(
+            com.artemiy.player.ui.theme.LocalBarsInset provides if (floatingBars) innerPadding.calculateBottomPadding() else 0.dp,
+        ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = innerPadding.calculateBottomPadding()),
+                .padding(bottom = if (floatingBars) 0.dp else innerPadding.calculateBottomPadding()),
         ) {
             // Switching tabs: the old one fades out quickly, the new one fades in rising slightly
             // from 96% — Material's "fade through".
@@ -529,6 +548,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 }
                 }
             }
+        }
         }
     }
 
@@ -699,6 +719,8 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 onIconSetChange = { settings.updateIconSet(it) },
                 appFont = settings.appFont,
                 onAppFontChange = { settings.updateAppFont(it) },
+                uiStyle = settings.uiStyle,
+                onUiStyleChange = { settings.updateUiStyle(it) },
                 onShowOnboarding = { settings.updateOnboardingDone(false) },
                 onBack = { showSettings = false },
                 keptArtists = settings.keptArtists,
@@ -732,6 +754,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 selectedFolders = settings.scanFolders,
                 themeMode = settings.themeMode,
                 playerStyle = settings.playerStyle,
+                uiStyle = settings.uiStyle,
                 notificationsNeedAsking = Build.VERSION.SDK_INT >= 33 &&
                     ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED,
             ),
@@ -741,6 +764,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 toggleFolder = { settings.toggleScanFolder(it) },
                 setThemeMode = { settings.updateThemeMode(it) },
                 setPlayerStyle = { settings.updatePlayerStyle(it) },
+                setUiStyle = { settings.updateUiStyle(it) },
                 requestNotifications = {
                     if (Build.VERSION.SDK_INT >= 33) notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 },

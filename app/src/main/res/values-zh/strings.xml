@@ -265,6 +265,7 @@
     <string name="set_text_size">文字大小</string>
     <string name="set_third_party">第三方组件</string>
     <string name="set_tracks_found">找到的曲目：%1$d</string>
+    <string name="set_ui_style">界面风格</string>
     <string name="set_version">版本 %1$s</string>
     <string name="settings">设置</string>
     <string name="share">分享</string>
@@ -289,6 +290,10 @@
     <string name="this_device">本机</string>
     <string name="track_actions">曲目操作</string>
     <string name="tracks">曲目</string>
+    <string name="ui_style_classic">经典</string>
+    <string name="ui_style_classic_note">平静扁平——熟悉的样子。</string>
+    <string name="ui_style_expressive">表现力</string>
+    <string name="ui_style_expressive_note">大标题、悬浮栏、圆角卡片和俏皮的形状。</string>
     <string name="unit_hours_approx">≈ %1$.1f 小时</string>
     <string name="unit_kb">%1$d KB</string>
     <string name="unit_kbps">%1$d kbps</string>

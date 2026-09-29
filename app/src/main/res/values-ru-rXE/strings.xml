@@ -40,4 +40,5 @@
     <string name="recap_top_artist">Главный герой недели: %1$s</string>
     <string name="saved_to_playlists">Сохранено — теперь живёт в плейлистах</string>
     <string name="search_start_typing">Трек, исполнитель, альбом или строчка из песни — найдётся всё</string>
+    <string name="ui_style_expressive_note">Жирные заголовки, парящие панели, пухлые карточки и весёлые формы!</string>
 </resources>

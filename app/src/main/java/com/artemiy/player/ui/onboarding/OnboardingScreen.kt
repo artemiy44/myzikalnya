@@ -72,6 +72,7 @@ class OnboardingState(
     val selectedFolders: Set<String>,
     val themeMode: ThemeMode,
     val playerStyle: PlayerStyle,
+    val uiStyle: com.artemiy.player.ui.theme.UiStyle = com.artemiy.player.ui.theme.UiStyle.CLASSIC,
     /** Android 13+ asks for notifications separately; below that there's nothing to ask. */
     val notificationsNeedAsking: Boolean,
 )
@@ -82,6 +83,7 @@ class OnboardingActions(
     val toggleFolder: (String) -> Unit,
     val setThemeMode: (ThemeMode) -> Unit,
     val setPlayerStyle: (PlayerStyle) -> Unit,
+    val setUiStyle: (com.artemiy.player.ui.theme.UiStyle) -> Unit = {},
     val requestNotifications: () -> Unit,
     val finish: () -> Unit,
 )
@@ -209,6 +211,23 @@ fun OnboardingScreen(state: OnboardingState, actions: OnboardingActions) {
                         options = listOf(ThemeMode.SYSTEM to stringResource(R.string.theme_system), ThemeMode.LIGHT to stringResource(R.string.theme_light), ThemeMode.DARK to stringResource(R.string.theme_dark)),
                         selected = state.themeMode,
                         onSelect = actions.setThemeMode,
+                    )
+                    ChoiceLabel(stringResource(R.string.set_ui_style))
+                    Choices(
+                        options = listOf(
+                            com.artemiy.player.ui.theme.UiStyle.CLASSIC to stringResource(R.string.ui_style_classic),
+                            com.artemiy.player.ui.theme.UiStyle.EXPRESSIVE to stringResource(R.string.ui_style_expressive),
+                        ),
+                        selected = state.uiStyle,
+                        onSelect = actions.setUiStyle,
+                    )
+                    Text(
+                        text = stringResource(
+                            if (state.uiStyle == com.artemiy.player.ui.theme.UiStyle.CLASSIC) R.string.ui_style_classic_note else R.string.ui_style_expressive_note,
+                        ),
+                        color = PlayerColors.TextSecondary,
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(top = 10.dp),
                     )
                     ChoiceLabel(stringResource(R.string.onb_player))
                     Choices(

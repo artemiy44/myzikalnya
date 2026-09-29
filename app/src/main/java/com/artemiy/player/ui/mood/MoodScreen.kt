@@ -252,7 +252,7 @@ fun MoodScreen(onPlayMood: (Mood) -> Unit, genresFor: (Mood) -> List<String>) {
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 28.dp),
+                .padding(bottom = 28.dp + com.artemiy.player.ui.theme.LocalBarsInset.current),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             MoodPlayButton(

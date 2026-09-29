@@ -93,9 +93,13 @@ fun <T : Any> AnimatedBackStack(
         transitionSpec = {
             val from = depth[initialState] ?: 0
             val to = depth[targetState] ?: 0
+            // Every page's layer is its depth, always — the deeper page is on top whichever way
+            // things go. (A fixed "-1 for the page underneath" stuck to a page after one back
+            // gesture, so going back again from it drew the page underneath over it.)
+            val layer = to.toFloat()
             // Same depth: the page was swapped in place (e.g. a renamed playlist) — no movement.
             if (from == to) {
-                ContentTransform(EnterTransition.None, ExitTransition.None)
+                ContentTransform(EnterTransition.None, ExitTransition.None, targetContentZIndex = layer)
             } else if (to < from) {
                 // Both pages stay fully opaque: fading them (the one leaving out, the one underneath
                 // in) let them show through each other half the way, which read as a strange
@@ -105,23 +109,34 @@ fun <T : Any> AnimatedBackStack(
                     initialContentExit = slideOutHorizontally(tween(PAGE_MS)) { it } +
                         scaleOut(tween(PAGE_MS), targetScale = 0.94f),
                     // The page leaving stays on top, uncovering the one underneath.
-                    targetContentZIndex = -1f,
+                    targetContentZIndex = layer,
                 )
             } else {
-                (slideInHorizontally(tween(PAGE_MS)) { it / 3 } + fadeIn(tween(PAGE_MS)))
-                    .togetherWith(slideOutHorizontally(tween(PAGE_MS)) { -it / 8 } + fadeOut(tween(PAGE_MS), targetAlpha = 0.5f))
+                ContentTransform(
+                    targetContentEnter = slideInHorizontally(tween(PAGE_MS)) { it / 3 } + fadeIn(tween(PAGE_MS)),
+                    initialContentExit = slideOutHorizontally(tween(PAGE_MS)) { -it / 8 } + fadeOut(tween(PAGE_MS), targetAlpha = 0.5f),
+                    targetContentZIndex = layer,
+                )
             }
         },
         contentKey = { it },
     ) { page ->
+        // A page coming back into view from under the one being left is just there already —
+        // its rows don't play their entrance.
+        val revealed = remember { (depth[page] ?: 0) < (depth[seekState.currentState] ?: 0) }
         // Every page opaque, so two pages mid-transition never show through each other.
         Box(modifier = Modifier.fillMaxSize().background(PlayerColors.Background)) {
-            content(page)
+            androidx.compose.runtime.CompositionLocalProvider(LocalPageRevealed provides revealed) {
+                content(page)
+            }
         }
     }
 }
 
 private const val PAGE_MS = 300
+
+/** True inside a page that's being uncovered by going back (see [staggeredEntrance]). */
+val LocalPageRevealed = androidx.compose.runtime.staticCompositionLocalOf { false }
 
 /** Moves a gesture-driven transition from [from] to [to] frame by frame, taking as long as that
  * stretch would take in a full page animation. */

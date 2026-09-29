@@ -306,10 +306,12 @@ internal fun NowPlayingSurface(
                         if (p < 1f && from != null) {
                             val top = from.top * (1f - p)
                             val bottom = from.bottom + (size.height - from.bottom) * p
+                            val left = from.left * (1f - p)
+                            val right = from.right + (size.width - from.right) * p
                             val corner = SHEET_CORNER.toPx() * (1f - p).coerceAtMost(1f)
                             clip = true
                             shape = GenericShape { _, _ ->
-                                addRoundRect(RoundRect(Rect(0f, top, size.width, bottom), CornerRadius(corner)))
+                                addRoundRect(RoundRect(Rect(left, top, right, bottom), CornerRadius(corner)))
                             }
                         } else {
                             clip = false

@@ -265,6 +265,7 @@
     <string name="set_text_size">Rozmiar tekstu</string>
     <string name="set_third_party">Komponenty zewnętrzne</string>
     <string name="set_tracks_found">Znaleziono utworów: %1$d</string>
+    <string name="set_ui_style">Styl interfejsu</string>
     <string name="set_version">Wersja %1$s</string>
     <string name="settings">Ustawienia</string>
     <string name="share">Udostępnij</string>
@@ -289,6 +290,10 @@
     <string name="this_device">To urządzenie</string>
     <string name="track_actions">Działania na utworze</string>
     <string name="tracks">Utwory</string>
+    <string name="ui_style_classic">Klasyczny</string>
+    <string name="ui_style_classic_note">Spokojny i płaski — znajomy wygląd.</string>
+    <string name="ui_style_expressive">Ekspresyjny</string>
+    <string name="ui_style_expressive_note">Duże nagłówki, pływające paski, zaokrąglone karty i zabawne kształty.</string>
     <string name="unit_hours_approx">≈ %1$.1f godz.</string>
     <string name="unit_kb">%1$d KB</string>
     <string name="unit_kbps">%1$d kb/s</string>

@@ -265,6 +265,7 @@
     <string name="set_text_size">Metin boyutu</string>
     <string name="set_third_party">Üçüncü taraf bileşenler</string>
     <string name="set_tracks_found">Bulunan parça: %1$d</string>
+    <string name="set_ui_style">Arayüz stili</string>
     <string name="set_version">Sürüm %1$s</string>
     <string name="settings">Ayarlar</string>
     <string name="share">Paylaş</string>
@@ -289,6 +290,10 @@
     <string name="this_device">Bu cihaz</string>
     <string name="track_actions">Parça işlemleri</string>
     <string name="tracks">Parçalar</string>
+    <string name="ui_style_classic">Klasik</string>
+    <string name="ui_style_classic_note">Sakin ve düz — alışık olduğun görünüm.</string>
+    <string name="ui_style_expressive">Etkileyici</string>
+    <string name="ui_style_expressive_note">Büyük başlıklar, yüzen çubuklar, yuvarlak kartlar ve eğlenceli şekiller.</string>
     <string name="unit_hours_approx">≈ %1$.1f sa</string>
     <string name="unit_kb">%1$d KB</string>
     <string name="unit_kbps">%1$d kbps</string>

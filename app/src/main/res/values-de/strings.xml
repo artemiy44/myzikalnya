@@ -265,6 +265,7 @@
     <string name="set_text_size">Textgröße</string>
     <string name="set_third_party">Komponenten von Dritten</string>
     <string name="set_tracks_found">Gefundene Titel: %1$d</string>
+    <string name="set_ui_style">Oberflächenstil</string>
     <string name="set_version">Version %1$s</string>
     <string name="settings">Einstellungen</string>
     <string name="share">Teilen</string>
@@ -289,6 +290,10 @@
     <string name="this_device">Dieses Gerät</string>
     <string name="track_actions">Titelaktionen</string>
     <string name="tracks">Titel</string>
+    <string name="ui_style_classic">Klassisch</string>
+    <string name="ui_style_classic_note">Ruhig und flach — das gewohnte Aussehen.</string>
+    <string name="ui_style_expressive">Expressiv</string>
+    <string name="ui_style_expressive_note">Große Überschriften, schwebende Leisten, runde Karten und verspielte Formen.</string>
     <string name="unit_hours_approx">≈ %1$.1f Std.</string>
     <string name="unit_kb">%1$d KB</string>
     <string name="unit_kbps">%1$d kbit/s</string>

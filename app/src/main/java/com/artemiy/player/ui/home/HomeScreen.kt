@@ -1,5 +1,6 @@
 package com.artemiy.player.ui.home
 
+import com.artemiy.player.ui.theme.barsInset
 import com.artemiy.player.R
 import androidx.compose.ui.res.stringResource
 import com.artemiy.player.ui.icons.AppIcons
@@ -144,7 +145,7 @@ fun HomeScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .verticalScroll(mainScroll)
+                            .verticalScroll(mainScroll).barsInset()
                             .statusBarsPadding()
                             .padding(bottom = 20.dp),
                         verticalArrangement = Arrangement.spacedBy(22.dp),
@@ -159,8 +160,7 @@ fun HomeScreen(
                             Text(
                                 text = stringResource(R.string.tab_home),
                                 color = PlayerColors.TextPrimary,
-                                fontSize = 28.sp,
-                                fontWeight = FontWeight.ExtraBold,
+                                style = com.artemiy.player.ui.theme.pageTitleStyle,
                             )
                             Box(
                                 modifier = Modifier
@@ -210,8 +210,7 @@ private fun MixesSection(mixes: List<Mix>, statDays: Int, onOpen: (Mix) -> Unit)
         Text(
             text = stringResource(R.string.mixes_for_you),
             color = PlayerColors.TextPrimary,
-            fontSize = 17.sp,
-            fontWeight = FontWeight.Bold,
+            style = com.artemiy.player.ui.theme.sectionTitleStyle,
             modifier = Modifier.padding(horizontal = 20.dp).padding(bottom = 10.dp),
         )
         val hint = when {
@@ -259,8 +258,7 @@ private fun SongRowSection(
         Text(
             text = title,
             color = PlayerColors.TextPrimary,
-            fontSize = 17.sp,
-            fontWeight = FontWeight.Bold,
+            style = com.artemiy.player.ui.theme.sectionTitleStyle,
             modifier = Modifier
                 .padding(horizontal = 20.dp)
                 .padding(bottom = 10.dp),
@@ -295,7 +293,7 @@ private fun SongRowSection(
                             uri = song.uri,
                             modifier = Modifier
                                 .size(artSize)
-                                .clip(RoundedCornerShape(12.dp)),
+                                .clip(RoundedCornerShape(if (com.artemiy.player.ui.theme.expressiveUi) 22.dp else 12.dp)),
                         )
                         SongActionsMenuPopup(
                             song = song,
@@ -330,7 +328,7 @@ private fun SongRowSection(
                 Column(
                     modifier = Modifier
                         .size(artSize)
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(if (com.artemiy.player.ui.theme.expressiveUi) 22.dp else 12.dp))
                         .background(PlayerColors.Surface)
                         .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress, onClick = onSeeAll),
                     horizontalAlignment = Alignment.CenterHorizontally,

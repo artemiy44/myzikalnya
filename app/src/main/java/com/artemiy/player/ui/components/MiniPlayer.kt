@@ -32,6 +32,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.artemiy.player.ui.theme.PlayerColors
+import com.artemiy.player.ui.theme.expressiveUi
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 
 @Composable
 fun MiniPlayer(
@@ -52,11 +55,22 @@ fun MiniPlayer(
     textScrolls: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
+    // Expressive: a floating card in the playing cover's tone instead of a flat bar.
+    val expressive = expressiveUi
+    val tone = if (expressive) rememberCoverTone(albumArtUri) else null
+    val cardColor by animateColorAsState(
+        if (expressive) tonedSurface(tone, amount = 0.28f) else PlayerColors.SurfaceDim,
+        tween(600),
+        label = "miniCard",
+    )
+    androidx.compose.runtime.SideEffect { anchors?.color = cardColor }
     Row(
         modifier = modifier
+            .then(if (expressive) Modifier.padding(horizontal = 10.dp).padding(top = 8.dp) else Modifier)
             .onGloballyPositioned { anchors?.bar = it.boundsInRoot() }
             .fillMaxWidth()
-            .background(PlayerColors.SurfaceDim)
+            .then(if (expressive) Modifier.clip(RoundedCornerShape(MINI_CARD_CORNER)) else Modifier)
+            .background(cardColor)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
@@ -148,6 +162,9 @@ class MiniPlayerAnchors {
     var text by mutableStateOf<Rect?>(null)
     var play by mutableStateOf<Rect?>(null)
     var next by mutableStateOf<Rect?>(null)
+
+    /** The bar's own colour — the players open out of it in this colour. */
+    var color by mutableStateOf<androidx.compose.ui.graphics.Color?>(null)
 }
 
 private val MINI_TEXT_LINE_HEIGHT = 15.6.sp
@@ -155,3 +172,6 @@ private val MINI_TEXT_LINE_HEIGHT = 15.6.sp
 /** The mini player cover's corner radius — the classic player's cover starts from it when it
  * flies up. */
 val MINI_ART_CORNER = 10.dp
+
+/** The expressive style's floating mini player card corners — the players' sheet starts from them. */
+val MINI_CARD_CORNER = 22.dp

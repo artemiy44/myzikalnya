@@ -1,7 +1,11 @@
 package com.artemiy.player.ui.library
 
+import com.artemiy.player.ui.theme.barsInset
 import androidx.compose.ui.res.pluralStringResource
 import com.artemiy.player.R
+import com.artemiy.player.ui.components.groupedCard
+import com.artemiy.player.ui.components.staggeredEntrance
+import com.artemiy.player.ui.components.rememberEntrance
 import androidx.compose.ui.res.stringResource
 import com.artemiy.player.ui.icons.AppIcons
 import com.artemiy.player.ui.theme.inAppFont
@@ -69,15 +73,16 @@ fun AlbumDetailScreen(
     onAddToPlaylist: (Song) -> Unit,
     onGoToArtist: (Song) -> Unit,
 ) {
+    val entrance = rememberEntrance()
     // In album order: disc, then track number from the tags (untagged ones last, by title).
     val songs = remember(songs) {
-        songs.sortedWith(compareBy<Song>({ it.discNumber ?: 0 }, { it.trackNumber ?: Int.MAX_VALUE }, { it.title.lowercase() }))
+        songs.sortedWith(compareBy<Song>({ it.disc }, { it.trackNumber ?: Int.MAX_VALUE }, { it.title.lowercase() }))
     }
-    val multiDisc = remember(songs) { songs.mapNotNull { it.discNumber }.distinct().size > 1 }
+    val multiDisc = remember(songs) { songs.map { it.disc }.distinct().size > 1 }
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(rememberScrollState()).barsInset(),
     ) {
         val coverUri = songs.firstOrNull()?.uri
         val coverThumb = rememberAlbumArtBitmap(coverUri, ART_SIZE_THUMB)
@@ -113,26 +118,31 @@ fun AlbumDetailScreen(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                CircleIconButton(icon = AppIcons.Shuffle, description = stringResource(R.string.shuffle)) { onShuffleAll(songs) }
-                PlayPillButton(onClick = { onPlayAll(songs) }, modifier = Modifier.padding(horizontal = 14.dp))
-                CircleIconButton(icon = AppIcons.Add, description = stringResource(R.string.add_to_playlist)) { onAddAllClick(songs) }
+                CircleIconButton(icon = AppIcons.Shuffle, description = stringResource(R.string.shuffle), edge = com.artemiy.player.ui.components.GroupEdge.Start) { onShuffleAll(songs) }
+                PlayPillButton(onClick = { onPlayAll(songs) }, modifier = Modifier.padding(horizontal = com.artemiy.player.ui.components.heroButtonGap))
+                CircleIconButton(icon = AppIcons.Add, description = stringResource(R.string.add_to_playlist), edge = com.artemiy.player.ui.components.GroupEdge.End) { onAddAllClick(songs) }
             }
         }
 
-        Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
+        Column(modifier = Modifier.padding(horizontal = com.artemiy.player.ui.components.pageGutter, vertical = 20.dp)) {
             songs.forEachIndexed { index, song ->
-                if (multiDisc && song.discNumber != songs.getOrNull(index - 1)?.discNumber) {
+                if (multiDisc && song.disc != songs.getOrNull(index - 1)?.disc) {
                     Text(
-                        text = stringResource(R.string.disc_n, song.discNumber?.toString() ?: "?"),
+                        text = stringResource(R.string.disc_n, song.disc.toString()),
                         color = PlayerColors.TextSecondary,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = if (index == 0) 0.dp else 14.dp, bottom = 4.dp),
+                        modifier = Modifier.padding(top = if (index == 0) 0.dp else 14.dp, bottom = 4.dp, start = if (com.artemiy.player.ui.theme.expressiveUi) 8.dp else 0.dp),
                     )
                 }
                 var menuExpanded by remember { mutableStateOf(false) }
                 Row(
                     modifier = Modifier
+                        .staggeredEntrance(index, entrance)
+                        .groupedCard(
+                            first = index == 0 || (multiDisc && song.disc != songs[index - 1].disc),
+                            last = index == songs.lastIndex || (multiDisc && song.disc != songs[index + 1].disc),
+                        )
                         .fillMaxWidth()
                         .songLongPressTrigger(
                             onClick = { onSongClick(song, songs) },
@@ -169,3 +179,7 @@ fun AlbumDetailScreen(
         }
     }
 }
+
+/** The disc a song is on. A file without a disc number (a single added to the album, say) counts
+ * as disc 1 — it used to sort before the whole of disc 1. */
+private val Song.disc: Int get() = discNumber ?: 1

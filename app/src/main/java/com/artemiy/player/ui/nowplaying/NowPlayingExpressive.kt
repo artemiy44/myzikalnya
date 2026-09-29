@@ -173,7 +173,7 @@ internal fun ExpressiveNowPlaying(
     // card with big round corners (in the bar's own color at first) stretching up to the top of
     // the screen, the corners straightening out as it arrives; its pieces then pop into place one
     // after another, each with a small overshoot (see popIn). Closing runs it all backwards.
-    val miniColor = PlayerColors.SurfaceDim
+    val miniColor = mini?.color ?: PlayerColors.SurfaceDim
     val bar = mini?.bar
     val active = LocalNowPlayingActive.current
     val cardCornerPx = with(density) { CARD_CORNER.toPx() }
@@ -193,12 +193,15 @@ internal fun ExpressiveNowPlaying(
                     val from = bar ?: androidx.compose.ui.geometry.Rect(0f, size.height, size.width, size.height)
                     val top = from.top * (1f - e)
                     val bottom = from.bottom + (size.height - from.bottom) * e
+                    // From the floating card's sides too (expressive tabs); the flat bar spans the width anyway.
+                    val left = from.left * (1f - e)
+                    val right = from.right + (size.width - from.right) * e
                     // Rounded all the way up, straightening only in the last moment of arriving.
                     val corner = cardCornerPx * ((1f - e) / CORNER_SETTLE).coerceAtMost(1f)
                     shape = androidx.compose.foundation.shape.GenericShape { _, _ ->
                         addRoundRect(
                             androidx.compose.ui.geometry.RoundRect(
-                                androidx.compose.ui.geometry.Rect(0f, top, size.width, bottom),
+                                androidx.compose.ui.geometry.Rect(left, top, right, bottom),
                                 androidx.compose.ui.geometry.CornerRadius(corner),
                             ),
                         )

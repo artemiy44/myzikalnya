@@ -265,6 +265,7 @@
     <string name="set_text_size">Розмір тексту</string>
     <string name="set_third_party">Сторонні компоненти</string>
     <string name="set_tracks_found">Знайдено треків: %1$d</string>
+    <string name="set_ui_style">Стиль інтерфейсу</string>
     <string name="set_version">Версія %1$s</string>
     <string name="settings">Налаштування</string>
     <string name="share">Поділитися</string>
@@ -289,6 +290,10 @@
     <string name="this_device">Цей пристрій</string>
     <string name="track_actions">Дії з треком</string>
     <string name="tracks">Треки</string>
+    <string name="ui_style_classic">Класичний</string>
+    <string name="ui_style_classic_note">Спокійний і плаский — звичний вигляд.</string>
+    <string name="ui_style_expressive">Експресивний</string>
+    <string name="ui_style_expressive_note">Великі заголовки, плаваючі панелі, заокруглені картки та грайливі форми.</string>
     <string name="unit_hours_approx">≈ %1$.1f год</string>
     <string name="unit_kb">%1$d КБ</string>
     <string name="unit_kbps">%1$d кбіт/с</string>

@@ -1,7 +1,11 @@
 package com.artemiy.player.ui.library
 
+import com.artemiy.player.ui.theme.barsInset
 import androidx.compose.ui.res.pluralStringResource
 import com.artemiy.player.R
+import com.artemiy.player.ui.components.groupedCard
+import com.artemiy.player.ui.components.staggeredEntrance
+import com.artemiy.player.ui.components.rememberEntrance
 import androidx.compose.ui.res.stringResource
 import com.artemiy.player.ui.icons.AppIcons
 import com.artemiy.player.ui.theme.inAppFont
@@ -82,12 +86,20 @@ fun ArtistDetailScreen(
     onAddToPlaylist: (Song) -> Unit,
     onGoToAlbum: (Song) -> Unit,
 ) {
+    val entrance = rememberEntrance()
+    // A long artist page built all at once took the first frames of its slide-in: only the first
+    // rows are built at once, the rest once the page has arrived.
+    var shownSongs by remember { androidx.compose.runtime.mutableIntStateOf(FIRST_ROWS) }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(ARRIVE_MS)
+        shownSongs = Int.MAX_VALUE
+    }
     val queuedFlash = rememberCheckFlash()
     var showAddToQueueDialog by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(rememberScrollState()).barsInset(),
     ) {
         HeroOverArt(
             // The drawn picture is always deep and dark: a white arrow reads on it.
@@ -118,9 +130,9 @@ fun ArtistDetailScreen(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                CircleIconButton(icon = AppIcons.Shuffle, description = stringResource(R.string.shuffle)) { onShuffleAll(songs) }
-                PlayPillButton(onClick = { onPlayAll(songs) }, modifier = Modifier.padding(horizontal = 14.dp))
-                CircleIconButton(icon = AppIcons.AddToQueue, description = stringResource(R.string.add_to_play_queue), showCheck = queuedFlash.visible) {
+                CircleIconButton(icon = AppIcons.Shuffle, description = stringResource(R.string.shuffle), edge = com.artemiy.player.ui.components.GroupEdge.Start) { onShuffleAll(songs) }
+                PlayPillButton(onClick = { onPlayAll(songs) }, modifier = Modifier.padding(horizontal = com.artemiy.player.ui.components.heroButtonGap))
+                CircleIconButton(icon = AppIcons.AddToQueue, description = stringResource(R.string.add_to_play_queue), edge = com.artemiy.player.ui.components.GroupEdge.End, showCheck = queuedFlash.visible) {
                     showAddToQueueDialog = true
                 }
             }
@@ -140,8 +152,8 @@ fun ArtistDetailScreen(
 
         if (albums.isNotEmpty()) {
             Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)) {
-                Text(text = stringResource(R.string.albums), color = PlayerColors.TextPrimary, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 10.dp))
-                albums.chunked(2).forEach { rowAlbums ->
+                Text(text = stringResource(R.string.albums), color = PlayerColors.TextPrimary, style = com.artemiy.player.ui.theme.sectionTitleStyle, modifier = Modifier.padding(bottom = 10.dp))
+                albums.take(if (shownSongs == Int.MAX_VALUE) albums.size else FIRST_ALBUMS).chunked(2).forEach { rowAlbums ->
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -154,7 +166,7 @@ fun ArtistDetailScreen(
                             ) {
                                 AlbumArt(
                                     uri = albumSongs.firstOrNull()?.uri,
-                                    modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(10.dp)),
+                                    modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(if (com.artemiy.player.ui.theme.expressiveUi) 22.dp else 10.dp)),
                                 )
                                 Text(
                                     text = album.ifBlank { stringResource(R.string.no_album) },
@@ -175,12 +187,14 @@ fun ArtistDetailScreen(
             }
         }
 
-        Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
-            Text(text = stringResource(R.string.tracks), color = PlayerColors.TextPrimary, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 10.dp))
-            songs.forEach { song ->
+        Column(modifier = Modifier.padding(horizontal = com.artemiy.player.ui.components.pageGutter, vertical = 20.dp)) {
+            Text(text = stringResource(R.string.tracks), color = PlayerColors.TextPrimary, style = com.artemiy.player.ui.theme.sectionTitleStyle, modifier = Modifier.padding(bottom = 10.dp, start = if (com.artemiy.player.ui.theme.expressiveUi) 8.dp else 0.dp))
+            songs.take(shownSongs).forEachIndexed { index, song ->
                 var menuExpanded by remember { mutableStateOf(false) }
                 Row(
                     modifier = Modifier
+                        .staggeredEntrance(index, entrance)
+                    .groupedCard(index, songs.size)
                         .fillMaxWidth()
                         .songLongPressTrigger(
                             onClick = { onSongClick(song, songs) },
@@ -219,3 +233,7 @@ private fun AddArtistToQueueDialog(songCount: Int, onDismiss: () -> Unit, onConf
         com.artemiy.player.ui.components.DialogButtons(dismissLabel = stringResource(R.string.no), onDismiss = onDismiss, confirmLabel = stringResource(R.string.add), onConfirm = onConfirm)
     }
 }
+
+private const val FIRST_ROWS = 12
+private const val FIRST_ALBUMS = 4
+private const val ARRIVE_MS = 380L

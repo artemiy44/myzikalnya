@@ -281,7 +281,7 @@ fun NowPlayingScreen(
     val artCornerPx = with(LocalDensity.current) { 16.dp.toPx() }
     // The sheet starts as the mini player bar itself (in its own color) and grows to the full screen.
     // The mini player's own colors are read here, before the player's palette takes over.
-    val miniColor = PlayerColors.SurfaceDim
+    val miniColor = mini?.color ?: PlayerColors.SurfaceDim
     val miniTitleColor = PlayerColors.TextPrimary
     val miniArtistColor = PlayerColors.TextSecondary
     val miniIconColor = PlayerColors.TextPrimary

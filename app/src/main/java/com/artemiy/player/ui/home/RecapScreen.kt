@@ -1,5 +1,6 @@
 package com.artemiy.player.ui.home
 
+import com.artemiy.player.ui.theme.barsInset
 import androidx.compose.ui.res.pluralStringResource
 import com.artemiy.player.R
 import androidx.compose.ui.res.stringResource
@@ -111,7 +112,7 @@ fun RecapScreen(recap: Recap, onBack: () -> Unit, onPlay: (Song, List<Song>) -> 
         LibraryHeader(title = stringResource(R.string.weekly_recap), showBack = true, onBack = onBack)
         Column(
             modifier = Modifier
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()).barsInset()
                 .padding(horizontal = 20.dp)
                 .navigationBarsPadding(),
         ) {

@@ -5,7 +5,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
 import com.artemiy.player.data.Song
+import com.artemiy.player.ui.theme.PlayerColors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -55,4 +59,24 @@ private fun toneOf(bitmaps: List<Bitmap>): CoverTone? {
     if (weightSum < 0.5) return null
     val hue = ((Math.toDegrees(kotlin.math.atan2(y, x)) + 360.0) % 360.0).toFloat()
     return CoverTone(hue, (satSum / weightSum).toFloat())
+}
+
+/** The tone of a single cover (the one playing, say). */
+@Composable
+fun rememberCoverTone(uri: android.net.Uri?): CoverTone? {
+    val bitmap = rememberAlbumArtBitmap(uri)
+    val tone by produceState<CoverTone?>(null, bitmap) {
+        value = bitmap?.let { withContext(Dispatchers.Default) { toneOf(listOf(it)) } }
+    }
+    return tone
+}
+
+/** A surface of the current theme leaning [amount] of the way towards [tone] — the expressive
+ * style's tonal cards. Just the surface for black-and-white covers. */
+@Composable
+fun tonedSurface(tone: CoverTone?, amount: Float = 0.22f, base: Color = PlayerColors.Surface): Color {
+    if (tone == null) return base
+    val dark = PlayerColors.Background.luminance() < 0.5f
+    val color = Color.hsv(tone.hue, tone.saturation.coerceIn(0.3f, 0.8f), if (dark) 0.6f else 0.88f)
+    return lerp(base, color, amount)
 }

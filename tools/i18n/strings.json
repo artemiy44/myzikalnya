@@ -1186,6 +1186,10 @@
   "en": "Tracks found: %1$d",
   "ru": "Треков найдено: %1$d"
  },
+ "set_ui_style": {
+  "en": "Interface style",
+  "ru": "Стиль интерфейса"
+ },
  "set_version": {
   "en": "Version %1$s",
   "ru": "Версия %1$s"
@@ -1333,6 +1337,24 @@
    "one": "%d трек",
    "other": "%d трека"
   }
+ },
+ "ui_style_classic": {
+  "en": "Classic",
+  "ru": "Классический"
+ },
+ "ui_style_classic_note": {
+  "en": "Calm and flat — the familiar look.",
+  "ru": "Спокойный и плоский — привычный вид."
+ },
+ "ui_style_expressive": {
+  "en": "Expressive",
+  "ru": "Экспрессивный"
+ },
+ "ui_style_expressive_note": {
+  "en": "Bold headers, floating bars, rounded cards and playful shapes.",
+  "en_x": "Big bold headers, floating bars, chunky cards and fun shapes!",
+  "ru": "Крупные заголовки, парящие панели, скруглённые карточки и игривые формы.",
+  "ru_x": "Жирные заголовки, парящие панели, пухлые карточки и весёлые формы!"
  },
  "unit_hours_approx": {
   "en": "≈ %1$.1f h",

@@ -285,6 +285,7 @@
     <string name="set_text_size">Размер текста</string>
     <string name="set_third_party">Сторонние компоненты</string>
     <string name="set_tracks_found">Треков найдено: %1$d</string>
+    <string name="set_ui_style">Стиль интерфейса</string>
     <string name="set_version">Версия %1$s</string>
     <string name="settings">Настройки</string>
     <string name="share">Поделиться</string>
@@ -333,6 +334,10 @@
         <item quantity="one">%d трек</item>
         <item quantity="other">%d трека</item>
     </plurals>
+    <string name="ui_style_classic">Классический</string>
+    <string name="ui_style_classic_note">Спокойный и плоский — привычный вид.</string>
+    <string name="ui_style_expressive">Экспрессивный</string>
+    <string name="ui_style_expressive_note">Крупные заголовки, парящие панели, скруглённые карточки и игривые формы.</string>
     <string name="unit_hours_approx">≈ %1$.1f ч</string>
     <string name="unit_kb">%1$d КБ</string>
     <string name="unit_kbps">%1$d кбит/с</string>

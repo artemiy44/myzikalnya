@@ -265,6 +265,7 @@
     <string name="set_text_size">글자 크기</string>
     <string name="set_third_party">서드파티 구성 요소</string>
     <string name="set_tracks_found">찾은 곡: %1$d</string>
+    <string name="set_ui_style">인터페이스 스타일</string>
     <string name="set_version">버전 %1$s</string>
     <string name="settings">설정</string>
     <string name="share">공유</string>
@@ -289,6 +290,10 @@
     <string name="this_device">이 기기</string>
     <string name="track_actions">곡 작업</string>
     <string name="tracks">곡</string>
+    <string name="ui_style_classic">클래식</string>
+    <string name="ui_style_classic_note">차분하고 평평한 익숙한 모습.</string>
+    <string name="ui_style_expressive">익스프레시브</string>
+    <string name="ui_style_expressive_note">큰 제목, 떠 있는 바, 둥근 카드와 재미있는 모양.</string>
     <string name="unit_hours_approx">약 %1$.1f시간</string>
     <string name="unit_kb">%1$d KB</string>
     <string name="unit_kbps">%1$d kbps</string>

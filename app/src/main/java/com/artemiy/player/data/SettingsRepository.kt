@@ -48,6 +48,7 @@ class SettingsRepository(private val context: Context) {
         val START_TAB_KEY = stringPreferencesKey("start_tab")
         val ICON_SET_KEY = stringPreferencesKey("icon_set")
         val APP_FONT_KEY = stringPreferencesKey("app_font")
+        val UI_STYLE_KEY = stringPreferencesKey("ui_style")
         val ONBOARDING_DONE_KEY = booleanPreferencesKey("onboarding_done")
         private fun viewModeKey(tab: String) = stringPreferencesKey("view_mode_$tab")
     }
@@ -215,6 +216,13 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAppFont(value: String) {
         context.settingsDataStore.edit { it[APP_FONT_KEY] = value }
+    }
+
+    /** How the tabs look (a UiStyle name); absent = classic. */
+    val uiStyle: Flow<String?> = context.settingsDataStore.data.map { it[UI_STYLE_KEY] }
+
+    suspend fun setUiStyle(value: String) {
+        context.settingsDataStore.edit { it[UI_STYLE_KEY] = value }
     }
 
     /** Artist names the user wants kept whole, never split into several artists. */

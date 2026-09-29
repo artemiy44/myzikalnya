@@ -1,5 +1,6 @@
 package com.artemiy.player.ui.settings
 
+import com.artemiy.player.ui.theme.barsInset
 import kotlin.math.roundToInt
 import com.artemiy.player.R
 import androidx.compose.ui.res.stringResource
@@ -125,6 +126,8 @@ fun SettingsScreen(
     onIconSetChange: (IconSet) -> Unit,
     appFont: com.artemiy.player.ui.theme.AppFont,
     onAppFontChange: (com.artemiy.player.ui.theme.AppFont) -> Unit,
+    uiStyle: com.artemiy.player.ui.theme.UiStyle = com.artemiy.player.ui.theme.UiStyle.CLASSIC,
+    onUiStyleChange: (com.artemiy.player.ui.theme.UiStyle) -> Unit = {},
     onBack: () -> Unit,
     onShowOnboarding: () -> Unit = {},
     keptArtists: Set<String> = emptySet(),
@@ -164,8 +167,7 @@ fun SettingsScreen(
                 Text(
                     text = stringResource(page.titleRes),
                     color = PlayerColors.TextPrimary,
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.ExtraBold,
+                    style = com.artemiy.player.ui.theme.pageTitleStyle,
                 )
             }
 
@@ -219,6 +221,8 @@ fun SettingsScreen(
                     onIconSetChange = onIconSetChange,
                     appFont = appFont,
                     onAppFontChange = onAppFontChange,
+                    uiStyle = uiStyle,
+                    onUiStyleChange = onUiStyleChange,
                 )
                 SettingsRoute.NowPlayingBackground -> NowPlayingBackgroundContent(
                     mode = nowPlayingBackgroundMode,
@@ -237,7 +241,7 @@ fun SettingsScreen(
 private fun SettingsCategories(onOpen: (SettingsRoute) -> Unit) {
     Column(
         modifier = Modifier
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()).barsInset()
             .padding(horizontal = 20.dp)
             .navigationBarsPadding(),
     ) {
@@ -382,7 +386,7 @@ private fun ColorSwatch(color: androidx.compose.ui.graphics.Color, selected: Boo
 private fun GeneralContent(startTab: AppTab, onStartTabChange: (AppTab) -> Unit, onOpenKeptArtists: () -> Unit) {
     Column(
         modifier = Modifier
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()).barsInset()
             .padding(horizontal = 20.dp)
             .navigationBarsPadding(),
     ) {
@@ -424,7 +428,7 @@ private fun KeptArtistsContent(
     var input by remember { mutableStateOf("") }
     Column(
         modifier = Modifier
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()).barsInset()
             .padding(horizontal = 20.dp)
             .navigationBarsPadding(),
     ) {
@@ -558,10 +562,12 @@ private fun SettingsSectionContent(
     onIconSetChange: (IconSet) -> Unit,
     appFont: com.artemiy.player.ui.theme.AppFont,
     onAppFontChange: (com.artemiy.player.ui.theme.AppFont) -> Unit,
+    uiStyle: com.artemiy.player.ui.theme.UiStyle = com.artemiy.player.ui.theme.UiStyle.CLASSIC,
+    onUiStyleChange: (com.artemiy.player.ui.theme.UiStyle) -> Unit = {},
 ) {
         Column(
             modifier = Modifier
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()).barsInset()
                 .padding(horizontal = 20.dp)
                 .navigationBarsPadding(),
         ) {
@@ -578,6 +584,24 @@ private fun SettingsSectionContent(
                     accent = accent,
                     onAccentChange = onAccentChange,
                 )
+                Spacer(modifier = Modifier.height(12.dp))
+                SettingsCard {
+                    SettingsLabel(stringResource(R.string.set_ui_style))
+                    Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                        com.artemiy.player.ui.theme.UiStyle.entries.forEach { style ->
+                            InfinitePlayModeChip(
+                                stringResource(if (style == com.artemiy.player.ui.theme.UiStyle.CLASSIC) R.string.ui_style_classic else R.string.ui_style_expressive),
+                                style == uiStyle,
+                            ) { onUiStyleChange(style) }
+                        }
+                    }
+                    Text(
+                        text = stringResource(if (uiStyle == com.artemiy.player.ui.theme.UiStyle.CLASSIC) R.string.ui_style_classic_note else R.string.ui_style_expressive_note),
+                        color = PlayerColors.TextSecondary,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 10.dp),
+                    )
+                }
                 Spacer(modifier = Modifier.height(12.dp))
                 SettingsCard {
                     SettingsLabel(stringResource(R.string.set_icons))
@@ -1048,7 +1072,7 @@ private fun AboutContent(onShowOnboarding: () -> Unit) {
     var openLicense by remember { mutableStateOf<ThirdPartyComponent?>(null) }
     Column(
         modifier = Modifier
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()).barsInset()
             .padding(horizontal = 20.dp)
             .navigationBarsPadding(),
     ) {
@@ -1152,7 +1176,7 @@ private fun LicenseSheet(component: ThirdPartyComponent, onDismiss: () -> Unit) 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(rememberScrollState()).barsInset()
                     .padding(horizontal = 22.dp)
                     .padding(bottom = 24.dp)
                     .navigationBarsPadding(),
@@ -1255,7 +1279,7 @@ private fun NowPlayingBackgroundContent(
 ) {
     Column(
         modifier = Modifier
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()).barsInset()
             .padding(horizontal = 20.dp)
             .navigationBarsPadding(),
     ) {
@@ -1385,7 +1409,7 @@ private fun LanguageContent() {
     val current = remember { com.artemiy.player.ui.i18n.LanguagePrefs.effective(context) }
     Column(
         modifier = Modifier
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()).barsInset()
             .padding(horizontal = 20.dp)
             .navigationBarsPadding(),
     ) {

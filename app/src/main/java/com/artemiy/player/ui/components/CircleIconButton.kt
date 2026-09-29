@@ -36,18 +36,41 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.artemiy.player.ui.icons.AppIcons
 import com.artemiy.player.ui.theme.PlayerColors
+import com.artemiy.player.ui.theme.expressiveUi
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.interaction.InteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.ui.graphics.Shape
 import kotlinx.coroutines.delay
 
-/** [showCheck] briefly swaps the icon for a ✓ — see [rememberCheckFlash]. */
+/** Where a hero button sits in the expressive style's connected group (Shuffle · Listen · Add):
+ * round on its outer side, tight where it meets the next one. */
+enum class GroupEdge { Start, Middle, End }
+
+/** The gap between the hero buttons: a connected group in the expressive style. */
+val heroButtonGap: androidx.compose.ui.unit.Dp @Composable get() = if (expressiveUi) 4.dp else 14.dp
+
+/** [showCheck] briefly swaps the icon for a ✓ — see [rememberCheckFlash]. [edge] places it in the
+ * expressive style's connected group; without one it stays a lone round button. */
 @Composable
-fun CircleIconButton(icon: ImageVector, description: String, showCheck: Boolean = false, onClick: () -> Unit) {
+fun CircleIconButton(icon: ImageVector, description: String, showCheck: Boolean = false, edge: GroupEdge? = null, onClick: () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
+    val expressive = expressiveUi
+    val grouped = expressive && edge != null
     Box(
         modifier = Modifier
-            .size(46.dp)
-            .pressScale(interaction)
-            .clip(CircleShape)
-            .background(PlayerColors.Surface)
+            .then(if (grouped) Modifier.size(width = 64.dp, height = 60.dp) else Modifier.size(if (expressive) 52.dp else 46.dp))
+            .pressScale(interaction, pressedScale = if (expressive) 0.92f else 0.86f)
+            // Expressive: the shape changes under the finger.
+            .clip(
+                when {
+                    grouped -> groupShape(interaction, edge!!)
+                    expressive -> morphingShape(interaction, restPercent = 50, pressedPercent = 30)
+                    else -> CircleShape
+                },
+            )
+            .background(if (grouped) tonalAccent else PlayerColors.Surface)
             .clickable(interactionSource = interaction, indication = null) { onClick() },
         contentAlignment = Alignment.Center,
     ) {
@@ -63,7 +86,7 @@ fun CircleIconButton(icon: ImageVector, description: String, showCheck: Boolean 
                 imageVector = if (check) AppIcons.Check else icon,
                 contentDescription = description,
                 tint = PlayerColors.TextPrimary,
-                modifier = Modifier.size(19.dp),
+                modifier = Modifier.size(if (grouped) 24.dp else if (expressive) 21.dp else 19.dp),
             )
         }
     }
@@ -94,6 +117,22 @@ fun rememberCheckFlash(): CheckFlash {
 @Composable
 fun PlayPillButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     val interaction = remember { MutableInteractionSource() }
+    val expressive = expressiveUi
+    if (expressive) {
+        // Expressive: the middle of the connected group — just a big play symbol, no words.
+        Box(
+            modifier = modifier
+                .size(width = 96.dp, height = 60.dp)
+                .pressScale(interaction, pressedScale = 0.93f)
+                .clip(groupShape(interaction, GroupEdge.Middle))
+                .background(PlayerColors.Accent)
+                .clickable(interactionSource = interaction, indication = null, onClick = onClick),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(imageVector = AppIcons.Play, contentDescription = stringResource(R.string.action_listen), tint = PlayerColors.OnAccent, modifier = Modifier.size(30.dp))
+        }
+        return
+    }
     Row(
         modifier = modifier
             .pressScale(interaction, pressedScale = 0.93f)
@@ -107,3 +146,36 @@ fun PlayPillButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
         Text(text = stringResource(R.string.action_listen), color = PlayerColors.OnAccent, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
     }
 }
+
+/** A rounded shape whose corners spring from [restPercent] to [pressedPercent] while pressed — the
+ * expressive style's buttons change shape under the finger. */
+@Composable
+fun morphingShape(interaction: InteractionSource, restPercent: Int, pressedPercent: Int): Shape =
+    morphingShape(interaction, restPercent, restPercent, pressedPercent)
+
+/** The same, with different [startPercent]/[endPercent] corners at rest (a button inside a
+ * connected group: round on its outer side, tight where it meets its neighbour). While pressed
+ * both sides go to [pressedPercent]. */
+@Composable
+fun morphingShape(interaction: InteractionSource, startPercent: Int, endPercent: Int, pressedPercent: Int): Shape {
+    val pressed by interaction.collectIsPressedAsState()
+    val spec = spring<Float>(dampingRatio = 0.6f, stiffness = 600f)
+    val start by animateFloatAsState(if (pressed) pressedPercent.toFloat() else startPercent.toFloat(), spec, label = "shapeStart")
+    val end by animateFloatAsState(if (pressed) pressedPercent.toFloat() else endPercent.toFloat(), spec, label = "shapeEnd")
+    return RoundedCornerShape(
+        topStartPercent = start.toInt(),
+        bottomStartPercent = start.toInt(),
+        topEndPercent = end.toInt(),
+        bottomEndPercent = end.toInt(),
+    )
+}
+
+/** A connected-group button's outline: round outside, tight inside; pressed, it rounds out fully. */
+@Composable
+private fun groupShape(interaction: InteractionSource, edge: GroupEdge): Shape = when (edge) {
+    GroupEdge.Start -> morphingShape(interaction, startPercent = 50, endPercent = GROUP_INNER, pressedPercent = 50)
+    GroupEdge.Middle -> morphingShape(interaction, startPercent = GROUP_INNER, endPercent = GROUP_INNER, pressedPercent = 50)
+    GroupEdge.End -> morphingShape(interaction, startPercent = GROUP_INNER, endPercent = 50, pressedPercent = 50)
+}
+
+private const val GROUP_INNER = 22
