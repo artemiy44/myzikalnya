@@ -237,6 +237,8 @@
     <string name="set_library">Bibliothèque</string>
     <string name="set_library_sub">Analyse et dossiers de musique</string>
     <string name="set_light_bg">Fond du thème clair</string>
+    <string name="set_lrc_dots">Points pendant les pauses (LRC simple)</string>
+    <string name="set_lrc_dots_sub">Le LRC simple ne sait pas combien de temps dure une ligne, des points peuvent donc aussi apparaître sur une ligne tenue. Les points avant la première ligne restent toujours.</string>
     <string name="set_min_length">Ignorer les fichiers de moins de</string>
     <string name="set_min_length_desc">Les messages vocaux, sons de notification et répliques de jeux restent hors de la bibliothèque.</string>
     <string name="set_mood_explain">Le choix par genre à partir des tags n’est pas toujours juste : les tags peuvent être incomplets ou ne pas refléter l’humeur. Ci-dessous, on peut indiquer quels dossiers de la bibliothèque correspondent à quelle humeur — cela s’ajoute au genre sans le remplacer.</string>

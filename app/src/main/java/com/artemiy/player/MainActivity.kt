@@ -145,6 +145,7 @@ class MainActivity : ComponentActivity() {
             CompositionLocalProvider(
                 LocalIconSet provides settings.iconSet,
                 com.artemiy.player.ui.theme.LocalUiStyle provides settings.uiStyle,
+                com.artemiy.player.ui.nowplaying.LocalLrcGapDots provides settings.lrcGapDots,
             ) {
                 PlayerTheme(palette = palette, appTextScale = settings.fontScale, font = settings.appFont) {
                     PlayerApp(settings)
@@ -311,11 +312,12 @@ private fun PlayerApp(settings: SettingsViewModel) {
             // Off the main thread — it's what made the launch animation stutter.
             val fresh = withContext(Dispatchers.IO) { querySongs(context, settings.scanFolders, settings.minDurationSec * 1000L) }
             // Each artist's usual spelling, so "Eve" and "EVE" end up as one artist.
-            withContext(Dispatchers.Default) { ArtistNames.learn(fresh) }
+            // …and one spelling per artist line and album everywhere it's shown.
+            val spelled = withContext(Dispatchers.Default) { ArtistNames.learn(fresh); ArtistNames.withUsualSpellings(fresh) }
             songs.clear()
-            songs.addAll(fresh)
+            songs.addAll(spelled)
             libraryLoaded = true
-            lyricsSearch.sync(fresh, isPlaying = { playback.isPlaying })
+            lyricsSearch.sync(spelled, isPlaying = { playback.isPlaying })
         }
     }
     LaunchedEffect(libraryLoaded, permissionGranted) {
@@ -336,10 +338,11 @@ private fun PlayerApp(settings: SettingsViewModel) {
             // Off the main thread — it's what made the launch animation stutter.
             val fresh = withContext(Dispatchers.IO) { querySongs(context, settings.scanFolders, settings.minDurationSec * 1000L) }
             // Each artist's usual spelling, so "Eve" and "EVE" end up as one artist.
-            withContext(Dispatchers.Default) { ArtistNames.learn(fresh) }
+            // …and one spelling per artist line and album everywhere it's shown.
+            val spelled = withContext(Dispatchers.Default) { ArtistNames.learn(fresh); ArtistNames.withUsualSpellings(fresh) }
             songs.clear()
-            songs.addAll(fresh)
-            lyricsSearch.sync(fresh, isPlaying = { playback.isPlaying })
+            songs.addAll(spelled)
+            lyricsSearch.sync(spelled, isPlaying = { playback.isPlaying })
         }
     }
 
@@ -705,6 +708,8 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 onLiveBlurIntensityChange = { settings.updateLiveBlurIntensity(it) },
                 lyricsTapPlays = settings.lyricsTapPlays,
                 onLyricsTapPlaysChange = { settings.updateLyricsTapPlays(it) },
+                lrcGapDots = settings.lrcGapDots,
+                onLrcGapDotsChange = { settings.updateLrcGapDots(it) },
                 playerStyle = settings.playerStyle,
                 onPlayerStyleChange = { settings.updatePlayerStyle(it) },
                 themeMode = settings.themeMode,

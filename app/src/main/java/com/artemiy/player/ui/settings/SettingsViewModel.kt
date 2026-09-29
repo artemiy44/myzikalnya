@@ -68,6 +68,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     var lyricsTapPlays by mutableStateOf(false)
         private set
 
+    var lrcGapDots by mutableStateOf(true)
+        private set
+
     var themeMode by mutableStateOf(ThemeMode.DARK)
         private set
 
@@ -144,6 +147,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             repository.lyricsTapPlays.collect { lyricsTapPlays = it }
+        }
+        viewModelScope.launch {
+            repository.lrcGapDots.collect { lrcGapDots = it }
         }
         viewModelScope.launch {
             repository.themeMode.collect { value ->
@@ -305,6 +311,11 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     fun updateAccent(choice: AccentChoice?) {
         accent = choice
         viewModelScope.launch { repository.setAccent(choice?.toKey().orEmpty()) }
+    }
+
+    fun updateLrcGapDots(enabled: Boolean) {
+        lrcGapDots = enabled
+        viewModelScope.launch { repository.setLrcGapDots(enabled) }
     }
 
     fun updateLyricsTapPlays(enabled: Boolean) {

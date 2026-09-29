@@ -314,3 +314,5 @@ ui_style_classic = 经典
 ui_style_expressive = 表现力
 ui_style_classic_note = 平静扁平——熟悉的样子。
 ui_style_expressive_note = 大标题、悬浮栏、圆角卡片和俏皮的形状。
+set_lrc_dots = 间奏时显示圆点（普通 LRC）
+set_lrc_dots_sub = 普通 LRC 不知道每行唱多久，所以唱得久的行也可能出现圆点。第一行之前的圆点始终保留。

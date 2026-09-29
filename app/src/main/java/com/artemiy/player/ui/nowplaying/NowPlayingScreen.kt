@@ -123,6 +123,8 @@ fun NowPlayingScreen(
     mini: MiniPlayerAnchors? = null,
     memory: NowPlayingMemory = remember { NowPlayingMemory() },
 ) {
+    // The big cover decoded as soon as the song changes, not the moment it's first shown.
+    com.artemiy.player.ui.components.rememberAlbumArtBitmap(song?.uri, com.artemiy.player.ui.components.ART_SIZE_FULL)
     if (playerStyle == PlayerStyle.EXPRESSIVE) {
         ExpressiveNowPlaying(
             song = song, isPlaying = isPlaying, positionMs = positionMs, durationMs = durationMs,
@@ -288,6 +290,15 @@ fun NowPlayingScreen(
     var titleTarget by remember { mutableStateOf<Rect?>(null) }
     val playerActive = LocalNowPlayingActive.current
     val coverShadow = nowPlayingBackgroundMode != NowPlayingBackgroundMode.NONE
+    // Back from lyrics/queue the cover lands as a flying copy without a shadow: once the real one
+    // is in place its shadow fades in, instead of appearing all at once.
+    // (Read through derivedStateOf: the flight changes every frame, the answer only twice.)
+    val flyingBack by remember { derivedStateOf { !modeFlightFromArt && modeFlight < 1f } }
+    val landedShadow by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (flyingBack) 0f else 1f,
+        animationSpec = if (flyingBack) androidx.compose.animation.core.snap() else tween(COVER_SHADOW_FADE_MS),
+        label = "coverShadow",
+    )
     // What sits at the right end of the header: the romanization switch on lyrics, the song's
     // "⋯" menu on the queue (flying there from beside the title under the cover).
     @Composable
@@ -437,8 +448,9 @@ fun NowPlayingScreen(
                                     // A faint shadow lifts the cover off a blurred background — only
                                     // once it's settled in place (it comes up as it lands), and not
                                     // over the plain background, where there's nothing to lift it off.
-                                    val settled = ((expand() - 0.85f) / 0.15f).coerceIn(0f, 1f) *
-                                        (if (!modeFlightFromArt) modeFlight else 1f)
+                                    // Opening, it grows with the cover over the second half of the flight.
+                                    val rise = ((expand() - 0.5f) / 0.5f).coerceIn(0f, 1f)
+                                    val settled = rise * rise * (3f - 2f * rise) * landedShadow
                                     if (coverShadow && settled > 0f) {
                                         shadowElevation = COVER_SHADOW.toPx() * settled
                                         spotShadowColor = Color.Black.copy(alpha = 0.6f)
@@ -874,6 +886,7 @@ private const val SIDE_SHIFT = 0.22f
 
 /** How high the settled cover seems to float over a blurred background. */
 private val COVER_SHADOW = 14.dp
+private const val COVER_SHADOW_FADE_MS = 450
 
 /** Cover <-> lyrics/queue flight: the same soft spring as opening the player. */
 private val MODE_FLIGHT_SPRING = androidx.compose.animation.core.spring<Float>(dampingRatio = 1f, stiffness = 320f, visibilityThreshold = 0.0005f)

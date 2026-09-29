@@ -314,3 +314,5 @@ ui_style_classic = Klassisch
 ui_style_expressive = Expressiv
 ui_style_classic_note = Ruhig und flach — das gewohnte Aussehen.
 ui_style_expressive_note = Große Überschriften, schwebende Leisten, runde Karten und verspielte Formen.
+set_lrc_dots = Punkte in Pausen (einfaches LRC)
+set_lrc_dots_sub = Einfaches LRC weiß nicht, wie lange eine Zeile gesungen wird, daher können Punkte auch bei langen Zeilen erscheinen. Punkte vor der ersten Zeile bleiben immer.

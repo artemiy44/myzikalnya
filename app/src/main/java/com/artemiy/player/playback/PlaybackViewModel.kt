@@ -178,6 +178,9 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
                 positionMs = c.currentPosition.coerceAtLeast(0)
                 durationMs = c.duration.let { if (it > 0) it else 0L }
                 loadLyricsFor(currentSong)
+                // Our own queue is only in the saved state, not in the player: without this the
+                // songs put there by hand joined the ordinary queue after the app was swiped away.
+                restoreManualQueue(c)
             }
             refreshDerivedQueues()
             c.addListener(object : Player.Listener {
@@ -329,6 +332,15 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
             "mix" -> rest.substringBefore(':').toIntOrNull()?.let { SourceArt.MixCard(it, rest.substringAfter(':')) }
             else -> null
         }
+    }
+
+    /** Puts back which of the upcoming songs are the hand-picked queue, when the player (still
+     * running) has exactly those songs right after the current one. */
+    private fun restoreManualQueue(c: MediaController) {
+        val savedManual = saved.getString("manual", "")!!.split(',').mapNotNull { it.toLongOrNull() }
+        if (savedManual.isEmpty() || manualQueueIds.isNotEmpty()) return
+        val next = (1..savedManual.size).map { c.getMediaItemAt((c.currentMediaItemIndex + it).coerceAtMost(c.mediaItemCount - 1)).mediaId.toLongOrNull() }
+        if (c.currentMediaItemIndex + savedManual.size < c.mediaItemCount && next == savedManual) manualQueueIds.addAll(savedManual)
     }
 
     private fun restoreLastSession() {

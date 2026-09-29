@@ -237,6 +237,8 @@
     <string name="set_library">Biblioteka</string>
     <string name="set_library_sub">Skanowanie i foldery z muzyką</string>
     <string name="set_light_bg">Tło jasnego motywu</string>
+    <string name="set_lrc_dots">Kropki w przerwach (zwykły LRC)</string>
+    <string name="set_lrc_dots_sub">Zwykły LRC nie wie, jak długo trwa wers, więc kropki mogą pojawić się też przy długo śpiewanym wersie. Kropki przed pierwszym wersem zostają zawsze.</string>
     <string name="set_min_length">Pomijaj pliki krótsze niż</string>
     <string name="set_min_length_desc">Notatki głosowe, dźwięki powiadomień i kwestie z gier nie trafią do biblioteki.</string>
     <string name="set_mood_explain">Dobór według gatunku z tagów pliku nie zawsze jest trafny: tagi bywają niepełne albo w ogóle nie oddają nastroju. Poniżej można zaznaczyć, które foldery biblioteki uznawać za dany nastrój — doda się to do gatunku, a nie go zastąpi.</string>

@@ -237,6 +237,8 @@
     <string name="set_library">Mediathek</string>
     <string name="set_library_sub">Scannen und Musikordner</string>
     <string name="set_light_bg">Hintergrund des hellen Designs</string>
+    <string name="set_lrc_dots">Punkte in Pausen (einfaches LRC)</string>
+    <string name="set_lrc_dots_sub">Einfaches LRC weiß nicht, wie lange eine Zeile gesungen wird, daher können Punkte auch bei langen Zeilen erscheinen. Punkte vor der ersten Zeile bleiben immer.</string>
     <string name="set_min_length">Dateien überspringen, kürzer als</string>
     <string name="set_min_length_desc">Sprachnachrichten, Benachrichtigungstöne und Sprachzeilen aus Spielen bleiben aus der Mediathek heraus.</string>
     <string name="set_mood_explain">Die Auswahl nach Genre aus den Tags passt nicht immer: Tags können unvollständig sein oder die Stimmung gar nicht widerspiegeln. Unten lässt sich festlegen, welche Ordner der Mediathek als welche Stimmung gelten — das kommt zum Genre hinzu, statt es zu ersetzen.</string>

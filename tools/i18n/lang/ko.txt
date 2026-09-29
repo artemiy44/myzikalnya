@@ -314,3 +314,5 @@ ui_style_classic = 클래식
 ui_style_expressive = 익스프레시브
 ui_style_classic_note = 차분하고 평평한 익숙한 모습.
 ui_style_expressive_note = 큰 제목, 떠 있는 바, 둥근 카드와 재미있는 모양.
+set_lrc_dots = 간주 점 표시 (일반 LRC)
+set_lrc_dots_sub = 일반 LRC는 한 줄이 얼마나 불리는지 몰라서 길게 부르는 줄에도 점이 나올 수 있어요. 첫 줄 앞의 점은 항상 유지돼요.

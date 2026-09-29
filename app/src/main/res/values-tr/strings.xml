@@ -237,6 +237,8 @@
     <string name="set_library">Kitaplık</string>
     <string name="set_library_sub">Tarama ve müzik klasörleri</string>
     <string name="set_light_bg">Açık tema arka planı</string>
+    <string name="set_lrc_dots">Duraklamalarda noktalar (düz LRC)</string>
+    <string name="set_lrc_dots_sub">Düz LRC bir satırın ne kadar sürdüğünü bilmez, bu yüzden uzun satırlarda da noktalar çıkabilir. İlk satırdan önceki noktalar her zaman kalır.</string>
     <string name="set_min_length">Şundan kısa dosyaları atla:</string>
     <string name="set_min_length_desc">Sesli notlar, bildirim sesleri ve oyun replikleri kitaplığa girmez.</string>
     <string name="set_mood_explain">Etiketlerdeki türe göre seçim her zaman isabetli değildir: etiketler eksik olabilir ya da ruh halini hiç yansıtmayabilir. Aşağıda kitaplıktaki hangi klasörlerin hangi ruh hali sayılacağı işaretlenebilir — bu türe eklenir, onun yerine geçmez.</string>

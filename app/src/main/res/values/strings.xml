@@ -251,6 +251,8 @@
     <string name="set_library">Library</string>
     <string name="set_library_sub">Scanning and music folders</string>
     <string name="set_light_bg">Light theme background</string>
+    <string name="set_lrc_dots">Dots in pauses (plain LRC)</string>
+    <string name="set_lrc_dots_sub">Plain LRC doesn\'t know how long a line is sung, so a long-held line can get dots too. Dots before the first line always stay.</string>
     <string name="set_min_length">Skip files shorter than</string>
     <string name="set_min_length_desc">Voice notes, notification sounds and game voice lines stay out of the library.</string>
     <string name="set_mood_explain">Picking by the genre from the file\'s tags isn\'t always accurate — tags can be incomplete or not reflect the mood at all. Below, library folders can be marked as one mood or another — this adds to the genre rather than replacing it.</string>

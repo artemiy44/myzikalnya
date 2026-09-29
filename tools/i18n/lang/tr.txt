@@ -314,3 +314,5 @@ ui_style_classic = Klasik
 ui_style_expressive = Etkileyici
 ui_style_classic_note = Sakin ve düz — alışık olduğun görünüm.
 ui_style_expressive_note = Büyük başlıklar, yüzen çubuklar, yuvarlak kartlar ve eğlenceli şekiller.
+set_lrc_dots = Duraklamalarda noktalar (düz LRC)
+set_lrc_dots_sub = Düz LRC bir satırın ne kadar sürdüğünü bilmez, bu yüzden uzun satırlarda da noktalar çıkabilir. İlk satırdan önceki noktalar her zaman kalır.

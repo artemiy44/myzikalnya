@@ -237,6 +237,8 @@
     <string name="set_library">音乐库</string>
     <string name="set_library_sub">扫描和音乐文件夹</string>
     <string name="set_light_bg">浅色主题背景</string>
+    <string name="set_lrc_dots">间奏时显示圆点（普通 LRC）</string>
+    <string name="set_lrc_dots_sub">普通 LRC 不知道每行唱多久，所以唱得久的行也可能出现圆点。第一行之前的圆点始终保留。</string>
     <string name="set_min_length">忽略短于此时长的文件</string>
     <string name="set_min_length_desc">语音、通知音和游戏台词不会进入音乐库。</string>
     <string name="set_mood_explain">根据标签中的流派挑选并不总是准确：标签可能不完整，或根本不反映心情。下方可以标记音乐库中哪些文件夹算作哪种心情——这是对流派的补充，而不是替代。</string>

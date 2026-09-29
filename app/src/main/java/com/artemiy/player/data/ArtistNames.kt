@@ -64,6 +64,24 @@ object ArtistNames {
         version++
     }
 
+    /**
+     * [songs] with every artist line and album name spelled the way most of the library spells it
+     * ("twenty One Pilots" on one song of "Vessel" becomes "twenty one pilots", like the rest), the
+     * file's own spelling kept in [Song.tagArtist] / [Song.tagAlbum].
+     */
+    fun withUsualSpellings(songs: List<Song>): List<Song> {
+        fun usual(values: List<String>): Map<String, String> =
+            values.groupBy { key(it) }.mapValues { (_, all) -> all.groupingBy { it }.eachCount().maxBy { it.value }.key }
+        val artists = usual(songs.map { it.artist })
+        val albums = usual(songs.map { it.album })
+        return songs.map { song ->
+            val artist = artists[key(song.artist)] ?: song.artist
+            val album = albums[key(song.album)] ?: song.album
+            if (artist == song.artist && album == song.album) song
+            else song.copy(artist = artist, album = album, tagArtist = song.artist, tagAlbum = song.album)
+        }
+    }
+
     private val WHITESPACE = Regex("\\s+")
 
     private fun doSplit(raw: String, userKept: Set<String>): List<String> {

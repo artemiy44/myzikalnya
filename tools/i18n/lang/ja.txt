@@ -314,3 +314,5 @@ ui_style_classic = クラシック
 ui_style_expressive = エクスプレッシブ
 ui_style_classic_note = 落ち着いたフラットな、いつもの見た目。
 ui_style_expressive_note = 大きな見出し、浮かぶバー、丸いカード、遊び心のある形。
+set_lrc_dots = 間奏のドット（通常の LRC）
+set_lrc_dots_sub = 通常の LRC は行の長さが分からないため、長く歌う行でもドットが出ることがあります。最初の行の前のドットは常に表示されます。

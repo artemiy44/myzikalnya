@@ -41,6 +41,7 @@ class SettingsRepository(private val context: Context) {
         val LIVE_BLUR_INTENSITY_KEY = stringPreferencesKey("live_blur_intensity")
         val LYRICS_ROMANIZATION_KEY = booleanPreferencesKey("lyrics_romanization")
         val LYRICS_TAP_PLAYS_KEY = booleanPreferencesKey("lyrics_tap_plays")
+        val LRC_GAP_DOTS_KEY = booleanPreferencesKey("lrc_gap_dots")
         val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
         val LIGHT_VARIANT_KEY = stringPreferencesKey("light_variant")
         val DARK_VARIANT_KEY = stringPreferencesKey("dark_variant")
@@ -173,6 +174,14 @@ class SettingsRepository(private val context: Context) {
         context.settingsDataStore.edit { prefs ->
             prefs[LYRICS_TAP_PLAYS_KEY] = enabled
         }
+    }
+
+    /** Whether plain (not word-synced) LRC lyrics get dots in long pauses between lines — the
+     * intro's dots and explicit break lines stay either way. */
+    val lrcGapDots: Flow<Boolean> = context.settingsDataStore.data.map { it[LRC_GAP_DOTS_KEY] ?: true }
+
+    suspend fun setLrcGapDots(enabled: Boolean) {
+        context.settingsDataStore.edit { it[LRC_GAP_DOTS_KEY] = enabled }
     }
 
     /** Theme choices are stored as plain names/keys; parsing them is the UI layer's business. */

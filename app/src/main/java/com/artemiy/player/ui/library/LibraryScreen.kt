@@ -111,6 +111,13 @@ sealed class LibraryRoute {
 private data class ArtistGroup(val name: String, val songs: List<Song>)
 private data class AlbumGroup(val album: String, val artist: String, val songs: List<Song>)
 
+/** What makes two songs the same album: its name and artist line, ignoring case and spacing. */
+private fun albumKey(album: String, artist: String): String = ArtistNames.key(album) + "\u0000" + ArtistNames.key(artist)
+
+/** The spelling most of [spellings] use (ties go to the first one seen). */
+private fun mostCommon(spellings: List<String>): String =
+    spellings.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key ?: spellings.first()
+
 /** Cycled by a single toolbar icon, in this order: list rows, then 2-wide grid, then 3-wide. */
 internal enum class ViewMode(@androidx.annotation.StringRes val descriptionRes: Int) {
     LIST(R.string.view_list),
@@ -264,9 +271,11 @@ fun LibraryScreen(
                             .groupBy({ it.first }, { it.second })
                             .map { (artist, list) -> ArtistGroup(artist, list) }
                     }
-                    val albumGroups = remember(songs) {
-                        songs.groupBy { it.album to it.artist }
-                            .map { (key, list) -> AlbumGroup(key.first, key.second, list) }
+                    // One album however its tags spell it: "twenty one pilots" and "twenty One Pilots"
+                    // on songs of the same "Vessel" are one album, shown in the usual spelling.
+                    val albumGroups = remember(songs, artistNamesVersion) {
+                        songs.groupBy { albumKey(it.album, it.artist) }
+                            .map { (_, list) -> AlbumGroup(mostCommon(list.map { it.album }), mostCommon(list.map { it.artist }), list) }
                     }
 
                     when (val r = route) {
@@ -435,8 +444,8 @@ fun LibraryScreen(
                         is LibraryRoute.ArtistDetail -> {
                             val artistSongs = artistGroups.firstOrNull { it.name == r.artist }?.songs ?: emptyList()
                             val artistAlbums = remember(artistSongs) {
-                                artistSongs.groupBy { it.album }
-                                    .map { (album, list) -> album to list }
+                                artistSongs.groupBy { ArtistNames.key(it.album) }
+                                    .map { (_, list) -> mostCommon(list.map { it.album }) to list }
                                     .sortedBy { it.first.lowercase() }
                             }
                             ArtistDetailScreen(
@@ -455,7 +464,7 @@ fun LibraryScreen(
                                 onAlbumClick = { album ->
                                     // Albums are keyed by their songs' full artist line ("Ado & Eve"),
                                     // not by this one artist.
-                                    val albumArtist = artistSongs.firstOrNull { it.album == album }?.artist ?: r.artist
+                                    val albumArtist = artistSongs.firstOrNull { ArtistNames.key(it.album) == ArtistNames.key(album) }?.artist ?: r.artist
                                     push(LibraryRoute.AlbumDetail(album, albumArtist))
                                 },
                                 onPlayNext = onPlayNext,
@@ -468,7 +477,7 @@ fun LibraryScreen(
 
                         is LibraryRoute.AlbumDetail -> {
                             val albumSongs = albumGroups
-                                .firstOrNull { it.album == r.album && it.artist == r.artist }
+                                .firstOrNull { albumKey(it.album, it.artist) == albumKey(r.album, r.artist) }
                                 ?.songs ?: emptyList()
                             AlbumDetailScreen(
                                 album = r.album,

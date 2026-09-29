@@ -62,6 +62,7 @@ class PlaybackService : MediaSessionService() {
         player = ExoPlayer.Builder(this, PlayerRenderersFactory(this))
             .setMediaSourceFactory(DefaultMediaSourceFactory(this, extractorsFactory))
             .build()
+        player.addListener(ErrorRecovery())
 
         val sessionActivityIntent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
@@ -83,6 +84,47 @@ class PlaybackService : MediaSessionService() {
                 setSmallIcon(com.artemiy.player.R.drawable.ic_notification)
             },
         )
+    }
+
+    // ---- Getting past a file that fails to play ----
+    //
+    // Some files trip the decoder right at their very end (a few songs of one album did, while
+    // other players got through them): the player then just stopped, and the next song never
+    // came. Now an error in a song's last seconds counts as the song having ended — after a short
+    // breath, the next one plays. An error earlier on gets one more try from the same spot, and
+    // if the song fails again it's skipped.
+
+    private val recoveryHandler = android.os.Handler(android.os.Looper.getMainLooper())
+
+    private inner class ErrorRecovery : androidx.media3.common.Player.Listener {
+        private var retriedItem: String? = null
+
+        override fun onMediaItemTransition(mediaItem: androidx.media3.common.MediaItem?, reason: Int) {
+            if (mediaItem?.mediaId != retriedItem) retriedItem = null
+        }
+
+        override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+            val id = player.currentMediaItem?.mediaId
+            val position = player.currentPosition
+            val duration = player.duration
+            val nearEnd = duration > 0 && duration - position < NEAR_END_MS
+            val alreadyRetried = id != null && id == retriedItem
+            android.util.Log.w("PlaybackService", "Error ${error.errorCodeName} at $position/$duration — " +
+                if (nearEnd || alreadyRetried) "moving on" else "retrying", error)
+            recoveryHandler.removeCallbacksAndMessages(null)
+            recoveryHandler.postDelayed({
+                if (nearEnd || alreadyRetried) {
+                    retriedItem = null
+                    if (!player.hasNextMediaItem()) return@postDelayed
+                    player.seekToNextMediaItem()
+                } else {
+                    retriedItem = id
+                    player.seekTo(position)
+                }
+                player.prepare()
+                player.play()
+            }, RECOVERY_DELAY_MS)
+        }
     }
 
     // ---- Shuffle and endless play buttons in the system media player ----
@@ -169,6 +211,7 @@ class PlaybackService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        recoveryHandler.removeCallbacksAndMessages(null)
         mediaSession.run {
             player.release()
             release()
@@ -185,3 +228,9 @@ internal const val KEY_ENDLESS = "endless"
 internal const val COMMAND_TOGGLE_REPEAT = "lumine.toggle_repeat"
 internal const val KEY_REPEAT = "repeat"
 internal const val KEY_SECOND_IS_REPEAT = "second_is_repeat"
+
+/** An error this close to a song's end counts as the song having ended. */
+private const val NEAR_END_MS = 15_000L
+
+/** The short breath before moving on after an error. */
+private const val RECOVERY_DELAY_MS = 800L

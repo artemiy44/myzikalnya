@@ -237,6 +237,8 @@
     <string name="set_library">Biblioteca</string>
     <string name="set_library_sub">Escaneo y carpetas de música</string>
     <string name="set_light_bg">Fondo del tema claro</string>
+    <string name="set_lrc_dots">Puntos en las pausas (LRC normal)</string>
+    <string name="set_lrc_dots_sub">El LRC normal no sabe cuánto dura cada línea, así que también pueden salir puntos en una línea larga. Los puntos antes de la primera línea siempre se quedan.</string>
     <string name="set_min_length">Omitir archivos de menos de</string>
     <string name="set_min_length_desc">Las notas de voz, los sonidos de notificación y las frases de juegos no entrarán en la biblioteca.</string>
     <string name="set_mood_explain">Elegir por el género de las etiquetas no siempre acierta: las etiquetas pueden estar incompletas o no reflejar el ánimo. Abajo se puede marcar qué carpetas de la biblioteca cuentan como cada ánimo; esto se suma al género, no lo reemplaza.</string>

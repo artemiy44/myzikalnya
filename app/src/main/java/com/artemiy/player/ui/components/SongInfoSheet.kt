@@ -90,8 +90,9 @@ fun SongInfoSheet(song: Song, onDismiss: () -> Unit) {
                 ) {
                     Header(song)
                     SectionTitle(stringResource(R.string.info_details))
-                    InfoRow(stringResource(if (song.artists().size > 1) R.string.info_artists else R.string.info_artist), song.artists().joinToString(", "))
-                    InfoRow(stringResource(R.string.album), song.album.ifBlank { "—" })
+                    // Here the tags as the file has them, not the library's usual spelling.
+                    InfoRow(stringResource(if (song.artists().size > 1) R.string.info_artists else R.string.info_artist), song.tagArtist ?: song.artists().joinToString(", "))
+                    InfoRow(stringResource(R.string.album), (song.tagAlbum ?: song.album).ifBlank { "—" })
                     song.discNumber?.let { InfoRow(stringResource(R.string.info_disc), it.toString()) }
                     InfoRow(stringResource(R.string.info_track_number), song.trackNumber?.toString() ?: "—")
                     InfoRow(stringResource(R.string.info_genre), song.genre ?: "—")

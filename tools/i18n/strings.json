@@ -1074,6 +1074,14 @@
   "en": "Light theme background",
   "ru": "Фон светлой темы"
  },
+ "set_lrc_dots": {
+  "en": "Dots in pauses (plain LRC)",
+  "ru": "Точки в паузах (обычный LRC)"
+ },
+ "set_lrc_dots_sub": {
+  "en": "Plain LRC doesn't know how long a line is sung, so a long-held line can get dots too. Dots before the first line always stay.",
+  "ru": "Обычный LRC не знает, сколько длится строка, поэтому точки могут появиться и на долгой строке. Точки перед первой строкой остаются всегда."
+ },
  "set_min_length": {
   "en": "Skip files shorter than",
   "ru": "Не показывать файлы короче"

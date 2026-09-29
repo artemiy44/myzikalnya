@@ -314,3 +314,5 @@ ui_style_classic = Klasyczny
 ui_style_expressive = Ekspresyjny
 ui_style_classic_note = Spokojny i płaski — znajomy wygląd.
 ui_style_expressive_note = Duże nagłówki, pływające paski, zaokrąglone karty i zabawne kształty.
+set_lrc_dots = Kropki w przerwach (zwykły LRC)
+set_lrc_dots_sub = Zwykły LRC nie wie, jak długo trwa wers, więc kropki mogą pojawić się też przy długo śpiewanym wersie. Kropki przed pierwszym wersem zostają zawsze.

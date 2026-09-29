@@ -173,7 +173,8 @@ internal fun LyricsView(
             // -1 during an instrumental intro, before the first line starts — must stay -1, not
             // be clamped to 0, or line 0 lights up (big font, autoscroll, gray first word) early.
             // The lines plus instrumental breaks (three dots) where nothing is sung.
-            val lines = remember(lyrics) { withInstrumentalBreaks(lyrics.lines) }
+            val gapDots = LocalLrcGapDots.current
+            val lines = remember(lyrics, gapDots) { withInstrumentalBreaks(lyrics.lines, lrcGapDots = gapDots) }
             val activeIndex = remember(lines, positionMs) {
                 lines.indexOfLast { it.timeMs <= positionMs }
             }
@@ -541,39 +542,22 @@ internal fun RubyLine(
     glow: Boolean = false,
 ) {
     val color = if (glow) PlayerColors.TextPrimary.copy(alpha = LYRIC_GLOW_ALPHA) else PlayerColors.TextPrimary
-    val measurer = androidx.compose.ui.text.rememberTextMeasurer()
-    val density = androidx.compose.ui.platform.LocalDensity.current
-    val family = com.artemiy.player.ui.theme.LocalAppFontFamily.current
-    val baseStyle = androidx.compose.material3.LocalTextStyle.current
-    val naturalWidth = remember(segments, fontSize, family, baseStyle) {
-        val textStyle = baseStyle.merge(TextStyle(fontSize = fontSize.sp, fontWeight = FontWeight.ExtraBold, fontFamily = family))
-        val readingStyle = baseStyle.merge(TextStyle(fontSize = (fontSize * READING_SCALE).sp, fontWeight = FontWeight.SemiBold))
-        segments.indices.sumOf { i ->
-            val segment = segments[i]
-            val text = if (i == segments.lastIndex) segment.text.trimEnd() else segment.text
-            val textWidth = measurer.measure(text, textStyle, softWrap = false, maxLines = 1).size.width
-            val readingWidth = segment.reading?.let { measurer.measure(it, readingStyle, softWrap = false, maxLines = 1).size.width } ?: 0
-            val gap = if (segment.reading != null && !segment.text.last().isWhitespace()) with(density) { 4.dp.roundToPx() } else 0
-            (maxOf(textWidth, readingWidth) + gap).toDouble()
-        }.toFloat()
-    }
-    FlowRow(
+    BalancedFlow(
+        words = remember(segments) { segments.map { it.text } },
+        alignEnd = alignEnd,
+        rowGap = 6.dp,
         modifier = Modifier
-            .balancedWidth(naturalWidth, alignEnd)
             .fillMaxWidth()
             // Faded without clipping: the first word swelling from its middle, and its glow,
             // reach a little past the line's left edge and were being cut off there.
             .graphicsLayer { this.alpha = alpha; compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.ModulateAlpha }
             .padding(top = 8.dp, bottom = bottomPadding)
             .then(if (glow) Modifier.blur(LYRIC_GLOW_BLUR, BlurredEdgeTreatment.Unbounded) else Modifier),
-        horizontalArrangement = if (alignEnd) Arrangement.End else Arrangement.Start,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         segments.forEachIndexed { index, segment ->
             val text = if (index == segments.lastIndex) segment.text.trimEnd() else segment.text
             Column(
                 modifier = Modifier
-                    .alignBy(LastBaseline)
                     .padding(end = if (segment.reading != null && !segment.text.last().isWhitespace()) 4.dp else 0.dp),
             ) {
                 ReadingText(segment.reading, fontSize, glow)
@@ -627,24 +611,49 @@ internal fun PlainLyricLine(
     bottomPadding: Dp,
     glow: Boolean = false,
 ) {
-    Text(
-        text = text,
-        color = if (glow) PlayerColors.TextPrimary.copy(alpha = LYRIC_GLOW_ALPHA) else PlayerColors.TextPrimary,
-        fontSize = fontSize.sp,
-        lineHeight = fontSize.sp * 1.3f,
-        fontWeight = FontWeight.ExtraBold,
-        textAlign = if (alignEnd) TextAlign.End else TextAlign.Start,
-        // Rows of about equal length rather than a full row and a lonely last word.
-        style = TextStyle(lineBreak = androidx.compose.ui.text.style.LineBreak.Heading).inAppFont(),
-        modifier = Modifier
-            .fillMaxWidth()
-            // Faded without clipping: the first word swelling from its middle, and its glow,
-            // reach a little past the line's left edge and were being cut off there.
-            .graphicsLayer { this.alpha = alpha; compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.ModulateAlpha }
-            .padding(top = topPadding, bottom = bottomPadding)
-            .then(if (glow) Modifier.blur(LYRIC_GLOW_BLUR, BlurredEdgeTreatment.Unbounded) else Modifier),
-    )
+    val color = if (glow) PlayerColors.TextPrimary.copy(alpha = LYRIC_GLOW_ALPHA) else PlayerColors.TextPrimary
+    val modifier = Modifier
+        .fillMaxWidth()
+        // Faded without clipping: the first word swelling from its middle, and its glow,
+        // reach a little past the line's left edge and were being cut off there.
+        .graphicsLayer { this.alpha = alpha; compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.ModulateAlpha }
+        .padding(top = topPadding, bottom = bottomPadding)
+        .then(if (glow) Modifier.blur(LYRIC_GLOW_BLUR, BlurredEdgeTreatment.Unbounded) else Modifier)
+    // Words set in rows by BalancedFlow (the phrasing decides the breaks). Text written without
+    // spaces (Japanese, Chinese) keeps the system's phrase-aware breaking instead.
+    val words = remember(text) { if (text.trim().contains(' ')) WORD_UNIT.findAll(text.trim()).map { it.value }.toList() else null }
+    if (words == null) {
+        Text(
+            text = text,
+            color = color,
+            fontSize = fontSize.sp,
+            lineHeight = fontSize.sp * 1.3f,
+            fontWeight = FontWeight.ExtraBold,
+            textAlign = if (alignEnd) TextAlign.End else TextAlign.Start,
+            style = TextStyle(lineBreak = androidx.compose.ui.text.style.LineBreak.Heading).inAppFont(),
+            modifier = modifier,
+        )
+        return
+    }
+    BalancedFlow(words = words, alignEnd = alignEnd, rowGap = 0.dp, modifier = modifier) {
+        words.forEachIndexed { i, word ->
+            Text(
+                // The last word's trailing space would leave a gap against the right edge.
+                text = if (i == words.lastIndex) word.trimEnd() else word,
+                color = color,
+                fontSize = fontSize.sp,
+                lineHeight = fontSize.sp * 1.3f,
+                fontWeight = FontWeight.ExtraBold,
+                maxLines = 1,
+                softWrap = false,
+                style = TextStyle().inAppFont(),
+            )
+        }
+    }
 }
+
+/** A word and the space after it. */
+private val WORD_UNIT = Regex("\\S+\\s*")
 
 /**
  * Renders a word-synced line the way Apple Music / Gramophone do it: rather than flipping each
@@ -693,40 +702,23 @@ internal fun WordSyncedLine(
         nextLineStartMs != null -> nextLineStartMs
         else -> words[index].timeMs + 400L
     }
-    // How wide the whole line is on one row: every piece as it'll be laid out (its reading
-    // above it can be the wider of the two), for evening out the rows below.
-    val measurer = androidx.compose.ui.text.rememberTextMeasurer()
-    val density = androidx.compose.ui.platform.LocalDensity.current
-    // The readings are drawn in the theme's text style (letter spacing included), so they're
-    // measured in it too — leaving that out made a line seem narrower than it is, and its last
-    // kanji wrapped onto a row of its own.
-    val baseStyle = androidx.compose.material3.LocalTextStyle.current
-    val naturalWidth = remember(words, readings, fontSize, sungStyle.fontFamily, baseStyle) {
-        val readingStyle = baseStyle.merge(TextStyle(fontSize = fontSize * READING_SCALE, fontWeight = FontWeight.SemiBold))
-        words.indices.sumOf { i ->
-            val text = if (i == words.lastIndex) words[i].text.trimEnd() else words[i].text
-            val textWidth = measurer.measure(text, sungStyle, softWrap = false, maxLines = 1).size.width
-            val reading = readings?.getOrNull(i)
-            val readingWidth = if (reading != null) measurer.measure(reading, readingStyle, softWrap = false, maxLines = 1).size.width else 0
-            val gap = if (reading != null && text.lastOrNull()?.isWhitespace() == false) with(density) { 4.dp.roundToPx() } else 0
-            (maxOf(textWidth, readingWidth) + gap).toDouble()
-        }.toFloat()
-    }
-    FlowRow(
+    // Timed pieces with no space between them ("a" + "bout") are one word on screen — one unit
+    // of the row layout, never split across rows.
+    val groups = remember(words) { wordGroups(words) }
+    val groupTexts = remember(groups) { groups.map { g -> g.joinToString("") { words[it].text } } }
+    BalancedFlow(
+        words = groupTexts,
+        alignEnd = alignEnd,
+        rowGap = 8.dp,
         modifier = Modifier
-            .balancedWidth(naturalWidth, alignEnd)
             .fillMaxWidth()
             // Faded without clipping: the first word swelling from its middle, and its glow,
             // reach a little past the line's left edge and were being cut off there.
             .graphicsLayer { this.alpha = alpha; compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.ModulateAlpha }
             .padding(top = topPadding, bottom = bottomPadding)
             .then(if (glow) Modifier.blur(LYRIC_GLOW_BLUR, BlurredEdgeTreatment.Unbounded) else Modifier),
-        horizontalArrangement = if (alignEnd) Arrangement.End else Arrangement.Start,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        // Timed pieces with no space between them ("a" + "bout") are one word on screen: kept
-        // together on the same row instead of possibly wrapping between them.
-        wordGroups(words).forEach { group ->
+        groups.forEach { group ->
           // A word held for a long time ("fooor...") swells a little as a whole — every syllable
           // of it, not just the one being stretched — and glows brighter while it lasts, then
           // settles back. Mid-line words count from HELD_WORD_MS; a line's last word only from
@@ -739,7 +731,6 @@ internal fun WordSyncedLine(
           val swell by animateFloatAsState(if (groupHeld) 1f else 0f, tween(700, easing = FastOutSlowInEasing), label = "heldWord")
           Row(
               modifier = Modifier
-                  .then(if (readings != null) Modifier.alignBy(LastBaseline) else Modifier)
                   .graphicsLayer {
                       val grow = 1f + HELD_WORD_GROWTH * swell
                       scaleX = grow
@@ -879,37 +870,6 @@ private const val HELD_WORD_GROWTH = 0.08f
 /** Width of the soft edge on the karaoke sweep. */
 private val SWEEP_EDGE = 16.dp
 
-/**
- * Evens out a wrapped line: when [naturalWidth] (the whole line on one row) needs more than one
- * row of the space there is, the line is laid out a little narrower — about its total width
- * divided by the rows it takes — so the rows come out roughly the same length, instead of a full
- * row and then one lonely word (or one kanji) on the last. Still takes the full width itself, and
- * keeps to its side (right for a second singer).
- */
-private fun Modifier.balancedWidth(naturalWidth: Float, alignEnd: Boolean): Modifier = layout { measurable, constraints ->
-    val available = constraints.maxWidth
-    // A line that only just fits is treated as not fitting: measuring isn't pixel-exact, and a
-    // line a hair too wide is exactly the one that leaves a single character on the next row.
-    val usable = available * FIT_MARGIN
-    val target = if (!constraints.hasBoundedWidth || naturalWidth <= usable) {
-        available
-    } else {
-        val rows = kotlin.math.ceil(naturalWidth / usable)
-        (naturalWidth / rows * BALANCE_SLACK).toInt().coerceIn(1, available)
-    }
-    val placeable = measurable.measure(constraints.copy(minWidth = 0, maxWidth = target))
-    val width = if (constraints.hasBoundedWidth) available else placeable.width
-    layout(width, placeable.height) {
-        placeable.place(if (alignEnd) width - placeable.width else 0, 0)
-    }
-}
-
-/** Room to spare when evening out rows, so a line never needs one more row than it did. */
-private const val BALANCE_SLACK = 1.12f
-
-/** How much of the width a line may fill before it's evened out over two rows anyway. */
-private const val FIT_MARGIN = 0.96f
-
 /** Scrolls by [delta] on a soft spring, starting at [velocity]\[0] (and keeping it up to date). */
 private suspend fun androidx.compose.foundation.lazy.LazyListState.glideBy(delta: Float, velocity: FloatArray) {
     scroll {
@@ -962,3 +922,6 @@ private fun Char.isCjk(): Boolean = when (Character.UnicodeScript.of(code)) {
     Character.UnicodeScript.KATAKANA, Character.UnicodeScript.HANGUL -> true
     else -> false
 }
+
+/** Settings → «Точки в паузах обычного LRC»: dots between plain LRC lines (see withInstrumentalBreaks). */
+val LocalLrcGapDots = androidx.compose.runtime.staticCompositionLocalOf { true }

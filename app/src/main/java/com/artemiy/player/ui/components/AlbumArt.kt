@@ -58,7 +58,10 @@ private object AlbumArtCache {
 fun rememberAlbumArtBitmap(uri: Uri?, size: Int = ART_SIZE_THUMB): Bitmap? {
     val context = LocalContext.current
     val id = remember(uri) { uri?.let { runCatching { ContentUris.parseId(it) }.getOrNull() } }
-    val bitmap by produceState<Bitmap?>(initialValue = id?.let { AlbumArtCache.get(it, size) }, key1 = uri, key2 = size) {
+    // A big cover not decoded yet starts as its small version, if that's at hand — never a blank
+    // frame (it flashed when the player's cover came back from the lyrics or the queue).
+    fun cachedOrSmaller(id: Long): Bitmap? = AlbumArtCache.get(id, size) ?: if (size > ART_SIZE_THUMB) AlbumArtCache.get(id, ART_SIZE_THUMB) else null
+    val bitmap by produceState<Bitmap?>(initialValue = id?.let(::cachedOrSmaller), key1 = uri, key2 = size) {
         if (uri == null || id == null || Build.VERSION.SDK_INT < 29) {
             value = null
             return@produceState
@@ -68,14 +71,16 @@ fun rememberAlbumArtBitmap(uri: Uri?, size: Int = ART_SIZE_THUMB): Bitmap? {
             value = cached
             return@produceState
         }
-        // A row only flashing past during a fling never starts decoding.
-        delay(ART_LOAD_DELAY_MS)
+        value = cachedOrSmaller(id)
+        // A row only flashing past during a fling never starts decoding (the big player's cover
+        // isn't in any list, so it doesn't wait).
+        if (size <= ART_SIZE_THUMB) delay(ART_LOAD_DELAY_MS)
         val cancel = android.os.CancellationSignal()
         coroutineContext.job.invokeOnCompletion { cancel.cancel() }
         value = withContext(ArtDecoding) {
             runCatching {
                 context.contentResolver.loadThumbnail(uri, Size(size, size), cancel)
-            }.getOrNull()?.also { bmp -> AlbumArtCache.put(id, size, bmp) }
+            }.getOrNull()?.also { bmp -> AlbumArtCache.put(id, size, bmp) } ?: value
         }
     }
     return bitmap

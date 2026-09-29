@@ -22,16 +22,17 @@ private const val HELD_LAST_WORD_MS = 2_000L
  * the line began (unless it looks even longer) — and then only if there's still [LRC_MIN_DOTS_MS]
  * left before the next line, not just a flash.
  */
-private const val LRC_MIN_LINE_MS = 9_000L
+private const val LRC_MIN_LINE_MS = 12_000L
 private const val LRC_MIN_DOTS_MS = 3_000L
 
 /**
  * [lines] with instrumental breaks added as their own "lines" (see [LyricLine.instrumentalUntilMs]):
  * - lines with no text at all (how some files mark a break) become one;
  * - an intro of [INTRO_MIN_MS] or more before the first line gets one;
- * - [GAP_MIN_MS] or more of nothing between a line being done and the next one gets one.
+ * - [GAP_MIN_MS] or more of nothing between a line being done and the next one gets one — for
+ *   plain LRC only when [lrcGapDots] (a long-held line there looks just like a pause).
  */
-fun withInstrumentalBreaks(lines: List<LyricLine>): List<LyricLine> {
+fun withInstrumentalBreaks(lines: List<LyricLine>, lrcGapDots: Boolean = true): List<LyricLine> {
     if (lines.isEmpty()) return lines
     val out = ArrayList<LyricLine>(lines.size + 8)
     val first = lines.first()
@@ -52,7 +53,9 @@ fun withInstrumentalBreaks(lines: List<LyricLine>): List<LyricLine> {
         val done = line.estimatedEndMs(next.timeMs)
         // Timed words say when the line is really done; for plain LRC [done] already includes a
         // generous wait, so a shorter stretch after it is enough.
-        val minGap = if (line.words.isNullOrEmpty() && line.endTimeMs == null) LRC_MIN_DOTS_MS else GAP_MIN_MS
+        val plainLrc = line.words.isNullOrEmpty() && line.endTimeMs == null
+        if (plainLrc && !lrcGapDots) return@forEachIndexed
+        val minGap = if (plainLrc) LRC_MIN_DOTS_MS else GAP_MIN_MS
         if (next.timeMs - done >= minGap) {
             out += LyricLine(timeMs = done, text = "", voice = line.voice, instrumentalUntilMs = next.timeMs)
         }
@@ -60,7 +63,16 @@ fun withInstrumentalBreaks(lines: List<LyricLine>): List<LyricLine> {
     return out
 }
 
-private fun LyricLine.isBlankLine(): Boolean = text.isBlank() && secondary.isEmpty() && background == null
+private fun LyricLine.isBlankLine(): Boolean = text.isPauseMark() && secondary.isEmpty() && background == null
+
+/**
+ * Nothing but a pause mark: empty, or only dots, an ellipsis, music notes or dashes — some files
+ * put a lone "." on a timestamp to mark a break. Anything with a letter or a digit is a real line
+ * ("Oh." stays a line).
+ */
+private fun String.isPauseMark(): Boolean = all { it.isWhitespace() || it in PAUSE_MARKS }
+
+private const val PAUSE_MARKS = ".…·•・。♪♫♬♩-–—~〜*"
 
 /**
  * When this line is actually done being sung. The file says so when its last word has an end

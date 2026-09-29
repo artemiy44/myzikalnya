@@ -314,3 +314,5 @@ ui_style_classic = Clásico
 ui_style_expressive = Expresivo
 ui_style_classic_note = Tranquilo y plano: el aspecto de siempre.
 ui_style_expressive_note = Títulos grandes, barras flotantes, tarjetas redondeadas y formas divertidas.
+set_lrc_dots = Puntos en las pausas (LRC normal)
+set_lrc_dots_sub = El LRC normal no sabe cuánto dura cada línea, así que también pueden salir puntos en una línea larga. Los puntos antes de la primera línea siempre se quedan.

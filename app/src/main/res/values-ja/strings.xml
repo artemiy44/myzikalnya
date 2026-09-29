@@ -237,6 +237,8 @@
     <string name="set_library">ライブラリ</string>
     <string name="set_library_sub">スキャンと音楽フォルダ</string>
     <string name="set_light_bg">ライトテーマの背景</string>
+    <string name="set_lrc_dots">間奏のドット（通常の LRC）</string>
+    <string name="set_lrc_dots_sub">通常の LRC は行の長さが分からないため、長く歌う行でもドットが出ることがあります。最初の行の前のドットは常に表示されます。</string>
     <string name="set_min_length">この長さより短いファイルを除外</string>
     <string name="set_min_length_desc">ボイスメモ、通知音、ゲームのセリフはライブラリに入りません。</string>
     <string name="set_mood_explain">タグのジャンルによる選曲はいつも正確とは限りません。タグが不完全だったり、気分を表していなかったりします。下で、ライブラリのどのフォルダをどの気分とみなすか選べます — ジャンルに加わるもので、置き換えるものではありません。</string>

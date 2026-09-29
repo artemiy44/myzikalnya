@@ -314,3 +314,5 @@ ui_style_classic = Classico
 ui_style_expressive = Espressivo
 ui_style_classic_note = Calmo e piatto: l’aspetto di sempre.
 ui_style_expressive_note = Titoli grandi, barre fluttuanti, schede arrotondate e forme giocose.
+set_lrc_dots = Puntini nelle pause (LRC semplice)
+set_lrc_dots_sub = L'LRC semplice non sa quanto dura una riga, quindi i puntini possono comparire anche su una riga lunga. I puntini prima della prima riga restano sempre.

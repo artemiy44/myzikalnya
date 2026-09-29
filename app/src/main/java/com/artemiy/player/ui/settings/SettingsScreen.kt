@@ -109,6 +109,8 @@ fun SettingsScreen(
     liveBlurIntensity: LiveBlurIntensity,
     onLiveBlurIntensityChange: (LiveBlurIntensity) -> Unit,
     lyricsTapPlays: Boolean,
+    lrcGapDots: Boolean = true,
+    onLrcGapDotsChange: (Boolean) -> Unit = {},
     onLyricsTapPlaysChange: (Boolean) -> Unit,
     playerStyle: PlayerStyle,
     onPlayerStyleChange: (PlayerStyle) -> Unit,
@@ -206,6 +208,8 @@ fun SettingsScreen(
                     context = context,
                     onOpenNowPlayingBackground = { route = SettingsRoute.NowPlayingBackground },
                     lyricsTapPlays = lyricsTapPlays,
+                    lrcGapDots = lrcGapDots,
+                    onLrcGapDotsChange = onLrcGapDotsChange,
                     onLyricsTapPlaysChange = onLyricsTapPlaysChange,
                     playerStyle = playerStyle,
                     onPlayerStyleChange = onPlayerStyleChange,
@@ -547,6 +551,8 @@ private fun SettingsSectionContent(
     context: android.content.Context,
     onOpenNowPlayingBackground: () -> Unit,
     lyricsTapPlays: Boolean,
+    lrcGapDots: Boolean = true,
+    onLrcGapDotsChange: (Boolean) -> Unit = {},
     onLyricsTapPlaysChange: (Boolean) -> Unit,
     playerStyle: PlayerStyle,
     onPlayerStyleChange: (PlayerStyle) -> Unit,
@@ -812,6 +818,14 @@ private fun SettingsSectionContent(
                     subtitle = stringResource(R.string.set_tap_plays_sub),
                     checked = lyricsTapPlays,
                     onCheckedChange = onLyricsTapPlaysChange,
+                    modifier = Modifier.padding(top = 16.dp),
+                )
+                SettingsSwitchRow(
+                    icon = AppIcons.Lyrics,
+                    title = stringResource(R.string.set_lrc_dots),
+                    subtitle = stringResource(R.string.set_lrc_dots_sub),
+                    checked = lrcGapDots,
+                    onCheckedChange = onLrcGapDotsChange,
                     modifier = Modifier.padding(top = 16.dp),
                 )
             }

@@ -237,6 +237,8 @@
     <string name="set_library">보관함</string>
     <string name="set_library_sub">스캔과 음악 폴더</string>
     <string name="set_light_bg">라이트 테마 배경</string>
+    <string name="set_lrc_dots">간주 점 표시 (일반 LRC)</string>
+    <string name="set_lrc_dots_sub">일반 LRC는 한 줄이 얼마나 불리는지 몰라서 길게 부르는 줄에도 점이 나올 수 있어요. 첫 줄 앞의 점은 항상 유지돼요.</string>
     <string name="set_min_length">이보다 짧은 파일 제외</string>
     <string name="set_min_length_desc">음성 메모, 알림음, 게임 대사는 보관함에 들어오지 않아요.</string>
     <string name="set_mood_explain">태그의 장르로 고르는 방식이 항상 정확하지는 않아요. 태그가 불완전하거나 분위기를 전혀 반영하지 못할 수도 있어요. 아래에서 보관함의 어떤 폴더를 어떤 기분으로 볼지 표시할 수 있어요 — 장르를 대신하는 게 아니라 더해져요.</string>

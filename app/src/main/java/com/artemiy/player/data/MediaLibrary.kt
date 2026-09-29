@@ -34,6 +34,10 @@ data class Song(
      * multi-disc album it's on — for listing an album in order. */
     val trackNumber: Int? = null,
     val discNumber: Int? = null,
+    /** The artist and album exactly as this file's tags spell them, when the library shows a
+     * more common spelling instead (see [ArtistNames.withUsualSpellings]) — for «Информация о песне». */
+    val tagArtist: String? = null,
+    val tagAlbum: String? = null,
 )
 
 /**
