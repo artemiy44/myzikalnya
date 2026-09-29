@@ -183,6 +183,8 @@ fun LibraryScreen(
     val artistsGridState = rememberLazyGridState()
     val albumsListState = rememberLazyListState()
     val albumsGridState = rememberLazyGridState()
+    val yearsGridState = rememberLazyGridState()
+    val genresGridState = rememberLazyGridState()
     val songsListState = rememberLazyListState()
     val songsGridState = rememberLazyGridState()
 
@@ -546,12 +548,14 @@ fun LibraryScreen(
 
                         LibraryRoute.Years -> TagGrid(
                             groups = yearGroups,
+                            state = yearsGridState,
                             onOpen = { push(LibraryRoute.YearDetail(it.key?.toIntOrNull())) },
                             name = { it.name ?: stringResource(R.string.no_year) },
                         ) { group -> TileMark(if (group.key == null) "?" else shortYear(group.key)) }
 
                         LibraryRoute.Genres -> TagGrid(
                             groups = genreGroups,
+                            state = genresGridState,
                             onOpen = { push(LibraryRoute.GenreDetail(it.key)) },
                             name = { it.name ?: stringResource(R.string.no_genre) },
                         ) { group ->
@@ -1598,6 +1602,8 @@ private fun androidx.compose.foundation.layout.BoxScope.TileMark(text: String) {
 @Composable
 private fun TagGrid(
     groups: List<TagGroup>,
+    /** Kept by the Library itself, so coming back from a year's page finds the list where it was. */
+    state: LazyGridState,
     onOpen: (TagGroup) -> Unit,
     name: @Composable (TagGroup) -> String,
     mark: @Composable androidx.compose.foundation.layout.BoxScope.(TagGroup) -> Unit,
@@ -1605,6 +1611,7 @@ private fun TagGrid(
     val expressive = com.artemiy.player.ui.theme.expressiveUi
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
+        state = state,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         // The gaps as the grid's own padding, not around it: clipped 4 dp short, the tiles left a
