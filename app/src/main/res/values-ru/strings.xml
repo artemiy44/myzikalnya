@@ -56,6 +56,8 @@
     <string name="daypart_evening">вечером</string>
     <string name="daypart_morning">утром</string>
     <string name="daypart_night">ночью</string>
+    <string name="debug_showcase">Витрина заглушек</string>
+    <string name="debug_showcase_sub">Только в отладочной сборке: все пустые и загрузочные состояния на одной странице</string>
     <string name="delete">Удалить</string>
     <string name="delete_playlist">Удалить плейлист</string>
     <string name="delete_playlist_msg">Сами треки останутся в медиатеке.</string>

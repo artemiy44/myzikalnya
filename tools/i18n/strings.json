@@ -216,6 +216,14 @@
   "en": "at night",
   "ru": "ночью"
  },
+ "debug_showcase": {
+  "en": "Placeholder showcase",
+  "ru": "Витрина заглушек"
+ },
+ "debug_showcase_sub": {
+  "en": "Debug build only: every empty and loading state on one page",
+  "ru": "Только в отладочной сборке: все пустые и загрузочные состояния на одной странице"
+ },
  "delete": {
   "en": "Delete",
   "ru": "Удалить"
