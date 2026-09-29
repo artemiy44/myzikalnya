@@ -302,6 +302,12 @@ private fun genreArtFor(genre: String): GenreArt {
     return FALLBACK_ART[(lower.hashCode() and Int.MAX_VALUE) % FALLBACK_ART.size]
 }
 
+/** A genre's picture on its own (for the artist page's header art). */
+internal fun DrawScope.drawGenreMotif(genre: String, seed: Int) = drawGenre(genre, seed)
+
+/** Which picture a genre gets — two genres with the same picture count as one ("rock", "punk"). */
+internal fun genrePictureOf(genre: String): String = genreArtFor(genre).name
+
 private fun DrawScope.drawGenre(genre: String, seed: Int) {
     when (genreArtFor(genre)) {
         GenreArt.BOLT -> drawBolt()

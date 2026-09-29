@@ -1,5 +1,8 @@
 package com.artemiy.player.ui.nowplaying
 
+import kotlinx.coroutines.delay
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import com.artemiy.player.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -48,6 +51,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.LastBaseline
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -183,8 +187,30 @@ internal fun LyricsView(
                 }
             }
             val listState = rememberLazyListState()
+            // How fast the lines are gliding right now — a new line coming before the last glide
+            // has settled carries on from this speed instead of stopping and starting over, which
+            // showed as a small jerk when lines came quickly one after another.
+            val scrollVelocity = remember { floatArrayOf(0f) }
             var lastAnchorBottomPx by remember { mutableStateOf(anchorBottomPx) }
-            LaunchedEffect(activeIndex, anchorTopPx, anchorBottomPx) {
+            // Scrolled through by hand: the lines are left where the finger put them, and a couple
+            // of seconds after it lets go (and any fling has settled) they glide back to the one
+            // being sung.
+            val dragged by listState.interactionSource.collectIsDraggedAsState()
+            var recenter by remember { mutableIntStateOf(0) }
+            var browsed by remember { mutableStateOf(false) }
+            LaunchedEffect(dragged) {
+                if (dragged) {
+                    browsed = true
+                    return@LaunchedEffect
+                }
+                if (!browsed) return@LaunchedEffect
+                delay(RECENTER_AFTER_MS)
+                while (listState.isScrollInProgress) delay(100)
+                browsed = false
+                recenter++
+            }
+            LaunchedEffect(activeIndex, anchorTopPx, anchorBottomPx, recenter) {
+                if (browsed) return@LaunchedEffect
                 val panelToggled = anchorBottomPx != lastAnchorBottomPx
                 lastAnchorBottomPx = anchorBottomPx
                 val info = listState.layoutInfo
@@ -204,10 +230,11 @@ internal fun LyricsView(
                     val itemCenterOnScreen = itemInfo.offset + itemInfo.size / 2f - info.viewportStartOffset
                     // Panel show/hide: a quick, eased glide to the new spot. Line changes: a soft,
                     // unhurried spring (the default one snapped over a little abruptly).
-                    listState.animateScrollBy(
-                        itemCenterOnScreen - anchor,
-                        if (panelToggled) tween(320, easing = FastOutSlowInEasing) else LINE_SCROLL,
-                    )
+                    if (panelToggled) {
+                        listState.animateScrollBy(itemCenterOnScreen - anchor, tween(320, easing = FastOutSlowInEasing))
+                    } else {
+                        listState.glideBy(itemCenterOnScreen - anchor, scrollVelocity)
+                    }
                 } else {
                     // Big jump (e.g. track just changed) — land roughly nearby first.
                     listState.animateScrollToItem((activeIndex - 2).coerceAtLeast(0))
@@ -514,10 +541,29 @@ internal fun RubyLine(
     glow: Boolean = false,
 ) {
     val color = if (glow) PlayerColors.TextPrimary.copy(alpha = LYRIC_GLOW_ALPHA) else PlayerColors.TextPrimary
+    val measurer = androidx.compose.ui.text.rememberTextMeasurer()
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val family = com.artemiy.player.ui.theme.LocalAppFontFamily.current
+    val baseStyle = androidx.compose.material3.LocalTextStyle.current
+    val naturalWidth = remember(segments, fontSize, family, baseStyle) {
+        val textStyle = baseStyle.merge(TextStyle(fontSize = fontSize.sp, fontWeight = FontWeight.ExtraBold, fontFamily = family))
+        val readingStyle = baseStyle.merge(TextStyle(fontSize = (fontSize * READING_SCALE).sp, fontWeight = FontWeight.SemiBold))
+        segments.indices.sumOf { i ->
+            val segment = segments[i]
+            val text = if (i == segments.lastIndex) segment.text.trimEnd() else segment.text
+            val textWidth = measurer.measure(text, textStyle, softWrap = false, maxLines = 1).size.width
+            val readingWidth = segment.reading?.let { measurer.measure(it, readingStyle, softWrap = false, maxLines = 1).size.width } ?: 0
+            val gap = if (segment.reading != null && !segment.text.last().isWhitespace()) with(density) { 4.dp.roundToPx() } else 0
+            (maxOf(textWidth, readingWidth) + gap).toDouble()
+        }.toFloat()
+    }
     FlowRow(
         modifier = Modifier
+            .balancedWidth(naturalWidth, alignEnd)
             .fillMaxWidth()
-            .alpha(alpha)
+            // Faded without clipping: the first word swelling from its middle, and its glow,
+            // reach a little past the line's left edge and were being cut off there.
+            .graphicsLayer { this.alpha = alpha; compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.ModulateAlpha }
             .padding(top = 8.dp, bottom = bottomPadding)
             .then(if (glow) Modifier.blur(LYRIC_GLOW_BLUR, BlurredEdgeTreatment.Unbounded) else Modifier),
         horizontalArrangement = if (alignEnd) Arrangement.End else Arrangement.Start,
@@ -558,7 +604,9 @@ internal fun SecondaryLyricLine(
             textAlign = if (alignEnd) TextAlign.End else TextAlign.Start,
             modifier = Modifier
                 .fillMaxWidth()
-                .alpha(alpha)
+                // Faded without clipping: the first word swelling from its middle, and its glow,
+            // reach a little past the line's left edge and were being cut off there.
+            .graphicsLayer { this.alpha = alpha; compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.ModulateAlpha }
                 .padding(bottom = 6.dp),
         )
     }
@@ -586,9 +634,13 @@ internal fun PlainLyricLine(
         lineHeight = fontSize.sp * 1.3f,
         fontWeight = FontWeight.ExtraBold,
         textAlign = if (alignEnd) TextAlign.End else TextAlign.Start,
+        // Rows of about equal length rather than a full row and a lonely last word.
+        style = TextStyle(lineBreak = androidx.compose.ui.text.style.LineBreak.Heading).inAppFont(),
         modifier = Modifier
             .fillMaxWidth()
-            .alpha(alpha)
+            // Faded without clipping: the first word swelling from its middle, and its glow,
+            // reach a little past the line's left edge and were being cut off there.
+            .graphicsLayer { this.alpha = alpha; compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.ModulateAlpha }
             .padding(top = topPadding, bottom = bottomPadding)
             .then(if (glow) Modifier.blur(LYRIC_GLOW_BLUR, BlurredEdgeTreatment.Unbounded) else Modifier),
     )
@@ -641,10 +693,32 @@ internal fun WordSyncedLine(
         nextLineStartMs != null -> nextLineStartMs
         else -> words[index].timeMs + 400L
     }
+    // How wide the whole line is on one row: every piece as it'll be laid out (its reading
+    // above it can be the wider of the two), for evening out the rows below.
+    val measurer = androidx.compose.ui.text.rememberTextMeasurer()
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    // The readings are drawn in the theme's text style (letter spacing included), so they're
+    // measured in it too — leaving that out made a line seem narrower than it is, and its last
+    // kanji wrapped onto a row of its own.
+    val baseStyle = androidx.compose.material3.LocalTextStyle.current
+    val naturalWidth = remember(words, readings, fontSize, sungStyle.fontFamily, baseStyle) {
+        val readingStyle = baseStyle.merge(TextStyle(fontSize = fontSize * READING_SCALE, fontWeight = FontWeight.SemiBold))
+        words.indices.sumOf { i ->
+            val text = if (i == words.lastIndex) words[i].text.trimEnd() else words[i].text
+            val textWidth = measurer.measure(text, sungStyle, softWrap = false, maxLines = 1).size.width
+            val reading = readings?.getOrNull(i)
+            val readingWidth = if (reading != null) measurer.measure(reading, readingStyle, softWrap = false, maxLines = 1).size.width else 0
+            val gap = if (reading != null && text.lastOrNull()?.isWhitespace() == false) with(density) { 4.dp.roundToPx() } else 0
+            (maxOf(textWidth, readingWidth) + gap).toDouble()
+        }.toFloat()
+    }
     FlowRow(
         modifier = Modifier
+            .balancedWidth(naturalWidth, alignEnd)
             .fillMaxWidth()
-            .alpha(alpha)
+            // Faded without clipping: the first word swelling from its middle, and its glow,
+            // reach a little past the line's left edge and were being cut off there.
+            .graphicsLayer { this.alpha = alpha; compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.ModulateAlpha }
             .padding(top = topPadding, bottom = bottomPadding)
             .then(if (glow) Modifier.blur(LYRIC_GLOW_BLUR, BlurredEdgeTreatment.Unbounded) else Modifier),
         horizontalArrangement = if (alignEnd) Arrangement.End else Arrangement.Start,
@@ -805,12 +879,61 @@ private const val HELD_WORD_GROWTH = 0.08f
 /** Width of the soft edge on the karaoke sweep. */
 private val SWEEP_EDGE = 16.dp
 
+/**
+ * Evens out a wrapped line: when [naturalWidth] (the whole line on one row) needs more than one
+ * row of the space there is, the line is laid out a little narrower — about its total width
+ * divided by the rows it takes — so the rows come out roughly the same length, instead of a full
+ * row and then one lonely word (or one kanji) on the last. Still takes the full width itself, and
+ * keeps to its side (right for a second singer).
+ */
+private fun Modifier.balancedWidth(naturalWidth: Float, alignEnd: Boolean): Modifier = layout { measurable, constraints ->
+    val available = constraints.maxWidth
+    // A line that only just fits is treated as not fitting: measuring isn't pixel-exact, and a
+    // line a hair too wide is exactly the one that leaves a single character on the next row.
+    val usable = available * FIT_MARGIN
+    val target = if (!constraints.hasBoundedWidth || naturalWidth <= usable) {
+        available
+    } else {
+        val rows = kotlin.math.ceil(naturalWidth / usable)
+        (naturalWidth / rows * BALANCE_SLACK).toInt().coerceIn(1, available)
+    }
+    val placeable = measurable.measure(constraints.copy(minWidth = 0, maxWidth = target))
+    val width = if (constraints.hasBoundedWidth) available else placeable.width
+    layout(width, placeable.height) {
+        placeable.place(if (alignEnd) width - placeable.width else 0, 0)
+    }
+}
+
+/** Room to spare when evening out rows, so a line never needs one more row than it did. */
+private const val BALANCE_SLACK = 1.12f
+
+/** How much of the width a line may fill before it's evened out over two rows anyway. */
+private const val FIT_MARGIN = 0.96f
+
+/** Scrolls by [delta] on a soft spring, starting at [velocity]\[0] (and keeping it up to date). */
+private suspend fun androidx.compose.foundation.lazy.LazyListState.glideBy(delta: Float, velocity: FloatArray) {
+    scroll {
+        var done = 0f
+        androidx.compose.animation.core.animate(0f, delta, velocity[0], LINE_GLIDE) { value, speed ->
+            scrollBy(value - done)
+            done = value
+            velocity[0] = speed
+        }
+        velocity[0] = 0f
+    }
+}
+
+/** The line-change glide: no overshoot, settles in a little under half a second. */
+private val LINE_GLIDE = androidx.compose.animation.core.spring<Float>(dampingRatio = 1f, stiffness = 230f)
+
+/** How long after scrolling the lyrics by hand they return to the line being sung. */
+private const val RECENTER_AFTER_MS = 2_000L
+
 /** Beyond this, the smoothed lyric clock takes the player's position as is (a seek, not drift). */
 private const val SMOOTH_SNAP_MS = 500L
 
 /** Moving on to the next line: a quick start easing out into place — decisive, but not a snap. */
 private val LINE_EASE = androidx.compose.animation.core.CubicBezierEasing(0.2f, 0f, 0f, 1f)
-private val LINE_SCROLL = tween<Float>(420, easing = LINE_EASE)
 private val LINE_CHANGE = tween<Float>(320, easing = LINE_EASE)
 
 /**

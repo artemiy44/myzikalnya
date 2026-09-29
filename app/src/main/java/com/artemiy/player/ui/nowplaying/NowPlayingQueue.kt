@@ -569,19 +569,13 @@ internal fun AddToQueuePicker(songs: List<Song>, onAdd: (Song) -> Unit, onDismis
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(imageVector = AppIcons.Search, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(18.dp))
-                Box(modifier = Modifier.weight(1f).padding(horizontal = 10.dp)) {
-                    if (query.isEmpty()) {
-                        Text(text = stringResource(R.string.search_title_artist_album), color = PlayerColors.TextTertiary, fontSize = 15.sp)
-                    }
-                    androidx.compose.foundation.text.BasicTextField(
-                        value = query,
-                        onValueChange = { query = it },
-                        singleLine = true,
-                        textStyle = androidx.compose.ui.text.TextStyle(color = PlayerColors.TextPrimary, fontSize = 15.sp).inAppFont(),
-                        cursorBrush = androidx.compose.ui.graphics.SolidColor(PlayerColors.TextPrimary),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
+                com.artemiy.player.ui.components.HintTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    hint = stringResource(R.string.search_title_artist_album),
+                    fontSize = 15.sp,
+                    modifier = Modifier.weight(1f).padding(horizontal = 10.dp),
+                )
             }
             LazyColumn(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
                 itemsIndexed(results) { _, song ->

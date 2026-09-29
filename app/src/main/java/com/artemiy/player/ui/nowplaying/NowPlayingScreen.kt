@@ -48,6 +48,7 @@ import com.artemiy.player.data.NowPlayingBackgroundMode
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.util.lerp
 import com.artemiy.player.ui.components.MINI_ART_CORNER
@@ -156,32 +157,70 @@ fun NowPlayingScreen(
     var sideFlight by remember { mutableFloatStateOf(1f) }
     var sideFrom by remember { mutableStateOf(CenterMode.Lyrics) }
     var sideFlightRun by remember { mutableIntStateOf(0) }
+    // How fast each flight is moving right now, to hand over when one is turned around midway.
+    val flightVelocity = remember { floatArrayOf(0f, 0f) }
+    var sideStartVelocity by remember { mutableFloatStateOf(0f) }
+    var modeStartVelocity by remember { mutableFloatStateOf(0f) }
+    // Which run of each flight may still move it. An animation that has just been replaced (or
+    // stopped) can deliver one more frame before it's cancelled; without this, that stale frame
+    // landed on top of the new start and the flight jumped — seen when tapping lyrics/queue fast.
+    val flightRuns = remember { intArrayOf(0, 0) }
     fun switchMode(next: CenterMode) {
         if (next == centerMode) return
         val crossesArt = (next == CenterMode.Art) != (centerMode == CenterMode.Art)
         if (!crossesArt) {
+            // Turning back halfway: carry on from the same spot and at the same speed, the other
+            // way round — starting from standstill made quick back-and-forth taps look jerky.
+            sideStartVelocity = if (sideFlight < 1f) -flightVelocity[0] else 0f
             sideFlight = if (sideFlight < 1f) 1f - sideFlight else 0f
             sideFrom = centerMode
             sideFlightRun++
+            flightRuns[0] = sideFlightRun
         } else {
+            flightRuns[0] = -1
             sideFlight = 1f
         }
         if (crossesArt) {
             // Turning back halfway: carry on from the same spot, the other way round.
+            modeStartVelocity = if (modeFlight < 1f) -flightVelocity[1] else 0f
             modeFlight = if (modeFlight < 1f) 1f - modeFlight else 0f
             modeFlightFromArt = centerMode == CenterMode.Art
             modeFlightOther = if (next == CenterMode.Art) centerMode else next
             modeFlightRun++
+            flightRuns[1] = modeFlightRun
         }
         centerMode = next
     }
     LaunchedEffect(sideFlightRun) {
         if (sideFlightRun == 0) return@LaunchedEffect
-        androidx.compose.animation.core.animate(sideFlight, 1f, animationSpec = MODE_FLIGHT_SPRING) { value, _ -> sideFlight = value }
+        val run = sideFlightRun
+        androidx.compose.animation.core.animate(sideFlight, 1f, sideStartVelocity, MODE_FLIGHT_SPRING) { value, velocity ->
+            if (flightRuns[0] != run) return@animate
+            sideFlight = value
+            flightVelocity[0] = velocity
+        }
     }
     LaunchedEffect(modeFlightRun) {
         if (modeFlightRun == 0) return@LaunchedEffect
-        androidx.compose.animation.core.animate(modeFlight, 1f, animationSpec = MODE_FLIGHT_SPRING) { value, _ -> modeFlight = value }
+        val run = modeFlightRun
+        androidx.compose.animation.core.animate(modeFlight, 1f, modeStartVelocity, MODE_FLIGHT_SPRING) { value, velocity ->
+            if (flightRuns[1] != run) return@animate
+            modeFlight = value
+            flightVelocity[1] = velocity
+        }
+    }
+    // The player starting to close (dragged down, or the handle) while the cover is still flying
+    // between the big view and the header: that flight ends here and then — the cover, the title
+    // and the rest go along with the closing instead, rather than finishing their landing in the
+    // big player and vanishing the moment it was gone.
+    val closing by remember { derivedStateOf { expand() < 0.999f } }
+    LaunchedEffect(closing) {
+        if (closing) {
+            flightRuns[0] = -1
+            flightRuns[1] = -1
+            sideFlight = 1f
+            modeFlight = 1f
+        }
     }
     // Where the pieces sit at either end, as last laid out.
     var headerArtBounds by remember { mutableStateOf<Rect?>(null) }
@@ -248,6 +287,7 @@ fun NowPlayingScreen(
     val miniIconColor = PlayerColors.TextPrimary
     var titleTarget by remember { mutableStateOf<Rect?>(null) }
     val playerActive = LocalNowPlayingActive.current
+    val coverShadow = nowPlayingBackgroundMode != NowPlayingBackgroundMode.NONE
     // What sits at the right end of the header: the romanization switch on lyrics, the song's
     // "⋯" menu on the queue (flying there from beside the title under the cover).
     @Composable
@@ -394,12 +434,27 @@ fun NowPlayingScreen(
                                     }
                                     // Coming back from lyrics/queue: the flying copy lands here.
                                     alpha = if (modeFlight < 1f && !modeFlightFromArt) 0f else 1f
+                                    // A faint shadow lifts the cover off a blurred background — only
+                                    // once it's settled in place (it comes up as it lands), and not
+                                    // over the plain background, where there's nothing to lift it off.
+                                    val settled = ((expand() - 0.85f) / 0.15f).coerceIn(0f, 1f) *
+                                        (if (!modeFlightFromArt) modeFlight else 1f)
+                                    if (coverShadow && settled > 0f) {
+                                        shadowElevation = COVER_SHADOW.toPx() * settled
+                                        spotShadowColor = Color.Black.copy(alpha = 0.6f)
+                                        ambientShadowColor = Color.Black.copy(alpha = 0.35f)
+                                    } else {
+                                        shadowElevation = 0f
+                                    }
                                     clip = true
                                 },
                         )
                     }
 
                     CenterMode.Lyrics -> Box(modifier = Modifier.fillMaxSize().graphicsLayer { alpha = chromeAlpha() }.modeContentIn { modeFlight }) {
+                        // Reading along: the screen stays awake (only while the player is open —
+                        // it's kept around, hidden, after closing).
+                        if (LocalNowPlayingActive.current) com.artemiy.player.ui.components.KeepScreenOn()
                         LyricsView(
                             lyrics = lyrics,
                             positionMs = positionMs,
@@ -816,6 +871,9 @@ fun NowPlayingScreen(
 
 /** How far (of the width) lyrics and the queue slide when switching between them. */
 private const val SIDE_SHIFT = 0.22f
+
+/** How high the settled cover seems to float over a blurred background. */
+private val COVER_SHADOW = 14.dp
 
 /** Cover <-> lyrics/queue flight: the same soft spring as opening the player. */
 private val MODE_FLIGHT_SPRING = androidx.compose.animation.core.spring<Float>(dampingRatio = 1f, stiffness = 320f, visibilityThreshold = 0.0005f)

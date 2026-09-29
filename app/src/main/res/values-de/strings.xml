@@ -185,6 +185,9 @@
     <string name="rename">Umbenennen</string>
     <string name="rename_playlist">Playlist umbenennen</string>
     <string name="repeat">Wiederholen</string>
+    <string name="replace">Ersetzen</string>
+    <string name="replace_queue_msg">Was gerade in der Warteschlange steht, macht den neuen Songs Platz.</string>
+    <string name="replace_queue_q">Warteschlange ersetzen?</string>
     <string name="sat_muted">Gedämpft</string>
     <string name="sat_normal">Normal</string>
     <string name="save">Speichern</string>
@@ -234,9 +237,13 @@
     <string name="set_library">Mediathek</string>
     <string name="set_library_sub">Scannen und Musikordner</string>
     <string name="set_light_bg">Hintergrund des hellen Designs</string>
+    <string name="set_min_length">Dateien überspringen, kürzer als</string>
+    <string name="set_min_length_desc">Sprachnachrichten, Benachrichtigungstöne und Sprachzeilen aus Spielen bleiben aus der Mediathek heraus.</string>
     <string name="set_mood_explain">Die Auswahl nach Genre aus den Tags passt nicht immer: Tags können unvollständig sein oder die Stimmung gar nicht widerspiegeln. Unten lässt sich festlegen, welche Ordner der Mediathek als welche Stimmung gelten — das kommt zum Genre hinzu, statt es zu ersetzen.</string>
     <string name="set_mood_sub">Welche Ordner als welche Stimmung gelten</string>
     <string name="set_no_folders_yet">Noch keine Ordner gefunden — die Mediathek muss neu gescannt werden.</string>
+    <string name="set_notif_button">Zweiter Knopf in der Benachrichtigung</string>
+    <string name="set_notif_button_desc">Neben „Zufallswiedergabe“ im System-Player.</string>
     <string name="set_playback">Wiedergabe</string>
     <string name="set_playback_sub">Equalizer, Endloswiedergabe</string>
     <string name="set_player_background">Player-Hintergrund</string>
@@ -288,6 +295,7 @@
     <string name="unit_khz">%1$.1f kHz</string>
     <string name="unit_mb">%1$.1f MB</string>
     <string name="unit_min">%1$d Min.</string>
+    <string name="unit_sec">%1$d s</string>
     <string name="unknown_artist">Unbekannter Künstler</string>
     <string name="untitled">Ohne Titel</string>
     <string name="up_next">Als Nächstes</string>

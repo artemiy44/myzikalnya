@@ -80,7 +80,7 @@ fun AddToPlaylistDialog(
                         .size(32.dp)
                         .clip(CircleShape)
                         .background(if (ready) PlayerColors.Accent else PlayerColors.SurfaceDim)
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, enabled = ready) {
+                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress, enabled = ready) {
                             onCreatePlaylist(newName)
                             newName = ""
                         },

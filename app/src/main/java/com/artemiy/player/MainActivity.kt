@@ -62,6 +62,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -156,7 +157,12 @@ private val audioPermission =
 
 @Composable
 private fun PlayerApp(settings: SettingsViewModel) {
-    var selectedTab by remember { mutableStateOf(AppTab.Home) }
+    var selectedTab by rememberSaveable { mutableStateOf(AppTab.Home) }
+    // Tapping the tab that's already open: back to its first page (or its top). Counted per tab.
+    val tabRootRequests = remember { mutableStateMapOf<AppTab, Int>() }
+    // Each tab's own state (scroll positions, a search typed in...) survives switching to
+    // another tab and back.
+    val tabStates = androidx.compose.runtime.saveable.rememberSaveableStateHolder()
     // Jump to the chosen start tab once, as soon as the saved choice has been read — later changes
     // to the setting only apply to the next launch, not to the tab you're on right now.
     var startTabApplied by rememberSaveable { mutableStateOf(false) }
@@ -249,11 +255,24 @@ private fun PlayerApp(settings: SettingsViewModel) {
     }
     val songs = remember { mutableStateListOf<Song>() }
 
+    // Starting something new replaces the queue. When the queue was set up with some care —
+    // shuffle or endless play on, or 20+ songs lined up — ask first, so a stray tap doesn't throw
+    // it away. (Adding to the queue never asks: it doesn't replace anything.)
+    var pendingPlay by remember { mutableStateOf<(() -> Unit)?>(null) }
+    fun startPlaying(action: () -> Unit) {
+        val lined = playback.manualQueue.size + playback.continueQueue.size
+        val careful = playback.currentSong != null &&
+            (playback.shuffleEnabled || playback.infinitePlayEnabled || lined >= QUEUE_WORTH_ASKING)
+        if (careful) pendingPlay = action else action()
+    }
+
     fun playMood(mood: Mood) {
         val pool = songsForMood(songs, mood, settings.moodFolders[mood] ?: emptySet())
         if (pool.isNotEmpty()) {
-            playback.play(pool.first(), pool, PlayOrigin(context.getString(R.string.tab_mood), SourceArt.Place(SourcePlace.MOOD)))
-            openNowPlaying()
+            startPlaying {
+                playback.play(pool.first(), pool, PlayOrigin(context.getString(R.string.tab_mood), SourceArt.Place(SourcePlace.MOOD)))
+                openNowPlaying()
+            }
         }
     }
 
@@ -279,10 +298,10 @@ private fun PlayerApp(settings: SettingsViewModel) {
     var libraryLoaded by remember { mutableStateOf(false) }
     var appReady by rememberSaveable { mutableStateOf(false) }
 
-    LaunchedEffect(permissionGranted, settings.scanFolders) {
+    LaunchedEffect(permissionGranted, settings.scanFolders, settings.minDurationSec) {
         if (permissionGranted) {
             // Off the main thread — it's what made the launch animation stutter.
-            val fresh = withContext(Dispatchers.IO) { querySongs(context, settings.scanFolders) }
+            val fresh = withContext(Dispatchers.IO) { querySongs(context, settings.scanFolders, settings.minDurationSec * 1000L) }
             // Each artist's usual spelling, so "Eve" and "EVE" end up as one artist.
             withContext(Dispatchers.Default) { ArtistNames.learn(fresh) }
             songs.clear()
@@ -307,7 +326,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
     LaunchedEffect(rescanTrigger) {
         if (rescanTrigger > 0 && permissionGranted) {
             // Off the main thread — it's what made the launch animation stutter.
-            val fresh = withContext(Dispatchers.IO) { querySongs(context, settings.scanFolders) }
+            val fresh = withContext(Dispatchers.IO) { querySongs(context, settings.scanFolders, settings.minDurationSec * 1000L) }
             // Each artist's usual spelling, so "Eve" and "EVE" end up as one artist.
             withContext(Dispatchers.Default) { ArtistNames.learn(fresh) }
             songs.clear()
@@ -326,8 +345,23 @@ private fun PlayerApp(settings: SettingsViewModel) {
         playback.setLibrary(songs.toList())
     }
 
+    // Back from the open player: while the back gesture is being made, the player already starts
+    // going down (the first bit of its closing, following the finger); letting go closes it the
+    // rest of the way, carrying on from there — or, when the gesture is called off, it settles
+    // back open.
+    // (Not while the expressive player's queue sheet is pulled up: back closes that first.)
     if (showNowPlaying) {
-        BackHandler { closeNowPlaying() }
+        androidx.activity.compose.PredictiveBackHandler(enabled = classicPlayer || !nowPlayingMemory.expressiveQueueOpen) { progress ->
+            try {
+                progress.collect { event -> nowPlayingExpand.snapTo(1f - BACK_PEEK * event.progress) }
+                closeNowPlaying()
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
+                    nowPlayingExpand.animateTo(1f, NOW_PLAYING_SPRING)
+                }
+                throw e
+            }
+        }
     }
 
     // Dark status/nav bar icons on a light theme — except over the Now Playing screen's blur
@@ -393,7 +427,15 @@ private fun PlayerApp(settings: SettingsViewModel) {
                         },
                     ),
                 )
-                PlayerBottomBar(selected = selectedTab, onSelect = { selectedTab = it })
+                PlayerBottomBar(selected = selectedTab, onSelect = { tab ->
+                    if (tab != selectedTab) {
+                        selectedTab = tab
+                    } else if (tab == AppTab.Library && libraryBackStack.size > 1) {
+                        libraryBackStack.removeRange(1, libraryBackStack.size)
+                    } else {
+                        tabRootRequests[tab] = (tabRootRequests[tab] ?: 0) + 1
+                    }
+                })
             }
         }
     ) { innerPadding ->
@@ -412,6 +454,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 },
                 label = "tabs",
             ) { tab ->
+                tabStates.SaveableStateProvider(tab.name) {
                 Box(modifier = Modifier.fillMaxSize().background(PlayerColors.Background)) {
                     when (tab) {
                         AppTab.Mood -> {
@@ -421,6 +464,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                             MoodScreen(onPlayMood = ::playMood, genresFor = { genresByMood[it].orEmpty() })
                         }
                         AppTab.Home -> HomeScreen(
+                            rootRequest = tabRootRequests[AppTab.Home] ?: 0,
                             mixes = home.mixes,
                             statDays = home.statDays,
                             quickPicks = home.quickPicks,
@@ -428,8 +472,10 @@ private fun PlayerApp(settings: SettingsViewModel) {
                             recentlyAddedAll = home.recentlyAddedAll,
                             recap = home.recap,
                             onSongClick = { song, list, origin ->
-                                playback.play(song, list, origin)
-                                openNowPlaying()
+                                startPlaying {
+                                    playback.play(song, list, origin)
+                                    openNowPlaying()
+                                }
                             },
                             onSaveMix = { mix ->
                                 // A snapshot: the mix itself changes daily, the saved playlist doesn't.
@@ -450,8 +496,11 @@ private fun PlayerApp(settings: SettingsViewModel) {
                             backStack = libraryBackStack,
                             onRequestPermission = { permissionLauncher.launch(audioPermission) },
                             onSongClick = { song, list ->
-                                playback.play(song, list, libraryBackStack.lastOrNull()?.let { libraryOrigin(it, list, context) })
-                                openNowPlaying()
+                                val origin = libraryBackStack.lastOrNull()?.let { libraryOrigin(it, list, context) }
+                                startPlaying {
+                                    playback.play(song, list, origin)
+                                    openNowPlaying()
+                                }
                             },
                             onPlayNext = { song -> playback.playNext(song) },
                             onAddToQueue = { song -> playback.addToQueue(song) },
@@ -463,8 +512,10 @@ private fun PlayerApp(settings: SettingsViewModel) {
                         AppTab.Search -> SearchScreen(
                             songs = songs,
                             onSongClick = { song, list ->
-                                playback.play(song, list, PlayOrigin(context.getString(R.string.tab_search), SourceArt.Place(SourcePlace.SEARCH)))
-                                openNowPlaying()
+                                startPlaying {
+                                    playback.play(song, list, PlayOrigin(context.getString(R.string.tab_search), SourceArt.Place(SourcePlace.SEARCH)))
+                                    openNowPlaying()
+                                }
                             },
                             onPlayNext = { song -> playback.playNext(song) },
                             onAddToQueue = { song -> playback.addToQueue(song) },
@@ -475,6 +526,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                             lyricsIndexProgress = lyricsSearch.indexProgress,
                         )
                     }
+                }
                 }
             }
         }
@@ -618,6 +670,10 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 onToggleMoodFolder = { mood, folder -> settings.toggleMoodFolder(mood, folder) },
                 availableScanFolders = settings.availableScanFolders,
                 scanFolders = settings.scanFolders,
+                minDurationSec = settings.minDurationSec,
+                notificationRepeatButton = settings.notificationRepeatButton,
+                onNotificationRepeatButtonChange = { settings.updateNotificationRepeatButton(it) },
+                onMinDurationChange = { settings.updateMinDurationSec(it) },
                 onToggleScanFolder = { folder -> settings.toggleScanFolder(folder) },
                 infinitePlayMode = settings.infinitePlayMode,
                 onInfinitePlayModeChange = { settings.updateInfinitePlayMode(it) },
@@ -714,6 +770,22 @@ private fun PlayerApp(settings: SettingsViewModel) {
         }
     }
 
+    pendingPlay?.let { play ->
+        com.artemiy.player.ui.components.AppDialog(onDismiss = { pendingPlay = null }) {
+            com.artemiy.player.ui.components.DialogTitle(stringResource(R.string.replace_queue_q))
+            com.artemiy.player.ui.components.DialogMessage(stringResource(R.string.replace_queue_msg))
+            com.artemiy.player.ui.components.DialogButtons(
+                dismissLabel = stringResource(R.string.cancel),
+                onDismiss = { pendingPlay = null },
+                confirmLabel = stringResource(R.string.replace),
+                onConfirm = {
+                    pendingPlay = null
+                    play()
+                },
+            )
+        }
+    }
+
     artistChoice?.let { names ->
         ArtistChoiceDialog(
             names = names,
@@ -764,3 +836,9 @@ private val NOW_PLAYING_SPRING = spring(dampingRatio = 1f, stiffness = 320f, vis
 /** The expressive player's card: a little softer and slower than the classic sheet, so its
  * pieces have time to pop in one after another. */
 private val EXPRESSIVE_SPRING = spring(dampingRatio = 1f, stiffness = 240f, visibilityThreshold = 0.0005f)
+
+/** From how many songs lined up a queue is worth a "replace it?" question. */
+private const val QUEUE_WORTH_ASKING = 20
+
+/** How far the player sinks toward the mini player while the back gesture is made. */
+private const val BACK_PEEK = 0.12f

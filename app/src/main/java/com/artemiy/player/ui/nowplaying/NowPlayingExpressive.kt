@@ -227,6 +227,7 @@ internal fun ExpressiveNowPlaying(
                 Box(modifier = Modifier.fillMaxWidth().weight(1f).popIn(expand, active, order = 0, grow = true)) {
                     Crossfade(targetState = showLyrics, animationSpec = tween(300), label = "coverOrLyrics") { lyricsShown ->
                         if (lyricsShown) {
+                            if (LocalNowPlayingActive.current) com.artemiy.player.ui.components.KeepScreenOn()
                             val topPx = with(density) { (statusTop + 36.dp).roundToPx() }
                             LyricsView(
                                 lyrics = lyrics,

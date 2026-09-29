@@ -185,6 +185,9 @@
     <string name="rename">名前を変更</string>
     <string name="rename_playlist">プレイリスト名を変更</string>
     <string name="repeat">リピート</string>
+    <string name="replace">置き換える</string>
+    <string name="replace_queue_msg">今キューにある曲は、新しい曲に置き換わります。</string>
+    <string name="replace_queue_q">キューを置き換えますか？</string>
     <string name="sat_muted">控えめ</string>
     <string name="sat_normal">ふつう</string>
     <string name="save">保存</string>
@@ -234,9 +237,13 @@
     <string name="set_library">ライブラリ</string>
     <string name="set_library_sub">スキャンと音楽フォルダ</string>
     <string name="set_light_bg">ライトテーマの背景</string>
+    <string name="set_min_length">この長さより短いファイルを除外</string>
+    <string name="set_min_length_desc">ボイスメモ、通知音、ゲームのセリフはライブラリに入りません。</string>
     <string name="set_mood_explain">タグのジャンルによる選曲はいつも正確とは限りません。タグが不完全だったり、気分を表していなかったりします。下で、ライブラリのどのフォルダをどの気分とみなすか選べます — ジャンルに加わるもので、置き換えるものではありません。</string>
     <string name="set_mood_sub">どのフォルダをどの気分とみなすか</string>
     <string name="set_no_folders_yet">フォルダがまだ見つかりません — ライブラリの再スキャンが必要です。</string>
+    <string name="set_notif_button">通知の 2 つ目のボタン</string>
+    <string name="set_notif_button_desc">システムのプレーヤーで「シャッフル」の隣に表示されます。</string>
     <string name="set_playback">再生</string>
     <string name="set_playback_sub">イコライザー、エンドレス再生</string>
     <string name="set_player_background">プレーヤーの背景</string>
@@ -288,6 +295,7 @@
     <string name="unit_khz">%1$.1f kHz</string>
     <string name="unit_mb">%1$.1f MB</string>
     <string name="unit_min">%1$d 分</string>
+    <string name="unit_sec">%1$d 秒</string>
     <string name="unknown_artist">不明なアーティスト</string>
     <string name="untitled">タイトルなし</string>
     <string name="up_next">次に再生</string>

@@ -73,7 +73,7 @@ fun SongActionsMenu(
             tint = PlayerColors.TextSecondary,
             modifier = Modifier
                 .size(iconSize)
-                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { expanded = true },
+                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { expanded = true },
         )
         SongActionsMenuItems(
             song = song,
@@ -199,7 +199,7 @@ private fun SongActionsMenuItems(
 fun Modifier.songLongPressTrigger(onClick: () -> Unit, onLongPress: () -> Unit): Modifier =
     combinedClickable(
         interactionSource = remember { MutableInteractionSource() },
-        indication = null,
+        indication = com.artemiy.player.ui.components.SoftPress,
         onClick = onClick,
         onLongClick = onLongPress,
     )

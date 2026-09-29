@@ -146,14 +146,13 @@ fun DialogTextField(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(modifier = Modifier.weight(1f)) {
-            if (value.isEmpty()) Text(text = placeholder, color = PlayerColors.TextTertiary, fontSize = 16.sp)
-            BasicTextField(
+            HintTextField(
                 value = value,
                 onValueChange = onValueChange,
-                singleLine = true,
-                textStyle = TextStyle(color = PlayerColors.TextPrimary, fontSize = 16.sp).inAppFont(),
-                cursorBrush = SolidColor(PlayerColors.AccentStandalone),
-                modifier = Modifier.fillMaxWidth().focusRequester(focus),
+                hint = placeholder,
+                fontSize = 16.sp,
+                cursorColor = PlayerColors.AccentStandalone,
+                modifier = Modifier.focusRequester(focus),
             )
         }
         trailing?.invoke()

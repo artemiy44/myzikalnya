@@ -92,14 +92,18 @@ fun parsePlainLrc(raw: String): List<LyricLine> {
         // wild: a whole translation block crammed onto one physical line, one tag+text pair after
         // another with no newlines) put *distinct* text after every tag — those must each keep
         // their own text instead of collapsing onto the line's last fragment.
-        val slices = tags.mapIndexed { i, tag ->
+        val rawSlices = tags.mapIndexed { i, tag ->
             val start = tag.range.last + 1
             val end = if (i + 1 < tags.size) tags[i + 1].range.first else rawLine.length
-            rawLine.substring(start, end).trim()
-        }.toMutableList()
+            rawLine.substring(start, end)
+        }
+        val slices = rawSlices.map { it.trim() }.toMutableList()
+        // Only tags right next to each other ("[00:10][00:20]text") share the text after them. A
+        // tag followed by a space and then the next tag is a blank line (a pause) in a crammed
+        // line — it must stay blank, not borrow the next line's words.
         var carry = ""
         for (i in slices.indices.reversed()) {
-            if (slices[i].isEmpty()) slices[i] = carry else carry = slices[i]
+            if (rawSlices[i].isEmpty()) slices[i] = carry else carry = slices[i]
         }
 
         tags.forEachIndexed { i, match ->

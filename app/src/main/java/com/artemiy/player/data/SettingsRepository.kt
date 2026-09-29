@@ -31,8 +31,11 @@ class SettingsRepository(private val context: Context) {
         const val MIN_FONT_SCALE = 0.9f
         const val MAX_FONT_SCALE = 1.35f
         val SCAN_FOLDERS_KEY = stringSetPreferencesKey("scan_folders")
+        val MIN_DURATION_KEY = androidx.datastore.preferences.core.intPreferencesKey("min_duration_s")
+        const val DEFAULT_MIN_DURATION_S = 60
         val KEPT_ARTISTS_KEY = stringSetPreferencesKey("kept_artists")
         val INFINITE_PLAY_MODE_KEY = stringPreferencesKey("infinite_play_mode")
+        val NOTIF_REPEAT_KEY = androidx.datastore.preferences.core.booleanPreferencesKey("notification_repeat_button")
         val NOW_PLAYING_BACKGROUND_MODE_KEY = stringPreferencesKey("now_playing_background_mode")
         val PLAYER_STYLE_KEY = stringPreferencesKey("player_style")
         val LIVE_BLUR_INTENSITY_KEY = stringPreferencesKey("live_blur_intensity")
@@ -74,6 +77,13 @@ class SettingsRepository(private val context: Context) {
 
     /** Folder whitelist for the library scanner itself (empty = scan everything IS_MUSIC flags
      * as music, the old behavior; non-empty = only files under these folders, see querySongs). */
+    /** Files shorter than this many seconds are left out of the library. */
+    val minDurationSec: Flow<Int> = context.settingsDataStore.data.map { it[MIN_DURATION_KEY] ?: DEFAULT_MIN_DURATION_S }
+
+    suspend fun setMinDurationSec(value: Int) {
+        context.settingsDataStore.edit { it[MIN_DURATION_KEY] = value }
+    }
+
     val scanFolders: Flow<Set<String>> = context.settingsDataStore.data.map { prefs ->
         prefs[SCAN_FOLDERS_KEY] ?: emptySet()
     }
@@ -95,6 +105,13 @@ class SettingsRepository(private val context: Context) {
         context.settingsDataStore.edit { prefs ->
             prefs[viewModeKey(tab)] = mode.name
         }
+    }
+
+    /** The notification's second button: repeat instead of endless play. */
+    val notificationRepeatButton: Flow<Boolean> = context.settingsDataStore.data.map { it[NOTIF_REPEAT_KEY] ?: false }
+
+    suspend fun setNotificationRepeatButton(value: Boolean) {
+        context.settingsDataStore.edit { it[NOTIF_REPEAT_KEY] = value }
     }
 
     val infinitePlayMode: Flow<InfinitePlayMode> = context.settingsDataStore.data.map { prefs ->

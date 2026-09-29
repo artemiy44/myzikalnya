@@ -1,5 +1,6 @@
 package com.artemiy.player.ui.library
 
+import com.artemiy.player.ui.components.pressScale
 import androidx.compose.ui.res.pluralStringResource
 import com.artemiy.player.R
 import androidx.compose.ui.res.stringResource
@@ -206,7 +207,7 @@ fun LibraryScreen(
                                     tint = PlayerColors.TextPrimary,
                                     modifier = Modifier
                                         .size(24.dp)
-                                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) {
                                             showCreatePlaylist = true
                                         },
                                 )
@@ -708,7 +709,7 @@ internal fun LibraryHeader(
                 tint = PlayerColors.TextPrimary,
                 modifier = Modifier
                     .size(24.dp)
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onBack() }
+                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onBack() }
                     .padding(end = 12.dp),
             )
         }
@@ -769,7 +770,7 @@ private fun LibraryHomeList(
                             Column(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) {
                                         onSongClick(song, recentSongs)
                                     },
                             ) {
@@ -813,7 +814,7 @@ private fun LibraryRow(label: String, count: Int, icon: ImageVector, onClick: ()
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onClick() }
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onClick() }
             .padding(vertical = 13.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -865,19 +866,13 @@ internal fun <T> ListToolbar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(imageVector = AppIcons.Search, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(16.dp))
-            Box(modifier = Modifier.weight(1f).padding(start = 8.dp)) {
-                if (query.isEmpty()) {
-                    Text(text = placeholder, color = PlayerColors.TextTertiary, fontSize = 13.sp)
-                }
-                BasicTextField(
-                    value = query,
-                    onValueChange = onQueryChange,
-                    singleLine = true,
-                    textStyle = TextStyle(color = PlayerColors.TextPrimary, fontSize = 13.sp).inAppFont(),
-                    cursorBrush = SolidColor(PlayerColors.TextPrimary),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
+            com.artemiy.player.ui.components.HintTextField(
+                value = query,
+                onValueChange = onQueryChange,
+                hint = placeholder,
+                fontSize = 13.sp,
+                modifier = Modifier.weight(1f).padding(start = 8.dp),
+            )
         }
         Icon(
             imageVector = viewMode.icon,
@@ -886,7 +881,7 @@ internal fun <T> ListToolbar(
             modifier = Modifier
                 .padding(start = 10.dp)
                 .size(20.dp)
-                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onViewModeCycle() },
+                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onViewModeCycle() },
         )
         // No sort options (a list with a fixed order) = no sort button at all.
         if (sortOptions.isNotEmpty()) Box {
@@ -897,7 +892,7 @@ internal fun <T> ListToolbar(
                 modifier = Modifier
                     .padding(start = 10.dp)
                     .size(20.dp)
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { menuExpanded = true },
+                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { menuExpanded = true },
             )
             AppDropdownMenu(expanded = menuExpanded, onDismiss = { menuExpanded = false }) {
                 sortOptions.forEach { option ->
@@ -923,7 +918,7 @@ private fun ArtistsList(groups: List<ArtistGroup>, state: LazyListState, onArtis
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onArtistClick(group) }
+                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onArtistClick(group) }
                     .padding(horizontal = 20.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -965,7 +960,7 @@ private fun ArtistsGrid(groups: List<ArtistGroup>, columns: Int, state: LazyGrid
             val coverUri = remember(group) { group.songs.minByOrNull { it.album.lowercase() }?.uri }
             Column(
                 modifier = Modifier
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onArtistClick(group) },
+                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onArtistClick(group) },
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 AlbumArt(
@@ -1002,7 +997,7 @@ private fun AlbumsList(groups: List<AlbumGroup>, state: LazyListState, onAlbumCl
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onAlbumClick(group) }
+                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onAlbumClick(group) }
                     .padding(horizontal = 20.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -1051,7 +1046,7 @@ private fun AlbumsGrid(groups: List<AlbumGroup>, columns: Int, state: LazyGridSt
         gridItems(groups) { group ->
             Column(
                 modifier = Modifier
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onAlbumClick(group) },
+                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onAlbumClick(group) },
             ) {
                 AlbumArt(
                     uri = group.songs.firstOrNull()?.uri,
@@ -1181,7 +1176,7 @@ internal fun SongList(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onSongClick(song) }
+                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onSongClick(song) }
                     .padding(horizontal = 20.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -1231,12 +1226,14 @@ internal fun PlayShuffleRow(onPlay: () -> Unit, onShuffle: () -> Unit) {
 
 @Composable
 private fun PlayShuffleButton(icon: ImageVector, label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val interaction = remember { MutableInteractionSource() }
     Row(
         modifier = modifier
             .height(44.dp)
+            .pressScale(interaction, pressedScale = 0.95f)
             .clip(RoundedCornerShape(12.dp))
             .background(PlayerColors.Surface)
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick),
+            .clickable(interactionSource = interaction, indication = com.artemiy.player.ui.components.SoftPress, onClick = onClick),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -1262,7 +1259,7 @@ private fun PlaylistsList(playlists: List<PlaylistWithCount>, onPlaylistClick: (
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onPlaylistClick(playlist) }
+                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onPlaylistClick(playlist) }
                     .padding(horizontal = 20.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {

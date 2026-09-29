@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -63,6 +64,8 @@ fun SongInfoSheet(song: Song, onDismiss: () -> Unit) {
         }
         ModalBottomSheet(
             onDismissRequest = onDismiss,
+            // Never under the status bar, however tall the sheet gets.
+            modifier = Modifier.statusBarsPadding(),
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             containerColor = PlayerColors.Background,
             shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),

@@ -1,5 +1,6 @@
 package com.artemiy.player.ui.settings
 
+import kotlin.math.roundToInt
 import com.artemiy.player.R
 import androidx.compose.ui.res.stringResource
 import com.artemiy.player.data.label
@@ -96,6 +97,10 @@ fun SettingsScreen(
     availableScanFolders: List<String>,
     scanFolders: Set<String>,
     onToggleScanFolder: (String) -> Unit,
+    minDurationSec: Int,
+    onMinDurationChange: (Int) -> Unit,
+    notificationRepeatButton: Boolean,
+    onNotificationRepeatButtonChange: (Boolean) -> Unit,
     infinitePlayMode: InfinitePlayMode,
     onInfinitePlayModeChange: (InfinitePlayMode) -> Unit,
     nowPlayingBackgroundMode: NowPlayingBackgroundMode,
@@ -190,6 +195,10 @@ fun SettingsScreen(
                     availableScanFolders = availableScanFolders,
                     scanFolders = scanFolders,
                     onToggleScanFolder = onToggleScanFolder,
+                    minDurationSec = minDurationSec,
+                    onMinDurationChange = onMinDurationChange,
+                    notificationRepeatButton = notificationRepeatButton,
+                    onNotificationRepeatButtonChange = onNotificationRepeatButtonChange,
                     infinitePlayMode = infinitePlayMode,
                     onInfinitePlayModeChange = onInfinitePlayModeChange,
                     context = context,
@@ -435,14 +444,12 @@ private fun KeptArtistsContent(
                         .background(PlayerColors.SurfaceDim)
                         .padding(horizontal = 12.dp, vertical = 10.dp),
                 ) {
-                    if (input.isEmpty()) Text(text = stringResource(R.string.set_artist_name), color = PlayerColors.TextTertiary, fontSize = 14.sp)
-                    androidx.compose.foundation.text.BasicTextField(
+                    com.artemiy.player.ui.components.HintTextField(
                         value = input,
                         onValueChange = { input = it },
-                        singleLine = true,
-                        textStyle = androidx.compose.ui.text.TextStyle(color = PlayerColors.TextPrimary, fontSize = 14.sp).inAppFont(),
-                        cursorBrush = androidx.compose.ui.graphics.SolidColor(PlayerColors.Accent),
-                        modifier = Modifier.fillMaxWidth(),
+                        hint = stringResource(R.string.set_artist_name),
+                        fontSize = 14.sp,
+                        cursorColor = PlayerColors.Accent,
                     )
                 }
                 Text(
@@ -527,6 +534,10 @@ private fun SettingsSectionContent(
     availableScanFolders: List<String>,
     scanFolders: Set<String>,
     onToggleScanFolder: (String) -> Unit,
+    minDurationSec: Int,
+    onMinDurationChange: (Int) -> Unit,
+    notificationRepeatButton: Boolean,
+    onNotificationRepeatButtonChange: (Boolean) -> Unit,
     infinitePlayMode: InfinitePlayMode,
     onInfinitePlayModeChange: (InfinitePlayMode) -> Unit,
     context: android.content.Context,
@@ -626,6 +637,7 @@ private fun SettingsSectionContent(
                     subtitle = stringResource(R.string.set_tracks_found, songCount),
                     onClick = onRescanLibrary,
                 )
+                MinDurationSetting(minDurationSec, onMinDurationChange)
                 Text(
                     text = stringResource(R.string.set_scan_folders),
                     color = PlayerColors.TextPrimary,
@@ -696,6 +708,23 @@ private fun SettingsSectionContent(
                         label = stringResource(R.string.set_endless_genre),
                         selected = infinitePlayMode == InfinitePlayMode.GENRE_RADIO,
                         onClick = { onInfinitePlayModeChange(InfinitePlayMode.GENRE_RADIO) },
+                    )
+                }
+            }
+
+            if (section == SettingsRoute.Playback) {
+                Spacer(modifier = Modifier.height(12.dp))
+                SettingsCard {
+                    SettingsLabel(stringResource(R.string.set_notif_button))
+                    Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                        InfinitePlayModeChip(stringResource(R.string.endless_play), !notificationRepeatButton) { onNotificationRepeatButtonChange(false) }
+                        InfinitePlayModeChip(stringResource(R.string.repeat), notificationRepeatButton) { onNotificationRepeatButtonChange(true) }
+                    }
+                    Text(
+                        text = stringResource(R.string.set_notif_button_desc),
+                        color = PlayerColors.TextSecondary,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 10.dp),
                     )
                 }
             }
@@ -1104,6 +1133,8 @@ private fun LicenseSheet(component: ThirdPartyComponent, onDismiss: () -> Unit) 
     }
     androidx.compose.material3.ModalBottomSheet(
         onDismissRequest = onDismiss,
+        // Never under the status bar, however tall the sheet gets.
+        modifier = Modifier.statusBarsPadding(),
         sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = PlayerColors.Background,
         shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),
@@ -1396,4 +1427,37 @@ private fun LanguageContent() {
         }
         Spacer(modifier = Modifier.height(20.dp))
     }
+}
+
+/**
+ * "Skip files shorter than N s", 10 to 60 seconds in steps of 5. The library is only re-read
+ * when the finger lets go, not on every step of the drag.
+ */
+@Composable
+private fun MinDurationSetting(seconds: Int, onChange: (Int) -> Unit) {
+    var dragged by remember(seconds) { mutableStateOf(seconds.toFloat()) }
+    val shown = ((dragged / 5f).roundToInt() * 5).coerceIn(10, 60)
+    Row(modifier = Modifier.padding(top = 18.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = stringResource(R.string.set_min_length),
+            color = PlayerColors.TextPrimary,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.weight(1f),
+        )
+        Text(text = stringResource(R.string.unit_sec, shown), color = PlayerColors.TextSecondary, fontSize = 13.sp)
+    }
+    Text(
+        text = stringResource(R.string.set_min_length_desc),
+        color = PlayerColors.TextSecondary,
+        fontSize = 12.sp,
+        modifier = Modifier.padding(top = 2.dp),
+    )
+    MinimalSlider(
+        value = dragged,
+        onValueChange = { dragged = it },
+        valueRange = 10f..60f,
+        onValueChangeFinished = { if (shown != seconds) onChange(shown) },
+        modifier = Modifier.padding(top = 12.dp, bottom = 6.dp),
+    )
 }

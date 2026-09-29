@@ -73,7 +73,7 @@ fun RecapCard(recap: Recap?, onOpen: () -> Unit) {
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
                 .background(PlayerColors.Surface)
-                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onOpen)
+                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress, onClick = onOpen)
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -222,7 +222,7 @@ private fun RecapSongRow(place: Int?, song: Song, note: String?, onClick: () -> 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress, onClick = onClick)
             .padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

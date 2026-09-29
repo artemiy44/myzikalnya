@@ -97,10 +97,13 @@ fun <T : Any> AnimatedBackStack(
             if (from == to) {
                 ContentTransform(EnterTransition.None, ExitTransition.None)
             } else if (to < from) {
+                // Both pages stay fully opaque: fading them (the one leaving out, the one underneath
+                // in) let them show through each other half the way, which read as a strange
+                // see-through page — noticeable or not depending on how fast the swipe was.
                 ContentTransform(
-                    targetContentEnter = slideInHorizontally(tween(PAGE_MS)) { -it / 8 } + fadeIn(tween(PAGE_MS), initialAlpha = 0.5f),
-                    initialContentExit = slideOutHorizontally(tween(PAGE_MS)) { it / 3 } +
-                        scaleOut(tween(PAGE_MS), targetScale = 0.92f) + fadeOut(tween(PAGE_MS)),
+                    targetContentEnter = slideInHorizontally(tween(PAGE_MS)) { -it / 8 },
+                    initialContentExit = slideOutHorizontally(tween(PAGE_MS)) { it } +
+                        scaleOut(tween(PAGE_MS), targetScale = 0.94f),
                     // The page leaving stays on top, uncovering the one underneath.
                     targetContentZIndex = -1f,
                 )

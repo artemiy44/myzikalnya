@@ -185,6 +185,9 @@
     <string name="rename">Rinomina</string>
     <string name="rename_playlist">Rinomina playlist</string>
     <string name="repeat">Ripeti</string>
+    <string name="replace">Sostituisci</string>
+    <string name="replace_queue_msg">Quello che è in coda ora lascerà il posto ai nuovi brani.</string>
+    <string name="replace_queue_q">Sostituire la coda?</string>
     <string name="sat_muted">Tenue</string>
     <string name="sat_normal">Normale</string>
     <string name="save">Salva</string>
@@ -234,9 +237,13 @@
     <string name="set_library">Libreria</string>
     <string name="set_library_sub">Scansione e cartelle della musica</string>
     <string name="set_light_bg">Sfondo del tema chiaro</string>
+    <string name="set_min_length">Salta i file più corti di</string>
+    <string name="set_min_length_desc">Note vocali, suoni di notifica e battute dei giochi restano fuori dalla libreria.</string>
     <string name="set_mood_explain">La scelta per genere dai tag non è sempre precisa: i tag possono essere incompleti o non riflettere lo stato d’animo. Qui sotto si può indicare quali cartelle della libreria valgono per quale stato d’animo — si aggiunge al genere, non lo sostituisce.</string>
     <string name="set_mood_sub">Quali cartelle valgono per quale stato d’animo</string>
     <string name="set_no_folders_yet">Nessuna cartella trovata finora — serve una nuova scansione della libreria.</string>
+    <string name="set_notif_button">Secondo pulsante nella notifica</string>
+    <string name="set_notif_button_desc">Accanto a «Casuale» nel lettore di sistema.</string>
     <string name="set_playback">Riproduzione</string>
     <string name="set_playback_sub">Equalizzatore, riproduzione infinita</string>
     <string name="set_player_background">Sfondo del lettore</string>
@@ -288,6 +295,7 @@
     <string name="unit_khz">%1$.1f kHz</string>
     <string name="unit_mb">%1$.1f MB</string>
     <string name="unit_min">%1$d min</string>
+    <string name="unit_sec">%1$d s</string>
     <string name="unknown_artist">Artista sconosciuto</string>
     <string name="untitled">Senza titolo</string>
     <string name="up_next">A seguire</string>

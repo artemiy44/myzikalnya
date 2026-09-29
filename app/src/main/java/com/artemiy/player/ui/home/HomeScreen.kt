@@ -84,6 +84,9 @@ private sealed interface HomeRoute {
 
 @Composable
 fun HomeScreen(
+    /** Goes up each time the Home tab is tapped while already open: back to the main page, or to
+     * its top when already there. */
+    rootRequest: Int,
     mixes: List<Mix>,
     statDays: Int,
     quickPicks: List<Song>,
@@ -100,7 +103,7 @@ fun HomeScreen(
     onGoToAlbum: (Song) -> Unit,
     onGoToArtist: (Song) -> Unit,
 ) {
-    var route by remember { mutableStateOf<HomeRoute>(HomeRoute.Main) }
+    var route by androidx.compose.runtime.saveable.rememberSaveable(stateSaver = HomeRouteSaver) { mutableStateOf<HomeRoute>(HomeRoute.Main) }
     val back = { route = HomeRoute.Main }
     // Where playback started from, for the "Играет из" line — in the app's language.
     val fromRecentlyAdded = stringResource(R.string.recently_added)
@@ -109,6 +112,10 @@ fun HomeScreen(
 
     // Kept out here so the page's scroll position survives opening a mix and coming back.
     val mainScroll = rememberScrollState()
+    LaunchedEffect(rootRequest) {
+        if (rootRequest == 0) return@LaunchedEffect
+        if (route != HomeRoute.Main) route = HomeRoute.Main else mainScroll.animateScrollTo(0)
+    }
     val stack = if (route == HomeRoute.Main) listOf<HomeRoute>(HomeRoute.Main) else listOf(HomeRoute.Main, route)
     AnimatedBackStack(stack = stack, onBack = back) { r ->
         when (r) {
@@ -160,7 +167,7 @@ fun HomeScreen(
                                     .size(40.dp)
                                     .clip(RoundedCornerShape(20.dp))
                                     .background(PlayerColors.Surface)
-                                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onSettingsClick() },
+                                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onSettingsClick() },
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Icon(
@@ -325,7 +332,7 @@ private fun SongRowSection(
                         .size(artSize)
                         .clip(RoundedCornerShape(12.dp))
                         .background(PlayerColors.Surface)
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onSeeAll),
+                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress, onClick = onSeeAll),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
@@ -337,4 +344,22 @@ private fun SongRowSection(
     }
 }
 
-
+/** Which Home page is open, kept as a short text so it survives switching tabs. */
+private val HomeRouteSaver = androidx.compose.runtime.saveable.Saver<HomeRoute, String>(
+    save = { route ->
+        when (route) {
+            HomeRoute.Main -> "main"
+            is HomeRoute.OpenMix -> "mix:" + route.id
+            HomeRoute.RecentlyAddedAll -> "recent"
+            HomeRoute.WeekRecap -> "recap"
+        }
+    },
+    restore = { text ->
+        when {
+            text.startsWith("mix:") -> HomeRoute.OpenMix(text.removePrefix("mix:"))
+            text == "recent" -> HomeRoute.RecentlyAddedAll
+            text == "recap" -> HomeRoute.WeekRecap
+            else -> HomeRoute.Main
+        }
+    },
+)

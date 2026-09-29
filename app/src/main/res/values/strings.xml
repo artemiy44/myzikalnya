@@ -199,6 +199,9 @@
     <string name="rename">Rename</string>
     <string name="rename_playlist">Rename playlist</string>
     <string name="repeat">Repeat</string>
+    <string name="replace">Replace</string>
+    <string name="replace_queue_msg">What\'s lined up now will give way to the new songs.</string>
+    <string name="replace_queue_q">Replace the queue?</string>
     <string name="sat_muted">Muted</string>
     <string name="sat_normal">Normal</string>
     <string name="save">Save</string>
@@ -248,9 +251,13 @@
     <string name="set_library">Library</string>
     <string name="set_library_sub">Scanning and music folders</string>
     <string name="set_light_bg">Light theme background</string>
+    <string name="set_min_length">Skip files shorter than</string>
+    <string name="set_min_length_desc">Voice notes, notification sounds and game voice lines stay out of the library.</string>
     <string name="set_mood_explain">Picking by the genre from the file\'s tags isn\'t always accurate — tags can be incomplete or not reflect the mood at all. Below, library folders can be marked as one mood or another — this adds to the genre rather than replacing it.</string>
     <string name="set_mood_sub">Which folders count as which mood</string>
     <string name="set_no_folders_yet">No folders found yet — the library needs a rescan.</string>
+    <string name="set_notif_button">Second button in the notification</string>
+    <string name="set_notif_button_desc">Next to shuffle in the system media player.</string>
     <string name="set_playback">Playback</string>
     <string name="set_playback_sub">Equalizer, endless play</string>
     <string name="set_player_background">Player background</string>
@@ -318,6 +325,7 @@
     <string name="unit_khz">%1$.1f kHz</string>
     <string name="unit_mb">%1$.1f MB</string>
     <string name="unit_min">%1$d min</string>
+    <string name="unit_sec">%1$d s</string>
     <string name="unknown_artist">Unknown artist</string>
     <string name="untitled">Untitled</string>
     <string name="up_next">Up next</string>

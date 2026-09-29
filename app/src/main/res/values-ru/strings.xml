@@ -205,6 +205,9 @@
     <string name="rename">Переименовать</string>
     <string name="rename_playlist">Переименовать плейлист</string>
     <string name="repeat">Повтор</string>
+    <string name="replace">Заменить</string>
+    <string name="replace_queue_msg">То, что сейчас в очереди, уступит место новым песням.</string>
+    <string name="replace_queue_q">Заменить очередь?</string>
     <string name="sat_muted">Приглушённый</string>
     <string name="sat_normal">Обычный</string>
     <string name="save">Сохранить</string>
@@ -254,9 +257,13 @@
     <string name="set_library">Библиотека</string>
     <string name="set_library_sub">Сканирование и папки с музыкой</string>
     <string name="set_light_bg">Фон светлой темы</string>
+    <string name="set_min_length">Не показывать файлы короче</string>
+    <string name="set_min_length_desc">Голосовые, звуки уведомлений и реплики из игр не попадут в медиатеку.</string>
     <string name="set_mood_explain">Подбор по жанру из тегов файла не всегда точный: теги бывают неполными или вовсе не отражают настроение. Ниже можно отметить, какие папки библиотеки считать тем или иным настроением — это добавится к жанру, а не заменит его.</string>
     <string name="set_mood_sub">Какие папки считать каким настроением</string>
     <string name="set_no_folders_yet">Папки ещё не найдены — нужно пересканировать медиатеку.</string>
+    <string name="set_notif_button">Вторая кнопка в уведомлении</string>
+    <string name="set_notif_button_desc">Рядом с «Перемешать» в системном плеере.</string>
     <string name="set_playback">Воспроизведение</string>
     <string name="set_playback_sub">Эквалайзер, «бесконечное» воспроизведение</string>
     <string name="set_player_background">Фон плеера</string>
@@ -332,6 +339,7 @@
     <string name="unit_khz">%1$.1f кГц</string>
     <string name="unit_mb">%1$.1f МБ</string>
     <string name="unit_min">%1$d мин</string>
+    <string name="unit_sec">%1$d с</string>
     <string name="unknown_artist">Неизвестный артист</string>
     <string name="untitled">Без названия</string>
     <string name="up_next">Далее по очереди</string>

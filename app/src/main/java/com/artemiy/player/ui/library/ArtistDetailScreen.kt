@@ -89,12 +89,12 @@ fun ArtistDetailScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
-        val collage = rememberBlurredCollage(songs)
         HeroOverArt(
-            topTint = rememberArrowTint(listOf(collage)),
+            // The drawn picture is always deep and dark: a white arrow reads on it.
+            topTint = androidx.compose.ui.graphics.Color.White,
             onBack = onBack,
             height = COLLAGE_HERO_HEIGHT,
-            art = { BlurredCollageArt(collage) },
+            art = { ArtistGenreArt(artist, songs) },
         ) {
             Text(
                 text = artist,
@@ -150,7 +150,7 @@ fun ArtistDetailScreen(
                             Column(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onAlbumClick(album) },
+                                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onAlbumClick(album) },
                             ) {
                                 AlbumArt(
                                     uri = albumSongs.firstOrNull()?.uri,

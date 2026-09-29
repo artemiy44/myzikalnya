@@ -185,6 +185,9 @@
     <string name="rename">Renombrar</string>
     <string name="rename_playlist">Renombrar lista</string>
     <string name="repeat">Repetir</string>
+    <string name="replace">Reemplazar</string>
+    <string name="replace_queue_msg">Lo que hay ahora en la cola dejará paso a las nuevas canciones.</string>
+    <string name="replace_queue_q">¿Reemplazar la cola?</string>
     <string name="sat_muted">Apagado</string>
     <string name="sat_normal">Normal</string>
     <string name="save">Guardar</string>
@@ -234,9 +237,13 @@
     <string name="set_library">Biblioteca</string>
     <string name="set_library_sub">Escaneo y carpetas de música</string>
     <string name="set_light_bg">Fondo del tema claro</string>
+    <string name="set_min_length">Omitir archivos de menos de</string>
+    <string name="set_min_length_desc">Las notas de voz, los sonidos de notificación y las frases de juegos no entrarán en la biblioteca.</string>
     <string name="set_mood_explain">Elegir por el género de las etiquetas no siempre acierta: las etiquetas pueden estar incompletas o no reflejar el ánimo. Abajo se puede marcar qué carpetas de la biblioteca cuentan como cada ánimo; esto se suma al género, no lo reemplaza.</string>
     <string name="set_mood_sub">Qué carpetas cuentan como qué ánimo</string>
     <string name="set_no_folders_yet">Aún no se encontraron carpetas: hay que volver a escanear la biblioteca.</string>
+    <string name="set_notif_button">Segundo botón en la notificación</string>
+    <string name="set_notif_button_desc">Junto a «Aleatorio» en el reproductor del sistema.</string>
     <string name="set_playback">Reproducción</string>
     <string name="set_playback_sub">Ecualizador, reproducción sin fin</string>
     <string name="set_player_background">Fondo del reproductor</string>
@@ -288,6 +295,7 @@
     <string name="unit_khz">%1$.1f kHz</string>
     <string name="unit_mb">%1$.1f MB</string>
     <string name="unit_min">%1$d min</string>
+    <string name="unit_sec">%1$d s</string>
     <string name="unknown_artist">Artista desconocido</string>
     <string name="untitled">Sin título</string>
     <string name="up_next">A continuación</string>

@@ -185,6 +185,9 @@
     <string name="rename">Перейменувати</string>
     <string name="rename_playlist">Перейменувати плейлист</string>
     <string name="repeat">Повтор</string>
+    <string name="replace">Замінити</string>
+    <string name="replace_queue_msg">Те, що зараз у черзі, поступиться місцем новим пісням.</string>
+    <string name="replace_queue_q">Замінити чергу?</string>
     <string name="sat_muted">Приглушений</string>
     <string name="sat_normal">Звичайний</string>
     <string name="save">Зберегти</string>
@@ -234,9 +237,13 @@
     <string name="set_library">Бібліотека</string>
     <string name="set_library_sub">Сканування й теки з музикою</string>
     <string name="set_light_bg">Тло світлої теми</string>
+    <string name="set_min_length">Не показувати файли коротші за</string>
+    <string name="set_min_length_desc">Голосові, звуки сповіщень і репліки з ігор не потраплять до медіатеки.</string>
     <string name="set_mood_explain">Добір за жанром із тегів файлу не завжди точний: теги бувають неповними або зовсім не відображають настрій. Нижче можна позначити, які теки бібліотеки вважати тим чи іншим настроєм — це додасться до жанру, а не замінить його.</string>
     <string name="set_mood_sub">Які теки вважати яким настроєм</string>
     <string name="set_no_folders_yet">Теки ще не знайдено — потрібно пересканувати медіатеку.</string>
+    <string name="set_notif_button">Друга кнопка в сповіщенні</string>
+    <string name="set_notif_button_desc">Поруч із «Перемішати» в системному плеєрі.</string>
     <string name="set_playback">Відтворення</string>
     <string name="set_playback_sub">Еквалайзер, безкінечне відтворення</string>
     <string name="set_player_background">Тло плеєра</string>
@@ -288,6 +295,7 @@
     <string name="unit_khz">%1$.1f кГц</string>
     <string name="unit_mb">%1$.1f МБ</string>
     <string name="unit_min">%1$d хв</string>
+    <string name="unit_sec">%1$d с</string>
     <string name="unknown_artist">Невідомий виконавець</string>
     <string name="untitled">Без назви</string>
     <string name="up_next">Далі в черзі</string>

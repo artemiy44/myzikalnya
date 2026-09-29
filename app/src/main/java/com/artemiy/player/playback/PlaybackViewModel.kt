@@ -30,6 +30,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -43,6 +44,7 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
     private val playHistoryDao = AppDatabase.get(app).playHistoryDao()
     private val settingsRepository = SettingsRepository(app)
     private var infinitePlayMode = InfinitePlayMode.RANDOM
+    private var notificationRepeatButton = false
 
     private var controller: MediaController? = null
     private var songsById: Map<Long, Song> = emptyMap()
@@ -118,6 +120,10 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
                 .onFailure { Log.w(TAG, "Lyrics extraction crashed for ${song.title}", it) }
                 .getOrNull()
             Log.d(TAG, "Lyrics for ${song.title}: ${result?.let { it::class.simpleName } ?: "none"} (${System.currentTimeMillis() - start}ms)")
+            // Skipped on to another song meanwhile: runCatching above also swallows the
+            // cancellation, and this job's empty result would land on top of the new song —
+            // showing "no lyrics" for a song that has them. Only the current song's job writes.
+            if (!isActive || currentSong?.id != song.id) return@launch
             lyrics = result
             lyricsLoading = false
             // Shown right away without romanization, then swapped for the romanized version — the
@@ -128,14 +134,32 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
                         .onFailure { Log.w(TAG, "Romanization failed for ${song.title}", it) }
                         .getOrNull()
                 }
-                if (romanized != null && romanized !== result) lyrics = romanized
+                if (romanized != null && romanized !== result && isActive && currentSong?.id == song.id) lyrics = romanized
             }
         }
     }
 
     init {
         val sessionToken = SessionToken(app, ComponentName(app, PlaybackService::class.java))
-        val future = MediaController.Builder(app, sessionToken).buildAsync()
+        val future = MediaController.Builder(app, sessionToken)
+            // The shuffle / endless buttons in the system media player end up here.
+            .setListener(object : MediaController.Listener {
+                override fun onCustomCommand(
+                    controller: MediaController,
+                    command: androidx.media3.session.SessionCommand,
+                    args: android.os.Bundle,
+                ): com.google.common.util.concurrent.ListenableFuture<androidx.media3.session.SessionResult> {
+                    when (command.customAction) {
+                        COMMAND_TOGGLE_SHUFFLE -> toggleShuffle()
+                        COMMAND_TOGGLE_ENDLESS -> toggleInfinitePlay()
+                        COMMAND_TOGGLE_REPEAT -> toggleRepeat()
+                    }
+                    return com.google.common.util.concurrent.Futures.immediateFuture(
+                        androidx.media3.session.SessionResult(androidx.media3.session.SessionResult.RESULT_SUCCESS),
+                    )
+                }
+            })
+            .buildAsync()
         future.addListener({
             val c = future.get()
             controller = c
@@ -160,6 +184,7 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
                 override fun onIsPlayingChanged(playing: Boolean) {
                     Log.d(TAG, "isPlaying -> $playing (playbackState=${c.playbackState})")
                     isPlaying = playing
+                    if (!playing) saveState()
                 }
 
                 override fun onPlaybackStateChanged(playbackState: Int) {
@@ -189,18 +214,24 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
                     Log.d(TAG, "Transition (reason=$reason) -> ${currentSong?.title}")
                     loadLyricsFor(currentSong)
                     if (id != null) logPlay(id)
+                    saveState()
                 }
             })
             pendingQueue?.let { queue -> startQueue(queue, pendingStartIndex) }
+            restoreLastSession()
+            sendModes()
         }, MoreExecutors.directExecutor())
 
         viewModelScope.launch {
+            var ticks = 0
             while (true) {
                 controller?.let {
                     positionMs = it.currentPosition.coerceAtLeast(0)
                     val d = it.duration
                     durationMs = if (d > 0) d else 0L
                 }
+                // The spot in the song, now and then while it plays.
+                if (++ticks % 100 == 0 && isPlaying) saveState()
                 delay(100)
             }
         }
@@ -208,9 +239,17 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             settingsRepository.infinitePlayMode.collect { infinitePlayMode = it }
         }
+        viewModelScope.launch {
+            settingsRepository.notificationRepeatButton.collect {
+                notificationRepeatButton = it
+                sendModes()
+            }
+        }
     }
 
     fun play(song: Song, playlist: List<Song> = listOf(song), origin: PlayOrigin? = null) {
+        // Something new was chosen: the queue from last time is no longer wanted.
+        restoreTried = true
         playingFrom = origin?.let { PlaySource(it.name, playlist.size, it.art) }
         songsById = songsById + playlist.associateBy { it.id }
         val index = playlist.indexOfFirst { it.id == song.id }.let { if (it >= 0) it else 0 }
@@ -226,6 +265,103 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
      * once the current queue runs out. */
     fun setLibrary(songs: List<Song>) {
         library = songs
+        restoreLastSession()
+    }
+
+    // ---- The queue survives the app being closed ----
+    //
+    // What was playing — the whole queue, which song, where in it, the "Играет из" source and the
+    // shuffle / repeat / endless switches — is written down now and then, and put back (paused)
+    // the next time the app starts, once the library is known again.
+
+    private val saved = app.getSharedPreferences("playback_state", android.content.Context.MODE_PRIVATE)
+    private var restoreTried = false
+
+    private fun saveState() {
+        val c = controller ?: return
+        if (c.mediaItemCount == 0) return
+        val ids = (0 until c.mediaItemCount).joinToString(",") { c.getMediaItemAt(it).mediaId }
+        val from = playingFrom
+        saved.edit()
+            .putString("ids", ids)
+            .putInt("index", c.currentMediaItemIndex)
+            .putLong("position", c.currentPosition.coerceAtLeast(0))
+            .putString("manual", manualQueueIds.joinToString(","))
+            .putBoolean("shuffle", shuffleEnabled)
+            .putBoolean("repeat", repeatEnabled)
+            .putBoolean("endless", infinitePlayEnabled)
+            .putString("fromName", from?.name)
+            .putInt("fromCount", from?.songCount ?: 0)
+            .putString("fromArt", from?.art?.let(::encodeArt))
+            .apply()
+    }
+
+    /** Tells the playback service how shuffle and endless play stand, for its buttons in the
+     * system media player. */
+    private fun sendModes() {
+        val c = controller ?: return
+        c.sendCustomCommand(
+            androidx.media3.session.SessionCommand(COMMAND_MODES, android.os.Bundle.EMPTY),
+            android.os.Bundle().apply {
+                putBoolean(KEY_SHUFFLE, shuffleEnabled)
+                putBoolean(KEY_ENDLESS, infinitePlayEnabled)
+                putBoolean(KEY_REPEAT, repeatEnabled)
+                putBoolean(KEY_SECOND_IS_REPEAT, notificationRepeatButton)
+            },
+        )
+    }
+
+    private fun encodeArt(art: SourceArt): String? = when (art) {
+        is SourceArt.Place -> "place:" + art.place.name
+        is SourceArt.Cover -> "cover:" + (art.uri?.toString() ?: "")
+        is SourceArt.Collage -> "collage:"
+        is SourceArt.MixCard -> "mix:" + art.colorIndex + ":" + art.motif
+    }
+
+    private fun decodeArt(text: String?, songs: List<Song>): SourceArt? {
+        text ?: return null
+        val kind = text.substringBefore(':')
+        val rest = text.substringAfter(':')
+        return when (kind) {
+            "place" -> runCatching { SourceArt.Place(SourcePlace.valueOf(rest)) }.getOrNull()
+            "cover" -> SourceArt.Cover(rest.takeIf { it.isNotEmpty() }?.let(android.net.Uri::parse))
+            "collage" -> SourceArt.Collage(songs)
+            "mix" -> rest.substringBefore(':').toIntOrNull()?.let { SourceArt.MixCard(it, rest.substringAfter(':')) }
+            else -> null
+        }
+    }
+
+    private fun restoreLastSession() {
+        val c = controller ?: return
+        if (restoreTried || library.isEmpty()) return
+        restoreTried = true
+        if (c.mediaItemCount > 0) return
+        val byId = library.associateBy { it.id }
+        val savedIds = saved.getString("ids", null)?.split(',')?.mapNotNull { it.toLongOrNull() } ?: return
+        val savedIndex = saved.getInt("index", 0)
+        val currentId = savedIds.getOrNull(savedIndex)
+        // Songs deleted since are simply left out.
+        val songs = savedIds.mapNotNull { byId[it] }
+        if (songs.isEmpty()) return
+        val index = songs.indexOfFirst { it.id == currentId }.coerceAtLeast(0)
+        val position = if (songs[index].id == currentId) saved.getLong("position", 0L) else 0L
+        songsById = songsById + songs.associateBy { it.id }
+        manualQueueIds.clear()
+        manualQueueIds.addAll(saved.getString("manual", "")!!.split(',').mapNotNull { it.toLongOrNull() }.filter { it in byId })
+        shuffleEnabled = saved.getBoolean("shuffle", false)
+        repeatEnabled = saved.getBoolean("repeat", false)
+        infinitePlayEnabled = saved.getBoolean("endless", false)
+        c.repeatMode = if (repeatEnabled) Player.REPEAT_MODE_ALL else Player.REPEAT_MODE_OFF
+        c.setMediaItems(songs.map(::toMediaItem), index, position)
+        c.prepare()
+        currentSong = songs[index]
+        positionMs = position
+        playingFrom = saved.getString("fromName", null)?.let { name ->
+            decodeArt(saved.getString("fromArt", null), songs)?.let { PlaySource(name, saved.getInt("fromCount", songs.size), it) }
+        }
+        refreshDerivedQueues()
+        loadLyricsFor(currentSong)
+        sendModes()
     }
 
     fun togglePlayPause() {
@@ -265,6 +401,7 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
         // fresh one. Reordering the upcoming items ourselves guarantees a new shuffle every time.
         if (shuffleEnabled) reshuffleContinueQueue() else restorePreShuffleOrder()
         refreshDerivedQueues()
+        sendModes()
     }
 
     /** Physically reorders the "continue playing" portion of the controller's timeline (after
@@ -303,10 +440,13 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
         repeatEnabled = !repeatEnabled
         c.repeatMode = if (repeatEnabled) Player.REPEAT_MODE_ALL else Player.REPEAT_MODE_OFF
         refreshDerivedQueues()
+        sendModes()
     }
 
     fun toggleInfinitePlay() {
         infinitePlayEnabled = !infinitePlayEnabled
+        sendModes()
+        saveState()
     }
 
     /** Puts the song at the top of "continue playing" — right under the "Queue" section, which
@@ -410,6 +550,8 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
         if (infinitePlayEnabled && continueQueue.size < INFINITE_PLAY_TOPUP_THRESHOLD) {
             appendInfinitePlayBatch()
         }
+        // Any change to the queue is worth keeping.
+        saveState()
     }
 
     /** Walks `Timeline.getNextWindowIndex` (repeat-mode aware) rather than just reading
@@ -510,6 +652,7 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     override fun onCleared() {
+        saveState()
         controller?.release()
         controller = null
     }

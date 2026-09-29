@@ -185,6 +185,9 @@
     <string name="rename">重命名</string>
     <string name="rename_playlist">重命名歌单</string>
     <string name="repeat">重复</string>
+    <string name="replace">替换</string>
+    <string name="replace_queue_msg">当前队列中的内容将被新歌曲取代。</string>
+    <string name="replace_queue_q">替换队列？</string>
     <string name="sat_muted">柔和</string>
     <string name="sat_normal">普通</string>
     <string name="save">保存</string>
@@ -234,9 +237,13 @@
     <string name="set_library">音乐库</string>
     <string name="set_library_sub">扫描和音乐文件夹</string>
     <string name="set_light_bg">浅色主题背景</string>
+    <string name="set_min_length">忽略短于此时长的文件</string>
+    <string name="set_min_length_desc">语音、通知音和游戏台词不会进入音乐库。</string>
     <string name="set_mood_explain">根据标签中的流派挑选并不总是准确：标签可能不完整，或根本不反映心情。下方可以标记音乐库中哪些文件夹算作哪种心情——这是对流派的补充，而不是替代。</string>
     <string name="set_mood_sub">哪些文件夹算作哪种心情</string>
     <string name="set_no_folders_yet">还没有找到文件夹——需要重新扫描音乐库。</string>
+    <string name="set_notif_button">通知中的第二个按钮</string>
+    <string name="set_notif_button_desc">显示在系统播放器中“随机播放”旁边。</string>
     <string name="set_playback">播放</string>
     <string name="set_playback_sub">均衡器、无尽播放</string>
     <string name="set_player_background">播放器背景</string>
@@ -288,6 +295,7 @@
     <string name="unit_khz">%1$.1f kHz</string>
     <string name="unit_mb">%1$.1f MB</string>
     <string name="unit_min">%1$d 分钟</string>
+    <string name="unit_sec">%1$d 秒</string>
     <string name="unknown_artist">未知艺人</string>
     <string name="untitled">无标题</string>
     <string name="up_next">接下来</string>

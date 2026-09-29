@@ -80,7 +80,7 @@ fun MixCard(mix: Mix, onClick: () -> Unit) {
             .clip(RoundedCornerShape(18.dp))
             .background(mixBrush(mix.colorIndex))
             .drawBehind { drawMixMotif(mix.motif, textMeasurer) }
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress, onClick = onClick)
             .padding(16.dp),
     ) {
         Text(text = stringResource(R.string.mix_label), color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
@@ -205,7 +205,7 @@ fun MixScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onPlay(song, mix.songs) }
+                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onPlay(song, mix.songs) }
                         .padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {

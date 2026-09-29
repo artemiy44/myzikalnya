@@ -39,6 +39,12 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     var scanFolders by mutableStateOf<Set<String>>(emptySet())
         private set
 
+    var minDurationSec by mutableStateOf(SettingsRepository.DEFAULT_MIN_DURATION_S)
+        private set
+
+    var notificationRepeatButton by mutableStateOf(false)
+        private set
+
     /** Every folder name found anywhere in the device's audio index — ringtones, notifications,
      * downloads, the user's real music, all of it — so they can pick which ones are real. */
     var availableScanFolders by mutableStateOf<List<String>>(emptyList())
@@ -111,6 +117,12 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             repository.scanFolders.collect { scanFolders = it }
+        }
+        viewModelScope.launch {
+            repository.minDurationSec.collect { minDurationSec = it }
+        }
+        viewModelScope.launch {
+            repository.notificationRepeatButton.collect { notificationRepeatButton = it }
         }
         viewModelScope.launch {
             repository.infinitePlayMode.collect { infinitePlayMode = it }
@@ -254,6 +266,16 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     fun updateOnboardingDone(done: Boolean) {
         onboardingDone = done
         viewModelScope.launch { repository.setOnboardingDone(done) }
+    }
+
+    fun updateNotificationRepeatButton(repeat: Boolean) {
+        notificationRepeatButton = repeat
+        viewModelScope.launch { repository.setNotificationRepeatButton(repeat) }
+    }
+
+    fun updateMinDurationSec(seconds: Int) {
+        minDurationSec = seconds
+        viewModelScope.launch { repository.setMinDurationSec(seconds) }
     }
 
     fun updateAppFont(font: com.artemiy.player.ui.theme.AppFont) {

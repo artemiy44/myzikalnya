@@ -185,6 +185,9 @@
     <string name="rename">Renomear</string>
     <string name="rename_playlist">Renomear playlist</string>
     <string name="repeat">Repetir</string>
+    <string name="replace">Substituir</string>
+    <string name="replace_queue_msg">O que está na fila agora vai dar lugar às novas músicas.</string>
+    <string name="replace_queue_q">Substituir a fila?</string>
     <string name="sat_muted">Suave</string>
     <string name="sat_normal">Normal</string>
     <string name="save">Salvar</string>
@@ -234,9 +237,13 @@
     <string name="set_library">Biblioteca</string>
     <string name="set_library_sub">Varredura e pastas de música</string>
     <string name="set_light_bg">Fundo do tema claro</string>
+    <string name="set_min_length">Ignorar arquivos com menos de</string>
+    <string name="set_min_length_desc">Áudios de voz, sons de notificação e falas de jogos ficam fora da biblioteca.</string>
     <string name="set_mood_explain">Escolher pelo gênero das tags nem sempre acerta: as tags podem estar incompletas ou não refletir o clima. Abaixo dá para marcar quais pastas da biblioteca contam como cada clima — isso se soma ao gênero, não o substitui.</string>
     <string name="set_mood_sub">Quais pastas contam como qual clima</string>
     <string name="set_no_folders_yet">Nenhuma pasta encontrada ainda — é preciso escanear a biblioteca de novo.</string>
+    <string name="set_notif_button">Segundo botão na notificação</string>
+    <string name="set_notif_button_desc">Ao lado de «Aleatório» no player do sistema.</string>
     <string name="set_playback">Reprodução</string>
     <string name="set_playback_sub">Equalizador, reprodução sem fim</string>
     <string name="set_player_background">Fundo do player</string>
@@ -288,6 +295,7 @@
     <string name="unit_khz">%1$.1f kHz</string>
     <string name="unit_mb">%1$.1f MB</string>
     <string name="unit_min">%1$d min</string>
+    <string name="unit_sec">%1$d s</string>
     <string name="unknown_artist">Artista desconhecido</string>
     <string name="untitled">Sem título</string>
     <string name="up_next">A seguir</string>

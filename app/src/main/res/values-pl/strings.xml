@@ -185,6 +185,9 @@
     <string name="rename">Zmień nazwę</string>
     <string name="rename_playlist">Zmień nazwę playlisty</string>
     <string name="repeat">Powtarzanie</string>
+    <string name="replace">Zastąp</string>
+    <string name="replace_queue_msg">To, co jest teraz w kolejce, ustąpi miejsca nowym utworom.</string>
+    <string name="replace_queue_q">Zastąpić kolejkę?</string>
     <string name="sat_muted">Stonowane</string>
     <string name="sat_normal">Zwykłe</string>
     <string name="save">Zapisz</string>
@@ -234,9 +237,13 @@
     <string name="set_library">Biblioteka</string>
     <string name="set_library_sub">Skanowanie i foldery z muzyką</string>
     <string name="set_light_bg">Tło jasnego motywu</string>
+    <string name="set_min_length">Pomijaj pliki krótsze niż</string>
+    <string name="set_min_length_desc">Notatki głosowe, dźwięki powiadomień i kwestie z gier nie trafią do biblioteki.</string>
     <string name="set_mood_explain">Dobór według gatunku z tagów pliku nie zawsze jest trafny: tagi bywają niepełne albo w ogóle nie oddają nastroju. Poniżej można zaznaczyć, które foldery biblioteki uznawać za dany nastrój — doda się to do gatunku, a nie go zastąpi.</string>
     <string name="set_mood_sub">Które foldery uznawać za jaki nastrój</string>
     <string name="set_no_folders_yet">Nie znaleziono jeszcze folderów — trzeba przeskanować bibliotekę.</string>
+    <string name="set_notif_button">Drugi przycisk w powiadomieniu</string>
+    <string name="set_notif_button_desc">Obok „Losowo” w systemowym odtwarzaczu.</string>
     <string name="set_playback">Odtwarzanie</string>
     <string name="set_playback_sub">Korektor, odtwarzanie bez końca</string>
     <string name="set_player_background">Tło odtwarzacza</string>
@@ -288,6 +295,7 @@
     <string name="unit_khz">%1$.1f kHz</string>
     <string name="unit_mb">%1$.1f MB</string>
     <string name="unit_min">%1$d min</string>
+    <string name="unit_sec">%1$d s</string>
     <string name="unknown_artist">Nieznany wykonawca</string>
     <string name="untitled">Bez tytułu</string>
     <string name="up_next">Następne w kolejce</string>

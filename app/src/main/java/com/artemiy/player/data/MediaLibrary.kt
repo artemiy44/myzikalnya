@@ -44,7 +44,7 @@ data class Song(
  * once they've picked real folders here we trust that instead and drop the IS_MUSIC filter
  * entirely. Empty (the default, before they've configured anything) falls back to IS_MUSIC.
  */
-fun querySongs(context: Context, scanFolders: Set<String> = emptySet()): List<Song> {
+fun querySongs(context: Context, scanFolders: Set<String> = emptySet(), minDurationMs: Long = 0L): List<Song> {
     val songs = mutableListOf<Song>()
 
     val collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
@@ -91,6 +91,8 @@ fun querySongs(context: Context, scanFolders: Set<String> = emptySet()): List<So
             val rawPath = if (pathCol >= 0) cursor.getString(pathCol) else null
             val segments = pathSegmentsFrom(rawPath)
             if (scanFolders.isNotEmpty() && segments.none { it in scanFolders }) continue
+            // Voice notes, notification sounds, a game's voice lines: too short to be songs.
+            if (cursor.getLong(durationCol) < minDurationMs) continue
             songs += Song(
                 id = id,
                 title = cursor.getString(titleCol) ?: context.getString(R.string.untitled),

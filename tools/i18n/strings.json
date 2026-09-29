@@ -861,6 +861,18 @@
   "en": "Repeat",
   "ru": "Повтор"
  },
+ "replace": {
+  "en": "Replace",
+  "ru": "Заменить"
+ },
+ "replace_queue_msg": {
+  "en": "What's lined up now will give way to the new songs.",
+  "ru": "То, что сейчас в очереди, уступит место новым песням."
+ },
+ "replace_queue_q": {
+  "en": "Replace the queue?",
+  "ru": "Заменить очередь?"
+ },
  "sat_muted": {
   "en": "Muted",
   "ru": "Приглушённый"
@@ -1062,6 +1074,14 @@
   "en": "Light theme background",
   "ru": "Фон светлой темы"
  },
+ "set_min_length": {
+  "en": "Skip files shorter than",
+  "ru": "Не показывать файлы короче"
+ },
+ "set_min_length_desc": {
+  "en": "Voice notes, notification sounds and game voice lines stay out of the library.",
+  "ru": "Голосовые, звуки уведомлений и реплики из игр не попадут в медиатеку."
+ },
  "set_mood_explain": {
   "en": "Picking by the genre from the file's tags isn't always accurate — tags can be incomplete or not reflect the mood at all. Below, library folders can be marked as one mood or another — this adds to the genre rather than replacing it.",
   "ru": "Подбор по жанру из тегов файла не всегда точный: теги бывают неполными или вовсе не отражают настроение. Ниже можно отметить, какие папки библиотеки считать тем или иным настроением — это добавится к жанру, а не заменит его."
@@ -1073,6 +1093,14 @@
  "set_no_folders_yet": {
   "en": "No folders found yet — the library needs a rescan.",
   "ru": "Папки ещё не найдены — нужно пересканировать медиатеку."
+ },
+ "set_notif_button": {
+  "en": "Second button in the notification",
+  "ru": "Вторая кнопка в уведомлении"
+ },
+ "set_notif_button_desc": {
+  "en": "Next to shuffle in the system media player.",
+  "ru": "Рядом с «Перемешать» в системном плеере."
  },
  "set_playback": {
   "en": "Playback",
@@ -1329,6 +1357,10 @@
  "unit_min": {
   "en": "%1$d min",
   "ru": "%1$d мин"
+ },
+ "unit_sec": {
+  "en": "%1$d s",
+  "ru": "%1$d с"
  },
  "unknown_artist": {
   "en": "Unknown artist",

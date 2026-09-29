@@ -59,7 +59,7 @@ fun SearchScreen(
     searchLyrics: suspend (String) -> List<LyricsHit>,
     lyricsIndexProgress: Pair<Int, Int>?,
 ) {
-    var query by remember { mutableStateOf("") }
+    var query by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
 
     // Waits for a pause in typing before hitting the lyrics database.
     val lyricHits by produceState(emptyList<LyricsHit>(), query, lyricsIndexProgress == null) {
@@ -111,23 +111,13 @@ fun SearchScreen(
                 tint = PlayerColors.TextSecondary,
                 modifier = Modifier.size(18.dp),
             )
-            Box(modifier = Modifier.weight(1f).padding(horizontal = 10.dp)) {
-                if (query.isEmpty()) {
-                    Text(
-                        text = stringResource(R.string.search_hint),
-                        color = PlayerColors.TextTertiary,
-                        fontSize = 15.sp,
-                    )
-                }
-                BasicTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    singleLine = true,
-                    textStyle = TextStyle(color = PlayerColors.TextPrimary, fontSize = 15.sp).inAppFont(),
-                    cursorBrush = androidx.compose.ui.graphics.SolidColor(PlayerColors.TextPrimary),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
+            com.artemiy.player.ui.components.HintTextField(
+                value = query,
+                onValueChange = { query = it },
+                hint = stringResource(R.string.search_hint),
+                fontSize = 15.sp,
+                modifier = Modifier.weight(1f).padding(horizontal = 10.dp),
+            )
             if (query.isNotEmpty()) {
                 Icon(
                     imageVector = AppIcons.Close,
@@ -135,7 +125,7 @@ fun SearchScreen(
                     tint = PlayerColors.TextSecondary,
                     modifier = Modifier
                         .size(18.dp)
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) {
                             query = ""
                         },
                 )
@@ -181,7 +171,7 @@ fun SearchScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) {
                                     onSongClick(song, results)
                                 }
                                 .padding(horizontal = 20.dp, vertical = 8.dp),
@@ -230,7 +220,7 @@ fun SearchScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) {
                                         onSongClick(hit.song, lyricHits.map { it.song })
                                     }
                                     .padding(horizontal = 20.dp, vertical = 8.dp),
