@@ -37,6 +37,14 @@ import androidx.compose.ui.unit.dp
 import com.artemiy.player.ui.icons.AppIcons
 import com.artemiy.player.ui.theme.PlayerColors
 import com.artemiy.player.ui.theme.expressiveUi
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.graphics.Color
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.interaction.InteractionSource
@@ -44,33 +52,18 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.ui.graphics.Shape
 import kotlinx.coroutines.delay
 
-/** Where a hero button sits in the expressive style's connected group (Shuffle · Listen · Add):
- * round on its outer side, tight where it meets the next one. */
-enum class GroupEdge { Start, Middle, End }
-
-/** The gap between the hero buttons: a connected group in the expressive style. */
-val heroButtonGap: androidx.compose.ui.unit.Dp @Composable get() = if (expressiveUi) 4.dp else 14.dp
-
-/** [showCheck] briefly swaps the icon for a ✓ — see [rememberCheckFlash]. [edge] places it in the
- * expressive style's connected group; without one it stays a lone round button. */
+/** [showCheck] briefly swaps the icon for a ✓ — see [rememberCheckFlash]. */
 @Composable
-fun CircleIconButton(icon: ImageVector, description: String, showCheck: Boolean = false, edge: GroupEdge? = null, onClick: () -> Unit) {
+fun CircleIconButton(icon: ImageVector, description: String, showCheck: Boolean = false, onClick: () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
     val expressive = expressiveUi
-    val grouped = expressive && edge != null
     Box(
         modifier = Modifier
-            .then(if (grouped) Modifier.size(width = 64.dp, height = 60.dp) else Modifier.size(if (expressive) 52.dp else 46.dp))
+            .size(if (expressive) 52.dp else 46.dp)
             .pressScale(interaction, pressedScale = if (expressive) 0.92f else 0.86f)
-            // Expressive: the shape changes under the finger.
-            .clip(
-                when {
-                    grouped -> groupShape(interaction, edge!!)
-                    expressive -> morphingShape(interaction, restPercent = 50, pressedPercent = 30)
-                    else -> CircleShape
-                },
-            )
-            .background(if (grouped) tonalAccent else PlayerColors.Surface)
+            // Expressive: the circle squares up a little under the finger.
+            .clip(if (expressive) morphingShape(interaction, restPercent = 50, pressedPercent = 30) else CircleShape)
+            .background(PlayerColors.Surface)
             .clickable(interactionSource = interaction, indication = null) { onClick() },
         contentAlignment = Alignment.Center,
     ) {
@@ -86,7 +79,7 @@ fun CircleIconButton(icon: ImageVector, description: String, showCheck: Boolean 
                 imageVector = if (check) AppIcons.Check else icon,
                 contentDescription = description,
                 tint = PlayerColors.TextPrimary,
-                modifier = Modifier.size(if (grouped) 24.dp else if (expressive) 21.dp else 19.dp),
+                modifier = Modifier.size(if (expressive) 21.dp else 19.dp),
             )
         }
     }
@@ -117,22 +110,6 @@ fun rememberCheckFlash(): CheckFlash {
 @Composable
 fun PlayPillButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     val interaction = remember { MutableInteractionSource() }
-    val expressive = expressiveUi
-    if (expressive) {
-        // Expressive: the middle of the connected group — just a big play symbol, no words.
-        Box(
-            modifier = modifier
-                .size(width = 96.dp, height = 60.dp)
-                .pressScale(interaction, pressedScale = 0.93f)
-                .clip(groupShape(interaction, GroupEdge.Middle))
-                .background(PlayerColors.Accent)
-                .clickable(interactionSource = interaction, indication = null, onClick = onClick),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(imageVector = AppIcons.Play, contentDescription = stringResource(R.string.action_listen), tint = PlayerColors.OnAccent, modifier = Modifier.size(30.dp))
-        }
-        return
-    }
     Row(
         modifier = modifier
             .pressScale(interaction, pressedScale = 0.93f)
@@ -170,12 +147,104 @@ fun morphingShape(interaction: InteractionSource, startPercent: Int, endPercent:
     )
 }
 
-/** A connected-group button's outline: round outside, tight inside; pressed, it rounds out fully. */
+/**
+ * A page header's buttons — shuffle, "Listen", and one more ([trailingIcon]: add, queue, a menu…;
+ * [trailingOverlay] is drawn anchored to it, for a dropdown). Classic: two round buttons around the
+ * pill. Expressive: one wide connected group of symbols like the expressive player's controls —
+ * the pressed button swells and pushes its neighbours aside, its corners tightening, all on a
+ * bouncy spring.
+ */
 @Composable
-private fun groupShape(interaction: InteractionSource, edge: GroupEdge): Shape = when (edge) {
-    GroupEdge.Start -> morphingShape(interaction, startPercent = 50, endPercent = GROUP_INNER, pressedPercent = 50)
-    GroupEdge.Middle -> morphingShape(interaction, startPercent = GROUP_INNER, endPercent = GROUP_INNER, pressedPercent = 50)
-    GroupEdge.End -> morphingShape(interaction, startPercent = GROUP_INNER, endPercent = 50, pressedPercent = 50)
+fun HeroButtons(
+    onShuffle: () -> Unit,
+    onPlay: () -> Unit,
+    trailingIcon: ImageVector,
+    trailingDescription: String,
+    onTrailing: () -> Unit,
+    trailingCheck: Boolean = false,
+    trailingOverlay: @Composable () -> Unit = {},
+) {
+    if (!expressiveUi) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            CircleIconButton(icon = AppIcons.Shuffle, description = stringResource(R.string.shuffle), onClick = onShuffle)
+            PlayPillButton(onClick = onPlay, modifier = Modifier.padding(horizontal = 14.dp))
+            Box {
+                CircleIconButton(icon = trailingIcon, description = trailingDescription, showCheck = trailingCheck, onClick = onTrailing)
+                trailingOverlay()
+            }
+        }
+        return
+    }
+    val shuffleInteraction = remember { MutableInteractionSource() }
+    val playInteraction = remember { MutableInteractionSource() }
+    val trailingInteraction = remember { MutableInteractionSource() }
+    val shufflePressed by shuffleInteraction.collectIsPressedAsState()
+    val playPressed by playInteraction.collectIsPressedAsState()
+    val trailingPressed by trailingInteraction.collectIsPressedAsState()
+    val bounce = spring<Float>(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow)
+    val shuffleWeight by animateFloatAsState(if (shufflePressed) 1.4f else 1f, bounce, label = "heroShuffle")
+    val playWeight by animateFloatAsState(if (playPressed) 1.75f else 1.45f, bounce, label = "heroPlay")
+    val trailingWeight by animateFloatAsState(if (trailingPressed) 1.4f else 1f, bounce, label = "heroTrailing")
+    val sideFill = tonalAccent
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).height(72.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
+        HeroGroupButton(shuffleWeight, pressed = shufflePressed, outerStart = true, fill = sideFill, interaction = shuffleInteraction, onClick = onShuffle) {
+            Icon(AppIcons.Shuffle, contentDescription = stringResource(R.string.shuffle), tint = PlayerColors.TextPrimary, modifier = Modifier.size(28.dp))
+        }
+        HeroGroupButton(playWeight, pressed = playPressed, outerStart = null, fill = PlayerColors.Accent, interaction = playInteraction, onClick = onPlay) {
+            Icon(AppIcons.Play, contentDescription = stringResource(R.string.action_listen), tint = PlayerColors.OnAccent, modifier = Modifier.size(34.dp))
+        }
+        HeroGroupButton(trailingWeight, pressed = trailingPressed, outerStart = false, fill = sideFill, interaction = trailingInteraction, onClick = onTrailing) {
+            AnimatedContent(
+                targetState = trailingCheck,
+                transitionSpec = {
+                    (fadeIn(tween(160)) + scaleIn(tween(200), initialScale = 0.4f))
+                        .togetherWith(fadeOut(tween(120)) + scaleOut(tween(150), targetScale = 0.4f))
+                },
+                label = "heroCheck",
+            ) { check ->
+                Icon(if (check) AppIcons.Check else trailingIcon, contentDescription = trailingDescription, tint = PlayerColors.TextPrimary, modifier = Modifier.size(28.dp))
+            }
+            trailingOverlay()
+        }
+    }
 }
 
-private const val GROUP_INNER = 22
+/** One button of [HeroButtons]' group. [outerStart]: which side faces outwards (rounder) — null
+ * for the middle one, tight on both sides. */
+@Composable
+private fun RowScope.HeroGroupButton(
+    weight: Float,
+    pressed: Boolean,
+    outerStart: Boolean?,
+    fill: Color,
+    interaction: MutableInteractionSource,
+    onClick: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    val inner by animateDpAsState(if (pressed) 14.dp else 20.dp, spring(stiffness = Spring.StiffnessMediumLow), label = "heroInner")
+    val outer by animateDpAsState(
+        when {
+            outerStart == null -> if (pressed) 14.dp else 20.dp
+            pressed -> 16.dp
+            else -> 36.dp
+        },
+        spring(stiffness = Spring.StiffnessMediumLow),
+        label = "heroOuter",
+    )
+    val start = if (outerStart == true) outer else inner
+    val end = if (outerStart == false) outer else inner
+    Box(
+        modifier = Modifier
+            .weight(weight)
+            .fillMaxHeight()
+            .clip(RoundedCornerShape(topStart = start, bottomStart = start, topEnd = end, bottomEnd = end))
+            .background(fill)
+            .clickable(interactionSource = interaction, indication = null, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        content()
+    }
+}

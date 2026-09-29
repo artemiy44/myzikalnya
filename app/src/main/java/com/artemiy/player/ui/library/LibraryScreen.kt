@@ -669,20 +669,20 @@ private fun PlaylistHero(
             style = TextStyle(shadow = HeroTextShadow).inAppFont(),
             modifier = Modifier.padding(top = 4.dp),
         )
-        Row(
-            modifier = Modifier.padding(top = 18.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            CircleIconButton(icon = AppIcons.Shuffle, description = stringResource(R.string.shuffle), edge = com.artemiy.player.ui.components.GroupEdge.Start, onClick = onShuffle)
-            PlayPillButton(onClick = onPlay, modifier = Modifier.padding(horizontal = com.artemiy.player.ui.components.heroButtonGap))
-            Box {
-                CircleIconButton(icon = AppIcons.More, description = stringResource(R.string.playlist_actions), edge = com.artemiy.player.ui.components.GroupEdge.End) { menuExpanded = true }
-                AppDropdownMenu(expanded = menuExpanded, onDismiss = { menuExpanded = false }) {
-                    AppMenuItem(text = stringResource(R.string.rename), icon = AppIcons.Edit, onClick = { menuExpanded = false; onRename() })
-                    AppMenuItem(text = stringResource(R.string.delete_playlist), icon = AppIcons.Delete, destructive = true, onClick = { menuExpanded = false; onDelete() })
-                }
-            }
+        Box(modifier = Modifier.padding(top = 18.dp)) {
+            com.artemiy.player.ui.components.HeroButtons(
+                onShuffle = onShuffle,
+                onPlay = onPlay,
+                trailingIcon = AppIcons.More,
+                trailingDescription = stringResource(R.string.playlist_actions),
+                onTrailing = { menuExpanded = true },
+                trailingOverlay = {
+                    AppDropdownMenu(expanded = menuExpanded, onDismiss = { menuExpanded = false }) {
+                        AppMenuItem(text = stringResource(R.string.rename), icon = AppIcons.Edit, onClick = { menuExpanded = false; onRename() })
+                        AppMenuItem(text = stringResource(R.string.delete_playlist), icon = AppIcons.Delete, destructive = true, onClick = { menuExpanded = false; onDelete() })
+                    }
+                },
+            )
         }
     }
 }

@@ -423,6 +423,8 @@ private fun PlayerApp(settings: SettingsViewModel) {
                     artVisible = !(showNowPlaying && classicPlayer),
                     anchors = miniAnchors,
                     textScrolls = !showNowPlaying,
+                    progress = { if (playback.durationMs > 0) playback.positionMs.toFloat() / playback.durationMs else 0f },
+                    progressShown = !showNowPlaying,
                     // Drag it up to pull the classic player open with the finger.
                     modifier = Modifier.draggable(
                         orientation = Orientation.Vertical,

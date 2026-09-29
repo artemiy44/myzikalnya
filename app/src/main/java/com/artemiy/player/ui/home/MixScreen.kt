@@ -189,19 +189,18 @@ fun MixScreen(
                 modifier = Modifier.padding(top = 4.dp),
                 style = TextStyle(shadow = HeroTextShadow).inAppFont(),
             )
-            Row(
-                modifier = Modifier.padding(top = 18.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                CircleIconButton(icon = AppIcons.Shuffle, description = stringResource(R.string.shuffle), edge = com.artemiy.player.ui.components.GroupEdge.Start) {
-                    mix.songs.shuffled().let { onPlay(it.first(), it) }
-                }
-                PlayPillButton(onClick = { onPlay(mix.songs.first(), mix.songs) }, modifier = Modifier.padding(horizontal = com.artemiy.player.ui.components.heroButtonGap))
-                CircleIconButton(icon = AppIcons.Add, description = stringResource(R.string.save_to_my_playlists), edge = com.artemiy.player.ui.components.GroupEdge.End, showCheck = savedFlash.visible) {
-                    onSaveAsPlaylist(mix)
-                    savedFlash.flash()
-                }
+            Box(modifier = Modifier.padding(top = 18.dp)) {
+                com.artemiy.player.ui.components.HeroButtons(
+                    onShuffle = { mix.songs.shuffled().let { onPlay(it.first(), it) } },
+                    onPlay = { onPlay(mix.songs.first(), mix.songs) },
+                    trailingIcon = AppIcons.Add,
+                    trailingDescription = stringResource(R.string.save_to_my_playlists),
+                    trailingCheck = savedFlash.visible,
+                    onTrailing = {
+                        onSaveAsPlaylist(mix)
+                        savedFlash.flash()
+                    },
+                )
             }
         }
 

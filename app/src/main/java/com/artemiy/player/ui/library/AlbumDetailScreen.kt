@@ -113,14 +113,14 @@ fun AlbumDetailScreen(
                 style = TextStyle(shadow = HeroTextShadow).inAppFont(),
                 modifier = Modifier.padding(top = 4.dp),
             )
-            Row(
-                modifier = Modifier.padding(top = 18.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                CircleIconButton(icon = AppIcons.Shuffle, description = stringResource(R.string.shuffle), edge = com.artemiy.player.ui.components.GroupEdge.Start) { onShuffleAll(songs) }
-                PlayPillButton(onClick = { onPlayAll(songs) }, modifier = Modifier.padding(horizontal = com.artemiy.player.ui.components.heroButtonGap))
-                CircleIconButton(icon = AppIcons.Add, description = stringResource(R.string.add_to_playlist), edge = com.artemiy.player.ui.components.GroupEdge.End) { onAddAllClick(songs) }
+            Box(modifier = Modifier.padding(top = 18.dp)) {
+                com.artemiy.player.ui.components.HeroButtons(
+                    onShuffle = { onShuffleAll(songs) },
+                    onPlay = { onPlayAll(songs) },
+                    trailingIcon = AppIcons.Add,
+                    trailingDescription = stringResource(R.string.add_to_playlist),
+                    onTrailing = { onAddAllClick(songs) },
+                )
             }
         }
 
