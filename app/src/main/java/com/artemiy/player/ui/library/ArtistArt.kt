@@ -40,10 +40,11 @@ import kotlin.random.Random
  * layout comes from the artist's name, so each artist always gets the same one; it drifts slowly.
  */
 @Composable
-fun BoxScope.ArtistGenreArt(artist: String, songs: List<Song>) {
+fun BoxScope.ArtistGenreArt(artist: String, songs: List<Song>, pictures: List<String>? = null) {
     val tone = rememberCoverTone(songs)
-    // No genre tags at all: a picture picked by the name — still a picture.
-    val genres = remember(songs, artist) { topGenres(songs).ifEmpty { listOf(artist) } }
+    // No genre tags at all: a picture picked by the name — still a picture. [pictures] given:
+    // exactly those (none at all for the "no genre" page).
+    val genres = remember(songs, artist, pictures) { pictures ?: topGenres(songs).ifEmpty { listOf(artist) } }
     val seed = remember(artist) { artist.lowercase().hashCode() }
     val phase by rememberInfiniteTransition(label = "artistArt").animateFloat(
         0f, (2 * PI).toFloat(), infiniteRepeatable(tween(26_000, easing = LinearEasing), RepeatMode.Restart), label = "drift",

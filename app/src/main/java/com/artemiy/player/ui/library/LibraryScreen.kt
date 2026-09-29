@@ -337,7 +337,7 @@ fun LibraryScreen(
                     }
                     // A year's or a genre's page: the artist page's layout, with the tag as its name.
                     @Composable
-                    fun TagDetail(group: TagGroup?, title: String, bigMark: String?) {
+                    fun TagDetail(group: TagGroup?, title: String, bigMark: String?, pictures: List<String>? = null) {
                         val tagSongs = group?.songs ?: emptyList()
                         val tagAlbums = remember(tagSongs) {
                             tagSongs.groupBy { albumKey(it.album, it.artist) }
@@ -350,6 +350,7 @@ fun LibraryScreen(
                             bigMark = bigMark,
                             songSubtitle = { it.artist },
                             queueMessageRes = R.string.add_all_to_queue_msg,
+                            genrePictures = pictures,
                             songs = tagSongs,
                             albums = tagAlbums,
                             albumMenu = albumMenu,
@@ -579,6 +580,8 @@ fun LibraryScreen(
                                 group = group,
                                 title = group?.name ?: stringResource(R.string.no_genre),
                                 bigMark = if (r.key == null) "?" else null,
+                                // Songs without a genre have no picture to show — just the "?".
+                                pictures = if (r.key == null) emptyList() else null,
                             )
                         }
 

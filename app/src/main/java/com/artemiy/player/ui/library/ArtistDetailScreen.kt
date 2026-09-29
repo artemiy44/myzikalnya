@@ -84,6 +84,8 @@ fun ArtistDetailScreen(
     bigMark: String? = null,
     songSubtitle: (Song) -> String = { it.album.ifBlank { artist } },
     queueMessageRes: Int = R.string.add_artist_to_queue_msg,
+    /** Which genres' pictures the header shows; null = worked out from [songs]. */
+    genrePictures: List<String>? = null,
     onBack: () -> Unit,
     onPlayAll: (List<Song>) -> Unit,
     onShuffleAll: (List<Song>) -> Unit,
@@ -96,27 +98,23 @@ fun ArtistDetailScreen(
     onGoToAlbum: (Song) -> Unit,
 ) {
     val entrance = rememberEntrance()
-    // A long artist page built all at once took the first frames of its slide-in: only the first
-    // rows are built at once, the rest once the page has arrived.
-    var shownSongs by remember { androidx.compose.runtime.mutableIntStateOf(FIRST_ROWS) }
-    androidx.compose.runtime.LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay(ARRIVE_MS)
-        shownSongs = Int.MAX_VALUE
-    }
     val queuedFlash = rememberCheckFlash()
     var showAddToQueueDialog by remember { mutableStateOf(false) }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()).barsInset(),
+    // A lazy list: only the rows on screen are built (and their covers loaded) — a page of hundreds
+    // of songs ("no genre") built all at once heated the phone up.
+    val albumRows = remember(albums) { albums.chunked(2) }
+    androidx.compose.foundation.lazy.LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = com.artemiy.player.ui.theme.LocalBarsInset.current),
     ) {
+      item(key = "hero") {
         HeroOverArt(
             // The drawn picture is always deep and dark: a white arrow reads on it.
             topTint = androidx.compose.ui.graphics.Color.White,
             onBack = onBack,
             height = COLLAGE_HERO_HEIGHT,
             art = {
-                ArtistGenreArt(artist, songs)
+                ArtistGenreArt(artist, songs, genrePictures)
                 if (bigMark != null) {
                     Text(
                         text = bigMark,
@@ -172,12 +170,16 @@ fun ArtistDetailScreen(
             )
         }
 
+      }
+
         if (albums.isNotEmpty()) {
-            Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)) {
-                Text(text = stringResource(R.string.albums), color = PlayerColors.TextPrimary, style = com.artemiy.player.ui.theme.sectionTitleStyle, modifier = Modifier.padding(bottom = 10.dp))
-                albums.take(if (shownSongs == Int.MAX_VALUE) albums.size else FIRST_ALBUMS).chunked(2).forEach { rowAlbums ->
+            item(key = "albumsTitle") {
+                Text(text = stringResource(R.string.albums), color = PlayerColors.TextPrimary, style = com.artemiy.player.ui.theme.sectionTitleStyle, modifier = Modifier.padding(horizontal = 20.dp).padding(top = 4.dp, bottom = 10.dp))
+            }
+            items(albumRows.size, key = { "albums$it" }) { rowIndex ->
+                val rowAlbums = albumRows[rowIndex]
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(14.dp),
                     ) {
                         rowAlbums.forEach { (album, albumSongs) ->
@@ -207,16 +209,25 @@ fun ArtistDetailScreen(
                             Box(modifier = Modifier.weight(1f))
                         }
                     }
-                }
             }
         }
 
-        Column(modifier = Modifier.padding(horizontal = com.artemiy.player.ui.components.pageGutter, vertical = 20.dp)) {
-            Text(text = stringResource(R.string.tracks), color = PlayerColors.TextPrimary, style = com.artemiy.player.ui.theme.sectionTitleStyle, modifier = Modifier.padding(bottom = 10.dp, start = if (com.artemiy.player.ui.theme.expressiveUi) 8.dp else 0.dp))
-            songs.take(shownSongs).forEachIndexed { index, song ->
+        item(key = "tracksTitle") {
+            Text(
+                text = stringResource(R.string.tracks),
+                color = PlayerColors.TextPrimary,
+                style = com.artemiy.player.ui.theme.sectionTitleStyle,
+                modifier = Modifier
+                    .padding(horizontal = com.artemiy.player.ui.components.pageGutter)
+                    .padding(top = 20.dp, bottom = 10.dp, start = if (com.artemiy.player.ui.theme.expressiveUi) 8.dp else 0.dp),
+            )
+        }
+        items(songs.size, key = { songs[it].id }) { index ->
+                val song = songs[index]
                 var menuExpanded by remember { mutableStateOf(false) }
                 Row(
                     modifier = Modifier
+                        .padding(horizontal = com.artemiy.player.ui.components.pageGutter)
                         .staggeredEntrance(index, entrance)
                     .groupedCard(index, songs.size)
                         .fillMaxWidth()
@@ -242,7 +253,6 @@ fun ArtistDetailScreen(
                         onGoToAlbum = onGoToAlbum,
                     )
                 }
-            }
         }
     }
 }
@@ -258,6 +268,3 @@ private fun AddArtistToQueueDialog(songCount: Int, messageRes: Int, onDismiss: (
     }
 }
 
-private const val FIRST_ROWS = 12
-private const val FIRST_ALBUMS = 4
-private const val ARRIVE_MS = 380L
