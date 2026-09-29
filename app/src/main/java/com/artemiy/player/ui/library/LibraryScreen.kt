@@ -514,10 +514,14 @@ fun LibraryScreen(
                                     onViewModeCycle = { settingsVm.setViewMode("songs", LibraryViewMode.valueOf(songViewMode.next().name)) },
                                 )
                                 if (filtered.isNotEmpty()) {
+                                    // Leaves with the folding header like the search field above it —
+                                    // otherwise its lower edge peeked out from under the bar.
+                                    Box(modifier = Modifier.fadesWithHeader()) {
                                     PlayShuffleRow(
                                         onPlay = { onSongClick(filtered.first(), filtered) },
                                         onShuffle = { filtered.shuffled().let { onSongClick(it.first(), it) } },
                                     )
+                                    }
                                 }
                                 when (songViewMode) {
                                     ViewMode.LIST -> SongList(
