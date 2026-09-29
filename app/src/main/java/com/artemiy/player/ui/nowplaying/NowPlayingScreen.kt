@@ -125,6 +125,11 @@ fun NowPlayingScreen(
 ) {
     // The big cover decoded as soon as the song changes, not the moment it's first shown.
     com.artemiy.player.ui.components.rememberAlbumArtBitmap(song?.uri, com.artemiy.player.ui.components.ART_SIZE_FULL)
+    // …and the next song's too (both sizes: the cover, and the blurred background made from the
+    // small one), so flicking to it finds them ready instead of decoding them only then.
+    val nextUp = (manualQueue.firstOrNull() ?: continueQueue.firstOrNull())?.uri
+    com.artemiy.player.ui.components.rememberAlbumArtBitmap(nextUp, com.artemiy.player.ui.components.ART_SIZE_FULL)
+    com.artemiy.player.ui.components.rememberAlbumArtBitmap(nextUp)
     if (playerStyle == PlayerStyle.EXPRESSIVE) {
         ExpressiveNowPlaying(
             song = song, isPlaying = isPlaying, positionMs = positionMs, durationMs = durationMs,
@@ -405,6 +410,7 @@ fun NowPlayingScreen(
                         AlbumArt(
                             uri = song?.uri,
                             size = ART_SIZE_FULL,
+                            crossfade = true,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .aspectRatio(1f)

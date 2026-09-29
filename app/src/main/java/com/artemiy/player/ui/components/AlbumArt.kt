@@ -10,6 +10,7 @@ import android.util.Size
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -72,7 +73,9 @@ fun rememberAlbumArtBitmap(uri: Uri?, size: Int = ART_SIZE_THUMB): Bitmap? {
             value = cached
             return@produceState
         }
-        value = cachedOrSmaller(id)
+        // Whatever's at hand straight away — but never nothing: until the new cover is decoded the
+        // previous one stays (a blank frame flashed the cover and the blurred background).
+        cachedOrSmaller(id)?.let { value = it }
         // A row only flashing past during a fling never starts decoding (the big player's cover
         // isn't in any list, so it doesn't wait).
         if (size <= ART_SIZE_THUMB) delay(ART_LOAD_DELAY_MS)
@@ -96,9 +99,23 @@ fun placeholderArtBrush(): Brush =
         Brush.linearGradient(listOf(Color(0xFF3A3A3C), Color(0xFF232325)))
     }
 
+/**
+ * A song's cover, or [MissingArt] without one. [crossfade]: the next song's cover eases in over
+ * the previous one instead of replacing it at once (the big player's cover).
+ */
 @Composable
-fun AlbumArt(uri: Uri?, modifier: Modifier = Modifier, size: Int = ART_SIZE_THUMB) {
+fun AlbumArt(uri: Uri?, modifier: Modifier = Modifier, size: Int = ART_SIZE_THUMB, crossfade: Boolean = false) {
     val bmp = rememberAlbumArtBitmap(uri, size)
+    if (crossfade) {
+        androidx.compose.animation.Crossfade(targetState = bmp, animationSpec = androidx.compose.animation.core.tween(COVER_FADE_MS), modifier = modifier, label = "cover") { shown ->
+            if (shown != null) {
+                Image(bitmap = shown.asImageBitmap(), contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+            } else {
+                MissingArt(Modifier.fillMaxSize())
+            }
+        }
+        return
+    }
     if (bmp != null) {
         Image(
             bitmap = bmp.asImageBitmap(),
@@ -130,3 +147,5 @@ fun MissingArt(modifier: Modifier = Modifier) {
         )
     }
 }
+
+private const val COVER_FADE_MS = 280

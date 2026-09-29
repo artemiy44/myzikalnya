@@ -267,6 +267,7 @@ internal fun ExpressiveNowPlaying(
                                 AlbumArt(
                                     uri = song?.uri,
                                     size = ART_SIZE_FULL,
+                                    crossfade = true,
                                     modifier = Modifier
                                         .size(min(maxWidth, maxHeight))
                                         .graphicsLayer { scaleX = coverScale; scaleY = coverScale }
