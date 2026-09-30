@@ -15,8 +15,8 @@ android {
         applicationId = "com.artemiy.player"
         minSdk = 24
         targetSdk = 34
-        versionCode = 7
-        versionName = "0.61 beta"
+        versionCode = 8
+        versionName = "0.62 beta"
     }
 
     buildFeatures {
