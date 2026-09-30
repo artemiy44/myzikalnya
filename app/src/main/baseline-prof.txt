@@ -1,0 +1,19 @@
+# Our own hot code, compiled ahead of time at install instead of warming up while it runs —
+# on slow phones (a 32-bit Samsung A5 2015) that warm-up held every ALAC song for ~2 s and the
+# first romanized lyrics for a second or two. Library code (Compose, Media3) ships its own rules.
+
+# The ALAC decoder (pure Java) and our renderer around it.
+HSPLcom/beatofthedrum/alacdecoder/**;->**(**)**
+Lcom/beatofthedrum/alacdecoder/**;
+HSPLcom/artemiy/player/playback/alac/**;->**(**)**
+Lcom/artemiy/player/playback/alac/**;
+
+# Kuromoji, the Japanese word splitter behind romanization.
+HSPLcom/atilika/kuromoji/**;->**(**)**
+Lcom/atilika/kuromoji/**;
+
+# Reading, parsing and romanizing lyrics, and laying them out.
+HSPLcom/artemiy/player/lyrics/**;->**(**)**
+Lcom/artemiy/player/lyrics/**;
+HSPLcom/artemiy/player/ui/nowplaying/**;->**(**)**
+Lcom/artemiy/player/ui/nowplaying/**;

@@ -269,6 +269,23 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
     fun setLibrary(songs: List<Song>) {
         library = songs
         restoreLastSession()
+        warmUpRomanization(songs)
+    }
+
+    private var romanizationWarmed = false
+
+    /** A library with Japanese songs (kana in a title or artist) gets the romanizer's dictionary
+     * built quietly a few seconds after launch — ready before the first lyrics need it. Without
+     * any, its ~12 MB is never loaded at all. */
+    private fun warmUpRomanization(songs: List<Song>) {
+        if (romanizationWarmed) return
+        val japanese = songs.any { s -> (s.title + s.artist).any { c -> c in '\u3040'..'\u30ff' } }
+        if (!japanese) return
+        romanizationWarmed = true
+        viewModelScope.launch(Dispatchers.Default) {
+            delay(ROMANIZER_WARM_UP_DELAY_MS)
+            runCatching { LyricsRomanizer.warmUp() }
+        }
     }
 
     // ---- The queue survives the app being closed ----
@@ -691,3 +708,6 @@ enum class SourcePlace { SONGS, LIBRARY, SEARCH, MOOD, QUICK_PICKS, RECENTLY_ADD
 data class PlaySource(val name: String, val songCount: Int, val art: SourceArt)
 
 private const val RESTART_INSTEAD_OF_PREVIOUS_MS = 3_000L
+
+/** Long enough for the launch and the first screen to settle before the dictionary loads. */
+private const val ROMANIZER_WARM_UP_DELAY_MS = 4_000L

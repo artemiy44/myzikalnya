@@ -17,6 +17,12 @@ object LyricsRomanizer {
     /** Loads a ~12MB dictionary, so only built the first time a Japanese song actually shows up. */
     private val tokenizer by lazy { Tokenizer() }
 
+    /** Builds the dictionary now (call off the main thread) — so a library with Japanese songs has
+     * it ready before the first romanized lyrics are shown, instead of pausing for it then. */
+    fun warmUp() {
+        tokenizer
+    }
+
     fun romanize(lyrics: ParsedLyrics): ParsedLyrics = when (lyrics) {
         is ParsedLyrics.Synced -> {
             // Kanji-only lines are ambiguous (Chinese or Japanese?) — decided per song: any kana
