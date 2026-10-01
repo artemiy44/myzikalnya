@@ -39,6 +39,10 @@
   "en": "GNOME stock",
   "ru": "Сток GNOME"
  },
+ "accent_wallpaper": {
+  "en": "From wallpaper",
+  "ru": "По обоям"
+ },
  "action_listen": {
   "en": "Play",
   "ru": "Слушать"

@@ -11,6 +11,7 @@
     <string name="accent_alternative">Alternatywny</string>
     <string name="accent_pastel">Pastelowy</string>
     <string name="accent_stock">Standard GNOME</string>
+    <string name="accent_wallpaper">Z tapety</string>
     <string name="action_listen">Słuchaj</string>
     <string name="add">Dodaj</string>
     <string name="add_all_to_queue_msg">Wszystkie te utwory (%1$d) trafią na koniec kolejki. Grany teraz i te już w kolejce nie zostaną dodane ponownie.</string>

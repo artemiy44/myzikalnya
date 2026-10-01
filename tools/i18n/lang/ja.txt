@@ -361,3 +361,4 @@ fade_medium = ふつう
 fade_long = 長め
 set_quality_badge = 音質バッジ
 set_quality_badge_sub = 再生中の曲の形式をプレーヤーに表示します（FLAC、MP3 320 kbps など）
+accent_wallpaper = 壁紙から

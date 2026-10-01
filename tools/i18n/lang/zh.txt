@@ -361,3 +361,4 @@ fade_medium = 中
 fade_long = 长
 set_quality_badge = 音质标记
 set_quality_badge_sub = 在播放器中显示当前歌曲的格式，如 FLAC、MP3 320 kbps
+accent_wallpaper = 来自壁纸

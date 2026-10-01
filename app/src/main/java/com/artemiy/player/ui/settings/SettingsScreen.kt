@@ -370,7 +370,7 @@ private fun ColorsContent(
             horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
             verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
         ) {
-            AccentFamily.entries.forEach { f ->
+            AccentFamily.entries.filter { it != AccentFamily.WALLPAPER || com.artemiy.player.ui.theme.WallpaperAccents.available }.forEach { f ->
                 InfinitePlayModeChip(f.label, f == family) { family = f }
             }
         }

@@ -11,6 +11,7 @@
     <string name="accent_alternative">オルタナティブ</string>
     <string name="accent_pastel">パステル</string>
     <string name="accent_stock">GNOME 標準</string>
+    <string name="accent_wallpaper">壁紙から</string>
     <string name="action_listen">再生</string>
     <string name="add">追加</string>
     <string name="add_all_to_queue_msg">これらの曲（%1$d 曲）がキューの最後に追加されます。再生中の曲とキューにある曲は重複しません。</string>

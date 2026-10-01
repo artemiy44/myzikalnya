@@ -11,6 +11,7 @@
     <string name="accent_alternative">얼터너티브</string>
     <string name="accent_pastel">파스텔</string>
     <string name="accent_stock">GNOME 기본</string>
+    <string name="accent_wallpaper">배경화면에서</string>
     <string name="action_listen">재생</string>
     <string name="add">추가</string>
     <string name="add_all_to_queue_msg">이 곡들(%1$d곡)이 대기열 끝에 추가돼요. 지금 재생 중인 곡과 이미 대기열에 있는 곡은 중복되지 않아요.</string>

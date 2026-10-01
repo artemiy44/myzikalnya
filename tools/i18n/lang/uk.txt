@@ -361,3 +361,4 @@ fade_medium = Середньо
 fade_long = Довго
 set_quality_badge = Значок якості
 set_quality_badge_sub = Показує в плеєрі формат пісні: FLAC, MP3 320 кбіт/с…
+accent_wallpaper = З шпалер

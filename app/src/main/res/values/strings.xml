@@ -11,6 +11,7 @@
     <string name="accent_alternative">Alternative</string>
     <string name="accent_pastel">Pastel</string>
     <string name="accent_stock">GNOME stock</string>
+    <string name="accent_wallpaper">From wallpaper</string>
     <string name="action_listen">Play</string>
     <string name="add">Add</string>
     <string name="add_all_to_queue_msg">All these songs (%1$d) will go to the end of the queue. The one playing now and those already queued won\'t be added twice.</string>

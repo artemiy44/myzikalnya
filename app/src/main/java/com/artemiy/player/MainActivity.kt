@@ -123,8 +123,14 @@ class MainActivity : ComponentActivity() {
         super.attachBaseContext(newBase.withAppLanguage())
     }
 
+    override fun onResume() {
+        super.onResume()
+        com.artemiy.player.ui.theme.WallpaperAccents.refresh(this)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.artemiy.player.ui.theme.WallpaperAccents.refresh(this)
         enableEdgeToEdge()
         setContent {
             val settings: SettingsViewModel = viewModel()

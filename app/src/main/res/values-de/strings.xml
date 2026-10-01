@@ -11,6 +11,7 @@
     <string name="accent_alternative">Alternativ</string>
     <string name="accent_pastel">Pastell</string>
     <string name="accent_stock">GNOME-Standard</string>
+    <string name="accent_wallpaper">Vom Hintergrund</string>
     <string name="action_listen">Anhören</string>
     <string name="add">Hinzufügen</string>
     <string name="add_all_to_queue_msg">Alle diese Songs (%1$d) kommen ans Ende der Warteschlange. Der laufende und bereits eingereihte werden nicht doppelt hinzugefügt.</string>

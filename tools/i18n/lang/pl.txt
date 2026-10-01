@@ -361,3 +361,4 @@ fade_medium = Średnie
 fade_long = Długie
 set_quality_badge = Znaczek jakości
 set_quality_badge_sub = Pokazuje w odtwarzaczu format utworu: FLAC, MP3 320 kb/s…
+accent_wallpaper = Z tapety

@@ -361,3 +361,4 @@ fade_medium = Orta
 fade_long = Uzun
 set_quality_badge = Kalite rozeti
 set_quality_badge_sub = Çalarda şarkının biçimini gösterir: FLAC, MP3 320 kbps…
+accent_wallpaper = Duvar kağıdından

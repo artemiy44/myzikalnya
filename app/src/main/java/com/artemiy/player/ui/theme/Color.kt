@@ -2,6 +2,8 @@ package com.artemiy.player.ui.theme
 
 import com.artemiy.player.R
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -166,6 +168,27 @@ fun lightPalette(variant: LightVariant): PlayerPalette {
 
 enum class AccentFamily(@androidx.annotation.StringRes val labelRes: Int) {
     STOCK(R.string.accent_stock), PASTEL(R.string.accent_pastel), ALTERNATIVE(R.string.accent_alternative),
+    /** Android 12+: the accent colours the system made from the wallpaper (Material You). */
+    WALLPAPER(R.string.accent_wallpaper),
+}
+
+/** The system's wallpaper colours, nine tones from its three accent families; read again when the app comes back to the front. */
+object WallpaperAccents {
+    var colors by androidx.compose.runtime.mutableStateOf<List<Color>>(emptyList())
+        private set
+
+    val available: Boolean get() = android.os.Build.VERSION.SDK_INT >= 31
+
+    fun refresh(context: android.content.Context) {
+        if (!available) return
+        val ids = intArrayOf(
+            android.R.color.system_accent1_300, android.R.color.system_accent1_500, android.R.color.system_accent1_700,
+            android.R.color.system_accent2_300, android.R.color.system_accent2_500, android.R.color.system_accent2_700,
+            android.R.color.system_accent3_300, android.R.color.system_accent3_500, android.R.color.system_accent3_700,
+        )
+        val now = ids.map { Color(context.getColor(it)) }
+        if (now != colors) colors = now
+    }
 }
 
 val AccentFamily.label: String @Composable get() = androidx.compose.ui.res.stringResource(labelRes)
@@ -200,6 +223,8 @@ fun accentColors(family: AccentFamily): List<Color> = when (family) {
     AccentFamily.STOCK -> GNOME_ACCENTS
     AccentFamily.PASTEL -> GNOME_ACCENTS.map { lerp(it, Color.White, 0.45f) }
     AccentFamily.ALTERNATIVE -> ALTERNATIVE_ACCENTS
+    // Without Material You (or before it's read) a saved choice still has to show something.
+    AccentFamily.WALLPAPER -> WallpaperAccents.colors.ifEmpty { GNOME_ACCENTS }
 }
 
 /** A chosen accent: a family + position in it, or null for monochrome (the default). */

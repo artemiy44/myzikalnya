@@ -11,6 +11,7 @@
     <string name="accent_alternative">Альтернатива</string>
     <string name="accent_pastel">Пастель</string>
     <string name="accent_stock">Сток GNOME</string>
+    <string name="accent_wallpaper">По обоям</string>
     <string name="action_listen">Слушать</string>
     <string name="add">Добавить</string>
     <string name="add_all_to_queue_msg">Все эти песни (%1$d) встанут в конец очереди. Та, что играет сейчас, и уже стоящие в очереди не продублируются.</string>

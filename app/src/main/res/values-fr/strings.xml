@@ -11,6 +11,7 @@
     <string name="accent_alternative">Alternatif</string>
     <string name="accent_pastel">Pastel</string>
     <string name="accent_stock">GNOME d’origine</string>
+    <string name="accent_wallpaper">Du fond d\'écran</string>
     <string name="action_listen">Écouter</string>
     <string name="add">Ajouter</string>
     <string name="add_all_to_queue_msg">Tous ces titres (%1$d) iront à la fin de la file. Celui en cours et ceux déjà dans la file ne seront pas ajoutés deux fois.</string>

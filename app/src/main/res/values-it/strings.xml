@@ -11,6 +11,7 @@
     <string name="accent_alternative">Alternativo</string>
     <string name="accent_pastel">Pastello</string>
     <string name="accent_stock">GNOME standard</string>
+    <string name="accent_wallpaper">Dallo sfondo</string>
     <string name="action_listen">Ascolta</string>
     <string name="add">Aggiungi</string>
     <string name="add_all_to_queue_msg">Tutti questi brani (%1$d) finiranno in fondo alla coda. Quello in riproduzione e quelli già in coda non verranno ripetuti.</string>
