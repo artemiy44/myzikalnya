@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import com.artemiy.player.R
 import com.artemiy.player.data.Song
 import com.artemiy.player.ui.components.SoftPress
+import com.artemiy.player.ui.components.fadesWithHeader
 import com.artemiy.player.ui.components.FastScroller
 import com.artemiy.player.ui.components.groupedCard
 import com.artemiy.player.ui.components.tonalAccent
@@ -132,27 +133,8 @@ internal fun FolderPage(
         onGoToAlbum = onGoToAlbum,
         onGoToArtist = onGoToArtist,
         header = {
-            Column {
-                if (everything.isNotEmpty()) {
-                    PlayShuffleRow(
-                        onPlay = { onPlayAll(everything) },
-                        onShuffle = { onPlayAll(everything.shuffled()) },
-                    )
-                }
-                val folders = node.children.values.toList()
-                Column(modifier = Modifier.padding(horizontal = com.artemiy.player.ui.components.pageGutter, vertical = 6.dp)) {
-                    folders.forEachIndexed { i, child ->
-                        FolderRow(child, Modifier.groupedCard(i, folders.size)) { onOpenFolder(child) }
-                    }
-                }
-                if (folders.isNotEmpty() && node.songs.isNotEmpty()) {
-                    Text(
-                        text = stringResource(R.string.folder_here),
-                        color = PlayerColors.TextPrimary,
-                        style = com.artemiy.player.ui.theme.sectionTitleStyle,
-                        modifier = Modifier.padding(horizontal = 20.dp).padding(top = 14.dp, bottom = 6.dp),
-                    )
-                }
+            val folders = node.children.values.toList()
+            val toolbar: @Composable () -> Unit = {
                 if (node.songs.isNotEmpty()) {
                     ListToolbar(
                         query = query,
@@ -165,6 +147,37 @@ internal fun FolderPage(
                         // Below the folders it isn't at the top of the page, so there's nothing to fold under.
                         foldsWithHeader = folders.isEmpty(),
                     )
+                }
+            }
+            val playRow: @Composable () -> Unit = {
+                if (everything.isNotEmpty()) {
+                    PlayShuffleRow(
+                        onPlay = { onPlayAll(everything) },
+                        onShuffle = { onPlayAll(everything.shuffled()) },
+                    )
+                }
+            }
+            Column {
+                if (folders.isEmpty()) {
+                    // Only songs here: laid out as the Tracks tab is — search, then play / shuffle.
+                    toolbar()
+                    Box(modifier = Modifier.fadesWithHeader()) { playRow() }
+                } else {
+                    playRow()
+                    Column(modifier = Modifier.padding(horizontal = com.artemiy.player.ui.components.pageGutter, vertical = 6.dp)) {
+                        folders.forEachIndexed { i, child ->
+                            FolderRow(child, Modifier.groupedCard(i, folders.size)) { onOpenFolder(child) }
+                        }
+                    }
+                    if (node.songs.isNotEmpty()) {
+                        Text(
+                            text = stringResource(R.string.folder_here),
+                            color = PlayerColors.TextPrimary,
+                            style = com.artemiy.player.ui.theme.sectionTitleStyle,
+                            modifier = Modifier.padding(horizontal = 20.dp).padding(top = 14.dp, bottom = 6.dp),
+                        )
+                    }
+                    toolbar()
                 }
             }
         },
