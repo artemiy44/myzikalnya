@@ -42,6 +42,7 @@ import kotlin.random.Random
 @Composable
 fun BoxScope.ArtistGenreArt(artist: String, songs: List<Song>, pictures: List<String>? = null) {
     val tone = rememberCoverTone(songs)
+    val light = com.artemiy.player.ui.theme.LocalPlayerPalette.current.isLight
     // No genre tags at all: a picture picked by the name — still a picture. [pictures] given:
     // exactly those (none at all for the "no genre" page).
     val named = remember(songs, pictures) { pictures ?: topGenres(songs) }
@@ -56,7 +57,7 @@ fun BoxScope.ArtistGenreArt(artist: String, songs: List<Song>, pictures: List<St
     // and below it they covered the header's fade into the page — a hard edge, and the gradient
     // showing under the header.
     Canvas(modifier = Modifier.matchParentSize().clipToBounds()) {
-        val colors = palette(tone)
+        val colors = palette(tone, light)
         drawRect(Brush.linearGradient(listOf(colors[0], colors[1]), start = Offset(0f, 0f), end = Offset(size.width, size.height)))
         // Two soft glows of neighbouring hues, for some depth.
         glow(colors[2], Offset(size.width * 0.85f, size.height * 0.2f), size.maxDimension * 0.55f)
@@ -85,8 +86,9 @@ fun BoxScope.ArtistGenreArt(artist: String, songs: List<Song>, pictures: List<St
 @Composable
 fun BoxScope.ToneBackdrop(songs: List<Song>) {
     val tone = rememberCoverTone(songs)
+    val light = com.artemiy.player.ui.theme.LocalPlayerPalette.current.isLight
     Canvas(modifier = Modifier.matchParentSize()) {
-        val colors = palette(tone)
+        val colors = palette(tone, light)
         drawRect(Brush.linearGradient(listOf(colors[0], colors[1]), start = Offset(0f, 0f), end = Offset(size.width, size.height)))
         glow(colors[2], Offset(size.width * 0.85f, size.height * 0.2f), size.maxDimension * 0.55f)
         glow(colors[3], Offset(size.width * 0.1f, size.height * 0.8f), size.maxDimension * 0.5f)
@@ -122,13 +124,24 @@ private fun DrawScope.glow(color: Color, center: Offset, radius: Float) {
  * touch of pink give a grey tinged with pink, not a pink picture — and a quiet graphite for
  * covers with no colour at all.
  */
-private fun palette(tone: CoverTone?): List<Color> {
+private fun palette(tone: CoverTone?, light: Boolean = false): List<Color> {
     val hue = tone?.hue ?: GRAPHITE_HUE
     // How colourful the covers are, and how much they agree: covers of every colour at once
     // (an artist of singles, each its own) give a quiet ground, not whichever colour won.
     val agreement = tone?.agreement ?: 0f
     val amount = ((tone?.colourful ?: 0f) / FULLY_COLOURFUL).coerceIn(0f, 1f) * (0.25f + 0.75f * agreement * agreement)
     val sat = if (tone == null) GRAPHITE_SAT else (tone.saturation.coerceIn(0.25f, 0.7f) * (0.12f + 0.88f * amount)).coerceAtLeast(GRAPHITE_SAT)
+    if (light) {
+        // Light theme: the page below is light, so the header is too — as bright as a mix card's
+        // ground (no deep black corner), a touch matter (less saturated), still a gradient.
+        val matte = sat * 0.85f
+        return listOf(
+            Color.hsl(hue, matte, 0.38f),
+            Color.hsl((hue + 10f) % 360f, matte, 0.54f),
+            Color.hsl((hue + 350f) % 360f, matte, 0.62f, alpha = 0.55f),
+            Color.hsl((hue + 20f) % 360f, matte * 0.9f, 0.5f, alpha = 0.4f),
+        )
+    }
     return listOf(
         Color.hsl(hue, sat * 0.8f, 0.14f),
         Color.hsl((hue + 10f) % 360f, sat, 0.32f),
