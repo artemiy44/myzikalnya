@@ -6,4 +6,5 @@
     <color name="widget_text_dim">@android:color/system_neutral2_600</color>
     <color name="widget_accent">@android:color/system_accent1_700</color>
     <color name="widget_card_accent">@android:color/system_accent1_100</color>
+    <color name="widget_card_sung">@android:color/system_accent1_300</color>
 </resources>

@@ -57,6 +57,7 @@
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_controls_info" />
         </receiver>
         <receiver android:name=".widget.WidgetActionReceiver" android:exported="false" />
+        <service android:name=".widget.LyricWidgetService" android:exported="false" android:permission="android.permission.BIND_REMOTEVIEWS" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

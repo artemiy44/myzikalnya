@@ -12,9 +12,6 @@ import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.graphics.RectF
 import android.net.Uri
-import android.text.SpannableString
-import android.text.Spanned
-import android.text.style.StyleSpan
 import android.view.View
 import android.widget.RemoteViews
 import com.artemiy.player.MainActivity
@@ -23,9 +20,6 @@ import com.artemiy.player.ui.i18n.withAppLanguage
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
-
-/** One line of the lyrics, as the widgets show it. */
-class WLine(val timeMs: Long, val text: String)
 
 /** What the widgets show of the playing song. */
 class WidgetSnapshot(
@@ -36,23 +30,10 @@ class WidgetSnapshot(
     val playing: Boolean = false,
     val positionMs: Long = 0,
     val durationMs: Long = 0,
-    /** Null: no synced lyrics (yet). */
-    val lines: List<WLine>? = null,
+    /** The lyrics' rows; null: no lyrics (yet). */
+    val items: List<WItem>? = null,
     val lyricsLoading: Boolean = false,
-) {
-    /** The line being sung at [positionMs]: the last one that has begun, -1 before the first. */
-    fun activeLine(): Int {
-        val l = lines ?: return -1
-        var lo = 0
-        var hi = l.size - 1
-        var found = -1
-        while (lo <= hi) {
-            val mid = (lo + hi) ushr 1
-            if (l[mid].timeMs <= positionMs) { found = mid; lo = mid + 1 } else hi = mid - 1
-        }
-        return found
-    }
-}
+)
 
 /** Kept in the process, written by the playback service, read whenever a widget is drawn. */
 object WidgetState {
@@ -102,6 +83,14 @@ object Widgets {
         for (id in ids(context, CoverWidget::class.java)) mgr.updateAppWidget(id, buildCover(context, mgr, id))
         for (id in ids(context, LyricsWidget::class.java)) mgr.updateAppWidget(id, buildLyrics(context, mgr, id))
         for (id in ids(context, ControlsWidget::class.java)) mgr.updateAppWidget(id, buildControls(context, mgr, id))
+        // Before Android 12 a widget's list is read from a service: tell it to read again.
+        if (android.os.Build.VERSION.SDK_INT < 31) {
+            @Suppress("DEPRECATION")
+            run {
+                mgr.notifyAppWidgetViewDataChanged(ids(context, LyricsWidget::class.java), R.id.list_view)
+                mgr.notifyAppWidgetViewDataChanged(ids(context, ControlsWidget::class.java), R.id.list_view)
+            }
+        }
     }
 
     fun update(context: Context, mgr: AppWidgetManager, id: Int, cls: Class<*>) {
@@ -199,62 +188,25 @@ object Widgets {
 
     // ---- widget 2: the lyrics ----
 
-    private val LINE_IDS = intArrayOf(R.id.l0, R.id.l1, R.id.l2, R.id.l3, R.id.l4, R.id.l5, R.id.l6)
-
-    private class Row(val text: String, val current: Boolean, val seekMs: Long?)
-
-    /** The rows to show in [count] slots: the lyrics around the line being sung, or what to say instead. */
-    private fun rows(context: Context, s: WidgetSnapshot, count: Int, before: Int): List<Row> {
+    /** What to say where the list is empty: nothing playing, loading, or no lyrics. */
+    private fun emptyText(context: Context, s: WidgetSnapshot): String {
         val words = context.withAppLanguage()
-        val lines = s.lines
-        if (!s.hasSong) return listOf(Row(words.getString(R.string.widget_idle), true, null))
-        if (lines == null) {
-            return listOf(
-                Row(s.title, true, null),
-                Row(s.artist, false, null),
-                Row(words.getString(if (s.lyricsLoading) R.string.widget_loading_lyrics else R.string.widget_no_lyrics), false, null),
-            ).take(count)
+        return when {
+            !s.hasSong -> words.getString(R.string.widget_idle)
+            s.lyricsLoading -> words.getString(R.string.widget_loading_lyrics)
+            else -> "${s.title}\n${s.artist}\n\n" + words.getString(R.string.widget_no_lyrics)
         }
-        val active = s.activeLine()
-        val start = (active - before).coerceIn(0, max(0, lines.size - count))
-        return (start until min(lines.size, start + count)).map { Row(lines[it].text, it == active, lines[it].timeMs) }
     }
-
-    private fun styled(text: String, bold: Boolean): CharSequence =
-        if (!bold) text else SpannableString(text).apply { setSpan(StyleSpan(android.graphics.Typeface.BOLD), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE) }
 
     private fun buildLyrics(context: Context, mgr: AppWidgetManager, id: Int): RemoteViews {
         val s = WidgetState.snapshot
         val rv = RemoteViews(context.packageName, R.layout.widget_lyrics)
-        val (_, h) = sizeDp(mgr, id)
-        val count = ((h - 20) / 27).coerceIn(1, LINE_IDS.size)
-        val shown = rows(context, s, count, before = (count - 1) / 2)
-        val text = context.getColor(R.color.widget_accent)
-        val dim = context.getColor(R.color.widget_text_dim)
-        val open = openApp(context)
-        rv.setOnClickPendingIntent(R.id.w_root, open)
-        LINE_IDS.forEachIndexed { i, viewId ->
-            val row = shown.getOrNull(i)
-            if (row == null) {
-                rv.setViewVisibility(viewId, View.GONE)
-                return@forEachIndexed
-            }
-            rv.setViewVisibility(viewId, View.VISIBLE)
-            rv.setTextViewText(viewId, styled(row.text, row.current))
-            rv.setTextColor(viewId, if (row.current) text else dim)
-            rv.setTextViewTextSize(viewId, android.util.TypedValue.COMPLEX_UNIT_SP, if (row.current) 17f else 13f)
-            rv.setInt(viewId, "setMaxLines", if (row.current && count > 2) 2 else 1)
-            rv.setOnClickPendingIntent(
-                viewId,
-                if (row.seekMs != null) tap(context, ACTION_SEEK, "seek${row.seekMs}") { putExtra(EXTRA_POSITION, row.seekMs) } else open,
-            )
-        }
+        rv.setOnClickPendingIntent(R.id.w_root, openApp(context))
+        setLyricList(context, rv, id, R.id.list_view, R.id.empty_view, emptyText(context, s), s, lyricColors(context, dark = false), dark = false)
         return rv
     }
 
     // ---- widget 3: cover and controls ----
-
-    private val CONTROL_LINES = intArrayOf(R.id.c0, R.id.c1, R.id.c2, R.id.c3)
 
     private fun buildControls(context: Context, mgr: AppWidgetManager, id: Int): RemoteViews {
         val s = WidgetState.snapshot
@@ -287,23 +239,7 @@ object Widgets {
                 for (b in intArrayOf(R.id.w_prev, R.id.w_play, R.id.w_next)) rv.setOnClickPendingIntent(b, open)
             }
         } else {
-            val shown = rows(context, s, CONTROL_LINES.size, before = 1)
-            CONTROL_LINES.forEachIndexed { i, viewId ->
-                val row = shown.getOrNull(i)
-                if (row == null) {
-                    rv.setViewVisibility(viewId, View.GONE)
-                    return@forEachIndexed
-                }
-                rv.setViewVisibility(viewId, View.VISIBLE)
-                rv.setTextViewText(viewId, styled(row.text, row.current))
-                rv.setTextColor(viewId, if (row.current) context.getColor(R.color.widget_card_accent) else 0x99FFFFFF.toInt())
-                rv.setTextViewTextSize(viewId, android.util.TypedValue.COMPLEX_UNIT_SP, if (row.current) 16f else 12f)
-                rv.setInt(viewId, "setMaxLines", if (row.current) 2 else 1)
-                rv.setOnClickPendingIntent(
-                    viewId,
-                    if (row.seekMs != null) tap(context, ACTION_SEEK, "seek${row.seekMs}") { putExtra(EXTRA_POSITION, row.seekMs) } else open,
-                )
-            }
+            setLyricList(context, rv, id, R.id.list_view, R.id.empty_view, emptyText(context, s), s, lyricColors(context, dark = true), dark = true)
         }
         return rv
     }

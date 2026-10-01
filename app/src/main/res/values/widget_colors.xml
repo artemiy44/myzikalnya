@@ -7,4 +7,5 @@
     <!-- The line being sung, on the lyrics widget and on the dark card of widget 3. -->
     <color name="widget_accent">#FF1B1B1F</color>
     <color name="widget_card_accent">#FFFFFFFF</color>
+    <color name="widget_card_sung">#FF8AB4F8</color>
 </resources>
