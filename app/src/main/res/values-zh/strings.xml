@@ -73,6 +73,10 @@
     <string name="disc_n">碟 %1$s</string>
     <string name="drag">拖动</string>
     <string name="endless_play">无尽播放</string>
+    <string name="fade_long">长</string>
+    <string name="fade_medium">中</string>
+    <string name="fade_off">关</string>
+    <string name="fade_short">短</string>
     <string name="folder_here">此文件夹中</string>
     <string name="folders">文件夹</string>
     <string name="font_note">并非每种字体都包含所有语言的字符——缺少的字符会使用手机的字体显示。</string>
@@ -245,6 +249,8 @@
     <string name="set_endless_random">随机</string>
     <string name="set_equalizer">均衡器</string>
     <string name="set_equalizer_sub">打开系统自带或已安装的均衡器</string>
+    <string name="set_fade">柔和过渡</string>
+    <string name="set_fade_desc">歌曲结尾淡出，下一首淡入。同一专辑中连续的歌曲保持原样。</string>
     <string name="set_folders_after_scan">扫描音乐库后，文件夹会显示在这里。</string>
     <string name="set_font">字体</string>
     <string name="set_general">通用</string>
@@ -279,6 +285,8 @@
     <string name="set_player_expressive_desc">大圆角封面、波浪进度条、大按钮、抽屉式队列</string>
     <string name="set_player_style">播放器样式</string>
     <string name="set_player_sub">样式、背景、歌词</string>
+    <string name="set_quality_badge">音质标记</string>
+    <string name="set_quality_badge_sub">在播放器中显示当前歌曲的格式，如 FLAC、MP3 320 kbps</string>
     <string name="set_rescan">重新扫描音乐库</string>
     <string name="set_saturation">饱和度</string>
     <string name="set_scan_all">未选择——会扫描系统认为是音乐的一切（有时会混入铃声和通知音）。标记文件夹后，只会扫描这些文件夹。</string>

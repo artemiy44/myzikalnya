@@ -73,6 +73,10 @@
     <string name="disc_n">Disco %1$s</string>
     <string name="drag">Trascina</string>
     <string name="endless_play">Riproduzione infinita</string>
+    <string name="fade_long">Lunga</string>
+    <string name="fade_medium">Media</string>
+    <string name="fade_off">No</string>
+    <string name="fade_short">Breve</string>
     <string name="folder_here">In questa cartella</string>
     <string name="folders">Cartelle</string>
     <string name="font_note">Non tutti i caratteri hanno le lettere di ogni lingua — quelle mancanti vengono prese dal carattere del telefono.</string>
@@ -245,6 +249,8 @@
     <string name="set_endless_random">A caso</string>
     <string name="set_equalizer">Equalizzatore</string>
     <string name="set_equalizer_sub">Apri quello di sistema o uno installato</string>
+    <string name="set_fade">Transizioni morbide</string>
+    <string name="set_fade_desc">La fine di un brano sfuma e il successivo entra in dissolvenza. I brani consecutivi dello stesso album restano invariati.</string>
     <string name="set_folders_after_scan">Le cartelle compariranno qui dopo la scansione della libreria.</string>
     <string name="set_font">Carattere</string>
     <string name="set_general">Generali</string>
@@ -279,6 +285,8 @@
     <string name="set_player_expressive_desc">Copertina grande e arrotondata, barra ondulata, pulsanti grandi, coda in un pannello a scomparsa</string>
     <string name="set_player_style">Stile del lettore</string>
     <string name="set_player_sub">Stile, sfondo, testo</string>
+    <string name="set_quality_badge">Badge qualità</string>
+    <string name="set_quality_badge_sub">Mostra nel player il formato del brano: FLAC, MP3 320 kbps…</string>
     <string name="set_rescan">Riesegui la scansione della libreria</string>
     <string name="set_saturation">Saturazione</string>
     <string name="set_scan_all">Niente di scelto — viene scansionato tutto ciò che il sistema considera musica (a volte ci finiscono suonerie e notifiche). Con cartelle segnate, vengono scansionate solo quelle.</string>

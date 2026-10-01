@@ -49,6 +49,7 @@ class PlaybackService : MediaSessionService() {
 
     private lateinit var player: ExoPlayer
     private lateinit var mediaSession: MediaSession
+    private var fades: SoftFades? = null
     private var widgets: com.artemiy.player.widget.WidgetUpdater? = null
 
     override fun onCreate() {
@@ -65,6 +66,7 @@ class PlaybackService : MediaSessionService() {
             .build()
         player.addListener(ErrorRecovery())
         widgets = com.artemiy.player.widget.WidgetUpdater(this, player)
+        fades = SoftFades(this, player)
 
         val sessionActivityIntent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
@@ -215,6 +217,7 @@ class PlaybackService : MediaSessionService() {
     override fun onDestroy() {
         recoveryHandler.removeCallbacksAndMessages(null)
         widgets?.release()
+        fades?.release()
         mediaSession.run {
             player.release()
             release()

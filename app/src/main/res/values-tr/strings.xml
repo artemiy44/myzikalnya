@@ -73,6 +73,10 @@
     <string name="disc_n">Disk %1$s</string>
     <string name="drag">Sürükle</string>
     <string name="endless_play">Sonsuz çalma</string>
+    <string name="fade_long">Uzun</string>
+    <string name="fade_medium">Orta</string>
+    <string name="fade_off">Kapalı</string>
+    <string name="fade_short">Kısa</string>
     <string name="folder_here">Bu klasörde</string>
     <string name="folders">Klasörler</string>
     <string name="font_note">Her yazı tipinde her dilin harfleri yoktur — eksik olanlar telefonun yazı tipinden alınır.</string>
@@ -245,6 +249,8 @@
     <string name="set_endless_random">Rastgele</string>
     <string name="set_equalizer">Ekolayzer</string>
     <string name="set_equalizer_sub">Sistemin ya da yüklü olanı aç</string>
+    <string name="set_fade">Yumuşak geçişler</string>
+    <string name="set_fade_desc">Bir şarkının sonu kısılır, sonraki yavaşça açılır. Aynı albümden art arda gelen şarkılar olduğu gibi kalır.</string>
     <string name="set_folders_after_scan">Kitaplık tarandıktan sonra klasörler burada görünecek.</string>
     <string name="set_font">Yazı tipi</string>
     <string name="set_general">Genel</string>
@@ -279,6 +285,8 @@
     <string name="set_player_expressive_desc">Büyük yuvarlak köşeli kapak, dalgalı çubuk, iri düğmeler, açılır panelde kuyruk</string>
     <string name="set_player_style">Oynatıcı stili</string>
     <string name="set_player_sub">Stil, arka plan, şarkı sözleri</string>
+    <string name="set_quality_badge">Kalite rozeti</string>
+    <string name="set_quality_badge_sub">Çalarda şarkının biçimini gösterir: FLAC, MP3 320 kbps…</string>
     <string name="set_rescan">Kitaplığı yeniden tara</string>
     <string name="set_saturation">Doygunluk</string>
     <string name="set_scan_all">Hiçbir şey seçilmedi — sistemin müzik saydığı her şey taranır (bazen zil sesleri ve bildirimler de karışır). Klasörler işaretlenirse yalnızca onlar taranır.</string>

@@ -73,6 +73,10 @@
     <string name="disc_n">Disco %1$s</string>
     <string name="drag">Arrastrar</string>
     <string name="endless_play">Reproducción sin fin</string>
+    <string name="fade_long">Larga</string>
+    <string name="fade_medium">Media</string>
+    <string name="fade_off">No</string>
+    <string name="fade_short">Corta</string>
     <string name="folder_here">En esta carpeta</string>
     <string name="folders">Carpetas</string>
     <string name="font_note">No todas las fuentes tienen las letras de todos los idiomas: las que faltan se toman de la fuente del teléfono.</string>
@@ -245,6 +249,8 @@
     <string name="set_endless_random">Al azar</string>
     <string name="set_equalizer">Ecualizador</string>
     <string name="set_equalizer_sub">Abrir el del sistema o uno instalado</string>
+    <string name="set_fade">Transiciones suaves</string>
+    <string name="set_fade_desc">El final de una canción se desvanece y la siguiente entra suavemente. Las canciones seguidas de un mismo álbum se dejan como están.</string>
     <string name="set_folders_after_scan">Las carpetas aparecerán aquí tras escanear la biblioteca.</string>
     <string name="set_font">Fuente</string>
     <string name="set_general">General</string>
@@ -279,6 +285,8 @@
     <string name="set_player_expressive_desc">Portada grande y redondeada, barra ondulada, botones grandes, cola en un panel deslizante</string>
     <string name="set_player_style">Estilo del reproductor</string>
     <string name="set_player_sub">Estilo, fondo, letra</string>
+    <string name="set_quality_badge">Insignia de calidad</string>
+    <string name="set_quality_badge_sub">Muestra en el reproductor el formato de la canción: FLAC, MP3 320 kbps…</string>
     <string name="set_rescan">Volver a escanear la biblioteca</string>
     <string name="set_saturation">Saturación</string>
     <string name="set_scan_all">Nada elegido: se escanea todo lo que el sistema considera música (a veces se cuelan tonos y notificaciones). Con carpetas marcadas, solo se escanean esas.</string>

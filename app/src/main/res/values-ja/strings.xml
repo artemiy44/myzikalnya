@@ -73,6 +73,10 @@
     <string name="disc_n">ディスク %1$s</string>
     <string name="drag">ドラッグ</string>
     <string name="endless_play">エンドレス再生</string>
+    <string name="fade_long">長め</string>
+    <string name="fade_medium">ふつう</string>
+    <string name="fade_off">オフ</string>
+    <string name="fade_short">短め</string>
     <string name="folder_here">このフォルダ内</string>
     <string name="folders">フォルダ</string>
     <string name="font_note">すべてのフォントがあらゆる言語の文字を持っているわけではありません — 足りない文字はスマホのフォントで表示されます。</string>
@@ -245,6 +249,8 @@
     <string name="set_endless_random">ランダム</string>
     <string name="set_equalizer">イコライザー</string>
     <string name="set_equalizer_sub">システムまたはインストール済みのものを開く</string>
+    <string name="set_fade">なめらかな曲間</string>
+    <string name="set_fade_desc">曲の終わりがフェードアウトし、次の曲がフェードインします。同じアルバムで続く曲はそのままです。</string>
     <string name="set_folders_after_scan">ライブラリをスキャンすると、ここにフォルダが表示されます。</string>
     <string name="set_font">フォント</string>
     <string name="set_general">一般</string>
@@ -279,6 +285,8 @@
     <string name="set_player_expressive_desc">大きく角の丸いジャケット、波打つバー、大きなボタン、引き出し式のキュー</string>
     <string name="set_player_style">プレーヤーのスタイル</string>
     <string name="set_player_sub">スタイル、背景、歌詞</string>
+    <string name="set_quality_badge">音質バッジ</string>
+    <string name="set_quality_badge_sub">再生中の曲の形式をプレーヤーに表示します（FLAC、MP3 320 kbps など）</string>
     <string name="set_rescan">ライブラリを再スキャン</string>
     <string name="set_saturation">彩度</string>
     <string name="set_scan_all">何も選ばれていません — システムが音楽とみなすものをすべてスキャンします（着信音や通知音が混ざることもあります）。フォルダを選ぶと、そのフォルダだけをスキャンします。</string>

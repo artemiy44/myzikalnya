@@ -11,6 +11,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -353,6 +354,27 @@ internal fun QueueModesBadge(shuffle: Boolean, repeat: Boolean, infinite: Boolea
 }
 
 
+/** The playing song's format ("FLAC · 24-bit · 96 kHz"), or null when the badge is off or unknown. */
+val LocalQualityLabel = androidx.compose.runtime.compositionLocalOf<String?> { null }
+
+/** The quality badge: a small outlined label under the artist, when it's switched on in Settings. */
+@Composable
+internal fun QualityBadge() {
+    val label = LocalQualityLabel.current ?: return
+    val color = LocalAdaptiveSecondaryColor.current
+    Text(
+        text = label,
+        color = color,
+        fontSize = 11.sp,
+        fontWeight = FontWeight.SemiBold,
+        maxLines = 1,
+        modifier = Modifier
+            .padding(top = 6.dp)
+            .border(1.dp, color.copy(alpha = 0.55f), RoundedCornerShape(6.dp))
+            .padding(horizontal = 7.dp, vertical = 2.dp),
+    )
+}
+
 /** Title and artist under the big cover — tapping them goes to the album / artist. */
 @Composable
 internal fun SongTitleRow(
@@ -400,6 +422,7 @@ internal fun SongTitleRow(
                     } else Modifier,
                 ),
             )
+            QualityBadge()
         }
         trailing()
     }

@@ -73,6 +73,10 @@
     <string name="disc_n">Płyta %1$s</string>
     <string name="drag">Przeciągnij</string>
     <string name="endless_play">Odtwarzanie bez końca</string>
+    <string name="fade_long">Długie</string>
+    <string name="fade_medium">Średnie</string>
+    <string name="fade_off">Wył.</string>
+    <string name="fade_short">Krótkie</string>
     <string name="folder_here">W tym folderze</string>
     <string name="folders">Foldery</string>
     <string name="font_note">Nie każda czcionka ma litery każdego języka — brakujące są brane z czcionki telefonu.</string>
@@ -245,6 +249,8 @@
     <string name="set_endless_random">Losowo</string>
     <string name="set_equalizer">Korektor</string>
     <string name="set_equalizer_sub">Otwórz systemowy lub zainstalowany</string>
+    <string name="set_fade">Płynne przejścia</string>
+    <string name="set_fade_desc">Koniec utworu cichnie, a następny płynnie narasta. Kolejne utwory z jednego albumu zostają bez zmian.</string>
     <string name="set_folders_after_scan">Foldery pojawią się tu po przeskanowaniu biblioteki.</string>
     <string name="set_font">Czcionka</string>
     <string name="set_general">Ogólne</string>
@@ -279,6 +285,8 @@
     <string name="set_player_expressive_desc">Duża zaokrąglona okładka, falista belka, duże przyciski, kolejka w wysuwanym panelu</string>
     <string name="set_player_style">Styl odtwarzacza</string>
     <string name="set_player_sub">Styl, tło, tekst piosenki</string>
+    <string name="set_quality_badge">Znaczek jakości</string>
+    <string name="set_quality_badge_sub">Pokazuje w odtwarzaczu format utworu: FLAC, MP3 320 kb/s…</string>
     <string name="set_rescan">Przeskanuj bibliotekę</string>
     <string name="set_saturation">Nasycenie</string>
     <string name="set_scan_all">Nic nie wybrano — skanowane jest wszystko, co system uważa za muzykę (czasem trafiają tam dzwonki i powiadomienia). Po zaznaczeniu folderów skanowane będą tylko one.</string>

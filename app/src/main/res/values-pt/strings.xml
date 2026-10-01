@@ -73,6 +73,10 @@
     <string name="disc_n">Disco %1$s</string>
     <string name="drag">Arrastar</string>
     <string name="endless_play">Reprodução sem fim</string>
+    <string name="fade_long">Longa</string>
+    <string name="fade_medium">Média</string>
+    <string name="fade_off">Não</string>
+    <string name="fade_short">Curta</string>
     <string name="folder_here">Nesta pasta</string>
     <string name="folders">Pastas</string>
     <string name="font_note">Nem toda fonte tem as letras de todos os idiomas — as que faltam vêm da fonte do telefone.</string>
@@ -245,6 +249,8 @@
     <string name="set_endless_random">Aleatório</string>
     <string name="set_equalizer">Equalizador</string>
     <string name="set_equalizer_sub">Abrir o do sistema ou um instalado</string>
+    <string name="set_fade">Transições suaves</string>
+    <string name="set_fade_desc">O fim de uma música some aos poucos e a próxima entra suavemente. Músicas seguidas do mesmo álbum ficam como estão.</string>
     <string name="set_folders_after_scan">As pastas aparecem aqui depois que a biblioteca é escaneada.</string>
     <string name="set_font">Fonte</string>
     <string name="set_general">Geral</string>
@@ -279,6 +285,8 @@
     <string name="set_player_expressive_desc">Capa grande e arredondada, barra ondulada, botões grandes, fila numa gaveta</string>
     <string name="set_player_style">Estilo do player</string>
     <string name="set_player_sub">Estilo, fundo, letra</string>
+    <string name="set_quality_badge">Selo de qualidade</string>
+    <string name="set_quality_badge_sub">Mostra no player o formato da música: FLAC, MP3 320 kbps…</string>
     <string name="set_rescan">Escanear a biblioteca de novo</string>
     <string name="set_saturation">Saturação</string>
     <string name="set_scan_all">Nada escolhido — é escaneado tudo o que o sistema considera música (às vezes entram toques e notificações). Com pastas marcadas, só elas são escaneadas.</string>

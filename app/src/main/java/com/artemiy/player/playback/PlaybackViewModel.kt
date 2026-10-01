@@ -58,6 +58,9 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
      * date by [setLibrary], called whenever MainActivity's own library scan changes. */
     private var library: List<Song> = emptyList()
 
+    /** The playing song's format for the quality badge — "FLAC · 24-bit · 96 kHz", "MP3 · 320 kbps"; null when unknown. */
+    var qualityLabel by mutableStateOf<String?>(null)
+        private set
     var currentSong by mutableStateOf<Song?>(null)
         private set
 
@@ -195,6 +198,10 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
                     if (playbackState == Player.STATE_ENDED && infinitePlayEnabled) {
                         appendInfinitePlayBatch()
                     }
+                }
+
+                override fun onTracksChanged(tracks: androidx.media3.common.Tracks) {
+                    qualityLabel = describeQuality(tracks)
                 }
 
                 override fun onPlayerError(error: PlaybackException) {
@@ -654,6 +661,44 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
             uri = uri,
         )
     }
+
+    /** The format of the audio being played, in a few words. */
+    private fun describeQuality(tracks: androidx.media3.common.Tracks): String? {
+        val format = tracks.groups
+            .filter { it.type == C.TRACK_TYPE_AUDIO }
+            .firstNotNullOfOrNull { group -> (0 until group.length).firstOrNull { group.isTrackSelected(it) }?.let { group.getTrackFormat(it) } }
+            ?: return null
+        val mime = format.sampleMimeType.orEmpty().lowercase()
+        val codec = when (mime) {
+            "audio/mpeg", "audio/mpeg-l2" -> "MP3"
+            "audio/mp4a-latm" -> "AAC"
+            "audio/flac" -> "FLAC"
+            "audio/alac" -> "ALAC"
+            "audio/opus" -> "Opus"
+            "audio/vorbis" -> "Vorbis"
+            "audio/raw" -> "WAV"
+            else -> mime.substringAfter('/').substringBefore('-').uppercase().ifBlank { return null }
+        }
+        val lossless = codec in setOf("FLAC", "ALAC", "WAV")
+        val parts = mutableListOf(codec)
+        if (lossless) {
+            val bits = when (format.pcmEncoding) {
+                C.ENCODING_PCM_8BIT -> 8
+                C.ENCODING_PCM_16BIT -> 16
+                C.ENCODING_PCM_24BIT -> 24
+                C.ENCODING_PCM_32BIT, C.ENCODING_PCM_FLOAT -> 32
+                else -> 0
+            }
+            if (bits > 0) parts.add("$bits-bit")
+            if (format.sampleRate > 0) parts.add(kHz(format.sampleRate))
+        } else {
+            val bitrate = if (format.averageBitrate > 0) format.averageBitrate else format.bitrate
+            if (bitrate > 0) parts.add("${(bitrate / 1000f).let { Math.round(it) }} kbps")
+        }
+        return parts.joinToString(" · ")
+    }
+
+    private fun kHz(hz: Int): String = (hz / 1000f).let { if (it == it.toInt().toFloat()) "${it.toInt()} kHz" else "${"%.1f".format(java.util.Locale.US, it)} kHz" }
 
     private fun toMediaItem(song: Song): MediaItem =
         MediaItem.Builder()

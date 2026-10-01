@@ -77,6 +77,10 @@
     <string name="disc_n">Disc %1$s</string>
     <string name="drag">Drag</string>
     <string name="endless_play">Endless play</string>
+    <string name="fade_long">Long</string>
+    <string name="fade_medium">Medium</string>
+    <string name="fade_off">Off</string>
+    <string name="fade_short">Short</string>
     <string name="folder_here">In this folder</string>
     <string name="folders">Folders</string>
     <string name="font_note">Not every font has the letters of every language — missing ones are taken from the phone\'s font.</string>
@@ -259,6 +263,8 @@
     <string name="set_endless_random">Random</string>
     <string name="set_equalizer">Equalizer</string>
     <string name="set_equalizer_sub">Open the system one or an installed one</string>
+    <string name="set_fade">Soft transitions</string>
+    <string name="set_fade_desc">The end of a song fades out and the next one fades in. Songs of one album that follow each other are left as they are.</string>
     <string name="set_folders_after_scan">Folders will show up here after the library is scanned.</string>
     <string name="set_font">Font</string>
     <string name="set_general">General</string>
@@ -293,6 +299,8 @@
     <string name="set_player_expressive_desc">Big rounded cover, wavy bar, chunky buttons, queue in a pull-up sheet</string>
     <string name="set_player_style">Player style</string>
     <string name="set_player_sub">Style, background, lyrics</string>
+    <string name="set_quality_badge">Quality badge</string>
+    <string name="set_quality_badge_sub">Shows the format of the playing song in the player — FLAC, MP3 320 kbps…</string>
     <string name="set_rescan">Rescan the library</string>
     <string name="set_saturation">Saturation</string>
     <string name="set_scan_all">Nothing picked — everything the system considers music is scanned (ringtones and notification sounds sometimes sneak in). With folders picked, only those are scanned.</string>

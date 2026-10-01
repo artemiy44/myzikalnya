@@ -73,6 +73,10 @@
     <string name="disc_n">CD %1$s</string>
     <string name="drag">Ziehen</string>
     <string name="endless_play">Endloswiedergabe</string>
+    <string name="fade_long">Lang</string>
+    <string name="fade_medium">Mittel</string>
+    <string name="fade_off">Aus</string>
+    <string name="fade_short">Kurz</string>
     <string name="folder_here">In diesem Ordner</string>
     <string name="folders">Ordner</string>
     <string name="font_note">Nicht jede Schrift hat die Buchstaben jeder Sprache — fehlende kommen aus der Schrift des Telefons.</string>
@@ -245,6 +249,8 @@
     <string name="set_endless_random">Zufällig</string>
     <string name="set_equalizer">Equalizer</string>
     <string name="set_equalizer_sub">Den System-Equalizer oder einen installierten öffnen</string>
+    <string name="set_fade">Weiche Übergänge</string>
+    <string name="set_fade_desc">Das Ende eines Songs blendet aus, der nächste blendet ein. Aufeinanderfolgende Songs eines Albums bleiben unverändert.</string>
     <string name="set_folders_after_scan">Die Ordner erscheinen hier, nachdem die Mediathek durchsucht wurde.</string>
     <string name="set_font">Schrift</string>
     <string name="set_general">Allgemein</string>
@@ -279,6 +285,8 @@
     <string name="set_player_expressive_desc">Großes abgerundetes Cover, wellige Leiste, große Knöpfe, Warteschlange in einer Schublade</string>
     <string name="set_player_style">Player-Stil</string>
     <string name="set_player_sub">Stil, Hintergrund, Songtext</string>
+    <string name="set_quality_badge">Qualitätsabzeichen</string>
+    <string name="set_quality_badge_sub">Zeigt im Player das Format des laufenden Songs – FLAC, MP3 320 kbit/s …</string>
     <string name="set_rescan">Mediathek neu scannen</string>
     <string name="set_saturation">Sättigung</string>
     <string name="set_scan_all">Nichts gewählt — gescannt wird alles, was das System für Musik hält (manchmal rutschen Klingeltöne und Benachrichtigungen hinein). Mit markierten Ordnern werden nur diese gescannt.</string>

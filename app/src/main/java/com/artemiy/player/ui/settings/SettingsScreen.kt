@@ -75,6 +75,14 @@ import com.artemiy.player.ui.theme.DarkVariant
 import com.artemiy.player.ui.theme.darkPalette
 import com.artemiy.player.ui.theme.lightPalette
 
+/** Settings that came later, bundled so they travel through the pages as one. */
+class ExtraSettings(
+    val fadeMode: com.artemiy.player.data.FadeMode = com.artemiy.player.data.FadeMode.OFF,
+    val onFadeModeChange: (com.artemiy.player.data.FadeMode) -> Unit = {},
+    val qualityBadge: Boolean = false,
+    val onQualityBadgeChange: (Boolean) -> Unit = {},
+)
+
 /** Settings pages. [parent] is where "back" goes from each one. */
 private enum class SettingsRoute(val titleRes: Int, val parent: SettingsRoute?) {
     Main(R.string.settings, null),
@@ -140,6 +148,7 @@ fun SettingsScreen(
     libraryTabs: List<com.artemiy.player.ui.library.TabSetting> = com.artemiy.player.ui.library.LibraryTab.DEFAULT,
     songs: List<com.artemiy.player.data.Song> = emptyList(),
     onDataRestored: () -> Unit = {},
+    extras: ExtraSettings = ExtraSettings(),
     onLibraryTabsChange: (List<com.artemiy.player.ui.library.TabSetting>) -> Unit = {},
     onBack: () -> Unit,
     onShowOnboarding: () -> Unit = {},
@@ -239,6 +248,7 @@ fun SettingsScreen(
                     onNotificationRepeatButtonChange = onNotificationRepeatButtonChange,
                     infinitePlayMode = infinitePlayMode,
                     onInfinitePlayModeChange = onInfinitePlayModeChange,
+                    extras = extras,
                     context = context,
                     onOpenColors = { route = SettingsRoute.Colors },
                     onOpenNowPlayingBackground = { route = SettingsRoute.NowPlayingBackground },
@@ -604,6 +614,7 @@ private fun SettingsSectionContent(
     onNotificationRepeatButtonChange: (Boolean) -> Unit,
     infinitePlayMode: InfinitePlayMode,
     onInfinitePlayModeChange: (InfinitePlayMode) -> Unit,
+    extras: ExtraSettings,
     context: android.content.Context,
     onOpenColors: () -> Unit,
     onOpenNowPlayingBackground: () -> Unit,
@@ -808,6 +819,29 @@ private fun SettingsSectionContent(
             if (section == SettingsRoute.Playback) {
                 Spacer(modifier = Modifier.height(12.dp))
                 SettingsCard {
+                    SettingsLabel(stringResource(R.string.set_fade))
+                    Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                        com.artemiy.player.data.FadeMode.entries.forEach { mode ->
+                            InfinitePlayModeChip(
+                                stringResource(when (mode) {
+                                    com.artemiy.player.data.FadeMode.OFF -> R.string.fade_off
+                                    com.artemiy.player.data.FadeMode.SHORT -> R.string.fade_short
+                                    com.artemiy.player.data.FadeMode.MEDIUM -> R.string.fade_medium
+                                    com.artemiy.player.data.FadeMode.LONG -> R.string.fade_long
+                                }),
+                                mode == extras.fadeMode,
+                            ) { extras.onFadeModeChange(mode) }
+                        }
+                    }
+                    Text(
+                        text = stringResource(R.string.set_fade_desc),
+                        color = PlayerColors.TextSecondary,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 10.dp),
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                SettingsCard {
                     SettingsLabel(stringResource(R.string.set_notif_button))
                     Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
                         InfinitePlayModeChip(stringResource(R.string.endless_play), !notificationRepeatButton) { onNotificationRepeatButtonChange(false) }
@@ -889,6 +923,14 @@ private fun SettingsSectionContent(
                     subtitle = stringResource(R.string.set_lrc_dots_sub),
                     checked = lrcGapDots,
                     onCheckedChange = onLrcGapDotsChange,
+                    modifier = Modifier.padding(top = 16.dp),
+                )
+                SettingsSwitchRow(
+                    icon = AppIcons.Equalizer,
+                    title = stringResource(R.string.set_quality_badge),
+                    subtitle = stringResource(R.string.set_quality_badge_sub),
+                    checked = extras.qualityBadge,
+                    onCheckedChange = extras.onQualityBadgeChange,
                     modifier = Modifier.padding(top = 16.dp),
                 )
             }

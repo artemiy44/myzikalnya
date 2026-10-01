@@ -446,6 +446,7 @@ private fun ExpressiveTitleRow(
                     song?.let(onGoToArtist)
                 },
             )
+            QualityBadge()
         }
         if (song != null) {
             CurrentSongMenuButton(

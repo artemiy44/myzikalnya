@@ -79,6 +79,10 @@
     <string name="disc_n">Диск %1$s</string>
     <string name="drag">Перетащить</string>
     <string name="endless_play">Бесконечное воспроизведение</string>
+    <string name="fade_long">Долго</string>
+    <string name="fade_medium">Средне</string>
+    <string name="fade_off">Выкл</string>
+    <string name="fade_short">Коротко</string>
     <string name="folder_here">В этой папке</string>
     <string name="folders">Папки</string>
     <string name="font_note">Не во всех шрифтах есть буквы любого языка — недостающие берутся из шрифта телефона.</string>
@@ -265,6 +269,8 @@
     <string name="set_endless_random">Случайно</string>
     <string name="set_equalizer">Эквалайзер</string>
     <string name="set_equalizer_sub">Открыть системный или установленный</string>
+    <string name="set_fade">Мягкие стыки между песнями</string>
+    <string name="set_fade_desc">Конец песни затихает, а следующая плавно нарастает. Песни одного альбома, идущие подряд, остаются как есть.</string>
     <string name="set_folders_after_scan">Папки появятся здесь после сканирования медиатеки.</string>
     <string name="set_font">Шрифт</string>
     <string name="set_general">Общие</string>
@@ -299,6 +305,8 @@
     <string name="set_player_expressive_desc">Большая скруглённая обложка, волнистая полоса, крупные кнопки, очередь в выдвижной шторке</string>
     <string name="set_player_style">Стиль плеера</string>
     <string name="set_player_sub">Стиль, фон, текст песни</string>
+    <string name="set_quality_badge">Значок качества</string>
+    <string name="set_quality_badge_sub">Показывает формат играющей песни в плеере: FLAC, MP3 320 кбит/с…</string>
     <string name="set_rescan">Пересканировать медиатеку</string>
     <string name="set_saturation">Насыщенность</string>
     <string name="set_scan_all">Ничего не выбрано — сканируется всё, что система считает музыкой (иногда туда попадают рингтоны и уведомления). Если отметить папки, сканироваться будут только они.</string>

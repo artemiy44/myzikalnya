@@ -310,6 +310,22 @@
   "en": "Endless play",
   "ru": "Бесконечное воспроизведение"
  },
+ "fade_long": {
+  "en": "Long",
+  "ru": "Долго"
+ },
+ "fade_medium": {
+  "en": "Medium",
+  "ru": "Средне"
+ },
+ "fade_off": {
+  "en": "Off",
+  "ru": "Выкл"
+ },
+ "fade_short": {
+  "en": "Short",
+  "ru": "Коротко"
+ },
  "folder_here": {
   "en": "In this folder",
   "ru": "В этой папке"
@@ -1105,6 +1121,14 @@
   "en": "Open the system one or an installed one",
   "ru": "Открыть системный или установленный"
  },
+ "set_fade": {
+  "en": "Soft transitions",
+  "ru": "Мягкие стыки между песнями"
+ },
+ "set_fade_desc": {
+  "en": "The end of a song fades out and the next one fades in. Songs of one album that follow each other are left as they are.",
+  "ru": "Конец песни затихает, а следующая плавно нарастает. Песни одного альбома, идущие подряд, остаются как есть."
+ },
  "set_folders_after_scan": {
   "en": "Folders will show up here after the library is scanned.",
   "ru": "Папки появятся здесь после сканирования медиатеки."
@@ -1241,6 +1265,14 @@
  "set_player_sub": {
   "en": "Style, background, lyrics",
   "ru": "Стиль, фон, текст песни"
+ },
+ "set_quality_badge": {
+  "en": "Quality badge",
+  "ru": "Значок качества"
+ },
+ "set_quality_badge_sub": {
+  "en": "Shows the format of the playing song in the player — FLAC, MP3 320 kbps…",
+  "ru": "Показывает формат играющей песни в плеере: FLAC, MP3 320 кбит/с…"
  },
  "set_rescan": {
   "en": "Rescan the library",

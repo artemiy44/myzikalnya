@@ -13,6 +13,9 @@ import kotlinx.coroutines.flow.map
 
 private val Context.settingsDataStore by preferencesDataStore(name = "settings")
 
+/** How long the end of a song fades out and the next fades in. */
+enum class FadeMode(val ms: Long) { OFF(0), SHORT(700), MEDIUM(1800), LONG(4000) }
+
 enum class LibraryViewMode { LIST, GRID_2, GRID_3 }
 
 enum class InfinitePlayMode { RANDOM, GENRE_RADIO }
@@ -53,6 +56,8 @@ class SettingsRepository(private val context: Context) {
         val UI_STYLE_KEY = stringPreferencesKey("ui_style")
         val LIBRARY_TABS_KEY = stringPreferencesKey("library_tabs")
         val FOLDER_SORT_KEY = stringPreferencesKey("folder_sort")
+        val FADE_MODE_KEY = stringPreferencesKey("fade_mode")
+        val QUALITY_BADGE_KEY = booleanPreferencesKey("quality_badge")
         val ONBOARDING_DONE_KEY = booleanPreferencesKey("onboarding_done")
         private fun viewModeKey(tab: String) = stringPreferencesKey("view_mode_$tab")
     }
@@ -274,6 +279,20 @@ class SettingsRepository(private val context: Context) {
     }
 
     /** Which Library sections show, and in what order — see LibraryTab.parse; absent = all. */
+    val fadeMode: Flow<FadeMode> = context.settingsDataStore.data.map { prefs ->
+        FadeMode.entries.firstOrNull { it.name == prefs[FADE_MODE_KEY] } ?: FadeMode.OFF
+    }
+
+    suspend fun setFadeMode(value: FadeMode) {
+        context.settingsDataStore.edit { it[FADE_MODE_KEY] = value.name }
+    }
+
+    val qualityBadge: Flow<Boolean> = context.settingsDataStore.data.map { it[QUALITY_BADGE_KEY] ?: false }
+
+    suspend fun setQualityBadge(value: Boolean) {
+        context.settingsDataStore.edit { it[QUALITY_BADGE_KEY] = value }
+    }
+
     val folderSort: Flow<String?> = context.settingsDataStore.data.map { it[FOLDER_SORT_KEY] }
 
     suspend fun setFolderSort(value: String) {

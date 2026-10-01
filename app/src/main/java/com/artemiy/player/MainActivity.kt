@@ -634,7 +634,10 @@ private fun PlayerApp(settings: SettingsViewModel) {
                       }
                   },
           ) {
-          CompositionLocalProvider(LocalNowPlayingActive provides showNowPlaying) {
+          CompositionLocalProvider(
+              LocalNowPlayingActive provides showNowPlaying,
+              com.artemiy.player.ui.nowplaying.LocalQualityLabel provides (if (settings.qualityBadge) playback.qualityLabel else null),
+          ) {
             NowPlayingScreen(
                 song = playback.currentSong,
                 isPlaying = playback.isPlaying,
@@ -746,6 +749,12 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 appFont = settings.appFont,
                 onAppFontChange = { settings.updateAppFont(it) },
                 libraryTabs = settings.libraryTabs,
+                extras = com.artemiy.player.ui.settings.ExtraSettings(
+                    fadeMode = settings.fadeMode,
+                    onFadeModeChange = { settings.updateFadeMode(it) },
+                    qualityBadge = settings.qualityBadge,
+                    onQualityBadgeChange = { settings.updateQualityBadge(it) },
+                ),
                 songs = songs,
                 onDataRestored = { playlistsVm.refresh(); home.refresh(songs) },
                 onLibraryTabsChange = { settings.updateLibraryTabs(it) },
