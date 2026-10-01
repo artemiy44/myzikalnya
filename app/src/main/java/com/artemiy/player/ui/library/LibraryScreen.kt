@@ -587,8 +587,9 @@ fun LibraryScreen(
                                 group = group,
                                 title = group?.name ?: stringResource(R.string.no_genre),
                                 bigMark = if (r.key == null) "?" else null,
-                                // Songs without a genre have no picture to show — just the "?".
-                                pictures = if (r.key == null) emptyList() else null,
+                                // The genre's own picture (not whatever its songs' first tags say); songs
+                                // without a genre have none — just the "?".
+                                pictures = if (r.key == null) emptyList() else listOfNotNull(group?.name),
                             )
                         }
 
