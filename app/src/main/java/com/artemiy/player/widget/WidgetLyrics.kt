@@ -15,6 +15,7 @@ import com.artemiy.player.R
 import com.artemiy.player.lyrics.LyricLine
 import com.artemiy.player.lyrics.LyricVoice
 import com.artemiy.player.lyrics.ParsedLyrics
+import com.artemiy.player.lyrics.withInstrumentalBreaks
 
 /**
  * One row of the lyrics in a widget: a line (or the translation / background vocals under it).
@@ -29,14 +30,21 @@ class WItem(
     val alignEnd: Boolean,
     val small: Boolean,
     val seekable: Boolean,
+    /** Not sung at all: an instrumental break that lasts until this time, shown as three dots. */
+    val breakUntilMs: Long? = null,
 )
 
 /** The widget's rows for [lyrics]. */
-fun itemsOf(lyrics: ParsedLyrics): List<WItem> = when (lyrics) {
+fun itemsOf(lyrics: ParsedLyrics, gapDots: Boolean = true): List<WItem> = when (lyrics) {
     is ParsedLyrics.Synced -> buildList {
-        for (line in lyrics.lines) {
-            if (line.text.isBlank()) continue
+        for (line in withInstrumentalBreaks(lyrics.lines, gapDots)) {
             val end = line.voice == LyricVoice.V2
+            val until = line.instrumentalUntilMs
+            if (until != null) {
+                add(WItem("", line.timeMs, null, end, small = false, seekable = true, breakUntilMs = until))
+                continue
+            }
+            if (line.text.isBlank()) continue
             add(WItem(line.text.trim(), line.timeMs, marksOf(line), end, small = false, seekable = true))
             for (other in line.secondary) {
                 if (other.text.isBlank()) continue
@@ -83,7 +91,15 @@ fun nextLyricEvent(items: List<WItem>, positionMs: Long): Long? {
     }
     val active = activeRow(items, positionMs)
     items.forEach { if (!it.small && it.timeMs >= 0) consider(it.timeMs) }
-    if (active >= 0) items[active].marks?.forEach { consider(it.first) }
+    if (active >= 0) {
+        items[active].marks?.forEach { consider(it.first) }
+        // A break: the dots fill little by little, and fold away just before the singing starts.
+        items[active].breakUntilMs?.let { until ->
+            val start = items[active].timeMs
+            for (step in 1..DOT_STEPS) consider(start + (until - start) * step / DOT_STEPS)
+            consider(until - DOTS_FOLD_EARLY_MS)
+        }
+    }
     return best
 }
 
@@ -95,6 +111,12 @@ fun nextLyricEvent(items: List<WItem>, positionMs: Long): Long? {
 class LyricColors(val dim: Int, val text: Int, val sung: Int)
 
 private const val LAYOUTS = 4
+
+/** How many times the dots of a break are redrawn while they fill. */
+private const val DOT_STEPS = 9
+
+/** The dots fold away this long before the singing starts again (as in the player). */
+private const val DOTS_FOLD_EARLY_MS = 450L
 
 /** The rows as views, with the one being sung coloured (its sung part in [LyricColors.sung]). */
 fun lyricViews(context: Context, items: List<WItem>, positionMs: Long, colors: LyricColors): List<RemoteViews> {
@@ -108,6 +130,29 @@ fun lyricViews(context: Context, items: List<WItem>, positionMs: Long, colors: L
         }
         val rv = RemoteViews(context.packageName, layout)
         val isActive = index == active
+        val breakUntil = item.breakUntilMs
+        if (breakUntil != null) {
+            // Three dots that take no room until it's their turn, then fill one after another.
+            val showing = isActive && positionMs < breakUntil - DOTS_FOLD_EARLY_MS
+            if (showing) {
+                val progress = ((positionMs - item.timeMs).toFloat() / (breakUntil - item.timeMs).coerceAtLeast(1)).coerceIn(0f, 1f)
+                val dots = SpannableString("●  ●  ●")
+                for (i in 0 until 3) {
+                    val lit = (progress * 3f - i).coerceIn(0f, 1f)
+                    val alpha = ((0.3f + 0.7f * lit) * 255).toInt()
+                    dots.setSpan(ForegroundColorSpan((colors.sung and 0x00FFFFFF) or (alpha shl 24)), i * 3, i * 3 + 1, Spanned.SPAN_INCLUSIVE_INCLUSIVE)
+                }
+                rv.setTextViewText(R.id.lyric_item, dots)
+                rv.setTextViewTextSize(R.id.lyric_item, android.util.TypedValue.COMPLEX_UNIT_SP, 15f)
+                rv.setViewPadding(R.id.lyric_item, 0, (8 * context.resources.displayMetrics.density).toInt(), 0, (8 * context.resources.displayMetrics.density).toInt())
+            } else {
+                rv.setTextViewText(R.id.lyric_item, "")
+                rv.setTextViewTextSize(R.id.lyric_item, android.util.TypedValue.COMPLEX_UNIT_SP, 1f)
+                rv.setViewPadding(R.id.lyric_item, 0, 0, 0, 0)
+            }
+            if (item.timeMs >= 0) rv.setOnClickFillInIntent(R.id.lyric_item, Intent().putExtra(EXTRA_POSITION, item.timeMs))
+            return@mapIndexed rv
+        }
         val timed = item.timeMs >= 0
         // Lyrics that aren't timed are all just read; timed ones: the one being sung stands out.
         rv.setTextColor(R.id.lyric_item, if (isActive) colors.text else if (!timed) colors.sung else colors.dim)

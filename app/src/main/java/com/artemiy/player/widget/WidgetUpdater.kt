@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -117,7 +118,8 @@ class WidgetUpdater(private val context: Context, private val player: Player) : 
             delay(1500)
             val parsed = runCatching { LyricsExtractor.extract(context, uri) }.getOrNull()
             if (lyricsFor != snap.songId) return@launch
-            items = parsed?.let(::itemsOf)?.takeIf { it.isNotEmpty() }
+            val gapDots = runCatching { com.artemiy.player.data.SettingsRepository(context).lrcGapDots.first() }.getOrDefault(true)
+            items = parsed?.let { itemsOf(it, gapDots) }?.takeIf { it.isNotEmpty() }
             lyricsLoading = false
             refresh()
         }
