@@ -107,6 +107,8 @@ fun lyricViews(context: Context, items: List<WItem>, positionMs: Long, colors: L
         val timed = item.timeMs >= 0
         // Lyrics that aren't timed are all just read; timed ones: the one being sung stands out.
         rv.setTextColor(R.id.lyric_item, if (isActive || !timed) colors.text else colors.dim)
+        // The line being sung is a size bigger as well, so it can't be missed.
+        if (!item.small) rv.setTextViewTextSize(R.id.lyric_item, android.util.TypedValue.COMPLEX_UNIT_SP, if (isActive) 22f else 17f)
         val text = SpannableString(item.text)
         if (isActive) {
             val sungUpTo = item.marks?.lastOrNull { it.first <= positionMs }?.second ?: if (item.marks == null) text.length else 0
@@ -158,8 +160,11 @@ fun setLyricList(context: Context, rv: RemoteViews, widgetId: Int, listId: Int, 
 }
 
 fun lyricColors(context: Context, dark: Boolean): LyricColors =
-    if (dark) LyricColors(dim = 0x99FFFFFF.toInt(), text = 0xFFFFFFFF.toInt(), sung = context.getColor(R.color.widget_card_sung))
-    else LyricColors(dim = context.getColor(R.color.widget_text_dim), text = context.getColor(R.color.widget_text), sung = context.getColor(R.color.widget_accent))
+    // The lines not being sung are the text colour at under half strength — far enough from the one that is.
+    if (dark) LyricColors(dim = 0x66FFFFFF, text = 0xFFFFFFFF.toInt(), sung = context.getColor(R.color.widget_card_sung))
+    else context.getColor(R.color.widget_text).let { text ->
+        LyricColors(dim = (text and 0x00FFFFFF) or (0x66 shl 24), text = text, sung = context.getColor(R.color.widget_accent))
+    }
 
 /** Before Android 12 a widget's list comes from a service like this one. */
 class LyricWidgetService : RemoteViewsService() {
