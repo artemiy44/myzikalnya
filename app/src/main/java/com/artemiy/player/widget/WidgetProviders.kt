@@ -53,8 +53,10 @@ class WidgetActionReceiver : BroadcastReceiver() {
 
     private fun control(context: Context, intent: Intent) {
         val pending = goAsync()
-        val token = SessionToken(context, ComponentName(context, PlaybackService::class.java))
-        val future = MediaController.Builder(context, token).buildAsync()
+        // A receiver's own context may not bind to services; the application's may.
+        val app = context.applicationContext
+        val token = SessionToken(app, ComponentName(app, PlaybackService::class.java))
+        val future = MediaController.Builder(app, token).buildAsync()
         future.addListener({
             try {
                 val c = future.get()

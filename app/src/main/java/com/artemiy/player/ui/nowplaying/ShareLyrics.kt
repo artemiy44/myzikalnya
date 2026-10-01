@@ -8,6 +8,10 @@ import android.os.Build
 import android.provider.MediaStore
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.unit.em
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -50,6 +54,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
@@ -72,8 +77,7 @@ import com.artemiy.player.data.Song
 import com.artemiy.player.lyrics.ParsedLyrics
 import com.artemiy.player.ui.components.ART_SIZE_THUMB
 import com.artemiy.player.ui.components.AlbumArt
-import com.artemiy.player.ui.components.BlurredCollageArt
-import com.artemiy.player.ui.components.rememberBlurredCollage
+import com.artemiy.player.ui.components.rememberAlbumArtBitmap
 import com.artemiy.player.ui.icons.AppIcons
 import com.artemiy.player.ui.library.ToneBackdrop
 import com.artemiy.player.ui.theme.LocalAppPalette
@@ -134,11 +138,24 @@ internal fun ShareLyricsDialog(song: Song, lyrics: ParsedLyrics, startIndex: Int
     val layer = rememberGraphicsLayer()
     val app = LocalAppPalette.current
 
-    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+    // Slides up and fades in; closing plays it backwards.
+    val appear = remember { androidx.compose.animation.core.Animatable(0f) }
+    androidx.compose.runtime.LaunchedEffect(Unit) { appear.animateTo(1f, androidx.compose.animation.core.tween(320, easing = androidx.compose.animation.core.FastOutSlowInEasing)) }
+    val close: () -> Unit = {
+        scope.launch {
+            appear.animateTo(0f, androidx.compose.animation.core.tween(220, easing = androidx.compose.animation.core.FastOutLinearInEasing))
+            onDismiss()
+        }
+    }
+    Dialog(onDismissRequest = close, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         PaletteScope(app) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .graphicsLayer {
+                        alpha = appear.value
+                        translationY = (1f - appear.value) * 90.dp.toPx()
+                    }
                     .background(PlayerColors.Background)
                     .statusBarsPadding()
                     .navigationBarsPadding(),
@@ -160,7 +177,7 @@ internal fun ShareLyricsDialog(song: Song, lyrics: ParsedLyrics, startIndex: Int
                         tint = PlayerColors.TextPrimary,
                         modifier = Modifier
                             .clip(CircleShape)
-                            .clickable { onDismiss() }
+                            .clickable { close() }
                             .padding(10.dp)
                             .size(22.dp),
                     )
@@ -341,6 +358,7 @@ private fun ActionButton(label: String, filled: Boolean, modifier: Modifier, onC
 }
 
 /** The card itself, sized [widthDp]×[heightDp]; everything in it is proportional to its width. */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 private fun LyricsShareCard(song: Song, lines: List<ShareLine>, style: CardStyle, withTranslation: Boolean, widthDp: Float, heightDp: Float) {
     // Whatever the user's text size is, the picture comes out the same.
@@ -356,45 +374,46 @@ private fun LyricsShareCard(song: Song, lines: List<ShareLine>, style: CardStyle
                 CardStyle.TONE -> ToneBackdrop(listOf(song))
                 CardStyle.PAPER -> Box(Modifier.fillMaxSize().background(Color(0xFFF3EFE6)))
                 CardStyle.BLUR -> {
-                    BlurredCollageArt(rememberBlurredCollage(listOf(song)))
+                    // This song's own cover, blurred — not the collage of covers the page headers use.
+                    val soft = rememberSoftCover(song)
+                    if (soft != null) {
+                        androidx.compose.foundation.Image(
+                            bitmap = soft.asImageBitmap(),
+                            contentDescription = null,
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    } else {
+                        Box(Modifier.fillMaxSize().background(Color(0xFF2A2A2D)))
+                    }
                     Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.42f)))
                 }
                 CardStyle.ACCENT -> Box(Modifier.fillMaxSize().background(PlayerColors.Accent))
             }
             Column(modifier = Modifier.fillMaxSize().padding(horizontal = (32 * u).dp, vertical = (36 * u).dp)) {
                 Text("“", color = foreground.copy(alpha = 0.55f), fontSize = (72 * u).sp, lineHeight = (60 * u).sp, fontWeight = FontWeight.Black)
-                Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
-                    val chars = lines.sumOf { it.text.length + (if (withTranslation) it.secondary?.length ?: 0 else 0) }
-                    val size = 30f * when {
-                        chars < 50 -> 1.1f
-                        chars < 100 -> 0.95f
-                        chars < 170 -> 0.8f
-                        chars < 260 -> 0.66f
-                        else -> 0.55f
-                    }
-                    Column(verticalArrangement = Arrangement.spacedBy((10 * u).dp)) {
-                        lines.forEach { line ->
-                            Column {
-                                Text(
-                                    text = line.text,
-                                    color = foreground,
-                                    fontSize = (size * u).sp,
-                                    lineHeight = (size * 1.25f * u).sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    style = TextStyle(lineBreak = LineBreak.Paragraph).inAppFont(),
-                                )
+                // All the picked lines as one text that is made as big as fits the room — never so big
+                // that it runs onto the cover and the title below.
+                Box(modifier = Modifier.weight(1f).fillMaxWidth().padding(vertical = (10 * u).dp).clipToBounds(), contentAlignment = Alignment.CenterStart) {
+                    val text = androidx.compose.runtime.remember(lines, withTranslation, foreground) {
+                        androidx.compose.ui.text.buildAnnotatedString {
+                            lines.forEachIndexed { i, line ->
+                                if (i > 0) append("\n")
+                                append(line.text)
                                 if (withTranslation && line.secondary != null) {
-                                    Text(
-                                        text = line.secondary,
-                                        color = foreground.copy(alpha = 0.7f),
-                                        fontSize = (size * 0.58f * u).sp,
-                                        lineHeight = (size * 0.75f * u).sp,
-                                        style = TextStyle(lineBreak = LineBreak.Paragraph).inAppFont(),
-                                    )
+                                    append("\n")
+                                    pushStyle(androidx.compose.ui.text.SpanStyle(fontSize = 0.6.em, fontWeight = FontWeight.Medium, color = foreground.copy(alpha = 0.72f)))
+                                    append(line.secondary)
+                                    pop()
                                 }
                             }
                         }
                     }
+                    BasicText(
+                        text = text,
+                        style = TextStyle(color = foreground, fontWeight = FontWeight.ExtraBold, lineHeight = 1.28.em, lineBreak = LineBreak.Paragraph).inAppFont(),
+                        autoSize = TextAutoSize.StepBased(minFontSize = (9 * u).sp, maxFontSize = (36 * u).sp, stepSize = 0.5.sp),
+                    )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AlbumArt(
@@ -449,3 +468,45 @@ private fun shareImage(context: Context, bitmap: Bitmap, name: String): Boolean 
     context.startActivity(Intent.createChooser(send, null))
     true
 }.getOrDefault(false)
+
+
+/** This song's cover blurred, as a bitmap: the thumbnail is shrunk to a handful of pixels and smoothed a few times. */
+@Composable
+private fun rememberSoftCover(song: Song): Bitmap? {
+    val thumb = rememberAlbumArtBitmap(song.uri, ART_SIZE_THUMB)
+    return androidx.compose.runtime.remember(thumb) { thumb?.let(::softBlur) }
+}
+
+private fun softBlur(src: Bitmap): Bitmap {
+    val n = 48
+    val small = Bitmap.createScaledBitmap(src.copy(Bitmap.Config.ARGB_8888, false), n, n, true)
+    val px = IntArray(n * n)
+    small.getPixels(px, 0, n, 0, 0, n, n)
+    var pixels = px
+    repeat(4) { pixels = boxBlur(pixels, n, 3) }
+    val out = Bitmap.createBitmap(n, n, Bitmap.Config.ARGB_8888)
+    out.setPixels(pixels, 0, n, 0, 0, n, n)
+    return out
+}
+
+/** One pass of a box blur of radius [r] over an n×n picture (edges clamp). */
+private fun boxBlur(src: IntArray, n: Int, r: Int): IntArray {
+    val tmp = IntArray(src.size)
+    val out = IntArray(src.size)
+    fun pass(from: IntArray, to: IntArray, horizontal: Boolean) {
+        for (y in 0 until n) for (x in 0 until n) {
+            var a = 0; var red = 0; var g = 0; var b = 0
+            for (k in -r..r) {
+                val xx = if (horizontal) (x + k).coerceIn(0, n - 1) else x
+                val yy = if (horizontal) y else (y + k).coerceIn(0, n - 1)
+                val c = from[yy * n + xx]
+                a += c ushr 24; red += (c shr 16) and 0xFF; g += (c shr 8) and 0xFF; b += c and 0xFF
+            }
+            val d = 2 * r + 1
+            to[y * n + x] = ((a / d) shl 24) or ((red / d) shl 16) or ((g / d) shl 8) or (b / d)
+        }
+    }
+    pass(src, tmp, true)
+    pass(tmp, out, false)
+    return out
+}

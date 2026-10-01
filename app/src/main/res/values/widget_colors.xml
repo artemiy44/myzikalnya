@@ -4,4 +4,7 @@
     <color name="widget_bg">#FFF2F2F5</color>
     <color name="widget_text">#FF1B1B1F</color>
     <color name="widget_text_dim">#FF6C6C70</color>
+    <!-- The line being sung, on the lyrics widget and on the dark card of widget 3. -->
+    <color name="widget_accent">#FF1B1B1F</color>
+    <color name="widget_card_accent">#FFFFFFFF</color>
 </resources>

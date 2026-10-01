@@ -229,7 +229,7 @@ object Widgets {
         val (_, h) = sizeDp(mgr, id)
         val count = ((h - 20) / 27).coerceIn(1, LINE_IDS.size)
         val shown = rows(context, s, count, before = (count - 1) / 2)
-        val text = context.getColor(R.color.widget_text)
+        val text = context.getColor(R.color.widget_accent)
         val dim = context.getColor(R.color.widget_text_dim)
         val open = openApp(context)
         rv.setOnClickPendingIntent(R.id.w_root, open)
@@ -296,8 +296,8 @@ object Widgets {
                 }
                 rv.setViewVisibility(viewId, View.VISIBLE)
                 rv.setTextViewText(viewId, styled(row.text, row.current))
-                rv.setTextColor(viewId, if (row.current) 0xFFFFFFFF.toInt() else 0x99FFFFFF.toInt())
-                rv.setTextViewTextSize(viewId, android.util.TypedValue.COMPLEX_UNIT_SP, if (row.current) 15f else 12f)
+                rv.setTextColor(viewId, if (row.current) context.getColor(R.color.widget_card_accent) else 0x99FFFFFF.toInt())
+                rv.setTextViewTextSize(viewId, android.util.TypedValue.COMPLEX_UNIT_SP, if (row.current) 16f else 12f)
                 rv.setInt(viewId, "setMaxLines", if (row.current) 2 else 1)
                 rv.setOnClickPendingIntent(
                     viewId,

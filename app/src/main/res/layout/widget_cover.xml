@@ -11,7 +11,7 @@
         android:layout_height="match_parent"
         android:scaleType="centerCrop" />
 
-    <View
+    <FrameLayout
         android:id="@+id/w_dim"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -42,7 +42,7 @@
         android:alpha="0.7"
         android:src="@drawable/ic_w_chev_r" />
 
-    <View
+    <FrameLayout
         android:id="@+id/w_gradient"
         android:layout_width="match_parent"
         android:layout_height="96dp"
@@ -101,26 +101,26 @@
             android:layout_weight="78"
             android:orientation="horizontal">
 
-            <View
+            <FrameLayout
                 android:id="@+id/z_prev"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1" />
 
-            <View
+            <FrameLayout
                 android:id="@+id/z_play"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="2" />
 
-            <View
+            <FrameLayout
                 android:id="@+id/z_next"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1" />
         </LinearLayout>
 
-        <View
+        <FrameLayout
             android:id="@+id/z_info"
             android:layout_width="match_parent"
             android:layout_height="0dp"
