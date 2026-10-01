@@ -73,7 +73,9 @@ fun CollapsingHeader(
     val compactPx = with(density) { COMPACT_HEIGHT.toPx() }
     // How far the header has folded, in px, and how far it can (its full height less the bar's).
     // It moves with the finger, one to one.
-    var folded by remember { mutableFloatStateOf(0f) }
+    // Remembered with the page's scroll position: coming back to a tab scrolled halfway, the
+    // header has to still be as folded as it was, or it unfolds and folds again on the next swipe.
+    var folded by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(0f) }
     val range = remember { floatArrayOf(0f) }
     val progress = { if (range[0] > 0f) (folded / range[0]).coerceIn(0f, 1f) else 0f }
     val connection = remember {
