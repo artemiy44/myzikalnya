@@ -302,6 +302,7 @@
     <string name="sort_added_order">추가한 순서</string>
     <string name="sort_by_artist">아티스트순</string>
     <string name="sort_by_count">곡 수순</string>
+    <string name="sort_by_file">파일 이름</string>
     <string name="sort_by_name">이름순</string>
     <string name="sort_by_title">제목순</string>
     <string name="sort_mode">정렬: %1$s</string>

@@ -343,3 +343,4 @@ backup_done_settings = 设置已恢复
 m3u_saved = 播放列表已保存
 set_colors = 颜色与强调色
 set_colors_sub = 浅色和深色主题的背景、强调色
+sort_by_file = 文件名

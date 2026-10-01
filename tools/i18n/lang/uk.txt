@@ -343,3 +343,4 @@ backup_done_settings = Налаштування повернуто
 m3u_saved = Плейлист збережено
 set_colors = Кольори й акцент
 set_colors_sub = Тло світлої та темної теми, колір акценту
+sort_by_file = Назва файлу

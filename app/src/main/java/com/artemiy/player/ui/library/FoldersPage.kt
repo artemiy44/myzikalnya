@@ -14,7 +14,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import com.artemiy.player.R
 import com.artemiy.player.data.Song
 import com.artemiy.player.ui.components.SoftPress
+import com.artemiy.player.ui.components.FastScroller
 import com.artemiy.player.ui.components.groupedCard
 import com.artemiy.player.ui.components.tonalAccent
 import com.artemiy.player.ui.icons.AppIcons
@@ -98,8 +103,24 @@ internal fun FolderPage(
     onGoToAlbum: (Song) -> Unit,
     onGoToArtist: (Song) -> Unit,
 ) {
-    val here = remember(node) { node.songs.sortedWith(compareBy({ it.trackNumber ?: Int.MAX_VALUE }, { it.title.lowercase() })) }
+    var query by remember(node.path) { mutableStateOf("") }
+    var sort by remember(node.path) { mutableStateOf(FolderSort.FILE) }
+    val here = remember(node, query, sort) {
+        node.songs
+            .filter { query.isBlank() || it.title.contains(query, true) || it.artist.contains(query, true) || it.fileName.contains(query, true) }
+            .let { list ->
+                when (sort) {
+                    FolderSort.FILE -> list.sortedBy { naturalKey(it.fileName.ifEmpty { it.title }) }
+                    FolderSort.RECENT -> list.sortedByDescending { it.dateAddedMs }
+                    FolderSort.RELEASE_DATE -> list.sortedByDescending { it.year ?: -1 }
+                    FolderSort.TITLE -> list.sortedBy { it.title.lowercase() }
+                    FolderSort.ARTIST -> list.sortedBy { it.artist.lowercase() }
+                }
+            }
+    }
     val everything = remember(node) { node.allSongs() }
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    Box(modifier = Modifier.fillMaxSize()) {
     SongList(
         songs = here,
         state = state,
@@ -123,7 +144,7 @@ internal fun FolderPage(
                         FolderRow(child, Modifier.groupedCard(i, folders.size)) { onOpenFolder(child) }
                     }
                 }
-                if (folders.isNotEmpty() && here.isNotEmpty()) {
+                if (folders.isNotEmpty() && node.songs.isNotEmpty()) {
                     Text(
                         text = stringResource(R.string.folder_here),
                         color = PlayerColors.TextPrimary,
@@ -131,10 +152,47 @@ internal fun FolderPage(
                         modifier = Modifier.padding(horizontal = 20.dp).padding(top = 14.dp, bottom = 6.dp),
                     )
                 }
+                if (node.songs.isNotEmpty()) {
+                    ListToolbar(
+                        query = query,
+                        onQueryChange = { query = it },
+                        placeholder = stringResource(R.string.search_tracks),
+                        sortOptions = FolderSort.entries,
+                        sortOptionLabel = { stringResource(it.labelRes) },
+                        currentSort = stringResource(sort.labelRes),
+                        onSortSelect = { sort = it },
+                    )
+                }
             }
         },
     )
+    FastScroller(
+        target = com.artemiy.player.ui.components.rememberScrollTarget(state),
+        label = { i ->
+            // Item 0 is the header; the songs follow.
+            here.getOrNull(i - 1)?.let { song ->
+                when (sort) {
+                    FolderSort.FILE -> com.artemiy.player.ui.components.indexLetter(song.fileName.ifEmpty { song.title })
+                    FolderSort.RECENT -> com.artemiy.player.ui.components.monthYear(song.dateAddedMs, locale, dateSpan(here.map { it.dateAddedMs }))
+                    FolderSort.RELEASE_DATE -> song.year?.toString() ?: "?"
+                    FolderSort.TITLE -> com.artemiy.player.ui.components.indexLetter(song.title)
+                    FolderSort.ARTIST -> com.artemiy.player.ui.components.indexLetter(song.artist)
+                }
+            }
+        },
+    )
+    }
 }
+
+/** How the songs of a folder are ordered: by the file's own name first (what the folder looks like on disk). */
+internal enum class FolderSort(val labelRes: Int) {
+    FILE(R.string.sort_by_file), RECENT(R.string.sort_recent), RELEASE_DATE(R.string.sort_release_date),
+    TITLE(R.string.sort_by_title), ARTIST(R.string.sort_by_artist),
+}
+
+/** A name with its numbers padded, so "2 - x" comes before "10 - x". */
+private fun naturalKey(name: String): String =
+    name.lowercase().replace(Regex("\\d+")) { it.value.padStart(8, '0') }
 
 @Composable
 private fun FolderRow(folder: FolderNode, modifier: Modifier, onClick: () -> Unit) {

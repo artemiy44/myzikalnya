@@ -302,6 +302,7 @@
     <string name="sort_added_order">Eklenme sırasına göre</string>
     <string name="sort_by_artist">Sanatçıya göre</string>
     <string name="sort_by_count">Parça sayısına göre</string>
+    <string name="sort_by_file">Dosya adı</string>
     <string name="sort_by_name">Alfabetik</string>
     <string name="sort_by_title">Ada göre</string>
     <string name="sort_mode">Sıralama: %1$s</string>

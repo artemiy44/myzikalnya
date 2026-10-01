@@ -272,8 +272,8 @@ internal fun <T> ListToolbar(
     sortOptionLabel: @Composable (T) -> String,
     currentSort: String,
     onSortSelect: (T) -> Unit,
-    viewMode: ViewMode,
-    onViewModeCycle: () -> Unit,
+    viewMode: ViewMode? = null,
+    onViewModeCycle: () -> Unit = {},
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     Row(
@@ -300,7 +300,7 @@ internal fun <T> ListToolbar(
                 modifier = Modifier.weight(1f).padding(start = 8.dp),
             )
         }
-        Icon(
+        if (viewMode != null) Icon(
             imageVector = viewMode.icon,
             contentDescription = stringResource(R.string.view_mode, stringResource(viewMode.descriptionRes)),
             tint = PlayerColors.TextSecondary,

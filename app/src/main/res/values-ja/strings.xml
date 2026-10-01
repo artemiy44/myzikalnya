@@ -302,6 +302,7 @@
     <string name="sort_added_order">追加した順</string>
     <string name="sort_by_artist">アーティスト順</string>
     <string name="sort_by_count">曲数順</string>
+    <string name="sort_by_file">ファイル名</string>
     <string name="sort_by_name">名前順</string>
     <string name="sort_by_title">曲名順</string>
     <string name="sort_mode">並べ替え：%1$s</string>

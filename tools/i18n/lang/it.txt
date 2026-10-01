@@ -343,3 +343,4 @@ backup_done_settings = Impostazioni ripristinate
 m3u_saved = Playlist salvata
 set_colors = Colori e accento
 set_colors_sub = Sfondi dei temi chiaro e scuro, colore d'accento
+sort_by_file = Nome file

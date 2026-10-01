@@ -302,6 +302,7 @@
     <string name="sort_added_order">In ordine di aggiunta</string>
     <string name="sort_by_artist">Per artista</string>
     <string name="sort_by_count">Per numero di brani</string>
+    <string name="sort_by_file">Nome file</string>
     <string name="sort_by_name">Alfabetico</string>
     <string name="sort_by_title">Per titolo</string>
     <string name="sort_mode">Ordine: %1$s</string>

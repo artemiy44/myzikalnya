@@ -1360,6 +1360,10 @@
   "en": "By number of tracks",
   "ru": "По числу треков"
  },
+ "sort_by_file": {
+  "en": "File name",
+  "ru": "Имя файла"
+ },
  "sort_by_name": {
   "en": "Alphabetical",
   "ru": "По алфавиту"

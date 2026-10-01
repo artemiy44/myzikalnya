@@ -334,6 +334,7 @@
     <string name="sort_added_order">В порядке добавления</string>
     <string name="sort_by_artist">По артисту</string>
     <string name="sort_by_count">По числу треков</string>
+    <string name="sort_by_file">Имя файла</string>
     <string name="sort_by_name">По алфавиту</string>
     <string name="sort_by_title">По названию</string>
     <string name="sort_mode">Сортировка: %1$s</string>

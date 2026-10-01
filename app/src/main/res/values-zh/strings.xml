@@ -302,6 +302,7 @@
     <string name="sort_added_order">按添加顺序</string>
     <string name="sort_by_artist">按艺人</string>
     <string name="sort_by_count">按曲目数量</string>
+    <string name="sort_by_file">文件名</string>
     <string name="sort_by_name">按字母顺序</string>
     <string name="sort_by_title">按标题</string>
     <string name="sort_mode">排序：%1$s</string>

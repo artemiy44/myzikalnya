@@ -302,6 +302,7 @@
     <string name="sort_added_order">У порядку додавання</string>
     <string name="sort_by_artist">За виконавцем</string>
     <string name="sort_by_count">За кількістю треків</string>
+    <string name="sort_by_file">Назва файлу</string>
     <string name="sort_by_name">За абеткою</string>
     <string name="sort_by_title">За назвою</string>
     <string name="sort_mode">Сортування: %1$s</string>
