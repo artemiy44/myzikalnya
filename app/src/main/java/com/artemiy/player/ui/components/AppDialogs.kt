@@ -31,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -192,15 +193,29 @@ fun DialogListRow(icon: ImageVector, title: String, subtitle: String? = null, tr
 fun AppDropdownMenu(expanded: Boolean, onDismiss: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
     val app = com.artemiy.player.ui.theme.LocalAppPalette.current
     com.artemiy.player.ui.theme.PaletteScope(app) {
+        // The menu lives in a window exactly its own size, which cut its shadow off at the edges. So
+        // the window is made bigger by a transparent margin and the menu — with its shadow — is
+        // drawn inside it; the offset puts the visible menu back where it would have been.
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = onDismiss,
-            shape = RoundedCornerShape(MENU_CORNER),
-            containerColor = app.surfaceDim,
+            offset = androidx.compose.ui.unit.DpOffset(-MENU_SHADOW_ROOM, -(MENU_SHADOW_ROOM + MENU_WINDOW_PADDING)),
+            shape = androidx.compose.ui.graphics.RectangleShape,
+            containerColor = Color.Transparent,
             tonalElevation = 0.dp,
-            shadowElevation = 10.dp,
-            content = content,
-        )
+            shadowElevation = 0.dp,
+        ) {
+            val shape = RoundedCornerShape(MENU_CORNER)
+            Box(
+                modifier = Modifier
+                    .padding(MENU_SHADOW_ROOM)
+                    .shadow(10.dp, shape)
+                    .clip(shape)
+                    .background(app.surfaceDim),
+            ) {
+                Column(modifier = Modifier.padding(vertical = MENU_WINDOW_PADDING), content = content)
+            }
+        }
     }
 }
 
@@ -225,3 +240,6 @@ val DestructiveRed = Color(0xFFE5383B)
 
 private val DIALOG_CORNER = 28.dp
 private val MENU_CORNER = 18.dp
+private val MENU_SHADOW_ROOM = 20.dp
+/** The vertical padding Material's menu puts around its items. */
+private val MENU_WINDOW_PADDING = 8.dp
