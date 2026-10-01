@@ -235,6 +235,8 @@
     <string name="set_bg_mode">Mode d’arrière-plan</string>
     <string name="set_bg_mode_desc">L’apparence du fond du lecteur — la même derrière la pochette, les paroles et la file.</string>
     <string name="set_bg_sub">Flou vivant, flou fixe ou sans flou</string>
+    <string name="set_colors">Couleurs et accent</string>
+    <string name="set_colors_sub">Fonds des thèmes clair et sombre, couleur d\'accent</string>
     <string name="set_dark_bg">Fond du thème sombre</string>
     <string name="set_dont_split">Ne pas séparer</string>
     <string name="set_endless">Lecture sans fin</string>

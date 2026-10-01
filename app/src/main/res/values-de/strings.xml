@@ -235,6 +235,8 @@
     <string name="set_bg_mode">Hintergrundmodus</string>
     <string name="set_bg_mode_desc">Wie der Player-Hintergrund aussieht — gleich hinter Cover, Songtext und Warteschlange.</string>
     <string name="set_bg_sub">Lebendige, statische oder keine Unschärfe</string>
+    <string name="set_colors">Farben &amp; Akzent</string>
+    <string name="set_colors_sub">Hintergründe der hellen und dunklen Themes, Akzentfarbe</string>
     <string name="set_dark_bg">Hintergrund des dunklen Designs</string>
     <string name="set_dont_split">Nicht aufteilen</string>
     <string name="set_endless">Endloswiedergabe</string>

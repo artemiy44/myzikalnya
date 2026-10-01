@@ -249,6 +249,8 @@
     <string name="set_bg_mode">Background mode</string>
     <string name="set_bg_mode_desc">How the player\'s background looks — the same behind the cover, lyrics and queue.</string>
     <string name="set_bg_sub">Live blur, static blur or no blur</string>
+    <string name="set_colors">Colors &amp; accent</string>
+    <string name="set_colors_sub">Backgrounds of the light and dark themes, accent colour</string>
     <string name="set_dark_bg">Dark theme background</string>
     <string name="set_dont_split">Don\'t split</string>
     <string name="set_endless">Endless play</string>

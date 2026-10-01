@@ -341,3 +341,5 @@ backup_done_lists = Playlists: %1$d · Songs hinzugefügt: %2$d · nicht gefunde
 backup_done_stats = Wiedergaben: %1$d · Übersprungen: %2$d
 backup_done_settings = Einstellungen wiederhergestellt
 m3u_saved = Playlist gespeichert
+set_colors = Farben & Akzent
+set_colors_sub = Hintergründe der hellen und dunklen Themes, Akzentfarbe

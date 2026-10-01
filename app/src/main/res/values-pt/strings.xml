@@ -235,6 +235,8 @@
     <string name="set_bg_mode">Modo de fundo</string>
     <string name="set_bg_mode_desc">Como fica o fundo do player — igual atrás da capa, da letra e da fila.</string>
     <string name="set_bg_sub">Desfoque vivo, estático ou sem desfoque</string>
+    <string name="set_colors">Cores e destaque</string>
+    <string name="set_colors_sub">Fundos dos temas claro e escuro, cor de destaque</string>
     <string name="set_dark_bg">Fundo do tema escuro</string>
     <string name="set_dont_split">Não separar</string>
     <string name="set_endless">Reprodução sem fim</string>

@@ -235,6 +235,8 @@
     <string name="set_bg_mode">背景モード</string>
     <string name="set_bg_mode_desc">プレーヤーの背景の見え方 — ジャケット、歌詞、キューの後ろで共通です。</string>
     <string name="set_bg_sub">ライブぼかし、静止ぼかし、ぼかしなし</string>
+    <string name="set_colors">色とアクセント</string>
+    <string name="set_colors_sub">ライト／ダークテーマの背景色とアクセントカラー</string>
     <string name="set_dark_bg">ダークテーマの背景</string>
     <string name="set_dont_split">分けない</string>
     <string name="set_endless">エンドレス再生</string>

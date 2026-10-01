@@ -235,6 +235,8 @@
     <string name="set_bg_mode">Tryb tła</string>
     <string name="set_bg_mode_desc">Jak wygląda tło odtwarzacza — tak samo za okładką, tekstem i kolejką.</string>
     <string name="set_bg_sub">Żywe rozmycie, statyczne rozmycie lub bez rozmycia</string>
+    <string name="set_colors">Kolory i akcent</string>
+    <string name="set_colors_sub">Tła jasnego i ciemnego motywu, kolor akcentu</string>
     <string name="set_dark_bg">Tło ciemnego motywu</string>
     <string name="set_dont_split">Nie dziel</string>
     <string name="set_endless">Odtwarzanie bez końca</string>

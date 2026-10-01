@@ -47,6 +47,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -76,6 +79,7 @@ private enum class SettingsRoute(val titleRes: Int, val parent: SettingsRoute?) 
     Main(R.string.settings, null),
     General(R.string.set_general, Main),
     Appearance(R.string.set_appearance, Main),
+    Colors(R.string.set_colors, Appearance),
     Library(R.string.set_library, Main),
     Playback(R.string.set_playback, Main),
     Mood(R.string.tab_mood, Main),
@@ -150,6 +154,9 @@ fun SettingsScreen(
     // The page and all its parents, top-most last — what the back gesture walks through.
     val stack = generateSequence(route) { it.parent }.toList().reversed()
 
+    val reveal = rememberThemeReveal()
+    androidx.compose.runtime.CompositionLocalProvider(LocalThemeReveal provides reveal) {
+    Box(modifier = Modifier.fillMaxSize()) {
     AnimatedBackStack(stack = stack, onBack = { route = route.parent ?: SettingsRoute.Main }) { page ->
         Column(
             modifier = Modifier
@@ -195,6 +202,15 @@ fun SettingsScreen(
                     onOpenKeptArtists = { route = SettingsRoute.KeptArtists },
                     onOpenLibraryTabs = { route = SettingsRoute.LibraryTabs },
                 )
+                SettingsRoute.Colors -> ColorsContent(
+                    themeMode = themeMode,
+                    lightVariant = lightVariant,
+                    onLightVariantChange = onLightVariantChange,
+                    darkVariant = darkVariant,
+                    onDarkVariantChange = onDarkVariantChange,
+                    accent = accent,
+                    onAccentChange = onAccentChange,
+                )
                 SettingsRoute.Backup -> BackupContent(songs = songs, onChanged = onDataRestored)
                 SettingsRoute.LibraryTabs -> LibraryTabsContent(tabs = libraryTabs, onChange = onLibraryTabsChange)
                 SettingsRoute.KeptArtists -> KeptArtistsContent(
@@ -223,6 +239,7 @@ fun SettingsScreen(
                     infinitePlayMode = infinitePlayMode,
                     onInfinitePlayModeChange = onInfinitePlayModeChange,
                     context = context,
+                    onOpenColors = { route = SettingsRoute.Colors },
                     onOpenNowPlayingBackground = { route = SettingsRoute.NowPlayingBackground },
                     lyricsTapPlays = lyricsTapPlays,
                     lrcGapDots = lrcGapDots,
@@ -256,6 +273,9 @@ fun SettingsScreen(
             }
                     }
 }
+    }
+    ThemeRevealOverlay(reveal)
+    }
     }
 }
 
@@ -295,9 +315,8 @@ private fun SettingsCategories(onOpen: (SettingsRoute) -> Unit) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ThemeSettings(
+private fun ColorsContent(
     themeMode: ThemeMode,
-    onThemeModeChange: (ThemeMode) -> Unit,
     lightVariant: LightVariant,
     onLightVariantChange: (LightVariant) -> Unit,
     darkVariant: DarkVariant,
@@ -305,14 +324,14 @@ private fun ThemeSettings(
     accent: AccentChoice?,
     onAccentChange: (AccentChoice?) -> Unit,
 ) {
+  Column(
+    modifier = Modifier
+        .verticalScroll(rememberScrollState()).barsInset()
+        .padding(horizontal = 20.dp)
+        .navigationBarsPadding(),
+  ) {
+    Spacer(modifier = Modifier.height(12.dp))
     SettingsCard {
-        SettingsLabel(stringResource(R.string.onb_theme))
-        Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
-            InfinitePlayModeChip(stringResource(R.string.theme_system), themeMode == ThemeMode.SYSTEM) { onThemeModeChange(ThemeMode.SYSTEM) }
-            InfinitePlayModeChip(stringResource(R.string.theme_dark), themeMode == ThemeMode.DARK) { onThemeModeChange(ThemeMode.DARK) }
-            InfinitePlayModeChip(stringResource(R.string.theme_light), themeMode == ThemeMode.LIGHT) { onThemeModeChange(ThemeMode.LIGHT) }
-        }
-
         // Each background picker only matters for the theme it belongs to ("as in system" can be
         // either, so it shows both).
         if (themeMode != ThemeMode.DARK) {
@@ -370,12 +389,13 @@ private fun ThemeSettings(
             modifier = Modifier.padding(top = 12.dp),
         )
     }
+  }
 }
 
 @Composable
 private fun LabeledSwatch(label: String, color: androidx.compose.ui.graphics.Color, selected: Boolean, onClick: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        ColorSwatch(color = color, selected = selected, onClick = onClick)
+        ColorSwatch(color = color, selected = selected, onClick = onClick, reveal = true)
         Text(text = label, color = PlayerColors.TextSecondary, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
     }
 }
@@ -393,16 +413,21 @@ private fun SettingsLabel(text: String, top: androidx.compose.ui.unit.Dp = 0.dp)
 
 /** A round color sample; the selected one gets a ring in the text color around it. */
 @Composable
-private fun ColorSwatch(color: androidx.compose.ui.graphics.Color, selected: Boolean, onClick: () -> Unit) {
+private fun ColorSwatch(color: androidx.compose.ui.graphics.Color, selected: Boolean, onClick: () -> Unit, reveal: Boolean = false) {
+    val theme = LocalThemeReveal.current
+    var center by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
     Box(
         modifier = Modifier
             .size(40.dp)
+            .onGloballyPositioned { center = it.positionInWindow() + androidx.compose.ui.geometry.Offset(it.size.width / 2f, it.size.height / 2f) }
             .clip(CircleShape)
             .border(width = if (selected) 2.dp else 1.dp, color = if (selected) PlayerColors.TextPrimary else PlayerColors.Border, shape = CircleShape)
             .padding(if (selected) 5.dp else 0.dp)
             .clip(CircleShape)
             .background(color)
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick),
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                if (reveal && !selected && theme != null) theme.play(center, color, onClick) else onClick()
+            },
     )
 }
 
@@ -577,6 +602,7 @@ private fun SettingsSectionContent(
     infinitePlayMode: InfinitePlayMode,
     onInfinitePlayModeChange: (InfinitePlayMode) -> Unit,
     context: android.content.Context,
+    onOpenColors: () -> Unit,
     onOpenNowPlayingBackground: () -> Unit,
     lyricsTapPlays: Boolean,
     lrcGapDots: Boolean = true,
@@ -608,16 +634,22 @@ private fun SettingsSectionContent(
 
             Spacer(modifier = Modifier.height(12.dp))
             if (section == SettingsRoute.Appearance) {
-                ThemeSettings(
-                    themeMode = themeMode,
-                    onThemeModeChange = onThemeModeChange,
-                    lightVariant = lightVariant,
-                    onLightVariantChange = onLightVariantChange,
-                    darkVariant = darkVariant,
-                    onDarkVariantChange = onDarkVariantChange,
-                    accent = accent,
-                    onAccentChange = onAccentChange,
-                )
+                SettingsCard {
+                    SettingsLabel(stringResource(R.string.onb_theme))
+                    Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                        InfinitePlayModeChip(stringResource(R.string.theme_system), themeMode == ThemeMode.SYSTEM) { onThemeModeChange(ThemeMode.SYSTEM) }
+                        InfinitePlayModeChip(stringResource(R.string.theme_dark), themeMode == ThemeMode.DARK) { onThemeModeChange(ThemeMode.DARK) }
+                        InfinitePlayModeChip(stringResource(R.string.theme_light), themeMode == ThemeMode.LIGHT) { onThemeModeChange(ThemeMode.LIGHT) }
+                    }
+                    CategoryDivider()
+                    SettingsRow(
+                        icon = AppIcons.Palette,
+                        title = stringResource(R.string.set_colors),
+                        subtitle = stringResource(R.string.set_colors_sub),
+                        onClick = onOpenColors,
+                        showChevron = true,
+                    )
+                }
                 Spacer(modifier = Modifier.height(12.dp))
                 SettingsCard {
                     SettingsLabel(stringResource(R.string.set_ui_style))
@@ -886,6 +918,16 @@ internal fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
     )
 }
 
+private val ROW_BLEED = 6.dp
+
+/** A row as wide as its card's inner width plus [ROW_BLEED] each side, so the press patch reaches
+ * past the text while the text itself stays where it was. */
+private fun Modifier.rowBleed(): Modifier = this.layout { measurable, constraints ->
+    val bleed = ROW_BLEED.roundToPx()
+    val placeable = measurable.measure(constraints.copy(minWidth = constraints.maxWidth + 2 * bleed, maxWidth = constraints.maxWidth + 2 * bleed))
+    layout(constraints.maxWidth, placeable.height) { placeable.place(-bleed, 0) }
+}
+
 @Composable
 internal fun SettingsRow(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
@@ -896,8 +938,10 @@ internal fun SettingsRow(
 ) {
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onClick() },
+            .rowBleed()
+            .clip(RoundedCornerShape(10.dp))
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onClick() }
+            .padding(horizontal = ROW_BLEED, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(imageVector = icon, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(20.dp))
@@ -927,8 +971,10 @@ private fun SettingsSwitchRow(
 ) {
     Row(
         modifier = modifier
-            .fillMaxWidth()
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onCheckedChange(!checked) },
+            .rowBleed()
+            .clip(RoundedCornerShape(10.dp))
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onCheckedChange(!checked) }
+            .padding(horizontal = ROW_BLEED, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(imageVector = icon, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(20.dp))

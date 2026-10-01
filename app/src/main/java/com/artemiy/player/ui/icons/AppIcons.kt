@@ -74,6 +74,7 @@ object AppIcons {
     val Folder: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideFolder, TablerFolder)
     val Download: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideDownload, TablerDownload)
     val Upload: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideUpload, TablerUpload)
+    val Palette: ImageVector @Composable @ReadOnlyComposable get() = pick(LucidePalette, TablerPalette)
     val Years: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideCalendar, TablerCalendar)
     val Genres: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideShapes, TablerCategory)
     val Home: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideHome, TablerHome)

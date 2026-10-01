@@ -235,6 +235,8 @@
     <string name="set_bg_mode">Arka plan modu</string>
     <string name="set_bg_mode_desc">Oynatıcının arka planı nasıl görünür — kapak, sözler ve kuyruk arkasında aynı.</string>
     <string name="set_bg_sub">Canlı bulanıklık, sabit bulanıklık veya bulanıklık yok</string>
+    <string name="set_colors">Renkler ve vurgu</string>
+    <string name="set_colors_sub">Açık ve koyu temanın arka planları, vurgu rengi</string>
     <string name="set_dark_bg">Koyu tema arka planı</string>
     <string name="set_dont_split">Bölme</string>
     <string name="set_endless">Sonsuz çalma</string>

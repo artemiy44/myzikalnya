@@ -235,6 +235,8 @@
     <string name="set_bg_mode">Режим тла</string>
     <string name="set_bg_mode_desc">Як виглядає тло плеєра — однаково за обкладинкою, текстом і чергою.</string>
     <string name="set_bg_sub">Живий блюр, статичний блюр або без блюру</string>
+    <string name="set_colors">Кольори й акцент</string>
+    <string name="set_colors_sub">Тло світлої та темної теми, колір акценту</string>
     <string name="set_dark_bg">Тло темної теми</string>
     <string name="set_dont_split">Не розділяти</string>
     <string name="set_endless">Безкінечне відтворення</string>

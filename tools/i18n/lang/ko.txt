@@ -341,3 +341,5 @@ backup_done_lists = 재생목록: %1$d · 추가된 곡: %2$d · 찾지 못함: 
 backup_done_stats = 재생: %1$d · 건너뜀: %2$d
 backup_done_settings = 설정을 복원했습니다
 m3u_saved = 재생목록을 저장했습니다
+set_colors = 색상 및 강조색
+set_colors_sub = 라이트/다크 테마 배경과 강조색

@@ -341,3 +341,5 @@ backup_done_lists = Çalma listeleri: %1$d · eklenen şarkı: %2$d · bulunamay
 backup_done_stats = Dinleme: %1$d · atlama: %2$d
 backup_done_settings = Ayarlar geri yüklendi
 m3u_saved = Çalma listesi kaydedildi
+set_colors = Renkler ve vurgu
+set_colors_sub = Açık ve koyu temanın arka planları, vurgu rengi

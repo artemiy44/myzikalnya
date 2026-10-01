@@ -341,3 +341,5 @@ backup_done_lists = 播放列表：%1$d · 已添加歌曲：%2$d · 未找到�
 backup_done_stats = 播放：%1$d · 跳过：%2$d
 backup_done_settings = 设置已恢复
 m3u_saved = 播放列表已保存
+set_colors = 颜色与强调色
+set_colors_sub = 浅色和深色主题的背景、强调色

@@ -1214,3 +1214,24 @@ internal val TablerUpload: ImageVector by lazy {
         path("M12 4l0 12", fill = false, stroke = true)
     }
 }
+
+private fun dot(x: String, y: String) = "M$x $y m-.5 0a.5 .5 0 1 0 1 0a.5 .5 0 1 0 -1 0"
+
+internal val LucidePalette: ImageVector by lazy {
+    iconVector("LucidePalette", scale = LUCIDE_SCALE) {
+        path("M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z", fill = false, stroke = true)
+        path(dot("13.5", "6.5"), fill = false, stroke = true)
+        path(dot("17.5", "10.5"), fill = false, stroke = true)
+        path(dot("8.5", "7.5"), fill = false, stroke = true)
+        path(dot("6.5", "12.5"), fill = false, stroke = true)
+    }
+}
+
+internal val TablerPalette: ImageVector by lazy {
+    iconVector("TablerPalette") {
+        path("M12 21a9 9 0 0 1 0 -18c4.97 0 9 3.582 9 8c0 1.06 -.474 2.078 -1.318 2.828c-.844 .75 -1.989 1.172 -3.182 1.172h-2.5a2 2 0 0 0 -1 3.75a1.3 1.3 0 0 1 -1 2.25", fill = false, stroke = true)
+        path(dot("8.5", "10.5"), fill = false, stroke = true)
+        path(dot("12.5", "7.5"), fill = false, stroke = true)
+        path(dot("16.5", "10.5"), fill = false, stroke = true)
+    }
+}

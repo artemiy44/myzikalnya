@@ -235,6 +235,8 @@
     <string name="set_bg_mode">배경 모드</string>
     <string name="set_bg_mode_desc">플레이어 배경의 모습 — 커버, 가사, 대기열 뒤에서 모두 같아요.</string>
     <string name="set_bg_sub">라이브 블러, 정지 블러 또는 블러 없음</string>
+    <string name="set_colors">색상 및 강조색</string>
+    <string name="set_colors_sub">라이트/다크 테마 배경과 강조색</string>
     <string name="set_dark_bg">다크 테마 배경</string>
     <string name="set_dont_split">나누지 않기</string>
     <string name="set_endless">무한 재생</string>

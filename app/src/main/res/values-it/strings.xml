@@ -235,6 +235,8 @@
     <string name="set_bg_mode">Modalità sfondo</string>
     <string name="set_bg_mode_desc">Come appare lo sfondo del lettore — uguale dietro copertina, testo e coda.</string>
     <string name="set_bg_sub">Sfocatura viva, statica o nessuna</string>
+    <string name="set_colors">Colori e accento</string>
+    <string name="set_colors_sub">Sfondi dei temi chiaro e scuro, colore d\'accento</string>
     <string name="set_dark_bg">Sfondo del tema scuro</string>
     <string name="set_dont_split">Non dividere</string>
     <string name="set_endless">Riproduzione infinita</string>

@@ -341,3 +341,5 @@ backup_done_lists = プレイリスト: %1$d · 追加した曲: %2$d · 見つ�
 backup_done_stats = 再生: %1$d · スキップ: %2$d
 backup_done_settings = 設定を復元しました
 m3u_saved = プレイリストを保存しました
+set_colors = 色とアクセント
+set_colors_sub = ライト／ダークテーマの背景色とアクセントカラー

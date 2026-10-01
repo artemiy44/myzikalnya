@@ -1065,6 +1065,14 @@
   "en": "Live blur, static blur or no blur",
   "ru": "Живой блюр, статичный блюр или без блюра"
  },
+ "set_colors": {
+  "en": "Colors & accent",
+  "ru": "Цвета и акцент"
+ },
+ "set_colors_sub": {
+  "en": "Backgrounds of the light and dark themes, accent colour",
+  "ru": "Фон светлой и тёмной темы, цвет акцента"
+ },
  "set_dark_bg": {
   "en": "Dark theme background",
   "ru": "Фон тёмной темы"
