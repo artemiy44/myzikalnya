@@ -163,7 +163,7 @@ fun OnboardingScreen(state: OnboardingState, actions: OnboardingActions) {
                     if (state.musicAllowed) {
                         Box(modifier = Modifier.fillMaxWidth().padding(top = 28.dp), contentAlignment = Alignment.Center) {
                             if (!state.libraryLoaded) {
-                                LoadingMark(color = PlayerColors.AccentStandalone, modifier = Modifier.size(44.dp))
+                                LoadingMark(color = PlayerColors.AccentMark, modifier = Modifier.size(44.dp))
                             } else {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
@@ -189,7 +189,7 @@ fun OnboardingScreen(state: OnboardingState, actions: OnboardingActions) {
                     ) {
                         Spacer(modifier = Modifier.height(20.dp))
                         if (state.availableFolders.isEmpty()) {
-                            LoadingMark(color = PlayerColors.AccentStandalone, modifier = Modifier.size(36.dp).align(Alignment.CenterHorizontally))
+                            LoadingMark(color = PlayerColors.AccentMark, modifier = Modifier.size(36.dp).align(Alignment.CenterHorizontally))
                         } else {
                             FolderChips(
                                 availableFolders = state.availableFolders,
@@ -403,7 +403,7 @@ private fun TalkingStep(
  */
 @Composable
 private fun FarewellBurst(speaking: Boolean, exit: () -> Float, farewell: Farewell, modifier: Modifier = Modifier) {
-    val color = PlayerColors.AccentStandalone
+    val color = PlayerColors.AccentMark
     val sparks = remember { List(48) { Spark(kotlin.random.Random(it * 7919 + 17)) } }
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         TalkingBurst(

@@ -820,7 +820,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {},
             contentAlignment = Alignment.Center,
         ) {
-            LoadingBurst(color = PlayerColors.AccentStandalone, modifier = Modifier.size(96.dp))
+            LoadingBurst(color = PlayerColors.AccentMark, modifier = Modifier.size(96.dp))
         }
     }
 

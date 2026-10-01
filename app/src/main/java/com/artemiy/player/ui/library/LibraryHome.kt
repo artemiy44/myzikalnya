@@ -250,7 +250,7 @@ internal fun LibraryRow(label: String, count: Int, icon: ImageVector, onClick: (
                 .background(com.artemiy.player.ui.components.tonalAccent),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(imageVector = icon, contentDescription = null, tint = if (expressive) PlayerColors.AccentStandalone else PlayerColors.TextPrimary, modifier = Modifier.size(24.dp))
+            Icon(imageVector = icon, contentDescription = null, tint = if (expressive) PlayerColors.AccentMark else PlayerColors.TextPrimary, modifier = Modifier.size(24.dp))
         }
         Text(
             text = label,

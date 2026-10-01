@@ -714,7 +714,6 @@ fun LibraryScreen(
                                         }
                                     }
                             }
-                            val collage = rememberBlurredCollage(playlistSongs)
                             val exportContext = androidx.compose.ui.platform.LocalContext.current
                             val exportM3u = androidx.activity.compose.rememberLauncherForActivityResult(
                                 androidx.activity.result.contract.ActivityResultContracts.CreateDocument("audio/x-mpegurl"),
@@ -740,7 +739,7 @@ fun LibraryScreen(
                                         barShown = barShown,
                                         name = r.name,
                                         songCount = playlistSongs.size,
-                                        collage = collage,
+                                        songs = playlistSongs,
                                         onBack = { backStack.removeAt(backStack.lastIndex) },
                                         onPlay = { if (filtered.isNotEmpty()) onSongClick(filtered.first(), filtered) },
                                         onShuffle = { if (filtered.isNotEmpty()) filtered.shuffled().let { onSongClick(it.first(), it) } },

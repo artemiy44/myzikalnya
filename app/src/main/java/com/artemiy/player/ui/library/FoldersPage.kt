@@ -153,7 +153,7 @@ private fun FolderRow(folder: FolderNode, modifier: Modifier, onClick: () -> Uni
                 .background(tonalAccent),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(AppIcons.Folder, null, tint = if (expressive) PlayerColors.AccentStandalone else PlayerColors.TextPrimary, modifier = Modifier.size(24.dp))
+            Icon(AppIcons.Folder, null, tint = if (expressive) PlayerColors.AccentMark else PlayerColors.TextPrimary, modifier = Modifier.size(24.dp))
         }
         Column(modifier = Modifier.weight(1f).padding(start = 14.dp)) {
             Text(folder.name, color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)

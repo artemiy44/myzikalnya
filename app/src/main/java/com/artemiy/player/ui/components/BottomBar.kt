@@ -74,10 +74,10 @@ fun PlayerBottomBar(selected: AppTab, onSelect: (AppTab) -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(3.dp),
             ) {
-                TabIcon(tab, active, if (active) PlayerColors.AccentStandalone else PlayerColors.TextSecondary, 20.dp)
+                TabIcon(tab, active, if (active) PlayerColors.AccentMark else PlayerColors.TextSecondary, 20.dp)
                 Text(
                     text = tab.label,
-                    color = if (active) PlayerColors.AccentStandalone else PlayerColors.TextSecondary,
+                    color = if (active) PlayerColors.AccentMark else PlayerColors.TextSecondary,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -126,12 +126,12 @@ private fun ExpressiveBottomBar(selected: AppTab, onSelect: (AppTab) -> Unit) {
             val active = tab == selected
             val interaction = remember { MutableInteractionSource() }
             val fill by animateColorAsState(
-                if (active) PlayerColors.AccentStandalone.copy(alpha = 0.16f) else Color.Transparent,
+                if (active) PlayerColors.AccentMark.copy(alpha = 0.16f) else Color.Transparent,
                 tween(220),
                 label = "tabPill",
             )
             val ink by animateColorAsState(
-                if (active) PlayerColors.AccentStandalone else PlayerColors.TextSecondary,
+                if (active) PlayerColors.AccentMark else PlayerColors.TextSecondary,
                 tween(220),
                 label = "tabInk",
             )

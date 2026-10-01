@@ -31,6 +31,9 @@ data class PlayerPalette(
     /** The accent as a text/icon color straight on the background (readable version of it). */
     val accentStandalone: Color,
     val isLight: Boolean,
+    /** The accent for marks that aren't reading text — tab icons, the logo, the scroller thumb: on a
+     * light theme it keeps pastel accents pastel instead of darkening them to what text needs. */
+    val accentMark: Color = accentStandalone,
 )
 
 val LocalPlayerPalette = staticCompositionLocalOf { NowPlayingPalette }
@@ -54,6 +57,7 @@ object PlayerColors {
     val TextTertiary: Color @Composable @ReadOnlyComposable get() = LocalPlayerPalette.current.textTertiary
     val Accent: Color @Composable @ReadOnlyComposable get() = LocalPlayerPalette.current.accent
     val OnAccent: Color @Composable @ReadOnlyComposable get() = LocalPlayerPalette.current.onAccent
+    val AccentMark: Color @Composable @ReadOnlyComposable get() = LocalPlayerPalette.current.accentMark
     val AccentStandalone: Color @Composable @ReadOnlyComposable get() = LocalPlayerPalette.current.accentStandalone
 }
 
@@ -217,11 +221,11 @@ data class AccentChoice(val family: AccentFamily, val index: Int) {
 /** Oklab lightness an accent needs as text/icons on a dark ground: about 5:1 against it. */
 private const val STANDALONE_MIN_LIGHTNESS_ON_DARK = 0.70f
 
-private fun standaloneAccent(accent: Color, onLight: Boolean): Color {
+private fun standaloneAccent(accent: Color, onLight: Boolean, lightCap: Float = 0.5f): Color {
     val oklab = accent.convert(ColorSpaces.Oklab)
     // Only as much lighter (on dark) or darker (on light) as it takes to read well — lifted all
     // the way to 0.85 a saturated red came out pastel pink, not the red that was picked.
-    val l = if (onLight) minOf(oklab.red, 0.5f) else maxOf(oklab.red, STANDALONE_MIN_LIGHTNESS_ON_DARK)
+    val l = if (onLight) minOf(oklab.red, lightCap) else maxOf(oklab.red, STANDALONE_MIN_LIGHTNESS_ON_DARK)
     // A saturated color pushed that light doesn't exist on screen; letting the conversion clip it
     // shifts its hue (GNOME blue turned turquoise). Instead give up just enough saturation to fit,
     // keeping the hue itself.
@@ -270,5 +274,6 @@ fun appPalette(
         accent = color,
         onAccent = if (color.luminance() > 0.45f) Color(0xFF1B1B1F) else Color.White,
         accentStandalone = standaloneAccent(color, onLight = light),
+        accentMark = standaloneAccent(color, onLight = light, lightCap = 0.8f),
     )
 }

@@ -47,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import com.artemiy.player.ui.components.pressScale
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
@@ -415,9 +416,11 @@ private fun SettingsLabel(text: String, top: androidx.compose.ui.unit.Dp = 0.dp)
 @Composable
 private fun ColorSwatch(color: androidx.compose.ui.graphics.Color, selected: Boolean, onClick: () -> Unit, reveal: Boolean = false) {
     val theme = LocalThemeReveal.current
+    val press = remember { MutableInteractionSource() }
     var center by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
     Box(
         modifier = Modifier
+            .pressScale(press, 0.88f)
             .size(40.dp)
             .onGloballyPositioned { center = it.positionInWindow() + androidx.compose.ui.geometry.Offset(it.size.width / 2f, it.size.height / 2f) }
             .clip(CircleShape)
@@ -425,7 +428,7 @@ private fun ColorSwatch(color: androidx.compose.ui.graphics.Color, selected: Boo
             .padding(if (selected) 5.dp else 0.dp)
             .clip(CircleShape)
             .background(color)
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+            .clickable(interactionSource = press, indication = null) {
                 if (reveal && !selected && theme != null) theme.play(center, color, onClick) else onClick()
             },
     )
@@ -1173,7 +1176,7 @@ private fun AboutContent(onShowOnboarding: () -> Unit) {
             modifier = Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            com.artemiy.player.ui.mood.TalkingBurst(color = PlayerColors.AccentStandalone, speaking = false, modifier = Modifier.size(84.dp))
+            com.artemiy.player.ui.mood.TalkingBurst(color = PlayerColors.AccentMark, speaking = false, modifier = Modifier.size(84.dp))
             Text(
                 text = "Lumine",
                 color = PlayerColors.TextPrimary,
@@ -1307,15 +1310,17 @@ private const val SOURCE_URL = "https://github.com/artemiy44/myzikalnya"
 
 @Composable
 private fun InfinitePlayModeChip(label: String, selected: Boolean, onClick: () -> Unit) {
+    val press = remember { MutableInteractionSource() }
     Text(
         text = label,
         color = if (selected) PlayerColors.OnAccent else PlayerColors.TextPrimary,
         fontSize = 12.sp,
         fontWeight = FontWeight.SemiBold,
         modifier = Modifier
+            .pressScale(press, 0.92f)
             .clip(RoundedCornerShape(10.dp))
             .background(if (selected) PlayerColors.Accent else PlayerColors.SurfaceDim)
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
+            .clickable(interactionSource = press, indication = null, onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 7.dp),
     )
 }
@@ -1353,18 +1358,17 @@ internal fun FolderChips(
     ) {
         availableFolders.forEach { folder ->
             val selected = folder in selectedFolders
+            val press = remember { MutableInteractionSource() }
             Text(
                 text = folder,
                 color = if (selected) PlayerColors.OnAccent else PlayerColors.TextPrimary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier
+                    .pressScale(press, 0.92f)
                     .clip(RoundedCornerShape(10.dp))
                     .background(if (selected) PlayerColors.Accent else PlayerColors.SurfaceDim)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                    ) { onToggleFolder(folder) }
+                    .clickable(interactionSource = press, indication = null) { onToggleFolder(folder) }
                     .padding(horizontal = 12.dp, vertical = 7.dp),
             )
         }
@@ -1486,6 +1490,7 @@ private fun FontChoices(selected: com.artemiy.player.ui.theme.AppFont, onSelect:
     ) {
         com.artemiy.player.ui.theme.AppFont.entries.forEach { font ->
             val chosen = font == selected
+            val press = remember { MutableInteractionSource() }
             Text(
                 text = font.label,
                 color = if (chosen) PlayerColors.OnAccent else PlayerColors.TextPrimary,
@@ -1493,9 +1498,10 @@ private fun FontChoices(selected: com.artemiy.player.ui.theme.AppFont, onSelect:
                 fontWeight = FontWeight.SemiBold,
                 fontFamily = font.family,
                 modifier = Modifier
+                    .pressScale(press, 0.94f)
                     .clip(androidx.compose.foundation.shape.RoundedCornerShape(50))
                     .background(if (chosen) PlayerColors.Accent else PlayerColors.Surface)
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onSelect(font) }
+                    .clickable(interactionSource = press, indication = null) { onSelect(font) }
                     .padding(horizontal = 16.dp, vertical = 9.dp),
             )
         }

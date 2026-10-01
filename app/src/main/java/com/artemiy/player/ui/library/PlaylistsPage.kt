@@ -113,7 +113,7 @@ internal fun PlaylistHero(
     barShown: Boolean = false,
     name: String,
     songCount: Int,
-    collage: android.graphics.Bitmap?,
+    songs: List<com.artemiy.player.data.Song>,
     onBack: () -> Unit,
     onPlay: () -> Unit,
     onShuffle: () -> Unit,
@@ -123,11 +123,12 @@ internal fun PlaylistHero(
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     HeroOverArt(
-        topTint = rememberArrowTint(listOf(collage)),
+        // The drawn picture is always deep and dark: a white arrow reads on it.
+        topTint = Color.White,
         onBack = onBack,
         height = COLLAGE_HERO_HEIGHT,
         barShown = barShown,
-        art = { BlurredCollageArt(collage) },
+        art = { ArtistGenreArt(name, songs) },
     ) {
         Text(
             text = name,

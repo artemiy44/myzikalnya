@@ -163,7 +163,7 @@ fun BoxScope.FastScroller(target: ScrollTarget, label: (Int) -> String? = { null
                 .width(thumbWidth)
                 .height(THUMB_HEIGHT)
                 .clip(CircleShape)
-                .background(if (expressive) PlayerColors.AccentStandalone else PlayerColors.TextSecondary),
+                .background(if (expressive) PlayerColors.AccentMark else PlayerColors.TextSecondary),
         )
     }
 
@@ -184,7 +184,7 @@ fun BoxScope.FastScroller(target: ScrollTarget, label: (Int) -> String? = { null
                 }
                 .onSizeChanged { pillHeight = it.height }
                 .clip(if (expressive) CircleShape else RoundedCornerShape(10.dp))
-                .background(if (expressive) PlayerColors.AccentStandalone else PlayerColors.TextPrimary)
+                .background(if (expressive) PlayerColors.AccentMark else PlayerColors.TextPrimary)
                 .padding(horizontal = 16.dp, vertical = 9.dp),
         )
     }
