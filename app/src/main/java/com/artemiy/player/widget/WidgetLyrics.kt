@@ -87,7 +87,11 @@ fun nextLyricEvent(items: List<WItem>, positionMs: Long): Long? {
     return best
 }
 
-/** The colours a widget's lyrics are drawn in. */
+/**
+ * The colours a widget's lyrics are drawn in — by brightness, not by hue (a wallpaper without much
+ * colour makes grey accents): the part already sung is at full strength, the rest of that line a bit
+ * under, every other line under half.
+ */
 class LyricColors(val dim: Int, val text: Int, val sung: Int)
 
 private const val LAYOUTS = 4
@@ -106,7 +110,7 @@ fun lyricViews(context: Context, items: List<WItem>, positionMs: Long, colors: L
         val isActive = index == active
         val timed = item.timeMs >= 0
         // Lyrics that aren't timed are all just read; timed ones: the one being sung stands out.
-        rv.setTextColor(R.id.lyric_item, if (isActive || !timed) colors.text else colors.dim)
+        rv.setTextColor(R.id.lyric_item, if (isActive) colors.text else if (!timed) colors.sung else colors.dim)
         // The line being sung is a size bigger as well, so it can't be missed.
         if (!item.small) rv.setTextViewTextSize(R.id.lyric_item, android.util.TypedValue.COMPLEX_UNIT_SP, if (isActive) 22f else 17f)
         val text = SpannableString(item.text)
@@ -123,7 +127,7 @@ fun lyricViews(context: Context, items: List<WItem>, positionMs: Long, colors: L
 }
 
 /** Puts the lyrics list into [rv]'s ListView ([listId]), scrolled to the line being sung. */
-fun setLyricList(context: Context, rv: RemoteViews, widgetId: Int, listId: Int, emptyId: Int, emptyText: CharSequence, snap: WidgetSnapshot, colors: LyricColors, dark: Boolean) {
+fun setLyricList(context: Context, rv: RemoteViews, widgetId: Int, listId: Int, emptyId: Int, emptyText: CharSequence, snap: WidgetSnapshot, colors: LyricColors, dark: Boolean, heightDp: Int) {
     val items = snap.items.orEmpty()
     val template = PendingIntent.getBroadcast(
         context, 1,
@@ -156,14 +160,26 @@ fun setLyricList(context: Context, rv: RemoteViews, widgetId: Int, listId: Int, 
         )
     }
     val active = activeRow(items, snap.positionMs)
-    if (active >= 0) rv.setScrollPosition(listId, (active - 1).coerceAtLeast(0))
+    if (active >= 0) {
+        // The system scrolls only until the row asked for is in view — at the bottom edge. So the
+        // row asked for is one a few rows further on, which leaves the line being sung around the
+        // middle; after a jump back it's the line itself, which then lands at the top.
+        val rows = ((heightDp - 16) / 38).coerceAtLeast(2)
+        val ahead = ((rows - 1) / 2).coerceAtLeast(1)
+        val before = lastActive[widgetId]
+        lastActive[widgetId] = active
+        val target = if (before != null && active < before) active else active + ahead
+        rv.setScrollPosition(listId, target.coerceAtMost(items.lastIndex))
+    }
 }
 
+/** The line each widget was last scrolled to, to tell going on from jumping back. */
+private val lastActive = HashMap<Int, Int>()
+
 fun lyricColors(context: Context, dark: Boolean): LyricColors =
-    // The lines not being sung are the text colour at under half strength — far enough from the one that is.
-    if (dark) LyricColors(dim = 0x66FFFFFF, text = 0xFFFFFFFF.toInt(), sung = context.getColor(R.color.widget_card_sung))
-    else context.getColor(R.color.widget_text).let { text ->
-        LyricColors(dim = (text and 0x00FFFFFF) or (0x66 shl 24), text = text, sung = context.getColor(R.color.widget_accent))
+    (if (dark) 0xFFFFFFFF.toInt() else context.getColor(R.color.widget_active)).let { full ->
+        fun strength(percent: Int) = (full and 0x00FFFFFF) or ((255 * percent / 100) shl 24)
+        LyricColors(dim = strength(40), text = strength(70), sung = full)
     }
 
 /** Before Android 12 a widget's list comes from a service like this one. */

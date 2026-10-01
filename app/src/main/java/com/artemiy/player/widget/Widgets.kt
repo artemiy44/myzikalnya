@@ -202,7 +202,7 @@ object Widgets {
         val s = WidgetState.snapshot
         val rv = RemoteViews(context.packageName, R.layout.widget_lyrics)
         rv.setOnClickPendingIntent(R.id.w_root, openApp(context))
-        setLyricList(context, rv, id, R.id.list_view, R.id.empty_view, emptyText(context, s), s, lyricColors(context, dark = false), dark = false)
+        setLyricList(context, rv, id, R.id.list_view, R.id.empty_view, emptyText(context, s), s, lyricColors(context, dark = false), dark = false, heightDp = sizeDp(mgr, id).second)
         return rv
     }
 
@@ -239,7 +239,7 @@ object Widgets {
                 for (b in intArrayOf(R.id.w_prev, R.id.w_play, R.id.w_next)) rv.setOnClickPendingIntent(b, open)
             }
         } else {
-            setLyricList(context, rv, id, R.id.list_view, R.id.empty_view, emptyText(context, s), s, lyricColors(context, dark = true), dark = true)
+            setLyricList(context, rv, id, R.id.list_view, R.id.empty_view, emptyText(context, s), s, lyricColors(context, dark = true), dark = true, heightDp = h)
         }
         return rv
     }

@@ -8,4 +8,5 @@
     <color name="widget_accent">#FF1B1B1F</color>
     <color name="widget_card_accent">#FFFFFFFF</color>
     <color name="widget_card_sung">#FF8AB4F8</color>
+    <color name="widget_active">#FF111113</color>
 </resources>
