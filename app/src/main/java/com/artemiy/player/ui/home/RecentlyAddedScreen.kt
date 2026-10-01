@@ -1,6 +1,10 @@
 package com.artemiy.player.ui.home
 
 import com.artemiy.player.R
+import com.artemiy.player.ui.components.fadesWithHeader
+import com.artemiy.player.ui.components.monthYear
+import com.artemiy.player.ui.components.rememberScrollTarget
+import com.artemiy.player.ui.components.FastScroller
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -44,47 +48,66 @@ fun RecentlyAddedScreen(
     val filtered = remember(songs, query) {
         songs.filter { it.title.contains(query, ignoreCase = true) || it.artist.contains(query, ignoreCase = true) }
     }
+    val listState = rememberLazyListState()
+    val gridState = rememberLazyGridState()
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    // How far apart the oldest and newest are: a library added in a few weeks reads "29 September".
+    val span = remember(filtered) { if (filtered.isEmpty()) 0L else filtered.maxOf { it.dateAddedMs } - filtered.minOf { it.dateAddedMs } }
     Column(modifier = Modifier.fillMaxSize().background(PlayerColors.Background).statusBarsPadding()) {
-        LibraryHeader(title = stringResource(R.string.recently_added), showBack = true, onBack = onBack)
-        ListToolbar(
-            query = query,
-            onQueryChange = { query = it },
-            placeholder = stringResource(R.string.search_placeholder),
-            sortOptions = emptyList<Unit>(),
-            sortOptionLabel = { "" },
-            currentSort = "",
-            onSortSelect = {},
-            viewMode = viewMode,
-            onViewModeCycle = { settingsVm.setViewMode("recent", LibraryViewMode.valueOf(viewMode.next().name)) },
-        )
-        if (filtered.isNotEmpty()) {
-            PlayShuffleRow(
-                onPlay = { onSongClick(filtered.first(), filtered) },
-                onShuffle = { filtered.shuffled().let { onSongClick(it.first(), it) } },
+        // The big title folds into a slim bar as the page scrolls, like the Library's pages.
+        com.artemiy.player.ui.components.CollapsingHeader(
+            title = stringResource(R.string.recently_added),
+            onBack = onBack,
+            bigHeader = { LibraryHeader(title = stringResource(R.string.recently_added), showBack = true, onBack = onBack) },
+        ) {
+            ListToolbar(
+                query = query,
+                onQueryChange = { query = it },
+                placeholder = stringResource(R.string.search_placeholder),
+                sortOptions = emptyList<Unit>(),
+                sortOptionLabel = { "" },
+                currentSort = "",
+                onSortSelect = {},
+                viewMode = viewMode,
+                onViewModeCycle = { settingsVm.setViewMode("recent", LibraryViewMode.valueOf(viewMode.next().name)) },
             )
-        }
-        when (viewMode) {
-            ViewMode.LIST -> SongList(
-                songs = filtered,
-                state = rememberLazyListState(),
-                onSongClick = { song -> onSongClick(song, filtered) },
-                onPlayNext = onPlayNext,
-                onAddToQueue = onAddToQueue,
-                onAddToPlaylist = onAddToPlaylist,
-                onGoToAlbum = onGoToAlbum,
-                onGoToArtist = onGoToArtist,
-            )
-            ViewMode.GRID_2, ViewMode.GRID_3 -> SongsGrid(
-                songs = filtered,
-                columns = if (viewMode == ViewMode.GRID_2) 2 else 3,
-                state = rememberLazyGridState(),
-                onSongClick = { song -> onSongClick(song, filtered) },
-                onPlayNext = onPlayNext,
-                onAddToQueue = onAddToQueue,
-                onAddToPlaylist = onAddToPlaylist,
-                onGoToAlbum = onGoToAlbum,
-                onGoToArtist = onGoToArtist,
-            )
+            if (filtered.isNotEmpty()) {
+                androidx.compose.foundation.layout.Box(modifier = Modifier.fadesWithHeader()) {
+                    PlayShuffleRow(
+                        onPlay = { onSongClick(filtered.first(), filtered) },
+                        onShuffle = { filtered.shuffled().let { onSongClick(it.first(), it) } },
+                    )
+                }
+            }
+            androidx.compose.foundation.layout.Box(modifier = Modifier.weight(1f)) {
+                when (viewMode) {
+                    ViewMode.LIST -> SongList(
+                        songs = filtered,
+                        state = listState,
+                        onSongClick = { song -> onSongClick(song, filtered) },
+                        onPlayNext = onPlayNext,
+                        onAddToQueue = onAddToQueue,
+                        onAddToPlaylist = onAddToPlaylist,
+                        onGoToAlbum = onGoToAlbum,
+                        onGoToArtist = onGoToArtist,
+                    )
+                    ViewMode.GRID_2, ViewMode.GRID_3 -> SongsGrid(
+                        songs = filtered,
+                        columns = if (viewMode == ViewMode.GRID_2) 2 else 3,
+                        state = gridState,
+                        onSongClick = { song -> onSongClick(song, filtered) },
+                        onPlayNext = onPlayNext,
+                        onAddToQueue = onAddToQueue,
+                        onAddToPlaylist = onAddToPlaylist,
+                        onGoToAlbum = onGoToAlbum,
+                        onGoToArtist = onGoToArtist,
+                    )
+                }
+                FastScroller(
+                    target = if (viewMode == ViewMode.LIST) rememberScrollTarget(listState) else rememberScrollTarget(gridState),
+                    label = { i -> filtered.getOrNull(i)?.let { monthYear(it.dateAddedMs, locale, span) } },
+                )
+            }
         }
     }
 }

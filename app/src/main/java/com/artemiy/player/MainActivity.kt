@@ -396,8 +396,21 @@ private fun PlayerApp(settings: SettingsViewModel) {
             isAppearanceLightNavigationBars = lightBars
         }
     }
+    // The back gesture on Settings' main page: the page follows the finger off to the right with
+    // the app showing underneath it, like every other page here; let go to close it, or it springs
+    // back. (Sub-pages have their own handler, which takes over while they're open.)
+    val settingsPeek = remember { androidx.compose.animation.core.Animatable(0f) }
+    LaunchedEffect(showSettings) { if (showSettings) settingsPeek.snapTo(0f) }
     if (showSettings) {
-        BackHandler { showSettings = false }
+        androidx.activity.compose.PredictiveBackHandler { progress ->
+            try {
+                progress.collect { event -> settingsPeek.snapTo(event.progress) }
+                settingsPeek.animateTo(1f, tween(180))
+                showSettings = false
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) { settingsPeek.animateTo(0f, tween(200)) }
+            }
+        }
     }
 
     // The drag distance that opens the player all the way — most of the screen's height.
@@ -677,6 +690,12 @@ private fun PlayerApp(settings: SettingsViewModel) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .graphicsLayer {
+                    val p = settingsPeek.value
+                    translationX = p * size.width
+                    scaleX = 1f - 0.06f * p
+                    scaleY = 1f - 0.06f * p
+                }
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
