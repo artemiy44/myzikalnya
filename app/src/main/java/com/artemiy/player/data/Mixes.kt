@@ -108,8 +108,14 @@ fun buildMixes(songs: List<Song>, plays: List<SongEvent>, skips: List<SongEvent>
         return res.getString(R.string.mix_genre, genre) to picks.take(MIX_SIZE).shuffled(random)
     }
 
-    topArtists.getOrNull(0)?.let { artist -> candidates += "artist-0" to { artistMix(artist) } }
-    topGenres.getOrNull(0)?.let { genre -> candidates += "genre-0" to { genreMix(genre) } }
+    // Not always the very top ones: among the three most listened to, which two get a mix
+    // turns with the day (the favourite most often) — otherwise it's the same few every day.
+    val day = dayKey(now)
+    val (artistA, artistB) = twoOfTopThree(topArtists, day)
+    val (genreA, genreB) = twoOfTopThree(topGenres, day)
+
+    artistA?.let { artist -> candidates += "artist-0" to { artistMix(artist) } }
+    genreA?.let { genre -> candidates += "genre-0" to { genreMix(genre) } }
 
     candidates += "daypart" to {
         val counts = plays.filter { dayPartOf(hourOf(it.at)) == dayPart }.groupingBy { it.songId }.eachCount()
@@ -129,14 +135,19 @@ fun buildMixes(songs: List<Song>, plays: List<SongEvent>, skips: List<SongEvent>
         res.getString(R.string.mix_forgotten) to forgotten.sortedByDescending { allCounts[it.id] ?: 0 }.take(MIX_SIZE)
     }
 
-    topArtists.getOrNull(1)?.let { artist -> candidates += "artist-1" to { artistMix(artist) } }
-    topGenres.getOrNull(1)?.let { genre -> candidates += "genre-1" to { genreMix(genre) } }
+    artistB?.let { artist -> candidates += "artist-1" to { artistMix(artist) } }
+    genreB?.let { genre -> candidates += "genre-1" to { genreMix(genre) } }
 
     var topDecade: Int? = null
     candidates += "decade" to {
         val decadeCounts = allCounts.entries.mapNotNull { (id, count) -> byId[id]?.year?.let { (it / 10) * 10 to count } }
             .groupBy({ it.first }, { it.second }).mapValues { it.value.sum() }
-        val decade = decadeCounts.maxByOrNull { it.value }?.key
+        // The most listened-to decade most days; now and then the next one or two, if they're a
+        // real share of the listening.
+        val topCount = decadeCounts.values.maxOrNull() ?: 0
+        val contenders = decadeCounts.entries.filter { it.value >= topCount * 0.25 }.sortedByDescending { it.value }.take(3).map { it.key }
+        val decadeOrder = listOf(0, 1, 0, 2).filter { it < contenders.size }
+        val decade = decadeOrder.takeIf { it.isNotEmpty() }?.let { contenders[it[day % it.size]] }
         topDecade = decade
         if (decade == null) {
             "" to emptyList()
@@ -158,7 +169,7 @@ fun buildMixes(songs: List<Song>, plays: List<SongEvent>, skips: List<SongEvent>
         val distinct = picks.distinctBy { it.id }
         if (distinct.size < MIX_MIN_SONGS) continue
         val motif = when {
-            id.startsWith("genre-") -> "genre:" + topGenres[id.removePrefix("genre-").toInt()]
+            id.startsWith("genre-") -> "genre:" + (if (id == "genre-0") genreA else genreB)
             id.startsWith("artist-") -> "artist"
             id == "daypart" -> "daypart:" + dayPart.name
             id == "decade" -> "decade:$topDecade"
@@ -167,6 +178,18 @@ fun buildMixes(songs: List<Song>, plays: List<SongEvent>, skips: List<SongEvent>
         mixes += Mix(id = id, title = title, subtitle = artistsLine(distinct, res.getString(R.string.and_others)), songs = distinct, colorIndex = mixes.size, motif = motif)
     }
     return mixes
+}
+
+/** Two of the top three, turning with the [day]: (1st, 2nd), (1st, 3rd), (2nd, 3rd), … — the
+ * favourite in two days of three. With fewer than three, the one or two there are. */
+private fun <T> twoOfTopThree(ranked: List<T>, day: Int): Pair<T?, T?> {
+    val top = ranked.take(3)
+    return when (top.size) {
+        0 -> null to null
+        1 -> top[0] to null
+        2 -> top[0] to top[1]
+        else -> listOf(0 to 1, 0 to 2, 1 to 2)[day % 3].let { (a, b) -> top[a] to top[b] }
+    }
 }
 
 /** "A, B, C, D и другие" — the mix's most frequent artists first. */
