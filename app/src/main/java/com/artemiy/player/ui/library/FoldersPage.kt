@@ -94,6 +94,8 @@ internal fun FolderNode.folderCount(): Int = (if (songs.isNotEmpty()) 1 else 0) 
 internal fun FolderPage(
     node: FolderNode,
     state: LazyListState,
+    sort: FolderSort,
+    onSortChange: (FolderSort) -> Unit,
     onOpenFolder: (FolderNode) -> Unit,
     onPlayAll: (List<Song>) -> Unit,
     onSongClick: (Song, List<Song>) -> Unit,
@@ -104,7 +106,6 @@ internal fun FolderPage(
     onGoToArtist: (Song) -> Unit,
 ) {
     var query by remember(node.path) { mutableStateOf("") }
-    var sort by remember(node.path) { mutableStateOf(FolderSort.FILE) }
     val here = remember(node, query, sort) {
         node.songs
             .filter { query.isBlank() || it.title.contains(query, true) || it.artist.contains(query, true) || it.fileName.contains(query, true) }
@@ -160,7 +161,7 @@ internal fun FolderPage(
                         sortOptions = FolderSort.entries,
                         sortOptionLabel = { stringResource(it.labelRes) },
                         currentSort = stringResource(sort.labelRes),
-                        onSortSelect = { sort = it },
+                        onSortSelect = onSortChange,
                         // Below the folders it isn't at the top of the page, so there's nothing to fold under.
                         foldsWithHeader = folders.isEmpty(),
                     )
@@ -187,7 +188,7 @@ internal fun FolderPage(
 }
 
 /** How the songs of a folder are ordered: by the file's own name first (what the folder looks like on disk). */
-internal enum class FolderSort(val labelRes: Int) {
+enum class FolderSort(val labelRes: Int) {
     FILE(R.string.sort_by_file), RECENT(R.string.sort_recent), RELEASE_DATE(R.string.sort_release_date),
     TITLE(R.string.sort_by_title), ARTIST(R.string.sort_by_artist),
 }

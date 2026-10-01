@@ -52,6 +52,7 @@ class SettingsRepository(private val context: Context) {
         val APP_FONT_KEY = stringPreferencesKey("app_font")
         val UI_STYLE_KEY = stringPreferencesKey("ui_style")
         val LIBRARY_TABS_KEY = stringPreferencesKey("library_tabs")
+        val FOLDER_SORT_KEY = stringPreferencesKey("folder_sort")
         val ONBOARDING_DONE_KEY = booleanPreferencesKey("onboarding_done")
         private fun viewModeKey(tab: String) = stringPreferencesKey("view_mode_$tab")
     }
@@ -273,6 +274,12 @@ class SettingsRepository(private val context: Context) {
     }
 
     /** Which Library sections show, and in what order — see LibraryTab.parse; absent = all. */
+    val folderSort: Flow<String?> = context.settingsDataStore.data.map { it[FOLDER_SORT_KEY] }
+
+    suspend fun setFolderSort(value: String) {
+        context.settingsDataStore.edit { it[FOLDER_SORT_KEY] = value }
+    }
+
     val libraryTabs: Flow<String?> = context.settingsDataStore.data.map { it[LIBRARY_TABS_KEY] }
 
     suspend fun setLibraryTabs(value: String) {

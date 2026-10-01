@@ -571,6 +571,8 @@ fun LibraryScreen(
                                 FolderPage(
                                     node = node,
                                     state = rememberLazyListState(),
+                                    sort = settingsVm.folderSort,
+                                    onSortChange = { settingsVm.updateFolderSort(it) },
                                     onOpenFolder = { push(LibraryRoute.FolderDetail(it.path)) },
                                     onPlayAll = { list -> if (list.isNotEmpty()) onSongClick(list.first(), list) },
                                     onSongClick = { song, list -> onSongClick(song, list) },

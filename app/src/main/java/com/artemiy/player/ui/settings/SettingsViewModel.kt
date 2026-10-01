@@ -97,6 +97,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         private set
 
     /** The Library page's sections, in the user's order, each shown or hidden. */
+    /** How the songs inside folders are ordered — one choice for every folder, remembered. */
+    var folderSort by mutableStateOf(com.artemiy.player.ui.library.FolderSort.RECENT)
+        private set
     var libraryTabs by mutableStateOf(com.artemiy.player.ui.library.LibraryTab.DEFAULT)
         private set
 
@@ -186,6 +189,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             repository.onboardingDone.collect { onboardingDone = it }
+        }
+        viewModelScope.launch {
+            repository.folderSort.collect { name -> folderSort = com.artemiy.player.ui.library.FolderSort.entries.firstOrNull { it.name == name } ?: com.artemiy.player.ui.library.FolderSort.RECENT }
         }
         viewModelScope.launch {
             repository.libraryTabs.collect { libraryTabs = com.artemiy.player.ui.library.LibraryTab.parse(it) }
@@ -303,6 +309,11 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     fun updateAppFont(font: com.artemiy.player.ui.theme.AppFont) {
         appFont = font
         viewModelScope.launch { repository.setAppFont(font.name) }
+    }
+
+    fun updateFolderSort(sort: com.artemiy.player.ui.library.FolderSort) {
+        folderSort = sort
+        viewModelScope.launch { repository.setFolderSort(sort.name) }
     }
 
     fun updateLibraryTabs(tabs: List<com.artemiy.player.ui.library.TabSetting>) {
