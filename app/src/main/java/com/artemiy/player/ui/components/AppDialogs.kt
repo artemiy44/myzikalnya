@@ -199,7 +199,7 @@ fun AppDropdownMenu(expanded: Boolean, onDismiss: () -> Unit, content: @Composab
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = onDismiss,
-            offset = androidx.compose.ui.unit.DpOffset(-MENU_SHADOW_ROOM, -(MENU_SHADOW_ROOM + MENU_WINDOW_PADDING)),
+            offset = androidx.compose.ui.unit.DpOffset(-MENU_SHADOW_SIDE, -(MENU_SHADOW_TOP + MENU_WINDOW_PADDING)),
             shape = androidx.compose.ui.graphics.RectangleShape,
             containerColor = Color.Transparent,
             tonalElevation = 0.dp,
@@ -208,7 +208,7 @@ fun AppDropdownMenu(expanded: Boolean, onDismiss: () -> Unit, content: @Composab
             val shape = RoundedCornerShape(MENU_CORNER)
             Box(
                 modifier = Modifier
-                    .padding(MENU_SHADOW_ROOM)
+                    .padding(start = MENU_SHADOW_SIDE, end = MENU_SHADOW_SIDE, top = MENU_SHADOW_TOP, bottom = MENU_SHADOW_BOTTOM)
                     .shadow(10.dp, shape)
                     .clip(shape)
                     .background(app.surfaceDim),
@@ -240,6 +240,9 @@ val DestructiveRed = Color(0xFFE5383B)
 
 private val DIALOG_CORNER = 28.dp
 private val MENU_CORNER = 18.dp
-private val MENU_SHADOW_ROOM = 20.dp
+// Room for the shadow around the menu: it falls mostly downwards, so the most is needed there.
+private val MENU_SHADOW_SIDE = 28.dp
+private val MENU_SHADOW_TOP = 18.dp
+private val MENU_SHADOW_BOTTOM = 48.dp
 /** The vertical padding Material's menu puts around its items. */
 private val MENU_WINDOW_PADDING = 8.dp
