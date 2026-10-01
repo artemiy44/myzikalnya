@@ -3,6 +3,7 @@ package com.artemiy.player.ui.library
 import com.artemiy.player.ui.theme.barsInset
 import androidx.compose.ui.res.pluralStringResource
 import com.artemiy.player.R
+import com.artemiy.player.ui.components.HeroBar
 import com.artemiy.player.ui.components.groupedCard
 import com.artemiy.player.ui.components.staggeredEntrance
 import com.artemiy.player.ui.components.rememberEntrance
@@ -103,7 +104,11 @@ fun ArtistDetailScreen(
     // A lazy list: only the rows on screen are built (and their covers loaded) — a page of hundreds
     // of songs ("no genre") built all at once heated the phone up.
     val albumRows = remember(albums) { albums.chunked(2) }
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val barShown = com.artemiy.player.ui.components.rememberHeroBarShown(listState)
+    Box(modifier = Modifier.fillMaxSize()) {
     androidx.compose.foundation.lazy.LazyColumn(
+        state = listState,
         modifier = Modifier.fillMaxSize(),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = com.artemiy.player.ui.theme.LocalBarsInset.current),
     ) {
@@ -113,6 +118,7 @@ fun ArtistDetailScreen(
             topTint = androidx.compose.ui.graphics.Color.White,
             onBack = onBack,
             height = COLLAGE_HERO_HEIGHT,
+            barShown = barShown,
             art = {
                 ArtistGenreArt(artist, songs, genrePictures)
                 if (bigMark != null) {
@@ -254,6 +260,8 @@ fun ArtistDetailScreen(
                     )
                 }
         }
+    }
+    HeroBar(shown = barShown, title = title, onBack = onBack)
     }
 }
 

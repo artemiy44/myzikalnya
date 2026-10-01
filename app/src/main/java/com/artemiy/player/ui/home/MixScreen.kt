@@ -3,6 +3,7 @@ package com.artemiy.player.ui.home
 import com.artemiy.player.ui.theme.barsInset
 import androidx.compose.ui.res.pluralStringResource
 import com.artemiy.player.R
+import com.artemiy.player.ui.components.HeroBar
 import com.artemiy.player.ui.components.groupedCard
 import com.artemiy.player.ui.components.staggeredEntrance
 import com.artemiy.player.ui.components.rememberEntrance
@@ -147,10 +148,14 @@ fun MixScreen(
 ) {
     val entrance = rememberEntrance()
     val savedFlash = rememberCheckFlash()
-    Column(modifier = Modifier.fillMaxSize().background(PlayerColors.Background).verticalScroll(rememberScrollState()).barsInset()) {
+    val scroll = rememberScrollState()
+    val barShown = com.artemiy.player.ui.components.rememberHeroBarShown(scroll, 430.dp)
+    Box(modifier = Modifier.fillMaxSize().background(PlayerColors.Background)) {
+    Column(modifier = Modifier.fillMaxSize().verticalScroll(scroll).barsInset()) {
         HeroOverArt(
             topTint = Color.White,
             onBack = onBack,
+            barShown = barShown,
             art = {
                 val textMeasurer = rememberTextMeasurer()
                 // The card's picture, big, drifting slowly.
@@ -232,5 +237,7 @@ fun MixScreen(
                 }
             }
         }
+    }
+    HeroBar(shown = barShown, title = mix.title, onBack = onBack)
     }
 }

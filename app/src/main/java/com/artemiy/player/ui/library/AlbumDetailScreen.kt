@@ -3,6 +3,7 @@ package com.artemiy.player.ui.library
 import com.artemiy.player.ui.theme.barsInset
 import androidx.compose.ui.res.pluralStringResource
 import com.artemiy.player.R
+import com.artemiy.player.ui.components.HeroBar
 import com.artemiy.player.ui.components.groupedCard
 import com.artemiy.player.ui.components.staggeredEntrance
 import com.artemiy.player.ui.components.rememberEntrance
@@ -79,10 +80,13 @@ fun AlbumDetailScreen(
         songs.sortedWith(compareBy<Song>({ it.disc }, { it.trackNumber ?: Int.MAX_VALUE }, { it.title.lowercase() }))
     }
     val multiDisc = remember(songs) { songs.map { it.disc }.distinct().size > 1 }
+    val scroll = rememberScrollState()
+    val barShown = com.artemiy.player.ui.components.rememberHeroBarShown(scroll, 430.dp)
+    Box(modifier = Modifier.fillMaxSize()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState()).barsInset(),
+            .verticalScroll(scroll).barsInset(),
     ) {
         val coverUri = songs.firstOrNull()?.uri
         val coverThumb = rememberAlbumArtBitmap(coverUri, ART_SIZE_THUMB)
@@ -90,6 +94,7 @@ fun AlbumDetailScreen(
         HeroOverArt(
             topTint = arrowTint,
             onBack = onBack,
+            barShown = barShown,
             art = {
                 // Single cover, not a collage — this is one album, unlike the artist page which
                 // has to represent several.
@@ -177,6 +182,8 @@ fun AlbumDetailScreen(
                 }
             }
         }
+    }
+    HeroBar(shown = barShown, title = album.ifBlank { stringResource(R.string.no_album) }, onBack = onBack)
     }
 }
 

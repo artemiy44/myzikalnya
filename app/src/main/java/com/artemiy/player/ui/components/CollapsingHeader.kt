@@ -1,9 +1,15 @@
 package com.artemiy.player.ui.components
 
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -217,3 +223,103 @@ private val COMPACT_HEIGHT = 52.dp
 val HeaderBarHeight = COMPACT_HEIGHT
 private val FADE_HEIGHT = 20.dp
 private val EXTRA_TOP = 8.dp
+
+/**
+ * For pages that open on a big picture (artist, album, year, genre, playlist, mix): the slim bar —
+ * back arrow and [title] — that takes the picture's place at the top once it has scrolled away,
+ * the same bar the other pages fold into. It comes in as a short fade, and while it's showing it
+ * is solid to the touch, so what's under it can't be tapped through it.
+ */
+@Composable
+fun BoxScope.HeroBar(shown: Boolean, title: String, onBack: () -> Unit) {
+    val alpha by androidx.compose.animation.core.animateFloatAsState(if (shown) 1f else 0f, tween(200), label = "heroBar")
+    if (alpha <= 0.01f && !shown) return
+    Column(modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth().graphicsLayer { this.alpha = alpha }) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(
+                    if (shown) {
+                        Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {}
+                    } else {
+                        Modifier
+                    },
+                )
+                .background(PlayerColors.Background)
+                .statusBarsPadding()
+                .height(COMPACT_HEIGHT)
+                .padding(horizontal = 20.dp),
+        ) {
+            Icon(
+                imageVector = AppIcons.Back,
+                contentDescription = stringResource(R.string.cd_back),
+                tint = PlayerColors.TextPrimary,
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .size(24.dp)
+                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onBack() },
+            )
+            Text(
+                text = title,
+                color = PlayerColors.TextPrimary,
+                fontSize = if (expressiveUi) 17.sp else 16.sp,
+                fontWeight = if (expressiveUi) FontWeight.ExtraBold else FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.align(Alignment.Center).padding(horizontal = 44.dp),
+            )
+        }
+        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(PlayerColors.Border))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(FADE_HEIGHT)
+                .background(Brush.verticalGradient(listOf(PlayerColors.Background, Color.Transparent))),
+        )
+    }
+}
+
+/** Whether a [LazyListState]'s first item — the big picture — has scrolled up to the top bar. */
+@Composable
+fun rememberHeroBarShown(state: androidx.compose.foundation.lazy.LazyListState): Boolean {
+    val density = LocalDensity.current
+    val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val limitPx = with(density) { (statusTop + COMPACT_HEIGHT + HERO_BAR_LEAD).toPx() }
+    val shown by remember(limitPx) {
+        androidx.compose.runtime.derivedStateOf {
+            val first = state.layoutInfo.visibleItemsInfo.firstOrNull()
+            first != null && (first.index > 0 || first.offset + first.size < limitPx)
+        }
+    }
+    return shown
+}
+
+/** Same, for a page scrolled by a plain [androidx.compose.foundation.ScrollState] whose big picture is [heroHeight] tall. */
+@Composable
+fun rememberHeroBarShown(scroll: androidx.compose.foundation.ScrollState, heroHeight: androidx.compose.ui.unit.Dp): Boolean {
+    val density = LocalDensity.current
+    val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val heroPx = with(density) { (heroHeight + statusTop).toPx() }
+    val limitPx = with(density) { (statusTop + COMPACT_HEIGHT + HERO_BAR_LEAD).toPx() }
+    val shown by remember(heroPx, limitPx) { androidx.compose.runtime.derivedStateOf { scroll.value > heroPx - limitPx } }
+    return shown
+}
+
+/** The picture's lower edge this far below the bar is when the bar starts coming in. */
+private val HERO_BAR_LEAD = 24.dp
+
+/** The same for a grid whose first item (full width) is the big picture. */
+@Composable
+fun rememberHeroBarShown(state: androidx.compose.foundation.lazy.grid.LazyGridState): Boolean {
+    val density = LocalDensity.current
+    val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val limitPx = with(density) { (statusTop + COMPACT_HEIGHT + HERO_BAR_LEAD).toPx() }
+    val shown by remember(limitPx) {
+        androidx.compose.runtime.derivedStateOf {
+            val first = state.layoutInfo.visibleItemsInfo.firstOrNull()
+            first != null && (first.index > 0 || first.offset.y + first.size.height < limitPx)
+        }
+    }
+    return shown
+}

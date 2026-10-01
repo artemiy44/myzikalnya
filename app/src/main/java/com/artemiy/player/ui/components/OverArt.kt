@@ -127,6 +127,9 @@ fun HeroOverArt(
     onBack: () -> Unit,
     art: @Composable BoxScope.() -> Unit,
     height: Dp = 430.dp,
+    /** The page's slim top bar is showing (the picture has scrolled away): the status bar then
+     * sits on the page's own background and follows the theme, not the cover. */
+    barShown: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
@@ -137,8 +140,8 @@ fun HeroOverArt(
     // cover's brightness (same call as the back arrow) instead of the theme.
     val statusBarOverride = LocalStatusBarIconsOverride.current
     val darkStatusIcons = topTint != Color.White
-    DisposableEffect(darkStatusIcons) {
-        statusBarOverride.value = darkStatusIcons
+    DisposableEffect(darkStatusIcons, barShown) {
+        statusBarOverride.value = if (barShown) null else darkStatusIcons
         onDispose { statusBarOverride.value = null }
     }
 

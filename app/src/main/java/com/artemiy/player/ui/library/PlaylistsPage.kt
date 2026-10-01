@@ -110,6 +110,7 @@ import com.artemiy.player.ui.theme.PlayerColors
  * and song count over it, then shuffle / play / playlist actions. */
 @Composable
 internal fun PlaylistHero(
+    barShown: Boolean = false,
     name: String,
     songCount: Int,
     collage: android.graphics.Bitmap?,
@@ -124,6 +125,7 @@ internal fun PlaylistHero(
         topTint = rememberArrowTint(listOf(collage)),
         onBack = onBack,
         height = COLLAGE_HERO_HEIGHT,
+        barShown = barShown,
         art = { BlurredCollageArt(collage) },
     ) {
         Text(

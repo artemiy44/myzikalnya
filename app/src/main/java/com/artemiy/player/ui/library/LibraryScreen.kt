@@ -5,6 +5,7 @@ import com.artemiy.player.ui.theme.barsInset
 import com.artemiy.player.ui.components.pressScale
 import androidx.compose.ui.res.pluralStringResource
 import com.artemiy.player.R
+import com.artemiy.player.ui.components.HeroBar
 import com.artemiy.player.ui.components.monthYear
 import com.artemiy.player.ui.components.indexLetter
 import com.artemiy.player.ui.components.rememberScrollTarget
@@ -681,10 +682,16 @@ fun LibraryScreen(
                                     }
                             }
                             val collage = rememberBlurredCollage(playlistSongs)
+                            val barShown = if (playlistViewMode == ViewMode.LIST) {
+                                com.artemiy.player.ui.components.rememberHeroBarShown(playlistListState)
+                            } else {
+                                com.artemiy.player.ui.components.rememberHeroBarShown(playlistGridState)
+                            }
                             // Header, then search/sort — all scrolling away together with the songs.
                             val header: @Composable () -> Unit = {
                                 Column {
                                     PlaylistHero(
+                                        barShown = barShown,
                                         name = r.name,
                                         songCount = playlistSongs.size,
                                         collage = collage,
@@ -717,6 +724,7 @@ fun LibraryScreen(
                                     }
                                 }
                             }
+                            Box(modifier = Modifier.fillMaxSize()) {
                             when (playlistViewMode) {
                                 ViewMode.LIST -> SongList(
                                     songs = filtered,
@@ -743,6 +751,8 @@ fun LibraryScreen(
                                     onRemoveFromPlaylist = removeFromPlaylist,
                                     header = header,
                                 )
+                            }
+                            HeroBar(shown = barShown, title = r.name, onBack = { backStack.removeAt(backStack.lastIndex) })
                             }
                         }
                     }
