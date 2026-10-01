@@ -274,11 +274,13 @@ internal fun <T> ListToolbar(
     onSortSelect: (T) -> Unit,
     viewMode: ViewMode? = null,
     onViewModeCycle: () -> Unit = {},
+    /** Folds away with the page header — only right for a toolbar at the very top of the page. */
+    foldsWithHeader: Boolean = true,
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier
-            .fadesWithHeader()
+            .then(if (foldsWithHeader) Modifier.fadesWithHeader() else Modifier)
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,

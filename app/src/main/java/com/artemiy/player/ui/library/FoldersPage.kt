@@ -161,6 +161,8 @@ internal fun FolderPage(
                         sortOptionLabel = { stringResource(it.labelRes) },
                         currentSort = stringResource(sort.labelRes),
                         onSortSelect = { sort = it },
+                        // Below the folders it isn't at the top of the page, so there's nothing to fold under.
+                        foldsWithHeader = folders.isEmpty(),
                     )
                 }
             }
