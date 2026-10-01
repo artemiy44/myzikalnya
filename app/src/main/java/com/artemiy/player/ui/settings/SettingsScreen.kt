@@ -83,6 +83,7 @@ private enum class SettingsRoute(val titleRes: Int, val parent: SettingsRoute?) 
     NowPlayingBackground(R.string.set_player_background, Player),
     KeptArtists(R.string.set_kept_artists, General),
     LibraryTabs(R.string.set_library_tabs, General),
+    Backup(R.string.set_backup, Main),
     Language(R.string.set_language, Main),
     About(R.string.set_about, Main),
 }
@@ -132,6 +133,8 @@ fun SettingsScreen(
     uiStyle: com.artemiy.player.ui.theme.UiStyle = com.artemiy.player.ui.theme.UiStyle.CLASSIC,
     onUiStyleChange: (com.artemiy.player.ui.theme.UiStyle) -> Unit = {},
     libraryTabs: List<com.artemiy.player.ui.library.TabSetting> = com.artemiy.player.ui.library.LibraryTab.DEFAULT,
+    songs: List<com.artemiy.player.data.Song> = emptyList(),
+    onDataRestored: () -> Unit = {},
     onLibraryTabsChange: (List<com.artemiy.player.ui.library.TabSetting>) -> Unit = {},
     onBack: () -> Unit,
     onShowOnboarding: () -> Unit = {},
@@ -192,6 +195,7 @@ fun SettingsScreen(
                     onOpenKeptArtists = { route = SettingsRoute.KeptArtists },
                     onOpenLibraryTabs = { route = SettingsRoute.LibraryTabs },
                 )
+                SettingsRoute.Backup -> BackupContent(songs = songs, onChanged = onDataRestored)
                 SettingsRoute.LibraryTabs -> LibraryTabsContent(tabs = libraryTabs, onChange = onLibraryTabsChange)
                 SettingsRoute.KeptArtists -> KeptArtistsContent(
                     kept = keptArtists,
@@ -279,6 +283,8 @@ private fun SettingsCategories(onOpen: (SettingsRoute) -> Unit) {
         }
         Spacer(modifier = Modifier.height(12.dp))
         SettingsCard {
+            SettingsRow(AppIcons.Download, stringResource(R.string.set_backup), stringResource(R.string.set_backup_sub), { onOpen(SettingsRoute.Backup) }, showChevron = true)
+            CategoryDivider()
             SettingsRow(AppIcons.Language, stringResource(R.string.set_language), stringResource(R.string.set_language_sub), { onOpen(SettingsRoute.Language) }, showChevron = true)
             CategoryDivider()
             SettingsRow(AppIcons.Info, stringResource(R.string.set_about), stringResource(R.string.set_about_sub), { onOpen(SettingsRoute.About) }, showChevron = true)
@@ -541,7 +547,7 @@ private fun KeptArtistsContent(
 }
 
 @Composable
-private fun CategoryDivider() {
+internal fun CategoryDivider() {
     Box(
         modifier = Modifier
             .padding(vertical = 12.dp)
@@ -869,7 +875,7 @@ private fun SectionTitle(text: String) {
 }
 
 @Composable
-private fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
+internal fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -881,7 +887,7 @@ private fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
 }
 
 @Composable
-private fun SettingsRow(
+internal fun SettingsRow(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
     subtitle: String,

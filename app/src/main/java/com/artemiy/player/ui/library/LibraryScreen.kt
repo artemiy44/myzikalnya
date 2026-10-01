@@ -715,6 +715,19 @@ fun LibraryScreen(
                                     }
                             }
                             val collage = rememberBlurredCollage(playlistSongs)
+                            val exportContext = androidx.compose.ui.platform.LocalContext.current
+                            val exportM3u = androidx.activity.compose.rememberLauncherForActivityResult(
+                                androidx.activity.result.contract.ActivityResultContracts.CreateDocument("audio/x-mpegurl"),
+                            ) { uri ->
+                                if (uri != null) {
+                                    runCatching {
+                                        exportContext.contentResolver.openOutputStream(uri, "wt")!!.use {
+                                            it.write(com.artemiy.player.data.Backup.m3u(playlistSongs).toByteArray())
+                                        }
+                                        android.widget.Toast.makeText(exportContext, R.string.m3u_saved, android.widget.Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            }
                             val barShown = if (playlistViewMode == ViewMode.LIST) {
                                 com.artemiy.player.ui.components.rememberHeroBarShown(playlistListState)
                             } else {
@@ -733,6 +746,7 @@ fun LibraryScreen(
                                         onShuffle = { if (filtered.isNotEmpty()) filtered.shuffled().let { onSongClick(it.first(), it) } },
                                         onRename = { showRenamePlaylist = true },
                                         onDelete = { showDeletePlaylist = true },
+                                        onExportM3u = { exportM3u.launch(r.name.replace('/', '-') + ".m3u") },
                                     )
                                     if (playlistSongs.isEmpty()) {
                                         Text(

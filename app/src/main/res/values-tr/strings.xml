@@ -27,6 +27,17 @@
     <string name="allow_access">Erişime izin ver</string>
     <string name="and_others">%1$s ve diğerleri</string>
     <string name="artists">Sanatçılar</string>
+    <string name="backup_bad_file">Bu dosya okunamadı</string>
+    <string name="backup_done_lists">Çalma listeleri: %1$d · eklenen şarkı: %2$d · bulunamayan: %3$d</string>
+    <string name="backup_done_settings">Ayarlar geri yüklendi</string>
+    <string name="backup_done_stats">Dinleme: %1$d · atlama: %2$d</string>
+    <string name="backup_m3u_import">Çalma listesi içe aktar (M3U)</string>
+    <string name="backup_m3u_import_sub">Şarkılar dosya adına veya başlığa göre bulunur</string>
+    <string name="backup_restore">Yedekten geri yükle</string>
+    <string name="backup_restore_sub">Çalma listelerini ve istatistikleri ekler, ayarları geri getirir</string>
+    <string name="backup_save">Yedek dosyasını kaydet</string>
+    <string name="backup_save_sub">Çalma listeleri, istatistikler ve ayarlar tek dosyada</string>
+    <string name="backup_saved">Yedek kaydedildi</string>
     <string name="bg_live">Canlı bulanıklık</string>
     <string name="bg_live_sub">Bulanık kapak usulca «nefes alır» — yumuşak hareket ve yakınlaşma.</string>
     <string name="bg_none">Bulanıklık yok</string>
@@ -105,6 +116,7 @@
     <string name="lyrics">Şarkı sözleri</string>
     <string name="lyrics_indexing">Şarkı sözleri hâlâ toplanıyor (%1$d / %2$d) — sözlerle henüz her şey bulunamıyor</string>
     <string name="lyrics_not_found">Bu parçanın sözleri bulunamadı</string>
+    <string name="m3u_saved">Çalma listesi kaydedildi</string>
     <string name="mix_artist">Miks: %1$s</string>
     <string name="mix_daypart_afternoon">Öğleden sonra miksi</string>
     <string name="mix_daypart_evening">Akşam miksi</string>
@@ -171,6 +183,7 @@
     <string name="playing_from_queue">kuyruk</string>
     <string name="playlist_actions">Çalma listesi işlemleri</string>
     <string name="playlist_empty">Bu çalma listesinde henüz parça yok</string>
+    <string name="playlist_export_m3u">M3U olarak dışa aktar</string>
     <string name="playlists">Çalma listeleri</string>
     <string name="queue">Kuyruk</string>
     <string name="quick_picks_empty">Sık dinlenen parçalar burada görünecek</string>
@@ -217,6 +230,8 @@
     <string name="set_appearance">Görünüm</string>
     <string name="set_appearance_sub">Tema, vurgu, simgeler, yazı tipi, metin boyutu</string>
     <string name="set_artist_name">Sanatçı adı</string>
+    <string name="set_backup">Yedek ve çalma listeleri</string>
+    <string name="set_backup_sub">Çalma listelerini, istatistikleri ve ayarları kaydet veya geri yükle</string>
     <string name="set_bg_mode">Arka plan modu</string>
     <string name="set_bg_mode_desc">Oynatıcının arka planı nasıl görünür — kapak, sözler ve kuyruk arkasında aynı.</string>
     <string name="set_bg_sub">Canlı bulanıklık, sabit bulanıklık veya bulanıklık yok</string>

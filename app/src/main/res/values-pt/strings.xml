@@ -27,6 +27,17 @@
     <string name="allow_access">Permitir acesso</string>
     <string name="and_others">%1$s e outros</string>
     <string name="artists">Artistas</string>
+    <string name="backup_bad_file">Não foi possível ler esse arquivo</string>
+    <string name="backup_done_lists">Playlists: %1$d · músicas adicionadas: %2$d · não encontradas: %3$d</string>
+    <string name="backup_done_settings">Configurações restauradas</string>
+    <string name="backup_done_stats">Reproduções: %1$d · puladas: %2$d</string>
+    <string name="backup_m3u_import">Importar playlist (M3U)</string>
+    <string name="backup_m3u_import_sub">As músicas são achadas pelo nome do arquivo ou pelo título</string>
+    <string name="backup_restore">Restaurar de um backup</string>
+    <string name="backup_restore_sub">Adiciona playlists e estatísticas e restaura as configurações</string>
+    <string name="backup_save">Salvar arquivo de backup</string>
+    <string name="backup_save_sub">Playlists, estatísticas e configurações em um só arquivo</string>
+    <string name="backup_saved">Backup salvo</string>
     <string name="bg_live">Desfoque vivo</string>
     <string name="bg_live_sub">A capa desfocada «respira» suavemente — movimento e zoom fluidos.</string>
     <string name="bg_none">Sem desfoque</string>
@@ -105,6 +116,7 @@
     <string name="lyrics">Letra</string>
     <string name="lyrics_indexing">As letras ainda estão sendo reunidas (%1$d de %2$d) — pela letra ainda não se encontra tudo</string>
     <string name="lyrics_not_found">Letra não encontrada para esta faixa</string>
+    <string name="m3u_saved">Playlist salva</string>
     <string name="mix_artist">Mix: %1$s</string>
     <string name="mix_daypart_afternoon">Mix da tarde</string>
     <string name="mix_daypart_evening">Mix do anoitecer</string>
@@ -171,6 +183,7 @@
     <string name="playing_from_queue">a fila</string>
     <string name="playlist_actions">Ações da playlist</string>
     <string name="playlist_empty">Ainda não há faixas nesta playlist</string>
+    <string name="playlist_export_m3u">Exportar como M3U</string>
     <string name="playlists">Playlists</string>
     <string name="queue">Fila</string>
     <string name="quick_picks_empty">Aqui vão aparecer as faixas mais ouvidas</string>
@@ -217,6 +230,8 @@
     <string name="set_appearance">Aparência</string>
     <string name="set_appearance_sub">Tema, destaque, ícones, fonte, tamanho do texto</string>
     <string name="set_artist_name">Nome do artista</string>
+    <string name="set_backup">Backup e playlists</string>
+    <string name="set_backup_sub">Salve ou restaure playlists, estatísticas e configurações</string>
     <string name="set_bg_mode">Modo de fundo</string>
     <string name="set_bg_mode_desc">Como fica o fundo do player — igual atrás da capa, da letra e da fila.</string>
     <string name="set_bg_sub">Desfoque vivo, estático ou sem desfoque</string>

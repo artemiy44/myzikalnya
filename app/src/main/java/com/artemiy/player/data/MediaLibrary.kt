@@ -38,6 +38,8 @@ data class Song(
      * more common spelling instead (see [ArtistNames.withUsualSpellings]) — for «Информация о песне». */
     val tagArtist: String? = null,
     val tagAlbum: String? = null,
+    /** The file's own name ("01 - Song.flac"): how a playlist file (M3U) or a backup finds it again. */
+    val fileName: String = "",
 )
 
 /**
@@ -67,6 +69,7 @@ fun querySongs(context: Context, scanFolders: Set<String> = emptySet(), minDurat
         add(MediaStore.Audio.Media.SIZE)
         add(MediaStore.Audio.Media.YEAR)
         add(MediaStore.Audio.Media.TRACK)
+        add(MediaStore.Audio.Media.DISPLAY_NAME)
         if (readGenreDirectly) add(MediaStore.Audio.Media.GENRE)
         if (readRelativePath) add(MediaStore.Audio.Media.RELATIVE_PATH) else add(MediaStore.Audio.Media.DATA)
     }.toTypedArray()
@@ -87,6 +90,7 @@ fun querySongs(context: Context, scanFolders: Set<String> = emptySet(), minDurat
         val modifiedCol = cursor.getColumnIndex(MediaStore.Audio.Media.DATE_MODIFIED)
         val sizeCol = cursor.getColumnIndex(MediaStore.Audio.Media.SIZE)
         val genreCol = if (readGenreDirectly) cursor.getColumnIndex(MediaStore.Audio.Media.GENRE) else -1
+        val nameCol = cursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME)
         val pathCol = cursor.getColumnIndex(if (readRelativePath) MediaStore.Audio.Media.RELATIVE_PATH else MediaStore.Audio.Media.DATA)
 
         while (cursor.moveToNext()) {
@@ -115,6 +119,7 @@ fun querySongs(context: Context, scanFolders: Set<String> = emptySet(), minDurat
                 discNumber = (if (trackCol >= 0) cursor.getInt(trackCol) else 0).let { it / 1000 }.takeIf { it > 0 },
                 modifiedAtS = if (modifiedCol >= 0) cursor.getLong(modifiedCol) else 0,
                 sizeBytes = if (sizeCol >= 0) cursor.getLong(sizeCol) else 0,
+                fileName = if (nameCol >= 0) cursor.getString(nameCol).orEmpty() else "",
             )
         }
     }

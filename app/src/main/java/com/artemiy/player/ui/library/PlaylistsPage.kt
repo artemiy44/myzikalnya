@@ -119,6 +119,7 @@ internal fun PlaylistHero(
     onShuffle: () -> Unit,
     onRename: () -> Unit,
     onDelete: () -> Unit,
+    onExportM3u: () -> Unit = {},
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     HeroOverArt(
@@ -155,6 +156,7 @@ internal fun PlaylistHero(
                 trailingOverlay = {
                     AppDropdownMenu(expanded = menuExpanded, onDismiss = { menuExpanded = false }) {
                         AppMenuItem(text = stringResource(R.string.rename), icon = AppIcons.Edit, onClick = { menuExpanded = false; onRename() })
+                        AppMenuItem(text = stringResource(R.string.playlist_export_m3u), icon = AppIcons.Upload, onClick = { menuExpanded = false; onExportM3u() })
                         AppMenuItem(text = stringResource(R.string.delete_playlist), icon = AppIcons.Delete, destructive = true, onClick = { menuExpanded = false; onDelete() })
                     }
                 },

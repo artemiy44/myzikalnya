@@ -47,6 +47,9 @@ interface PlaylistDao {
     )
     suspend fun playlistsContaining(songId: Long): List<PlaylistWithCount>
 
+    @Query("SELECT * FROM playlists ORDER BY name COLLATE NOCASE ASC")
+    suspend fun allPlaylists(): List<PlaylistEntity>
+
     @Query("SELECT songId FROM playlist_songs WHERE playlistId = :playlistId ORDER BY position ASC")
     suspend fun getSongIds(playlistId: Long): List<Long>
 

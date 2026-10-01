@@ -31,6 +31,17 @@
     <string name="allow_access">Allow access</string>
     <string name="and_others">%1$s and others</string>
     <string name="artists">Artists</string>
+    <string name="backup_bad_file">Couldn\'t read that file</string>
+    <string name="backup_done_lists">Playlists: %1$d · songs added: %2$d · not found: %3$d</string>
+    <string name="backup_done_settings">Settings restored</string>
+    <string name="backup_done_stats">Plays: %1$d · skips: %2$d</string>
+    <string name="backup_m3u_import">Import playlist (M3U)</string>
+    <string name="backup_m3u_import_sub">Songs are found by file name or by title</string>
+    <string name="backup_restore">Restore from backup</string>
+    <string name="backup_restore_sub">Adds playlists and stats, puts settings back</string>
+    <string name="backup_save">Save backup file</string>
+    <string name="backup_save_sub">Playlists, listening stats and settings in one file</string>
+    <string name="backup_saved">Backup saved</string>
     <string name="bg_live">Live blur</string>
     <string name="bg_live_sub">The blurred cover gently «breathes» — soft movement and zoom.</string>
     <string name="bg_none">No blur</string>
@@ -111,6 +122,7 @@
     <string name="lyrics">Lyrics</string>
     <string name="lyrics_indexing">Lyrics are still being collected (%1$d of %2$d) — not everything can be found by lyrics yet</string>
     <string name="lyrics_not_found">No lyrics found for this track</string>
+    <string name="m3u_saved">Playlist saved</string>
     <string name="mix_artist">Mix: %1$s</string>
     <string name="mix_daypart_afternoon">Afternoon mix</string>
     <string name="mix_daypart_evening">Evening mix</string>
@@ -177,6 +189,7 @@
     <string name="playing_from_queue">the queue</string>
     <string name="playlist_actions">Playlist actions</string>
     <string name="playlist_empty">No tracks in this playlist yet</string>
+    <string name="playlist_export_m3u">Export as M3U</string>
     <string name="playlists">Playlists</string>
     <plurals name="plays_count">
         <item quantity="one">%d play</item>
@@ -231,6 +244,8 @@
     <string name="set_appearance">Appearance</string>
     <string name="set_appearance_sub">Theme, accent, icons, font, text size</string>
     <string name="set_artist_name">Artist name</string>
+    <string name="set_backup">Backup &amp; playlists</string>
+    <string name="set_backup_sub">Save or restore playlists, listening stats and settings</string>
     <string name="set_bg_mode">Background mode</string>
     <string name="set_bg_mode_desc">How the player\'s background looks — the same behind the cover, lyrics and queue.</string>
     <string name="set_bg_sub">Live blur, static blur or no blur</string>

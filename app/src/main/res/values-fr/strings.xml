@@ -27,6 +27,17 @@
     <string name="allow_access">Autoriser l’accès</string>
     <string name="and_others">%1$s et d’autres</string>
     <string name="artists">Artistes</string>
+    <string name="backup_bad_file">Impossible de lire ce fichier</string>
+    <string name="backup_done_lists">Playlists : %1$d · morceaux ajoutés : %2$d · introuvables : %3$d</string>
+    <string name="backup_done_settings">Réglages restaurés</string>
+    <string name="backup_done_stats">Écoutes : %1$d · passés : %2$d</string>
+    <string name="backup_m3u_import">Importer une playlist (M3U)</string>
+    <string name="backup_m3u_import_sub">Les morceaux sont retrouvés par nom de fichier ou par titre</string>
+    <string name="backup_restore">Restaurer depuis une sauvegarde</string>
+    <string name="backup_restore_sub">Ajoute les playlists et les statistiques, remet les réglages</string>
+    <string name="backup_save">Enregistrer un fichier de sauvegarde</string>
+    <string name="backup_save_sub">Playlists, statistiques et réglages dans un seul fichier</string>
+    <string name="backup_saved">Sauvegarde enregistrée</string>
     <string name="bg_live">Flou vivant</string>
     <string name="bg_live_sub">La pochette floutée « respire » doucement — mouvement et zoom fluides.</string>
     <string name="bg_none">Sans flou</string>
@@ -105,6 +116,7 @@
     <string name="lyrics">Paroles</string>
     <string name="lyrics_indexing">Les paroles sont encore en cours de collecte (%1$d sur %2$d) — tout ne se trouve pas encore par les paroles</string>
     <string name="lyrics_not_found">Aucune parole trouvée pour ce titre</string>
+    <string name="m3u_saved">Playlist enregistrée</string>
     <string name="mix_artist">Mix : %1$s</string>
     <string name="mix_daypart_afternoon">Mix de l’après-midi</string>
     <string name="mix_daypart_evening">Mix du soir</string>
@@ -171,6 +183,7 @@
     <string name="playing_from_queue">la file</string>
     <string name="playlist_actions">Actions de la playlist</string>
     <string name="playlist_empty">Aucun titre dans cette playlist pour l’instant</string>
+    <string name="playlist_export_m3u">Exporter en M3U</string>
     <string name="playlists">Playlists</string>
     <string name="queue">File d’attente</string>
     <string name="quick_picks_empty">Les titres souvent écoutés apparaîtront ici</string>
@@ -217,6 +230,8 @@
     <string name="set_appearance">Apparence</string>
     <string name="set_appearance_sub">Thème, accent, icônes, police, taille du texte</string>
     <string name="set_artist_name">Nom de l’artiste</string>
+    <string name="set_backup">Sauvegarde et playlists</string>
+    <string name="set_backup_sub">Enregistrer ou restaurer playlists, statistiques et réglages</string>
     <string name="set_bg_mode">Mode d’arrière-plan</string>
     <string name="set_bg_mode_desc">L’apparence du fond du lecteur — la même derrière la pochette, les paroles et la file.</string>
     <string name="set_bg_sub">Flou vivant, flou fixe ou sans flou</string>

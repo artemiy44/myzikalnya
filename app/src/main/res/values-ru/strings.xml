@@ -33,6 +33,17 @@
     <string name="allow_access">Разрешить доступ</string>
     <string name="and_others">%1$s и другие</string>
     <string name="artists">Артисты</string>
+    <string name="backup_bad_file">Не получилось прочитать этот файл</string>
+    <string name="backup_done_lists">Плейлистов: %1$d · песен добавлено: %2$d · не найдено: %3$d</string>
+    <string name="backup_done_settings">Настройки возвращены</string>
+    <string name="backup_done_stats">Прослушиваний: %1$d · пропусков: %2$d</string>
+    <string name="backup_m3u_import">Импорт плейлиста (M3U)</string>
+    <string name="backup_m3u_import_sub">Песни ищутся по имени файла или по названию</string>
+    <string name="backup_restore">Восстановить из копии</string>
+    <string name="backup_restore_sub">Добавит плейлисты и статистику, вернёт настройки</string>
+    <string name="backup_save">Сохранить файл копии</string>
+    <string name="backup_save_sub">Плейлисты, статистика и настройки в одном файле</string>
+    <string name="backup_saved">Копия сохранена</string>
     <string name="bg_live">Живой блюр</string>
     <string name="bg_live_sub">Размытая обложка мягко «дышит» — плавное движение и масштаб.</string>
     <string name="bg_none">Без блюра</string>
@@ -113,6 +124,7 @@
     <string name="lyrics">Текст песни</string>
     <string name="lyrics_indexing">Тексты песен ещё собираются (%1$d из %2$d) — по тексту найдётся пока не всё</string>
     <string name="lyrics_not_found">Текст для этого трека не найден</string>
+    <string name="m3u_saved">Плейлист сохранён</string>
     <string name="mix_artist">Микс: %1$s</string>
     <string name="mix_daypart_afternoon">Дневной микс</string>
     <string name="mix_daypart_evening">Вечерний микс</string>
@@ -179,6 +191,7 @@
     <string name="playing_from_queue">очереди</string>
     <string name="playlist_actions">Действия с плейлистом</string>
     <string name="playlist_empty">В плейлисте пока нет треков</string>
+    <string name="playlist_export_m3u">Экспорт в M3U</string>
     <string name="playlists">Плейлисты</string>
     <plurals name="plays_count">
         <item quantity="few">%d прослушивания</item>
@@ -237,6 +250,8 @@
     <string name="set_appearance">Внешний вид</string>
     <string name="set_appearance_sub">Тема, акцент, иконки, шрифт, размер текста</string>
     <string name="set_artist_name">Название исполнителя</string>
+    <string name="set_backup">Резервная копия и плейлисты</string>
+    <string name="set_backup_sub">Сохранить или вернуть плейлисты, статистику и настройки</string>
     <string name="set_bg_mode">Режим фона</string>
     <string name="set_bg_mode_desc">Как выглядит фон плеера — одинаково за обложкой, текстом и очередью.</string>
     <string name="set_bg_sub">Живой блюр, статичный блюр или без блюра</string>

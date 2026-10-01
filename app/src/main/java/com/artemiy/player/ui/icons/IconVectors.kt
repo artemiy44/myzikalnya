@@ -1182,3 +1182,35 @@ internal val TablerFolder: ImageVector by lazy {
         path("M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2", fill = false, stroke = true)
     }
 }
+
+internal val LucideDownload: ImageVector by lazy {
+    iconVector("LucideDownload", scale = LUCIDE_SCALE) {
+        path("M21 15v4a2 2 0 0 1 -2 2H5a2 2 0 0 1 -2 -2v-4", fill = false, stroke = true)
+        path("M7 10l5 5 5 -5", fill = false, stroke = true)
+        path("M12 15V3", fill = false, stroke = true)
+    }
+}
+
+internal val TablerDownload: ImageVector by lazy {
+    iconVector("TablerDownload") {
+        path("M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2", fill = false, stroke = true)
+        path("M7 11l5 5l5 -5", fill = false, stroke = true)
+        path("M12 4l0 12", fill = false, stroke = true)
+    }
+}
+
+internal val LucideUpload: ImageVector by lazy {
+    iconVector("LucideUpload", scale = LUCIDE_SCALE) {
+        path("M21 15v4a2 2 0 0 1 -2 2H5a2 2 0 0 1 -2 -2v-4", fill = false, stroke = true)
+        path("M17 8l-5 -5 -5 5", fill = false, stroke = true)
+        path("M12 3v12", fill = false, stroke = true)
+    }
+}
+
+internal val TablerUpload: ImageVector by lazy {
+    iconVector("TablerUpload") {
+        path("M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2", fill = false, stroke = true)
+        path("M7 9l5 -5l5 5", fill = false, stroke = true)
+        path("M12 4l0 12", fill = false, stroke = true)
+    }
+}

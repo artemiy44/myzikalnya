@@ -746,6 +746,8 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 appFont = settings.appFont,
                 onAppFontChange = { settings.updateAppFont(it) },
                 libraryTabs = settings.libraryTabs,
+                songs = songs,
+                onDataRestored = { playlistsVm.refresh(); home.refresh(songs) },
                 onLibraryTabsChange = { settings.updateLibraryTabs(it) },
                 uiStyle = settings.uiStyle,
                 onUiStyleChange = { settings.updateUiStyle(it) },

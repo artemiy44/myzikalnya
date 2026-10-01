@@ -27,6 +27,17 @@
     <string name="allow_access">접근 허용</string>
     <string name="and_others">%1$s 외</string>
     <string name="artists">아티스트</string>
+    <string name="backup_bad_file">이 파일을 읽을 수 없습니다</string>
+    <string name="backup_done_lists">재생목록: %1$d · 추가된 곡: %2$d · 찾지 못함: %3$d</string>
+    <string name="backup_done_settings">설정을 복원했습니다</string>
+    <string name="backup_done_stats">재생: %1$d · 건너뜀: %2$d</string>
+    <string name="backup_m3u_import">재생목록 가져오기 (M3U)</string>
+    <string name="backup_m3u_import_sub">곡은 파일 이름이나 제목으로 찾습니다</string>
+    <string name="backup_restore">백업에서 복원</string>
+    <string name="backup_restore_sub">재생목록과 통계를 추가하고 설정을 되돌립니다</string>
+    <string name="backup_save">백업 파일 저장</string>
+    <string name="backup_save_sub">재생목록, 통계, 설정을 한 파일에</string>
+    <string name="backup_saved">백업을 저장했습니다</string>
     <string name="bg_live">라이브 블러</string>
     <string name="bg_live_sub">흐릿한 앨범 커버가 부드럽게 «숨 쉽니다» — 매끄러운 움직임과 확대.</string>
     <string name="bg_none">블러 없음</string>
@@ -105,6 +116,7 @@
     <string name="lyrics">가사</string>
     <string name="lyrics_indexing">가사를 아직 모으는 중이에요(%1$d / %2$d) — 가사로는 아직 모든 곡을 찾을 수 없어요</string>
     <string name="lyrics_not_found">이 곡의 가사를 찾지 못했습니다</string>
+    <string name="m3u_saved">재생목록을 저장했습니다</string>
     <string name="mix_artist">믹스: %1$s</string>
     <string name="mix_daypart_afternoon">오후 믹스</string>
     <string name="mix_daypart_evening">저녁 믹스</string>
@@ -171,6 +183,7 @@
     <string name="playing_from_queue">대기열</string>
     <string name="playlist_actions">플레이리스트 작업</string>
     <string name="playlist_empty">이 플레이리스트에는 아직 곡이 없어요</string>
+    <string name="playlist_export_m3u">M3U로 내보내기</string>
     <string name="playlists">플레이리스트</string>
     <string name="queue">대기열</string>
     <string name="quick_picks_empty">자주 듣는 곡이 여기에 표시됩니다</string>
@@ -217,6 +230,8 @@
     <string name="set_appearance">모양</string>
     <string name="set_appearance_sub">테마, 강조 색상, 아이콘, 글꼴, 글자 크기</string>
     <string name="set_artist_name">아티스트 이름</string>
+    <string name="set_backup">백업 및 재생목록</string>
+    <string name="set_backup_sub">재생목록, 청취 통계, 설정을 저장하거나 복원</string>
     <string name="set_bg_mode">배경 모드</string>
     <string name="set_bg_mode_desc">플레이어 배경의 모습 — 커버, 가사, 대기열 뒤에서 모두 같아요.</string>
     <string name="set_bg_sub">라이브 블러, 정지 블러 또는 블러 없음</string>

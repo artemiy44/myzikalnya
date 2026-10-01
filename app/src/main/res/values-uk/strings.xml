@@ -27,6 +27,17 @@
     <string name="allow_access">Дозволити доступ</string>
     <string name="and_others">%1$s та інші</string>
     <string name="artists">Виконавці</string>
+    <string name="backup_bad_file">Не вдалося прочитати цей файл</string>
+    <string name="backup_done_lists">Плейлистів: %1$d · пісень додано: %2$d · не знайдено: %3$d</string>
+    <string name="backup_done_settings">Налаштування повернуто</string>
+    <string name="backup_done_stats">Прослуховувань: %1$d · пропусків: %2$d</string>
+    <string name="backup_m3u_import">Імпорт плейлиста (M3U)</string>
+    <string name="backup_m3u_import_sub">Пісні шукаються за назвою файлу або за назвою</string>
+    <string name="backup_restore">Відновити з копії</string>
+    <string name="backup_restore_sub">Додасть плейлисти й статистику, поверне налаштування</string>
+    <string name="backup_save">Зберегти файл копії</string>
+    <string name="backup_save_sub">Плейлисти, статистика й налаштування в одному файлі</string>
+    <string name="backup_saved">Копію збережено</string>
     <string name="bg_live">Живий блюр</string>
     <string name="bg_live_sub">Розмита обкладинка м’яко «дихає» — плавний рух і масштаб.</string>
     <string name="bg_none">Без блюру</string>
@@ -105,6 +116,7 @@
     <string name="lyrics">Текст пісні</string>
     <string name="lyrics_indexing">Тексти пісень ще збираються (%1$d з %2$d) — за текстом знайдеться поки не все</string>
     <string name="lyrics_not_found">Текст для цього треку не знайдено</string>
+    <string name="m3u_saved">Плейлист збережено</string>
     <string name="mix_artist">Мікс: %1$s</string>
     <string name="mix_daypart_afternoon">Денний мікс</string>
     <string name="mix_daypart_evening">Вечірній мікс</string>
@@ -171,6 +183,7 @@
     <string name="playing_from_queue">черги</string>
     <string name="playlist_actions">Дії з плейлистом</string>
     <string name="playlist_empty">У плейлисті поки немає треків</string>
+    <string name="playlist_export_m3u">Експорт у M3U</string>
     <string name="playlists">Плейлисти</string>
     <string name="queue">Черга</string>
     <string name="quick_picks_empty">Тут з’являться треки, які часто слухають</string>
@@ -217,6 +230,8 @@
     <string name="set_appearance">Зовнішній вигляд</string>
     <string name="set_appearance_sub">Тема, акцент, іконки, шрифт, розмір тексту</string>
     <string name="set_artist_name">Ім’я виконавця</string>
+    <string name="set_backup">Резервна копія та плейлисти</string>
+    <string name="set_backup_sub">Зберегти або повернути плейлисти, статистику й налаштування</string>
     <string name="set_bg_mode">Режим тла</string>
     <string name="set_bg_mode_desc">Як виглядає тло плеєра — однаково за обкладинкою, текстом і чергою.</string>
     <string name="set_bg_sub">Живий блюр, статичний блюр або без блюру</string>

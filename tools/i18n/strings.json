@@ -116,6 +116,50 @@
   "en": "Artists",
   "ru": "Артисты"
  },
+ "backup_bad_file": {
+  "en": "Couldn't read that file",
+  "ru": "Не получилось прочитать этот файл"
+ },
+ "backup_done_lists": {
+  "en": "Playlists: %1$d · songs added: %2$d · not found: %3$d",
+  "ru": "Плейлистов: %1$d · песен добавлено: %2$d · не найдено: %3$d"
+ },
+ "backup_done_settings": {
+  "en": "Settings restored",
+  "ru": "Настройки возвращены"
+ },
+ "backup_done_stats": {
+  "en": "Plays: %1$d · skips: %2$d",
+  "ru": "Прослушиваний: %1$d · пропусков: %2$d"
+ },
+ "backup_m3u_import": {
+  "en": "Import playlist (M3U)",
+  "ru": "Импорт плейлиста (M3U)"
+ },
+ "backup_m3u_import_sub": {
+  "en": "Songs are found by file name or by title",
+  "ru": "Песни ищутся по имени файла или по названию"
+ },
+ "backup_restore": {
+  "en": "Restore from backup",
+  "ru": "Восстановить из копии"
+ },
+ "backup_restore_sub": {
+  "en": "Adds playlists and stats, puts settings back",
+  "ru": "Добавит плейлисты и статистику, вернёт настройки"
+ },
+ "backup_save": {
+  "en": "Save backup file",
+  "ru": "Сохранить файл копии"
+ },
+ "backup_save_sub": {
+  "en": "Playlists, listening stats and settings in one file",
+  "ru": "Плейлисты, статистика и настройки в одном файле"
+ },
+ "backup_saved": {
+  "en": "Backup saved",
+  "ru": "Копия сохранена"
+ },
  "bg_live": {
   "en": "Live blur",
   "ru": "Живой блюр"
@@ -460,6 +504,10 @@
   "ru": "Текст для этого трека не найден",
   "ru_x": "Слов не нашлось — только музыка"
  },
+ "m3u_saved": {
+  "en": "Playlist saved",
+  "ru": "Плейлист сохранён"
+ },
  "mix_artist": {
   "en": "Mix: %1$s",
   "ru": "Микс: %1$s"
@@ -761,6 +809,10 @@
   "ru": "В плейлисте пока нет треков",
   "ru_x": "Тут пока пусто — самое место для хороших песен"
  },
+ "playlist_export_m3u": {
+  "en": "Export as M3U",
+  "ru": "Экспорт в M3U"
+ },
  "playlists": {
   "en": "Playlists",
   "ru": "Плейлисты"
@@ -992,6 +1044,14 @@
  "set_artist_name": {
   "en": "Artist name",
   "ru": "Название исполнителя"
+ },
+ "set_backup": {
+  "en": "Backup & playlists",
+  "ru": "Резервная копия и плейлисты"
+ },
+ "set_backup_sub": {
+  "en": "Save or restore playlists, listening stats and settings",
+  "ru": "Сохранить или вернуть плейлисты, статистику и настройки"
  },
  "set_bg_mode": {
   "en": "Background mode",

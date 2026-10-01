@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 private val Context.settingsDataStore by preferencesDataStore(name = "settings")
@@ -53,6 +54,49 @@ class SettingsRepository(private val context: Context) {
         val LIBRARY_TABS_KEY = stringPreferencesKey("library_tabs")
         val ONBOARDING_DONE_KEY = booleanPreferencesKey("onboarding_done")
         private fun viewModeKey(tab: String) = stringPreferencesKey("view_mode_$tab")
+    }
+
+    /** Every setting as JSON ({name: {t: type, v: value}}), for a backup. Onboarding state stays out. */
+    suspend fun dump(): org.json.JSONObject {
+        val out = org.json.JSONObject()
+        val prefs = context.settingsDataStore.data.first()
+        for ((key, value) in prefs.asMap()) {
+            if (key.name == ONBOARDING_DONE_KEY.name) continue
+            val (type, json) = when (value) {
+                is Boolean -> "b" to value
+                is Float -> "f" to value.toDouble()
+                is Int -> "i" to value
+                is Long -> "l" to value
+                is String -> "s" to value
+                is Set<*> -> "set" to org.json.JSONArray(value.map { it.toString() })
+                else -> continue
+            }
+            out.put(key.name, org.json.JSONObject().put("t", type).put("v", json))
+        }
+        return out
+    }
+
+    /** Puts back what [dump] wrote; anything it doesn't understand is skipped. */
+    suspend fun restore(json: org.json.JSONObject) {
+        context.settingsDataStore.edit { prefs ->
+            for (name in json.keys()) {
+                if (name == ONBOARDING_DONE_KEY.name) continue
+                val entry = json.optJSONObject(name) ?: continue
+                runCatching {
+                    when (entry.getString("t")) {
+                        "b" -> prefs[booleanPreferencesKey(name)] = entry.getBoolean("v")
+                        "f" -> prefs[floatPreferencesKey(name)] = entry.getDouble("v").toFloat()
+                        "i" -> prefs[androidx.datastore.preferences.core.intPreferencesKey(name)] = entry.getInt("v")
+                        "l" -> prefs[androidx.datastore.preferences.core.longPreferencesKey(name)] = entry.getLong("v")
+                        "s" -> prefs[stringPreferencesKey(name)] = entry.getString("v")
+                        "set" -> {
+                            val arr = entry.getJSONArray("v")
+                            prefs[stringSetPreferencesKey(name)] = (0 until arr.length()).map { arr.getString(it) }.toSet()
+                        }
+                    }
+                }
+            }
+        }
     }
 
     val fontScale: Flow<Float> = context.settingsDataStore.data.map { prefs ->

@@ -27,6 +27,17 @@
     <string name="allow_access">允许访问</string>
     <string name="and_others">%1$s 等</string>
     <string name="artists">艺人</string>
+    <string name="backup_bad_file">无法读取该文件</string>
+    <string name="backup_done_lists">播放列表：%1$d · 已添加歌曲：%2$d · 未找到：%3$d</string>
+    <string name="backup_done_settings">设置已恢复</string>
+    <string name="backup_done_stats">播放：%1$d · 跳过：%2$d</string>
+    <string name="backup_m3u_import">导入播放列表 (M3U)</string>
+    <string name="backup_m3u_import_sub">按文件名或标题查找歌曲</string>
+    <string name="backup_restore">从备份恢复</string>
+    <string name="backup_restore_sub">添加播放列表和统计，并恢复设置</string>
+    <string name="backup_save">保存备份文件</string>
+    <string name="backup_save_sub">播放列表、统计和设置合为一个文件</string>
+    <string name="backup_saved">备份已保存</string>
     <string name="bg_live">动态模糊</string>
     <string name="bg_live_sub">模糊的封面轻轻“呼吸”——平滑的移动和缩放。</string>
     <string name="bg_none">无模糊</string>
@@ -105,6 +116,7 @@
     <string name="lyrics">歌词</string>
     <string name="lyrics_indexing">歌词仍在收集中（%1$d / %2$d）——暂时还不能按歌词找到全部内容</string>
     <string name="lyrics_not_found">未找到这首曲目的歌词</string>
+    <string name="m3u_saved">播放列表已保存</string>
     <string name="mix_artist">混音：%1$s</string>
     <string name="mix_daypart_afternoon">午后混音</string>
     <string name="mix_daypart_evening">傍晚混音</string>
@@ -171,6 +183,7 @@
     <string name="playing_from_queue">队列</string>
     <string name="playlist_actions">歌单操作</string>
     <string name="playlist_empty">这个歌单里还没有曲目</string>
+    <string name="playlist_export_m3u">导出为 M3U</string>
     <string name="playlists">歌单</string>
     <string name="queue">队列</string>
     <string name="quick_picks_empty">经常收听的曲目会显示在这里</string>
@@ -217,6 +230,8 @@
     <string name="set_appearance">外观</string>
     <string name="set_appearance_sub">主题、强调色、图标、字体、文字大小</string>
     <string name="set_artist_name">艺人名称</string>
+    <string name="set_backup">备份与播放列表</string>
+    <string name="set_backup_sub">保存或恢复播放列表、收听统计和设置</string>
     <string name="set_bg_mode">背景模式</string>
     <string name="set_bg_mode_desc">播放器背景的样子——在封面、歌词和队列后面都一样。</string>
     <string name="set_bg_sub">动态模糊、静态模糊或无模糊</string>

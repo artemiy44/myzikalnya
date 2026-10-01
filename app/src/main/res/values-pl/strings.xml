@@ -27,6 +27,17 @@
     <string name="allow_access">Zezwól na dostęp</string>
     <string name="and_others">%1$s i inni</string>
     <string name="artists">Wykonawcy</string>
+    <string name="backup_bad_file">Nie udało się odczytać tego pliku</string>
+    <string name="backup_done_lists">Playlisty: %1$d · dodane utwory: %2$d · nie znaleziono: %3$d</string>
+    <string name="backup_done_settings">Ustawienia przywrócone</string>
+    <string name="backup_done_stats">Odtworzenia: %1$d · pominięcia: %2$d</string>
+    <string name="backup_m3u_import">Importuj playlistę (M3U)</string>
+    <string name="backup_m3u_import_sub">Utwory są szukane po nazwie pliku lub tytule</string>
+    <string name="backup_restore">Przywróć z kopii</string>
+    <string name="backup_restore_sub">Doda playlisty i statystyki oraz przywróci ustawienia</string>
+    <string name="backup_save">Zapisz plik kopii</string>
+    <string name="backup_save_sub">Playlisty, statystyki i ustawienia w jednym pliku</string>
+    <string name="backup_saved">Kopia zapisana</string>
     <string name="bg_live">Żywe rozmycie</string>
     <string name="bg_live_sub">Rozmyta okładka łagodnie „oddycha” — płynny ruch i skala.</string>
     <string name="bg_none">Bez rozmycia</string>
@@ -105,6 +116,7 @@
     <string name="lyrics">Tekst piosenki</string>
     <string name="lyrics_indexing">Teksty piosenek wciąż są zbierane (%1$d z %2$d) — po tekście nie wszystko da się jeszcze znaleźć</string>
     <string name="lyrics_not_found">Nie znaleziono tekstu tego utworu</string>
+    <string name="m3u_saved">Playlista zapisana</string>
     <string name="mix_artist">Mix: %1$s</string>
     <string name="mix_daypart_afternoon">Mix popołudniowy</string>
     <string name="mix_daypart_evening">Mix wieczorny</string>
@@ -171,6 +183,7 @@
     <string name="playing_from_queue">kolejki</string>
     <string name="playlist_actions">Działania na playliście</string>
     <string name="playlist_empty">W playliście nie ma jeszcze utworów</string>
+    <string name="playlist_export_m3u">Eksportuj jako M3U</string>
     <string name="playlists">Playlisty</string>
     <string name="queue">Kolejka</string>
     <string name="quick_picks_empty">Tu pojawią się często słuchane utwory</string>
@@ -217,6 +230,8 @@
     <string name="set_appearance">Wygląd</string>
     <string name="set_appearance_sub">Motyw, akcent, ikony, czcionka, rozmiar tekstu</string>
     <string name="set_artist_name">Nazwa wykonawcy</string>
+    <string name="set_backup">Kopia zapasowa i playlisty</string>
+    <string name="set_backup_sub">Zapisz lub przywróć playlisty, statystyki i ustawienia</string>
     <string name="set_bg_mode">Tryb tła</string>
     <string name="set_bg_mode_desc">Jak wygląda tło odtwarzacza — tak samo za okładką, tekstem i kolejką.</string>
     <string name="set_bg_sub">Żywe rozmycie, statyczne rozmycie lub bez rozmycia</string>

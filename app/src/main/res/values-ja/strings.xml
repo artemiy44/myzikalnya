@@ -27,6 +27,17 @@
     <string name="allow_access">アクセスを許可</string>
     <string name="and_others">%1$s ほか</string>
     <string name="artists">アーティスト</string>
+    <string name="backup_bad_file">このファイルを読み込めませんでした</string>
+    <string name="backup_done_lists">プレイリスト: %1$d · 追加した曲: %2$d · 見つからない曲: %3$d</string>
+    <string name="backup_done_settings">設定を復元しました</string>
+    <string name="backup_done_stats">再生: %1$d · スキップ: %2$d</string>
+    <string name="backup_m3u_import">プレイリストを読み込む (M3U)</string>
+    <string name="backup_m3u_import_sub">曲はファイル名またはタイトルで探します</string>
+    <string name="backup_restore">バックアップから復元</string>
+    <string name="backup_restore_sub">プレイリストと統計を追加し、設定を戻します</string>
+    <string name="backup_save">バックアップファイルを保存</string>
+    <string name="backup_save_sub">プレイリスト、統計、設定を1つのファイルに</string>
+    <string name="backup_saved">バックアップを保存しました</string>
     <string name="bg_live">ライブぼかし</string>
     <string name="bg_live_sub">ぼかしたジャケットがゆっくり「呼吸」します — なめらかな動きとズーム。</string>
     <string name="bg_none">ぼかしなし</string>
@@ -105,6 +116,7 @@
     <string name="lyrics">歌詞</string>
     <string name="lyrics_indexing">歌詞を収集中です（%1$d / %2$d）— 歌詞での検索はまだすべてには対応していません</string>
     <string name="lyrics_not_found">この曲の歌詞は見つかりませんでした</string>
+    <string name="m3u_saved">プレイリストを保存しました</string>
     <string name="mix_artist">ミックス：%1$s</string>
     <string name="mix_daypart_afternoon">午後のミックス</string>
     <string name="mix_daypart_evening">夕方のミックス</string>
@@ -171,6 +183,7 @@
     <string name="playing_from_queue">キュー</string>
     <string name="playlist_actions">プレイリストの操作</string>
     <string name="playlist_empty">このプレイリストにはまだ曲がありません</string>
+    <string name="playlist_export_m3u">M3Uで書き出す</string>
     <string name="playlists">プレイリスト</string>
     <string name="queue">キュー</string>
     <string name="quick_picks_empty">よく聴く曲がここに表示されます</string>
@@ -217,6 +230,8 @@
     <string name="set_appearance">外観</string>
     <string name="set_appearance_sub">テーマ、アクセント、アイコン、フォント、文字サイズ</string>
     <string name="set_artist_name">アーティスト名</string>
+    <string name="set_backup">バックアップとプレイリスト</string>
+    <string name="set_backup_sub">プレイリスト・再生統計・設定を保存または復元</string>
     <string name="set_bg_mode">背景モード</string>
     <string name="set_bg_mode_desc">プレーヤーの背景の見え方 — ジャケット、歌詞、キューの後ろで共通です。</string>
     <string name="set_bg_sub">ライブぼかし、静止ぼかし、ぼかしなし</string>
