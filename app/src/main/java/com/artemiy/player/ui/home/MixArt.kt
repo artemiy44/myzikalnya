@@ -279,6 +279,7 @@ private enum class GenreArt {
     BOLT, ZIGZAG, BUBBLES, SQUARE_WAVE, BARS, FLOW, PIANO, HILLS, STRINGS, TRIANGLES, FILM, DOT_RINGS,
     SEIGAIHA, SPARKLES, CROSSES, HAZE, CRESCENDO, BASS_RINGS, ARCHES,
     AMPS, DISCO_BALL, SPIKES, BROKEN_BEAT, RAYS, FOUR_ON_FLOOR, STEP_GRID, SHARDS, GEAR, VINYL, PIXELS, POP_PUNK,
+    THRASH, DOOM, PROG_STAIRS,
     /** "Not really a genre, but a tag" — for names no picture is known for. */
     TAG,
 }
@@ -288,14 +289,17 @@ private enum class GenreArt {
 private val GENRE_ART = listOf(
     listOf("post-rock", "post rock", "postrock", "пост-рок", "построк", "post-metal", "postmetal") to GenreArt.CRESCENDO,
     listOf("j-rock", "jrock", "j rock", "visual kei", "visual-kei", "вижуал", "джей-рок") to GenreArt.SEIGAIHA,
-    listOf("shoegaze", "шугейз", "dream pop", "dream-pop", "dreampop", "дрим-поп", "psychedel", "психодел") to GenreArt.HAZE,
+    listOf("shoegaze", "шугейз", "dream pop", "dream-pop", "dreampop", "дрим-поп", "psychedel", "психодел", "trip hop", "trip-hop", "triphop") to GenreArt.HAZE,
     listOf("video game", "videogame", "vgm", "chiptune", "8-bit", "8bit", "game", "nintendo", "jeux", "игр", "ゲーム", "게임") to GenreArt.PIXELS,
-    listOf("vocaloid", "vocalo", "вокалоид", "anime", "аниме", "anison", "j-pop", "jpop", "j pop", "джей-поп", "japanese", "asian", "asiatique", "shibuya") to GenreArt.SPARKLES,
+    listOf("vocaloid", "vocalo", "вокалоид", "anime", "аниме", "anison", "j-pop", "jpop", "j pop", "джей-поп", "japanese", "asian", "asiatique", "shibuya", "nightcore") to GenreArt.SPARKLES,
     listOf("pop punk", "pop-punk", "poppunk", "поп-панк") to GenreArt.POP_PUNK,
     listOf("metalcore", "post-hardcore", "posthardcore", "nu metal", "nu-metal", "numetal", "deathcore", "mathcore", "screamo") to GenreArt.SHARDS,
+    listOf("thrash", "speed metal", "crossover") to GenreArt.THRASH,
+    listOf("doom", "sludge", "funeral") to GenreArt.DOOM,
+    listOf("progressive metal", "prog metal", "progressive rock", "prog rock", "art rock") to GenreArt.PROG_STAIRS,
     listOf("hardstyle", "hard style", "hardtek", "gabber", "speedcore", "hardbass", "frenchcore", "uptempo", "happy hardcore", "hardcore techno") to GenreArt.SPIKES,
     listOf("drum & bass", "drum and bass", "drum'n'bass", "drum n bass", "dnb", "d&b", "jungle", "breakbeat", "breakcore", "neurofunk", "drumstep", "footwork", "juke") to GenreArt.BROKEN_BEAT,
-    listOf("trance", "psytrance", "uplifting", "транс") to GenreArt.RAYS,
+    listOf("trance", "psytrance", "uplifting", "rave", "транс") to GenreArt.RAYS,
     listOf("house", "хаус") to GenreArt.FOUR_ON_FLOOR,
     listOf("techno", "техно") to GenreArt.STEP_GRID,
     listOf("disco", "dance", "eurodance", "eurobeat", "italo", "synthpop", "synth-pop", "synth pop", "танцев") to GenreArt.DISCO_BALL,
@@ -307,14 +311,14 @@ private val GENRE_ART = listOf(
     listOf("goth", "гот", "darkwave", "dark wave", "deathrock", "coldwave") to GenreArt.ARCHES,
     listOf("metal", "металл", "hardcore", "grind", "djent", "noise") to GenreArt.ZIGZAG,
     listOf("hip", "rap", "рэп", "хип", "trap", "drill", "grime") to GenreArt.BARS,
-    listOf("electr", "электр", "techno", "house", "trance", "edm", "dance", "dubstep", "drum", "dnb", "synth", "idm", "garage", "breakbeat", "ebm", "électr", "elektr", "hardstyle", "hard style", "hardtekk", "hardbass", "gabber", "speedcore", "breakcore", "eurobeat", "disco", "remix") to GenreArt.SQUARE_WAVE,
+    listOf("electr", "электр", "techno", "house", "trance", "edm", "dance", "dubstep", "drum", "dnb", "synth", "idm", "garage", "breakbeat", "ebm", "électr", "elektr", "hardstyle", "hard style", "hardtekk", "hardbass", "gabber", "speedcore", "breakcore", "eurobeat", "disco") to GenreArt.SQUARE_WAVE,
     listOf("rock", "рок", "grunge", "garage rock") to GenreArt.BOLT,
-    listOf("pop", "поп", "idol", "city", "top 40", "chart") to GenreArt.BUBBLES,
+    listOf("pop", "поп", "idol", "city") to GenreArt.BUBBLES,
     listOf("jazz", "джаз", "blues", "блюз", "soul", "соул", "r&b", "rnb", "funk", "фанк", "swing", "gospel") to GenreArt.FLOW,
     listOf("classic", "класси", "piano", "фортеп", "orchestr", "opera", "опер", "baroque", "chamber", "symphon") to GenreArt.PIANO,
     listOf("ambient", "эмбиент", "chill", "lo-fi", "lofi", "new age", "drone", "downtempo", "relax", "sleep") to GenreArt.HILLS,
-    listOf("folk", "фолк", "acoustic", "акуст", "country", "кантри", "singer", "bard", "бард", "шансон") to GenreArt.STRINGS,
-    listOf("indie", "инди", "alternative", "альтерн", "shoegaze", "post", "пост", "math", "emo", "dream", "alternatif", "indé") to GenreArt.TRIANGLES,
+    listOf("folk", "фолк", "americana", "bluegrass", "acoustic", "акуст", "country", "кантри", "singer", "bard", "бард", "шансон") to GenreArt.STRINGS,
+    listOf("indie", "инди", "alternative", "альтерн", "shoegaze", "post", "пост", "math", "emo", "alternatif", "indé") to GenreArt.TRIANGLES,
     listOf("soundtrack", "саундтрек", "score", "ost", "game", "anime", "аниме", "film", "movie", "кино", "musical", "ゲーム") to GenreArt.FILM,
     listOf("reggae", "регги", "latin", "латин", "world", "afro", "ska", "ска", "samba", "bossa", "salsa", "cumbia", "k-", "telugu", "hindi", "bollywood", "brésil", "brazil", "brasil") to GenreArt.DOT_RINGS,
 )
@@ -370,6 +374,9 @@ private fun DrawScope.drawGenre(genre: String, seed: Int, unknownAsTag: Boolean 
         GenreArt.VINYL -> drawRecordGrooves()
         GenreArt.PIXELS -> drawPixels(seed)
         GenreArt.POP_PUNK -> { drawBubbles(seed); drawCrosses(seed + 1) }
+        GenreArt.THRASH -> drawThrash()
+        GenreArt.DOOM -> drawDoom()
+        GenreArt.PROG_STAIRS -> drawProgStairs()
         GenreArt.TAG -> drawTag()
     }
 }
@@ -936,5 +943,52 @@ private fun DrawScope.drawTag() {
         drawCircle(ink(0.3f), s * 0.03f, Offset(c.x - l * 0.36f, c.y), style = Stroke(s * 0.012f))
         drawLine(ink(0.22f), Offset(c.x - l * 0.2f, c.y - l * 0.07f), Offset(c.x + l * 0.2f, c.y - l * 0.07f), s * 0.014f, StrokeCap.Round)
         drawLine(ink(0.22f), Offset(c.x - l * 0.2f, c.y + l * 0.08f), Offset(c.x + l * 0.08f, c.y + l * 0.08f), s * 0.014f, StrokeCap.Round)
+    }
+}
+
+/** Thrash: a saw blade — rows of fast, sharp teeth all leaning one way. */
+private fun DrawScope.drawThrash() {
+    val tooth = s * 0.06f
+    for (row in 0 until 6) {
+        val y0 = h * (0.32f + row * 0.115f)
+        val path = Path().apply {
+            moveTo(-tooth, y0)
+            var x = -tooth
+            while (x < w + tooth) {
+                lineTo(x, y0 - tooth * 1.4f)
+                lineTo(x + tooth, y0)
+                x += tooth
+            }
+            lineTo(w + tooth, y0 + tooth * 2f)
+            lineTo(-tooth, y0 + tooth * 2f)
+            close()
+        }
+        drawPath(path, ink(0.07f + row * 0.02f))
+        drawPath(path, ink(0.18f), style = Stroke(s * 0.006f))
+    }
+}
+
+/** Doom: slow and heavy — a sinking sun behind a few thick, lazy waves. */
+private fun DrawScope.drawDoom() {
+    drawCircle(ink(0.16f), s * 0.26f, Offset(w * 0.7f, h * 0.62f))
+    for (i in 0 until 3) {
+        val y0 = h * (0.5f + i * 0.17f)
+        val path = Path().apply {
+            moveTo(-w * 0.1f, y0)
+            cubicTo(w * 0.2f, y0 - h * 0.12f, w * 0.55f, y0 + h * 0.12f, w * 1.1f, y0)
+        }
+        drawPath(path, ink(0.12f + i * 0.05f), style = Stroke(s * 0.12f, cap = StrokeCap.Round))
+    }
+}
+
+/** Progressive: a staircase climbing step by step, each one a little taller. */
+private fun DrawScope.drawProgStairs() {
+    val steps = 8
+    val stepW = w / steps
+    val base = h * 0.97f
+    for (i in 0 until steps) {
+        val top = base - h * (0.12f + i * 0.085f)
+        drawRect(ink(0.08f + i * 0.02f), Offset(i * stepW, top), Size(stepW * 0.92f, base - top))
+        drawRect(ink(0.2f), Offset(i * stepW, top), Size(stepW * 0.92f, base - top), style = Stroke(s * 0.007f))
     }
 }

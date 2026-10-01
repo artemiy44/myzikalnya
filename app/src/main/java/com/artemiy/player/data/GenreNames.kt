@@ -29,6 +29,7 @@ object GenreNames {
         Entry("K-Pop", "KPop", "K Pop", "Korean Pop", "Кей-поп", "케이팝"),
         Entry("Rock", "Rock Music", "Rock in Russian", "Russian Rock", "Русский рок", "Рок", "Рок-музыка", "General Rock", "General Mainstream Rock", "Mainstream Rock", "Rock Russe", "Rock Français", "Deutschrock", "Rock en Español", "Rock Nacional", "Rock Brasileiro", "ロック", "록"),
         Entry("Hard Rock", "Hardrock", "Хард-рок", "Хард рок"),
+        Entry("Alternative Metal", "Alt Metal", "Alt-Metal"),
         Entry("Metal", "Heavy Metal", "Canadian Metal", "Metal Music", "Métal", "Металл", "Хэви-метал", "Хеви-метал", "メタル", "메탈"),
         Entry("Punk", "Punk Rock", "Панк", "Панк-рок", "パンク", "펑크"),
         Entry("Pop Punk", "Поп-панк"),
@@ -67,6 +68,24 @@ object GenreNames {
         }
     }
 
+    /**
+     * "Canadian Metal", "Vancouver Metal", "Swedish Pop", "Russian Rock": a place or nationality in
+     * front of a genre we know is that genre — a scene or a branch, not a style of its own. (A
+     * real subgenre with its own name — Thrash, Doom, Deep House — is never affected.)
+     */
+    private val PLACES = listOf(
+        "canadian", "vancouver", "american", "british", "english", "scottish", "irish", "swedish", "finnish", "norwegian", "danish",
+        "german", "dutch", "french", "italian", "spanish", "greek", "polish", "russian", "ukrainian", "brazilian", "mexican",
+        "australian", "scandinavian", "european", "uk", "us", "usa",
+    ).sortedByDescending { it.length }
+
+    private fun withoutPlace(key: String): String? {
+        for (place in PLACES) {
+            if (key.length > place.length + 2 && key.startsWith(place)) aliasToMain[key.removePrefix(place)]?.let { return it }
+        }
+        return null
+    }
+
     /** key of the genre's main name → how it's shown. */
     private val mainNames: Map<String, String> = ENTRIES.associate { key(it.main) to it.main }
 
@@ -83,7 +102,7 @@ object GenreNames {
 
     /** The genre [raw] belongs to: the key its spellings share. A name with no letters at all ("<")
      * is still its own genre, as written. */
-    fun canonicalKey(raw: String): String = key(raw).let { aliasToMain[it] ?: it }.ifEmpty { raw.trim().lowercase() }
+    fun canonicalKey(raw: String): String = key(raw).let { aliasToMain[it] ?: withoutPlace(it) ?: it }.ifEmpty { raw.trim().lowercase() }
 
     /**
      * Every genre of [song], each once, as (key, the tag's own spelling) — a song tagged with
