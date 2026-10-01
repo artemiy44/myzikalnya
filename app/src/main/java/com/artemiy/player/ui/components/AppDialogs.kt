@@ -8,6 +8,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -191,31 +196,76 @@ fun DialogListRow(icon: ImageVector, title: String, subtitle: String? = null, tr
  */
 @Composable
 fun AppDropdownMenu(expanded: Boolean, onDismiss: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+    if (!expanded) return
     val app = com.artemiy.player.ui.theme.LocalAppPalette.current
-    com.artemiy.player.ui.theme.PaletteScope(app) {
-        // The menu lives in a window exactly its own size, which cut its shadow off at the edges. So
-        // the window is made bigger by a transparent margin and the menu — with its shadow — is
-        // drawn inside it; the offset puts the visible menu back where it would have been.
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = onDismiss,
-            offset = androidx.compose.ui.unit.DpOffset(-MENU_SHADOW_SIDE, -(MENU_SHADOW_TOP + MENU_WINDOW_PADDING)),
-            shape = androidx.compose.ui.graphics.RectangleShape,
-            containerColor = Color.Transparent,
-            tonalElevation = 0.dp,
-            shadowElevation = 0.dp,
-        ) {
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val provider = remember(density) {
+        MenuPositionProvider(
+            side = with(density) { MENU_SHADOW_SIDE.roundToPx() },
+            top = with(density) { MENU_SHADOW_TOP.roundToPx() },
+            bottom = with(density) { MENU_SHADOW_BOTTOM.roundToPx() },
+            margin = with(density) { 8.dp.roundToPx() },
+        )
+    }
+    val maxHeight = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp - 64.dp
+    val appear = remember { Animatable(0f) }
+    LaunchedEffect(Unit) { appear.animateTo(1f, tween(140)) }
+    // Its own window rather than Material's DropdownMenu: that one is exactly the menu's size and
+    // cut its shadow off at the edges. This one is bigger by a transparent margin the shadow falls
+    // into, and the position below counts only the visible menu.
+    androidx.compose.ui.window.Popup(
+        popupPositionProvider = provider,
+        onDismissRequest = onDismiss,
+        properties = androidx.compose.ui.window.PopupProperties(focusable = true),
+    ) {
+        com.artemiy.player.ui.theme.PaletteScope(app) {
             val shape = RoundedCornerShape(MENU_CORNER)
             Box(
                 modifier = Modifier
+                    .graphicsLayer {
+                        alpha = appear.value
+                        val scale = 0.92f + 0.08f * appear.value
+                        scaleX = scale
+                        scaleY = scale
+                    }
                     .padding(start = MENU_SHADOW_SIDE, end = MENU_SHADOW_SIDE, top = MENU_SHADOW_TOP, bottom = MENU_SHADOW_BOTTOM)
                     .shadow(10.dp, shape)
                     .clip(shape)
                     .background(app.surfaceDim),
             ) {
-                Column(modifier = Modifier.padding(vertical = MENU_WINDOW_PADDING), content = content)
+                Column(
+                    modifier = Modifier
+                        .width(androidx.compose.foundation.layout.IntrinsicSize.Max)
+                        .widthIn(min = 112.dp, max = 280.dp)
+                        .heightIn(max = maxHeight)
+                        .verticalScroll(androidx.compose.foundation.rememberScrollState())
+                        .padding(vertical = 8.dp),
+                    content = content,
+                )
             }
         }
+    }
+}
+
+/** Puts the visible menu under its button (above it when there's no room), inside the screen; [side], [top] and [bottom] are the shadow margin around it. */
+private class MenuPositionProvider(val side: Int, val top: Int, val bottom: Int, val margin: Int) : androidx.compose.ui.window.PopupPositionProvider {
+    override fun calculatePosition(
+        anchorBounds: androidx.compose.ui.unit.IntRect,
+        windowSize: androidx.compose.ui.unit.IntSize,
+        layoutDirection: androidx.compose.ui.unit.LayoutDirection,
+        popupContentSize: androidx.compose.ui.unit.IntSize,
+    ): androidx.compose.ui.unit.IntOffset {
+        val w = popupContentSize.width - 2 * side
+        val h = popupContentSize.height - top - bottom
+        var x = anchorBounds.left
+        if (x + w > windowSize.width - margin) x = anchorBounds.right - w
+        x = x.coerceIn(margin, maxOf(margin, windowSize.width - margin - w))
+        var y = anchorBounds.bottom
+        if (y + h > windowSize.height - margin) {
+            val above = anchorBounds.top - h
+            y = if (above >= margin) above else maxOf(margin, windowSize.height - margin - h)
+        }
+        return androidx.compose.ui.unit.IntOffset(x - side, y - top)
     }
 }
 
@@ -244,5 +294,3 @@ private val MENU_CORNER = 18.dp
 private val MENU_SHADOW_SIDE = 28.dp
 private val MENU_SHADOW_TOP = 18.dp
 private val MENU_SHADOW_BOTTOM = 48.dp
-/** The vertical padding Material's menu puts around its items. */
-private val MENU_WINDOW_PADDING = 8.dp
