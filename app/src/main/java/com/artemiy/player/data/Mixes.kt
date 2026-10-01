@@ -51,8 +51,11 @@ fun dayPartOf(hour: Int): DayPart = when (hour) {
 }
 
 /** "Rock" of "Rock/Pop" — the first genre of a tag, trimmed. */
-fun primaryGenre(song: Song): String? =
-    song.genre?.split('/', ';', ',')?.firstOrNull()?.trim()?.takeIf { it.isNotEmpty() }
+fun primaryGenre(song: Song): String? = genresOf(song).firstOrNull()
+
+/** Every genre in the song's tag: tags separate several with "/", ";", "," or "~". */
+fun genresOf(song: Song): List<String> =
+    song.genre?.split('/', ';', ',', '~')?.map { it.trim() }?.filter { it.isNotEmpty() }.orEmpty()
 
 /**
  * Builds up to [MAX_MIXES] mixes, each describing one thing about how you listen. Stable for a

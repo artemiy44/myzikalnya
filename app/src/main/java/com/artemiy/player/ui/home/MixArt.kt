@@ -1,5 +1,6 @@
 package com.artemiy.player.ui.home
 
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
@@ -277,19 +278,34 @@ private fun DrawScope.drawMoon(seed: Int) {
 private enum class GenreArt {
     BOLT, ZIGZAG, BUBBLES, SQUARE_WAVE, BARS, FLOW, PIANO, HILLS, STRINGS, TRIANGLES, FILM, DOT_RINGS,
     SEIGAIHA, SPARKLES, CROSSES, HAZE, CRESCENDO, BASS_RINGS, ARCHES,
+    AMPS, DISCO_BALL, SPIKES, BROKEN_BEAT, RAYS, FOUR_ON_FLOOR, STEP_GRID, SHARDS, GEAR, VINYL, PIXELS, POP_PUNK,
+    /** "Not really a genre, but a tag" — for names no picture is known for. */
+    TAG,
 }
 
 /** Keyword → picture. Checked in order, so more specific words come first ("synthpop" is
  * electronic, "k-pop" is pop). */
 private val GENRE_ART = listOf(
-    listOf("post-rock", "post rock", "postrock", "пост-рок", "построк") to GenreArt.CRESCENDO,
+    listOf("post-rock", "post rock", "postrock", "пост-рок", "построк", "post-metal", "postmetal") to GenreArt.CRESCENDO,
     listOf("j-rock", "jrock", "j rock", "visual kei", "visual-kei", "вижуал", "джей-рок") to GenreArt.SEIGAIHA,
-    listOf("shoegaze", "шугейз", "dream pop", "dream-pop", "dreampop", "дрим-поп") to GenreArt.HAZE,
-    listOf("vocaloid", "vocalo", "вокалоид", "anime", "аниме", "anison", "j-pop", "jpop", "j pop", "джей-поп", "japanese", "asiatique", "shibuya") to GenreArt.SPARKLES,
+    listOf("shoegaze", "шугейз", "dream pop", "dream-pop", "dreampop", "дрим-поп", "psychedel", "психодел") to GenreArt.HAZE,
+    listOf("video game", "videogame", "vgm", "chiptune", "8-bit", "8bit", "game", "nintendo", "jeux", "игр", "ゲーム", "게임") to GenreArt.PIXELS,
+    listOf("vocaloid", "vocalo", "вокалоид", "anime", "аниме", "anison", "j-pop", "jpop", "j pop", "джей-поп", "japanese", "asian", "asiatique", "shibuya") to GenreArt.SPARKLES,
+    listOf("pop punk", "pop-punk", "poppunk", "поп-панк") to GenreArt.POP_PUNK,
+    listOf("metalcore", "post-hardcore", "posthardcore", "nu metal", "nu-metal", "numetal", "deathcore", "mathcore", "screamo") to GenreArt.SHARDS,
+    listOf("hardstyle", "hard style", "hardtek", "gabber", "speedcore", "hardbass", "frenchcore", "uptempo", "happy hardcore", "hardcore techno") to GenreArt.SPIKES,
+    listOf("drum & bass", "drum and bass", "drum'n'bass", "drum n bass", "dnb", "d&b", "jungle", "breakbeat", "breakcore", "neurofunk", "drumstep", "footwork", "juke") to GenreArt.BROKEN_BEAT,
+    listOf("trance", "psytrance", "uplifting", "транс") to GenreArt.RAYS,
+    listOf("house", "хаус") to GenreArt.FOUR_ON_FLOOR,
+    listOf("techno", "техно") to GenreArt.STEP_GRID,
+    listOf("disco", "dance", "eurodance", "eurobeat", "italo", "synthpop", "synth-pop", "synth pop", "танцев") to GenreArt.DISCO_BALL,
+    listOf("industrial", "индастриал") to GenreArt.GEAR,
+    listOf("soul", "r&b", "rnb", "funk", "motown", "соул", "фанк") to GenreArt.VINYL,
+    listOf("hard rock", "hardrock", "хард-рок", "хард рок", "glam rock", "arena rock", "stoner", "southern rock") to GenreArt.AMPS,
     listOf("punk", "панк") to GenreArt.CROSSES,
     listOf("phonk", "фонк") to GenreArt.BASS_RINGS,
     listOf("goth", "гот", "darkwave", "dark wave", "deathrock", "coldwave") to GenreArt.ARCHES,
-    listOf("metal", "металл", "hardcore", "grind", "djent", "industrial", "индастриал", "noise", "nintendocore") to GenreArt.ZIGZAG,
+    listOf("metal", "металл", "hardcore", "grind", "djent", "noise") to GenreArt.ZIGZAG,
     listOf("hip", "rap", "рэп", "хип", "trap", "drill", "grime") to GenreArt.BARS,
     listOf("electr", "электр", "techno", "house", "trance", "edm", "dance", "dubstep", "drum", "dnb", "synth", "idm", "garage", "breakbeat", "ebm", "électr", "elektr", "hardstyle", "hard style", "hardtekk", "hardbass", "gabber", "speedcore", "breakcore", "eurobeat", "disco", "remix") to GenreArt.SQUARE_WAVE,
     listOf("rock", "рок", "grunge", "garage rock") to GenreArt.BOLT,
@@ -306,20 +322,23 @@ private val GENRE_ART = listOf(
 /** Pictures that don't say anything specific — for genres with no picture of their own. */
 private val FALLBACK_ART = listOf(GenreArt.BUBBLES, GenreArt.TRIANGLES, GenreArt.DOT_RINGS, GenreArt.FLOW, GenreArt.ZIGZAG, GenreArt.HILLS)
 
-private fun genreArtFor(genre: String): GenreArt {
+/** The picture for [genre]'s name. A name nothing is known about gets the plain "tag" label — or,
+ * with [unknownAsTag] off (an artist with no genres, where the name itself seeds a picture), a
+ * stable pick from [FALLBACK_ART]. */
+private fun genreArtFor(genre: String, unknownAsTag: Boolean = true): GenreArt {
     val lower = genre.lowercase()
     GENRE_ART.firstOrNull { (words, _) -> words.any { it in lower } }?.let { return it.second }
-    return FALLBACK_ART[(lower.hashCode() and Int.MAX_VALUE) % FALLBACK_ART.size]
+    return if (unknownAsTag) GenreArt.TAG else FALLBACK_ART[(lower.hashCode() and Int.MAX_VALUE) % FALLBACK_ART.size]
 }
 
 /** A genre's picture on its own (for the artist page's header art). */
-internal fun DrawScope.drawGenreMotif(genre: String, seed: Int) = drawGenre(genre, seed)
+internal fun DrawScope.drawGenreMotif(genre: String, seed: Int, unknownAsTag: Boolean = true) = drawGenre(genre, seed, unknownAsTag)
 
 /** Which picture a genre gets — two genres with the same picture count as one ("rock", "punk"). */
 internal fun genrePictureOf(genre: String): String = genreArtFor(genre).name
 
-private fun DrawScope.drawGenre(genre: String, seed: Int) {
-    when (genreArtFor(genre)) {
+private fun DrawScope.drawGenre(genre: String, seed: Int, unknownAsTag: Boolean = true) {
+    when (genreArtFor(genre, unknownAsTag)) {
         GenreArt.BOLT -> drawBolt()
         GenreArt.ZIGZAG -> drawZigzags()
         GenreArt.BUBBLES -> drawBubbles(seed)
@@ -339,6 +358,19 @@ private fun DrawScope.drawGenre(genre: String, seed: Int) {
         GenreArt.CRESCENDO -> drawCrescendo()
         GenreArt.BASS_RINGS -> drawBassRings(seed)
         GenreArt.ARCHES -> drawArches()
+        GenreArt.AMPS -> drawAmps()
+        GenreArt.DISCO_BALL -> drawDiscoBall()
+        GenreArt.SPIKES -> drawSpikes()
+        GenreArt.BROKEN_BEAT -> drawBrokenBeat(seed)
+        GenreArt.RAYS -> drawRays()
+        GenreArt.FOUR_ON_FLOOR -> drawFourOnFloor()
+        GenreArt.STEP_GRID -> drawStepGrid(seed)
+        GenreArt.SHARDS -> drawShards(seed)
+        GenreArt.GEAR -> drawGears()
+        GenreArt.VINYL -> drawRecordGrooves()
+        GenreArt.PIXELS -> drawPixels(seed)
+        GenreArt.POP_PUNK -> { drawBubbles(seed); drawCrosses(seed + 1) }
+        GenreArt.TAG -> drawTag()
     }
 }
 
@@ -685,5 +717,224 @@ private fun DrawScope.drawArches() {
             val shrink = 1f - k * 0.2f
             arch(cx, base, s * 0.2f * big * shrink, h * 0.3f * big * shrink, base - h * 0.78f * big * shrink, 0.24f - k * 0.04f)
         }
+    }
+}
+
+/** Hard rock: a wall of amplifier cabinets — each with its two speakers — stacked in brick rows. */
+private fun DrawScope.drawAmps() {
+    val cw = s * 0.34f
+    val ch = s * 0.4f
+    val gap = s * 0.03f
+    var row = 0
+    var y = h * 0.26f
+    while (y < h) {
+        var x = -cw * 0.25f + (row % 2) * cw * 0.5f
+        while (x < w) {
+            drawRoundRect(ink(0.2f), Offset(x, y), Size(cw, ch), CornerRadius(s * 0.02f), style = Stroke(s * 0.01f))
+            for (k in 0..1) {
+                val c = Offset(x + cw / 2, y + ch * (0.27f + k * 0.46f))
+                drawCircle(ink(0.2f), cw * 0.28f, c, style = Stroke(s * 0.01f))
+                drawCircle(ink(0.26f), cw * 0.1f, c)
+            }
+            x += cw + gap
+        }
+        y += ch + gap
+        row++
+    }
+}
+
+/** Dance, disco, synthpop: a mirror ball hanging in a burst of light. */
+private fun DrawScope.drawDiscoBall() {
+    val c = Offset(w * 0.68f, h * 0.55f)
+    val r = s * 0.28f
+    for (i in 0 until 18) {
+        val a = 2 * PI * i / 18 + 0.1
+        val from = c + Offset((cos(a) * r * 1.2f).toFloat(), (sin(a) * r * 1.2f).toFloat())
+        val to = c + Offset((cos(a) * r * (1.7f + (i % 3) * 0.25f)).toFloat(), (sin(a) * r * (1.7f + (i % 3) * 0.25f)).toFloat())
+        drawLine(ink(0.14f), from, to, s * 0.012f, StrokeCap.Round)
+    }
+    drawLine(ink(0.2f), Offset(c.x, 0f), Offset(c.x, c.y - r), s * 0.01f)
+    val n = 9
+    val tile = r * 2 / n
+    for (i in 0 until n) for (j in 0 until n) {
+        val u = (i + 0.5f) / n * 2 - 1
+        val v = (j + 0.5f) / n * 2 - 1
+        if (u * u + v * v <= 1f) {
+            drawRect(ink(0.1f + ((i * 7 + j * 3) % 5) * 0.05f), Offset(c.x + u * r - tile * 0.45f, c.y + v * r - tile * 0.45f), Size(tile * 0.9f, tile * 0.9f))
+        }
+    }
+}
+
+/** Hardstyle and its kin: sharp, over-driven spikes standing on the bass line. */
+private fun DrawScope.drawSpikes() {
+    val base = h * 0.96f
+    val count = 10
+    for (i in 0 until count) {
+        val x0 = w * (0.02f + i * 0.098f)
+        val tall = h * (0.22f + ((i * 37) % 7) / 7f * 0.42f)
+        val path = Path().apply {
+            moveTo(x0, base)
+            lineTo(x0 + w * 0.045f, base - tall)
+            lineTo(x0 + w * 0.09f, base)
+            close()
+        }
+        drawPath(path, ink(0.14f + (i % 3) * 0.06f))
+    }
+    drawLine(ink(0.2f), Offset(0f, base), Offset(w, base), s * 0.012f)
+}
+
+/** Drum & bass, jungle, breakbeat: broken, jagged lines that never settle into a pattern. */
+private fun DrawScope.drawBrokenBeat(seed: Int) {
+    val random = Random(seed)
+    for (row in 0 until 4) {
+        val y0 = h * (0.38f + row * 0.15f)
+        val path = Path().apply {
+            moveTo(-w * 0.05f, y0)
+            var x = -w * 0.05f
+            while (x < w * 1.05f) {
+                x += w * (0.03f + random.nextFloat() * 0.09f)
+                lineTo(x, y0 + (random.nextFloat() - 0.5f) * h * 0.14f)
+            }
+        }
+        drawPath(path, ink(0.16f + row * 0.03f), style = Stroke(s * 0.012f, join = StrokeJoin.Miter))
+    }
+}
+
+/** Trance: beams of light fanning up from one point. */
+private fun DrawScope.drawRays() {
+    val o = Offset(w * 0.5f, h * 1.06f)
+    val len = maxOf(w, h) * 1.3f
+    for (i in 0 until 9) {
+        val a = Math.toRadians(205.0 + i * 16.25)
+        val half = Math.toRadians(3.2)
+        val path = Path().apply {
+            moveTo(o.x, o.y)
+            lineTo(o.x + (cos(a - half) * len).toFloat(), o.y + (sin(a - half) * len).toFloat())
+            lineTo(o.x + (cos(a + half) * len).toFloat(), o.y + (sin(a + half) * len).toFloat())
+            close()
+        }
+        drawPath(path, ink(0.1f + (i % 3) * 0.05f))
+    }
+    drawCircle(ink(0.25f), s * 0.03f, o - Offset(0f, s * 0.06f))
+}
+
+/** House: the kick on every beat — rows of circles whose size follows the 4/4. */
+private fun DrawScope.drawFourOnFloor() {
+    val sizes = floatArrayOf(1f, 0.45f, 0.7f, 0.45f)
+    for (row in 0 until 5) for (col in 0 until 4) {
+        val c = Offset(w * (0.14f + col * 0.24f), h * (0.36f + row * 0.15f))
+        val r = s * 0.06f * sizes[col]
+        if (col == 0) drawCircle(ink(0.26f), r, c) else drawCircle(ink(0.2f), r, c, style = Stroke(s * 0.01f))
+    }
+}
+
+/** Techno: a step sequencer — a strict grid, some steps lit. */
+private fun DrawScope.drawStepGrid(seed: Int) {
+    val random = Random(seed)
+    val cell = s * 0.085f
+    val gap = s * 0.022f
+    val cols = ((w - gap) / (cell + gap)).toInt().coerceAtLeast(4)
+    for (row in 0 until 5) for (col in 0 until cols) {
+        val topLeft = Offset(gap + col * (cell + gap), h * 0.34f + row * (cell + gap))
+        if (random.nextFloat() < 0.28f) drawRect(ink(0.26f), topLeft, Size(cell, cell))
+        else drawRect(ink(0.14f), topLeft, Size(cell, cell), style = Stroke(s * 0.006f))
+    }
+}
+
+/** Metalcore, post-hardcore, nu metal: shattered, sharp-edged pieces. */
+private fun DrawScope.drawShards(seed: Int) {
+    val random = Random(seed)
+    for (k in 0 until 16) {
+        val c = Offset(w * (0.05f + random.nextFloat() * 0.95f), h * (0.3f + random.nextFloat() * 0.65f))
+        val r = s * (0.05f + random.nextFloat() * 0.13f)
+        val path = Path().apply {
+            for (i in 0 until 3) {
+                val a = random.nextFloat() * 2 * PI
+                val p = Offset(c.x + (cos(a) * r).toFloat(), c.y + (sin(a) * r).toFloat())
+                if (i == 0) moveTo(p.x, p.y) else lineTo(p.x, p.y)
+            }
+            close()
+        }
+        drawPath(path, ink(0.1f + random.nextFloat() * 0.2f))
+    }
+}
+
+/** Industrial: gears, a big one and a small one meshed with it. */
+private fun DrawScope.drawGears() {
+    fun gear(c: Offset, radius: Float, teeth: Int, alpha: Float) {
+        val unit = (2 * PI / teeth).toFloat()
+        val path = Path().apply {
+            for (i in 0 until teeth) {
+                val a0 = i * unit
+                val points = listOf(a0 to 0.8f, a0 + unit * 0.12f to 1f, a0 + unit * 0.38f to 1f, a0 + unit * 0.5f to 0.8f)
+                for ((k, pt) in points.withIndex()) {
+                    val x = c.x + (cos(pt.first.toDouble()) * radius * pt.second).toFloat()
+                    val y = c.y + (sin(pt.first.toDouble()) * radius * pt.second).toFloat()
+                    if (i == 0 && k == 0) moveTo(x, y) else lineTo(x, y)
+                }
+            }
+            close()
+        }
+        drawPath(path, ink(alpha), style = Stroke(s * 0.014f, join = StrokeJoin.Round))
+        drawCircle(ink(alpha), radius * 0.28f, c, style = Stroke(s * 0.014f))
+    }
+    gear(Offset(w * 0.72f, h * 0.56f), s * 0.3f, 14, 0.24f)
+    gear(Offset(w * 0.3f, h * 0.8f), s * 0.17f, 9, 0.2f)
+}
+
+/** R&B, soul: a vinyl record — grooves around its label. */
+private fun DrawScope.drawRecordGrooves() {
+    val c = Offset(w * 0.7f, h * 0.55f)
+    val r = s * 0.36f
+    for (i in 0 until 14) {
+        drawCircle(ink(0.08f + (i % 3) * 0.04f), r * (0.4f + i * 0.043f), c, style = Stroke(s * 0.006f))
+    }
+    drawCircle(ink(0.22f), r * 0.3f, c)
+    drawCircle(ink(0.4f), r * 0.04f, c)
+    drawArc(ink(0.2f), -60f, 40f, false, c - Offset(r * 0.9f, r * 0.9f), Size(r * 1.8f, r * 1.8f), style = Stroke(s * 0.014f, cap = StrokeCap.Round))
+}
+
+/** Video games: a pixel-art invader, and pixels scattered around it. */
+private fun DrawScope.drawPixels(seed: Int) {
+    val sprite = listOf(
+        "..#.....#..",
+        "...#...#...",
+        "..#######..",
+        ".##.###.##.",
+        "###########",
+        "#.#######.#",
+        "#.#.....#.#",
+        "...##.##...",
+    )
+    val cell = s * 0.045f
+    val origin = Offset(w * 0.55f, h * 0.48f)
+    for ((y, line) in sprite.withIndex()) for ((x, ch) in line.withIndex()) {
+        if (ch == '#') drawRect(ink(0.26f), origin + Offset(x * cell, y * cell), Size(cell * 0.92f, cell * 0.92f))
+    }
+    val random = Random(seed)
+    repeat(26) {
+        val px = (random.nextFloat() * (w / cell)).toInt() * cell
+        val py = h * 0.28f + (random.nextFloat() * ((h * 0.7f) / cell)).toInt() * cell
+        drawRect(ink(0.08f + random.nextFloat() * 0.12f), Offset(px, py), Size(cell * 0.92f, cell * 0.92f))
+    }
+}
+
+/** A name that isn't a genre we know: a plain label — "it's a tag, just not one we can draw". */
+private fun DrawScope.drawTag() {
+    val c = Offset(w * 0.7f, h * 0.55f)
+    val l = s * 0.45f
+    rotate(-18f, c) {
+        val path = Path().apply {
+            moveTo(c.x - l * 0.5f, c.y - l * 0.28f)
+            lineTo(c.x + l * 0.2f, c.y - l * 0.28f)
+            lineTo(c.x + l * 0.55f, c.y)
+            lineTo(c.x + l * 0.2f, c.y + l * 0.28f)
+            lineTo(c.x - l * 0.5f, c.y + l * 0.28f)
+            close()
+        }
+        drawPath(path, ink(0.3f), style = Stroke(s * 0.016f, join = StrokeJoin.Round))
+        drawCircle(ink(0.3f), s * 0.03f, Offset(c.x - l * 0.36f, c.y), style = Stroke(s * 0.012f))
+        drawLine(ink(0.22f), Offset(c.x - l * 0.2f, c.y - l * 0.07f), Offset(c.x + l * 0.2f, c.y - l * 0.07f), s * 0.014f, StrokeCap.Round)
+        drawLine(ink(0.22f), Offset(c.x - l * 0.2f, c.y + l * 0.08f), Offset(c.x + l * 0.08f, c.y + l * 0.08f), s * 0.014f, StrokeCap.Round)
     }
 }

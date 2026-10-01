@@ -256,17 +256,15 @@ fun LibraryScreen(
                             .map { (year, list) -> TagGroup(year?.toString(), year?.toString(), list) }
                             .sortedWith(compareBy<TagGroup>({ it.key != null }, { -(it.key?.toIntOrNull() ?: 0) }))
                     }
-                    // Biggest genre first; the songs without one lead the list.
+                    // One tile per genre however its tags are spelled or in what language (GenreNames);
+                    // a song with several genres is in each. Biggest first; songs without one lead.
                     val genreGroups = remember(songs) {
-                        // One tile per genre however its tags are spelled or in what language (see GenreNames).
-                        songs.groupBy { com.artemiy.player.data.GenreNames.keyOf(it) }
-                            .map { (key, list) ->
-                                val name = key?.let { k ->
-                                    com.artemiy.player.data.GenreNames.displayName(k, list.mapNotNull { s -> com.artemiy.player.data.primaryGenre(s) })
-                                }
-                                TagGroup(key, name, list)
-                            }
-                            .sortedWith(compareBy<TagGroup>({ it.key != null }, { -it.songs.size }))
+                        val tagged = songs.flatMap { song -> com.artemiy.player.data.GenreNames.entriesOf(song).map { (key, raw) -> Triple(key, raw, song) } }
+                        val byGenre = tagged.groupBy { it.first }.map { (key, list) ->
+                            TagGroup(key, com.artemiy.player.data.GenreNames.displayName(key, list.map { it.second }), list.map { it.third }.distinct())
+                        }
+                        val untagged = songs.filter { com.artemiy.player.data.GenreNames.entriesOf(it).isEmpty() }
+                        (listOfNotNull(untagged.takeIf { it.isNotEmpty() }?.let { TagGroup(null, null, it) }) + byGenre.sortedByDescending { it.songs.size })
                     }
 
                     // Long-press menus: a whole album at once, or one song of a card.

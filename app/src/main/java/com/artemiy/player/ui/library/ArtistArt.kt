@@ -44,7 +44,10 @@ fun BoxScope.ArtistGenreArt(artist: String, songs: List<Song>, pictures: List<St
     val tone = rememberCoverTone(songs)
     // No genre tags at all: a picture picked by the name — still a picture. [pictures] given:
     // exactly those (none at all for the "no genre" page).
-    val genres = remember(songs, artist, pictures) { pictures ?: topGenres(songs).ifEmpty { listOf(artist) } }
+    val named = remember(songs, pictures) { pictures ?: topGenres(songs) }
+    val genres = remember(named, artist) { named.ifEmpty { listOf(artist) } }
+    // Real genres we can't draw get the plain "tag" label; an artist without any is seeded by name.
+    val fromGenres = named.isNotEmpty()
     val seed = remember(artist) { artist.lowercase().hashCode() }
     val phase by rememberInfiniteTransition(label = "artistArt").animateFloat(
         0f, (2 * PI).toFloat(), infiniteRepeatable(tween(26_000, easing = LinearEasing), RepeatMode.Restart), label = "drift",
@@ -67,7 +70,7 @@ fun BoxScope.ArtistGenreArt(artist: String, songs: List<Song>, pictures: List<St
             translate(dx, dy) {
                 rotate(angle) {
                     scale(layer.scale) {
-                        drawLayer(genre, seed + i, layer.alpha)
+                        drawLayer(genre, seed + i, layer.alpha, fromGenres)
                     }
                 }
             }
@@ -99,13 +102,13 @@ private val LAYERS = listOf(
     Layer(x = -0.36f, y = 0.18f, scale = 0.6f, angle = -18f, alpha = 0.6f),
 )
 
-private fun DrawScope.drawLayer(genre: String, seed: Int, alpha: Float) {
+private fun DrawScope.drawLayer(genre: String, seed: Int, alpha: Float, fromGenres: Boolean) {
     // The genre pictures draw in translucent white; a whole layer is faded as one.
     drawContext.canvas.saveLayer(
         androidx.compose.ui.geometry.Rect(-size.width, -size.height, size.width * 2, size.height * 2),
         androidx.compose.ui.graphics.Paint().apply { this.alpha = alpha },
     )
-    drawGenreMotif(genre, seed)
+    drawGenreMotif(genre, seed, unknownAsTag = fromGenres)
     drawContext.canvas.restore()
 }
 
