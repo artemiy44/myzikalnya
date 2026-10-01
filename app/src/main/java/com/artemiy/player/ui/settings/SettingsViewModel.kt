@@ -96,6 +96,10 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     var uiStyle by mutableStateOf(com.artemiy.player.ui.theme.UiStyle.CLASSIC)
         private set
 
+    /** The Library page's sections, in the user's order, each shown or hidden. */
+    var libraryTabs by mutableStateOf(com.artemiy.player.ui.library.LibraryTab.DEFAULT)
+        private set
+
     /** Null until read from storage — so the welcome screens don't flash up for a returning user. */
     var onboardingDone by mutableStateOf<Boolean?>(null)
         private set
@@ -182,6 +186,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             repository.onboardingDone.collect { onboardingDone = it }
+        }
+        viewModelScope.launch {
+            repository.libraryTabs.collect { libraryTabs = com.artemiy.player.ui.library.LibraryTab.parse(it) }
         }
         viewModelScope.launch {
             repository.uiStyle.collect { value ->
@@ -296,6 +303,11 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     fun updateAppFont(font: com.artemiy.player.ui.theme.AppFont) {
         appFont = font
         viewModelScope.launch { repository.setAppFont(font.name) }
+    }
+
+    fun updateLibraryTabs(tabs: List<com.artemiy.player.ui.library.TabSetting>) {
+        libraryTabs = tabs
+        viewModelScope.launch { repository.setLibraryTabs(com.artemiy.player.ui.library.LibraryTab.serialize(tabs)) }
     }
 
     fun updateUiStyle(style: com.artemiy.player.ui.theme.UiStyle) {

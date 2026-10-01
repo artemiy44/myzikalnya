@@ -62,6 +62,8 @@
     <string name="disc_n">Диск %1$s</string>
     <string name="drag">Перетягнути</string>
     <string name="endless_play">Безкінечне відтворення</string>
+    <string name="folder_here">У цій теці</string>
+    <string name="folders">Теки</string>
     <string name="font_note">Не в усіх шрифтах є літери будь-якої мови — відсутні беруться зі шрифту телефона.</string>
     <string name="font_system">Системний</string>
     <string name="genres">Жанри</string>
@@ -96,6 +98,7 @@
     <string name="lang_choose">Оберіть мову</string>
     <string name="lang_expressive">експресивна</string>
     <string name="lang_expressive_hint">Те саме, тільки жвавіше й дружніше</string>
+    <string name="library_tabs_hint">Тягніть за ручку, щоб переставити. Перемикач показує або ховає розділ.</string>
     <string name="light_concrete">Бетон</string>
     <string name="light_soft">Між</string>
     <string name="light_white">Білий</string>
@@ -240,6 +243,8 @@
     <string name="set_language_sub">Мова й тон застосунку</string>
     <string name="set_library">Бібліотека</string>
     <string name="set_library_sub">Сканування й теки з музикою</string>
+    <string name="set_library_tabs">Вкладки медіатеки</string>
+    <string name="set_library_tabs_sub">Показати, сховати й переставити розділи медіатеки</string>
     <string name="set_light_bg">Тло світлої теми</string>
     <string name="set_lrc_dots">Крапки в паузах (звичайний LRC)</string>
     <string name="set_lrc_dots_sub">Звичайний LRC не знає, скільки триває рядок, тож крапки можуть з\'явитися й на довгому рядку. Крапки перед першим рядком лишаються завжди.</string>

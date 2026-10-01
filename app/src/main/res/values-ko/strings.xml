@@ -62,6 +62,8 @@
     <string name="disc_n">디스크 %1$s</string>
     <string name="drag">끌기</string>
     <string name="endless_play">무한 재생</string>
+    <string name="folder_here">이 폴더 안</string>
+    <string name="folders">폴더</string>
     <string name="font_note">모든 글꼴이 모든 언어의 글자를 갖고 있지는 않습니다 — 없는 글자는 휴대폰 글꼴로 표시됩니다.</string>
     <string name="font_system">시스템</string>
     <string name="genres">장르</string>
@@ -96,6 +98,7 @@
     <string name="lang_choose">언어 선택</string>
     <string name="lang_expressive">생동감 있게</string>
     <string name="lang_expressive_hint">같은 내용을 더 생기 있고 친근하게</string>
+    <string name="library_tabs_hint">핸들을 끌어 순서를 바꿔요. 스위치로 섹션을 표시하거나 숨겨요.</string>
     <string name="light_concrete">콘크리트</string>
     <string name="light_soft">중간</string>
     <string name="light_white">흰색</string>
@@ -240,6 +243,8 @@
     <string name="set_language_sub">앱의 언어와 말투</string>
     <string name="set_library">보관함</string>
     <string name="set_library_sub">스캔과 음악 폴더</string>
+    <string name="set_library_tabs">라이브러리 탭</string>
+    <string name="set_library_tabs_sub">라이브러리 섹션을 표시, 숨김, 순서 변경</string>
     <string name="set_light_bg">라이트 테마 배경</string>
     <string name="set_lrc_dots">간주 점 표시 (일반 LRC)</string>
     <string name="set_lrc_dots_sub">일반 LRC는 한 줄이 얼마나 불리는지 몰라서 길게 부르는 줄에도 점이 나올 수 있어요. 첫 줄 앞의 점은 항상 유지돼요.</string>

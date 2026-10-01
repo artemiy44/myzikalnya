@@ -82,6 +82,7 @@ private enum class SettingsRoute(val titleRes: Int, val parent: SettingsRoute?) 
     Player(R.string.onb_player, Main),
     NowPlayingBackground(R.string.set_player_background, Player),
     KeptArtists(R.string.set_kept_artists, General),
+    LibraryTabs(R.string.set_library_tabs, General),
     Language(R.string.set_language, Main),
     About(R.string.set_about, Main),
 }
@@ -130,6 +131,8 @@ fun SettingsScreen(
     onAppFontChange: (com.artemiy.player.ui.theme.AppFont) -> Unit,
     uiStyle: com.artemiy.player.ui.theme.UiStyle = com.artemiy.player.ui.theme.UiStyle.CLASSIC,
     onUiStyleChange: (com.artemiy.player.ui.theme.UiStyle) -> Unit = {},
+    libraryTabs: List<com.artemiy.player.ui.library.TabSetting> = com.artemiy.player.ui.library.LibraryTab.DEFAULT,
+    onLibraryTabsChange: (List<com.artemiy.player.ui.library.TabSetting>) -> Unit = {},
     onBack: () -> Unit,
     onShowOnboarding: () -> Unit = {},
     keptArtists: Set<String> = emptySet(),
@@ -187,7 +190,9 @@ fun SettingsScreen(
                     startTab = startTab,
                     onStartTabChange = onStartTabChange,
                     onOpenKeptArtists = { route = SettingsRoute.KeptArtists },
+                    onOpenLibraryTabs = { route = SettingsRoute.LibraryTabs },
                 )
+                SettingsRoute.LibraryTabs -> LibraryTabsContent(tabs = libraryTabs, onChange = onLibraryTabsChange)
                 SettingsRoute.KeptArtists -> KeptArtistsContent(
                     kept = keptArtists,
                     splitLines = splitArtistLines,
@@ -396,7 +401,7 @@ private fun ColorSwatch(color: androidx.compose.ui.graphics.Color, selected: Boo
 }
 
 @Composable
-private fun GeneralContent(startTab: AppTab, onStartTabChange: (AppTab) -> Unit, onOpenKeptArtists: () -> Unit) {
+private fun GeneralContent(startTab: AppTab, onStartTabChange: (AppTab) -> Unit, onOpenKeptArtists: () -> Unit, onOpenLibraryTabs: () -> Unit) {
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState()).barsInset()
@@ -414,6 +419,14 @@ private fun GeneralContent(startTab: AppTab, onStartTabChange: (AppTab) -> Unit,
         }
         Spacer(modifier = Modifier.height(12.dp))
         SettingsCard {
+            SettingsRow(
+                icon = AppIcons.Library,
+                title = stringResource(R.string.set_library_tabs),
+                subtitle = stringResource(R.string.set_library_tabs_sub),
+                onClick = onOpenLibraryTabs,
+                showChevron = true,
+            )
+            CategoryDivider()
             SettingsRow(
                 icon = AppIcons.Artist,
                 title = stringResource(R.string.set_kept_title),

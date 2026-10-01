@@ -62,6 +62,8 @@
     <string name="disc_n">ディスク %1$s</string>
     <string name="drag">ドラッグ</string>
     <string name="endless_play">エンドレス再生</string>
+    <string name="folder_here">このフォルダ内</string>
+    <string name="folders">フォルダ</string>
     <string name="font_note">すべてのフォントがあらゆる言語の文字を持っているわけではありません — 足りない文字はスマホのフォントで表示されます。</string>
     <string name="font_system">システム</string>
     <string name="genres">ジャンル</string>
@@ -96,6 +98,7 @@
     <string name="lang_choose">言語を選択</string>
     <string name="lang_expressive">エクスプレッシブ</string>
     <string name="lang_expressive_hint">同じ内容を、もっと生き生きと親しみやすく</string>
+    <string name="library_tabs_hint">ハンドルをドラッグして並べ替えます。スイッチでセクションを表示／非表示にできます。</string>
     <string name="light_concrete">コンクリート</string>
     <string name="light_soft">中間</string>
     <string name="light_white">ホワイト</string>
@@ -240,6 +243,8 @@
     <string name="set_language_sub">アプリの言語と口調</string>
     <string name="set_library">ライブラリ</string>
     <string name="set_library_sub">スキャンと音楽フォルダ</string>
+    <string name="set_library_tabs">ライブラリのタブ</string>
+    <string name="set_library_tabs_sub">ライブラリのセクションの表示・非表示・並べ替え</string>
     <string name="set_light_bg">ライトテーマの背景</string>
     <string name="set_lrc_dots">間奏のドット（通常の LRC）</string>
     <string name="set_lrc_dots_sub">通常の LRC は行の長さが分からないため、長く歌う行でもドットが出ることがあります。最初の行の前のドットは常に表示されます。</string>

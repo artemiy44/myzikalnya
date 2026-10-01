@@ -62,6 +62,8 @@
     <string name="disc_n">碟 %1$s</string>
     <string name="drag">拖动</string>
     <string name="endless_play">无尽播放</string>
+    <string name="folder_here">此文件夹中</string>
+    <string name="folders">文件夹</string>
     <string name="font_note">并非每种字体都包含所有语言的字符——缺少的字符会使用手机的字体显示。</string>
     <string name="font_system">系统</string>
     <string name="genres">流派</string>
@@ -96,6 +98,7 @@
     <string name="lang_choose">选择语言</string>
     <string name="lang_expressive">活泼版</string>
     <string name="lang_expressive_hint">内容相同，只是更生动、更友好</string>
+    <string name="library_tabs_hint">拖动手柄可重新排序。开关用于显示或隐藏某个部分。</string>
     <string name="light_concrete">混凝土</string>
     <string name="light_soft">中间色</string>
     <string name="light_white">白色</string>
@@ -240,6 +243,8 @@
     <string name="set_language_sub">应用的语言和语气</string>
     <string name="set_library">音乐库</string>
     <string name="set_library_sub">扫描和音乐文件夹</string>
+    <string name="set_library_tabs">资料库标签页</string>
+    <string name="set_library_tabs_sub">显示、隐藏和重新排列资料库的各个部分</string>
     <string name="set_light_bg">浅色主题背景</string>
     <string name="set_lrc_dots">间奏时显示圆点（普通 LRC）</string>
     <string name="set_lrc_dots_sub">普通 LRC 不知道每行唱多久，所以唱得久的行也可能出现圆点。第一行之前的圆点始终保留。</string>

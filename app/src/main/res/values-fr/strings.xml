@@ -62,6 +62,8 @@
     <string name="disc_n">Disque %1$s</string>
     <string name="drag">Déplacer</string>
     <string name="endless_play">Lecture sans fin</string>
+    <string name="folder_here">Dans ce dossier</string>
+    <string name="folders">Dossiers</string>
     <string name="font_note">Toutes les polices n’ont pas les lettres de toutes les langues — celles qui manquent viennent de la police du téléphone.</string>
     <string name="font_system">Système</string>
     <string name="genres">Genres</string>
@@ -96,6 +98,7 @@
     <string name="lang_choose">Choix de la langue</string>
     <string name="lang_expressive">expressif</string>
     <string name="lang_expressive_hint">La même chose, en plus vivant et chaleureux</string>
+    <string name="library_tabs_hint">Faites glisser par la poignée pour réorganiser. L’interrupteur affiche ou masque une section.</string>
     <string name="light_concrete">Béton</string>
     <string name="light_soft">Intermédiaire</string>
     <string name="light_white">Blanc</string>
@@ -240,6 +243,8 @@
     <string name="set_language_sub">Langue et ton de l’application</string>
     <string name="set_library">Bibliothèque</string>
     <string name="set_library_sub">Analyse et dossiers de musique</string>
+    <string name="set_library_tabs">Onglets de la bibliothèque</string>
+    <string name="set_library_tabs_sub">Afficher, masquer et réorganiser les sections de la bibliothèque</string>
     <string name="set_light_bg">Fond du thème clair</string>
     <string name="set_lrc_dots">Points pendant les pauses (LRC simple)</string>
     <string name="set_lrc_dots_sub">Le LRC simple ne sait pas combien de temps dure une ligne, des points peuvent donc aussi apparaître sur une ligne tenue. Les points avant la première ligne restent toujours.</string>

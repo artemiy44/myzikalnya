@@ -266,6 +266,14 @@
   "en": "Endless play",
   "ru": "Бесконечное воспроизведение"
  },
+ "folder_here": {
+  "en": "In this folder",
+  "ru": "В этой папке"
+ },
+ "folders": {
+  "en": "Folders",
+  "ru": "Папки"
+ },
  "font_note": {
   "en": "Not every font has the letters of every language — missing ones are taken from the phone's font.",
   "ru": "Не во всех шрифтах есть буквы любого языка — недостающие берутся из шрифта телефона."
@@ -419,6 +427,10 @@
  "lang_plain_chip": {
   "en": "Plain",
   "ru": "Обычный"
+ },
+ "library_tabs_hint": {
+  "en": "Drag by the handle to reorder. The switch shows or hides a section.",
+  "ru": "Тяните за ручку, чтобы переставить. Переключатель показывает или прячет раздел."
  },
  "light_concrete": {
   "en": "Concrete",
@@ -1085,6 +1097,14 @@
  "set_library_sub": {
   "en": "Scanning and music folders",
   "ru": "Сканирование и папки с музыкой"
+ },
+ "set_library_tabs": {
+  "en": "Library tabs",
+  "ru": "Вкладки медиатеки"
+ },
+ "set_library_tabs_sub": {
+  "en": "Show, hide and reorder the Library's sections",
+  "ru": "Показать, скрыть и переставить разделы медиатеки"
  },
  "set_light_bg": {
   "en": "Light theme background",

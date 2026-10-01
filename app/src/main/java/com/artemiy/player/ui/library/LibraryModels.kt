@@ -114,6 +114,10 @@ sealed class LibraryRoute {
     data object Songs : LibraryRoute()
     data object Years : LibraryRoute()
     data object Genres : LibraryRoute()
+    /** The folders section, opened on the top of the music (see startFolder). */
+    data object Folders : LibraryRoute()
+    /** A folder, by its path from the storage root. */
+    data class FolderDetail(val path: List<String>) : LibraryRoute()
     /** A year's page; null = songs whose tags have no year. */
     data class YearDetail(val year: Int?) : LibraryRoute()
     /** A genre's page, by its GenreNames key; null = songs whose tags have no genre. */

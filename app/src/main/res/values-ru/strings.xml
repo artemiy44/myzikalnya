@@ -68,6 +68,8 @@
     <string name="disc_n">Диск %1$s</string>
     <string name="drag">Перетащить</string>
     <string name="endless_play">Бесконечное воспроизведение</string>
+    <string name="folder_here">В этой папке</string>
+    <string name="folders">Папки</string>
     <string name="font_note">Не во всех шрифтах есть буквы любого языка — недостающие берутся из шрифта телефона.</string>
     <string name="font_system">Системный</string>
     <string name="genres">Жанры</string>
@@ -104,6 +106,7 @@
     <string name="lang_expressive_chip">Экспрессивный</string>
     <string name="lang_expressive_hint">То же самое, только живее и дружелюбнее</string>
     <string name="lang_plain_chip">Обычный</string>
+    <string name="library_tabs_hint">Тяните за ручку, чтобы переставить. Переключатель показывает или прячет раздел.</string>
     <string name="light_concrete">Бетон</string>
     <string name="light_soft">Между</string>
     <string name="light_white">Белый</string>
@@ -260,6 +263,8 @@
     <string name="set_language_sub">Язык и тон приложения</string>
     <string name="set_library">Библиотека</string>
     <string name="set_library_sub">Сканирование и папки с музыкой</string>
+    <string name="set_library_tabs">Вкладки медиатеки</string>
+    <string name="set_library_tabs_sub">Показать, скрыть и переставить разделы медиатеки</string>
     <string name="set_light_bg">Фон светлой темы</string>
     <string name="set_lrc_dots">Точки в паузах (обычный LRC)</string>
     <string name="set_lrc_dots_sub">Обычный LRC не знает, сколько длится строка, поэтому точки могут появиться и на долгой строке. Точки перед первой строкой остаются всегда.</string>

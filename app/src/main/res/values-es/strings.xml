@@ -62,6 +62,8 @@
     <string name="disc_n">Disco %1$s</string>
     <string name="drag">Arrastrar</string>
     <string name="endless_play">Reproducción sin fin</string>
+    <string name="folder_here">En esta carpeta</string>
+    <string name="folders">Carpetas</string>
     <string name="font_note">No todas las fuentes tienen las letras de todos los idiomas: las que faltan se toman de la fuente del teléfono.</string>
     <string name="font_system">Del sistema</string>
     <string name="genres">Géneros</string>
@@ -96,6 +98,7 @@
     <string name="lang_choose">Elección de idioma</string>
     <string name="lang_expressive">expresivo</string>
     <string name="lang_expressive_hint">Lo mismo, pero más vivo y cercano</string>
+    <string name="library_tabs_hint">Arrastra del asa para reordenar. El interruptor muestra u oculta una sección.</string>
     <string name="light_concrete">Hormigón</string>
     <string name="light_soft">Intermedio</string>
     <string name="light_white">Blanco</string>
@@ -240,6 +243,8 @@
     <string name="set_language_sub">Idioma y tono de la aplicación</string>
     <string name="set_library">Biblioteca</string>
     <string name="set_library_sub">Escaneo y carpetas de música</string>
+    <string name="set_library_tabs">Pestañas de la biblioteca</string>
+    <string name="set_library_tabs_sub">Mostrar, ocultar y reordenar las secciones de la biblioteca</string>
     <string name="set_light_bg">Fondo del tema claro</string>
     <string name="set_lrc_dots">Puntos en las pausas (LRC normal)</string>
     <string name="set_lrc_dots_sub">El LRC normal no sabe cuánto dura cada línea, así que también pueden salir puntos en una línea larga. Los puntos antes de la primera línea siempre se quedan.</string>

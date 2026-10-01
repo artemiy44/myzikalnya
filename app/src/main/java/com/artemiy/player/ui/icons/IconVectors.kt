@@ -1170,3 +1170,15 @@ internal val TablerCategory: ImageVector by lazy {
         path("M14 17a3 3 0 1 0 6 0a3 3 0 1 0 -6 0", fill = false, stroke = true)
     }
 }
+
+internal val LucideFolder: ImageVector by lazy {
+    iconVector("LucideFolder", scale = LUCIDE_SCALE) {
+        path("M20 20a2 2 0 0 0 2 -2V8a2 2 0 0 0 -2 -2h-7.9a2 2 0 0 1 -1.69 -.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0 -2 2v13a2 2 0 0 0 2 2Z", fill = false, stroke = true)
+    }
+}
+
+internal val TablerFolder: ImageVector by lazy {
+    iconVector("TablerFolder") {
+        path("M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2", fill = false, stroke = true)
+    }
+}

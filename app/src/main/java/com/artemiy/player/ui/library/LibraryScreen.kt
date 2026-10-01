@@ -152,6 +152,9 @@ fun LibraryScreen(
     val songViewMode = ViewMode.valueOf(settingsVm.viewMode("songs").name)
     val playlistViewMode = ViewMode.valueOf(settingsVm.viewMode("playlist").name)
 
+    // The folders of the music, found once per library.
+    val folderTree = remember(songs) { buildFolderTree(songs) }
+
     // The app's own language, for the fast scroller's "September 2026".
     val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
 
@@ -180,6 +183,8 @@ fun LibraryScreen(
                 LibraryRoute.Songs -> stringResource(R.string.tracks)
                 LibraryRoute.Years -> stringResource(R.string.years)
                 LibraryRoute.Genres -> stringResource(R.string.genres)
+                LibraryRoute.Folders -> startFolder(folderTree).name.ifBlank { stringResource(R.string.folders) }
+                is LibraryRoute.FolderDetail -> r.path.lastOrNull().orEmpty()
                 is LibraryRoute.YearDetail, is LibraryRoute.GenreDetail -> "" // their own hero header
                 is LibraryRoute.AlbumDetail -> r.album
                 is LibraryRoute.PlaylistDetail -> r.name
@@ -333,19 +338,30 @@ fun LibraryScreen(
 
                     when (val r = route) {
                         LibraryRoute.Home -> LibraryHomeList(
-                            playlistCount = playlistsVm.playlists.size,
-                            artistCount = artistGroups.size,
-                            albumCount = albumGroups.size,
-                            songCount = songs.size,
-                            yearCount = yearGroups.count { it.key != null },
-                            genreCount = genreGroups.count { it.key != null },
-                            onOpenYears = { push(LibraryRoute.Years) },
-                            onOpenGenres = { push(LibraryRoute.Genres) },
+                            tabs = settingsVm.libraryTabs.filter { it.shown }.map { it.tab },
+                            counts = mapOf(
+                                LibraryTab.PLAYLISTS to playlistsVm.playlists.size,
+                                LibraryTab.ARTISTS to artistGroups.size,
+                                LibraryTab.ALBUMS to albumGroups.size,
+                                LibraryTab.TRACKS to songs.size,
+                                LibraryTab.YEARS to yearGroups.count { it.key != null },
+                                LibraryTab.GENRES to genreGroups.count { it.key != null },
+                                LibraryTab.FOLDERS to folderTree.folderCount(),
+                            ),
+                            onOpen = { tab ->
+                                push(
+                                    when (tab) {
+                                        LibraryTab.PLAYLISTS -> LibraryRoute.Playlists
+                                        LibraryTab.ARTISTS -> LibraryRoute.Artists
+                                        LibraryTab.ALBUMS -> LibraryRoute.Albums
+                                        LibraryTab.TRACKS -> LibraryRoute.Songs
+                                        LibraryTab.YEARS -> LibraryRoute.Years
+                                        LibraryTab.GENRES -> LibraryRoute.Genres
+                                        LibraryTab.FOLDERS -> LibraryRoute.Folders
+                                    },
+                                )
+                            },
                             recentSongs = remember(songs) { songs.sortedByDescending { it.dateAddedMs }.take(12) },
-                            onOpenPlaylists = { push(LibraryRoute.Playlists) },
-                            onOpenArtists = { push(LibraryRoute.Artists) },
-                            onOpenAlbums = { push(LibraryRoute.Albums) },
-                            onOpenSongs = { push(LibraryRoute.Songs) },
                             onSongClick = { song, list -> onSongClick(song, list) },
                             songMenu = songMenu,
                         )
@@ -546,6 +562,24 @@ fun LibraryScreen(
                                     },
                                     )
                                 }
+                            }
+                        }
+
+                        LibraryRoute.Folders, is LibraryRoute.FolderDetail -> {
+                            val node = if (r is LibraryRoute.FolderDetail) folderTree.find(r.path) else startFolder(folderTree)
+                            if (node != null) {
+                                FolderPage(
+                                    node = node,
+                                    state = rememberLazyListState(),
+                                    onOpenFolder = { push(LibraryRoute.FolderDetail(it.path)) },
+                                    onPlayAll = { list -> if (list.isNotEmpty()) onSongClick(list.first(), list) },
+                                    onSongClick = { song, list -> onSongClick(song, list) },
+                                    onPlayNext = onPlayNext,
+                                    onAddToQueue = onAddToQueue,
+                                    onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
+                                    onGoToAlbum = onGoToAlbum,
+                                    onGoToArtist = onGoToArtist,
+                                )
                             }
                         }
 

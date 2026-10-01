@@ -745,6 +745,8 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 onIconSetChange = { settings.updateIconSet(it) },
                 appFont = settings.appFont,
                 onAppFontChange = { settings.updateAppFont(it) },
+                libraryTabs = settings.libraryTabs,
+                onLibraryTabsChange = { settings.updateLibraryTabs(it) },
                 uiStyle = settings.uiStyle,
                 onUiStyleChange = { settings.updateUiStyle(it) },
                 onShowOnboarding = { settings.updateOnboardingDone(false) },

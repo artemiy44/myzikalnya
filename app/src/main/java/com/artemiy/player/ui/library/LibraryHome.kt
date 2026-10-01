@@ -144,19 +144,11 @@ internal fun LibraryHeader(
 
 @Composable
 internal fun LibraryHomeList(
-    playlistCount: Int,
-    artistCount: Int,
-    albumCount: Int,
-    songCount: Int,
-    yearCount: Int,
-    genreCount: Int,
-    onOpenYears: () -> Unit,
-    onOpenGenres: () -> Unit,
+    /** The sections to list, in the user's order (hidden ones left out). */
+    tabs: List<LibraryTab>,
+    counts: Map<LibraryTab, Int>,
+    onOpen: (LibraryTab) -> Unit,
     recentSongs: List<Song>,
-    onOpenPlaylists: () -> Unit,
-    onOpenArtists: () -> Unit,
-    onOpenAlbums: () -> Unit,
-    onOpenSongs: () -> Unit,
     onSongClick: (Song, List<Song>) -> Unit,
     songMenu: @Composable (Song, Boolean, () -> Unit) -> Unit,
 ) {
@@ -168,12 +160,21 @@ internal fun LibraryHomeList(
             .padding(bottom = 20.dp),
     ) {
         Column(modifier = Modifier.padding(horizontal = com.artemiy.player.ui.components.pageGutter)) {
-            LibraryRow(stringResource(R.string.playlists), playlistCount, AppIcons.Playlist, onOpenPlaylists, Modifier.staggeredEntrance(0, entrance).groupedCard(0, 6))
-            LibraryRow(stringResource(R.string.artists), artistCount, AppIcons.Artist, onOpenArtists, Modifier.staggeredEntrance(1, entrance).groupedCard(1, 6))
-            LibraryRow(stringResource(R.string.albums), albumCount, AppIcons.Album, onOpenAlbums, Modifier.staggeredEntrance(2, entrance).groupedCard(2, 6))
-            LibraryRow(stringResource(R.string.tracks), songCount, AppIcons.Songs, onOpenSongs, Modifier.staggeredEntrance(3, entrance).groupedCard(3, 6))
-            LibraryRow(stringResource(R.string.years), yearCount, AppIcons.Years, onOpenYears, Modifier.staggeredEntrance(4, entrance).groupedCard(4, 6))
-            LibraryRow(stringResource(R.string.genres), genreCount, AppIcons.Genres, onOpenGenres, Modifier.staggeredEntrance(5, entrance).groupedCard(5, 6))
+            tabs.forEachIndexed { index, tab ->
+                val icon = when (tab) {
+                    LibraryTab.PLAYLISTS -> AppIcons.Playlist
+                    LibraryTab.ARTISTS -> AppIcons.Artist
+                    LibraryTab.ALBUMS -> AppIcons.Album
+                    LibraryTab.TRACKS -> AppIcons.Songs
+                    LibraryTab.YEARS -> AppIcons.Years
+                    LibraryTab.GENRES -> AppIcons.Genres
+                    LibraryTab.FOLDERS -> AppIcons.Folder
+                }
+                LibraryRow(
+                    stringResource(tab.labelRes), counts[tab] ?: 0, icon, { onOpen(tab) },
+                    Modifier.staggeredEntrance(index, entrance).groupedCard(index, tabs.size),
+                )
+            }
         }
 
         if (recentSongs.isNotEmpty()) {

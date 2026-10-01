@@ -66,6 +66,8 @@
     <string name="disc_n">Disc %1$s</string>
     <string name="drag">Drag</string>
     <string name="endless_play">Endless play</string>
+    <string name="folder_here">In this folder</string>
+    <string name="folders">Folders</string>
     <string name="font_note">Not every font has the letters of every language — missing ones are taken from the phone\'s font.</string>
     <string name="font_system">System</string>
     <string name="genres">Genres</string>
@@ -102,6 +104,7 @@
     <string name="lang_expressive_chip">Expressive</string>
     <string name="lang_expressive_hint">The same, just livelier and friendlier</string>
     <string name="lang_plain_chip">Plain</string>
+    <string name="library_tabs_hint">Drag by the handle to reorder. The switch shows or hides a section.</string>
     <string name="light_concrete">Concrete</string>
     <string name="light_soft">Between</string>
     <string name="light_white">White</string>
@@ -254,6 +257,8 @@
     <string name="set_language_sub">The app\'s language and tone</string>
     <string name="set_library">Library</string>
     <string name="set_library_sub">Scanning and music folders</string>
+    <string name="set_library_tabs">Library tabs</string>
+    <string name="set_library_tabs_sub">Show, hide and reorder the Library\'s sections</string>
     <string name="set_light_bg">Light theme background</string>
     <string name="set_lrc_dots">Dots in pauses (plain LRC)</string>
     <string name="set_lrc_dots_sub">Plain LRC doesn\'t know how long a line is sung, so a long-held line can get dots too. Dots before the first line always stay.</string>

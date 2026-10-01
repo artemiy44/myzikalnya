@@ -62,6 +62,8 @@
     <string name="disc_n">CD %1$s</string>
     <string name="drag">Ziehen</string>
     <string name="endless_play">Endloswiedergabe</string>
+    <string name="folder_here">In diesem Ordner</string>
+    <string name="folders">Ordner</string>
     <string name="font_note">Nicht jede Schrift hat die Buchstaben jeder Sprache — fehlende kommen aus der Schrift des Telefons.</string>
     <string name="font_system">System</string>
     <string name="genres">Genres</string>
@@ -96,6 +98,7 @@
     <string name="lang_choose">Sprache wählen</string>
     <string name="lang_expressive">expressiv</string>
     <string name="lang_expressive_hint">Dasselbe, nur lebendiger und freundlicher</string>
+    <string name="library_tabs_hint">Am Griff ziehen, um die Reihenfolge zu ändern. Der Schalter zeigt oder verbirgt einen Bereich.</string>
     <string name="light_concrete">Beton</string>
     <string name="light_soft">Dazwischen</string>
     <string name="light_white">Weiß</string>
@@ -240,6 +243,8 @@
     <string name="set_language_sub">Sprache und Ton der App</string>
     <string name="set_library">Mediathek</string>
     <string name="set_library_sub">Scannen und Musikordner</string>
+    <string name="set_library_tabs">Bibliotheks-Tabs</string>
+    <string name="set_library_tabs_sub">Bereiche der Bibliothek anzeigen, ausblenden und anordnen</string>
     <string name="set_light_bg">Hintergrund des hellen Designs</string>
     <string name="set_lrc_dots">Punkte in Pausen (einfaches LRC)</string>
     <string name="set_lrc_dots_sub">Einfaches LRC weiß nicht, wie lange eine Zeile gesungen wird, daher können Punkte auch bei langen Zeilen erscheinen. Punkte vor der ersten Zeile bleiben immer.</string>

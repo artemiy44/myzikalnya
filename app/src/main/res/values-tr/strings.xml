@@ -62,6 +62,8 @@
     <string name="disc_n">Disk %1$s</string>
     <string name="drag">Sürükle</string>
     <string name="endless_play">Sonsuz çalma</string>
+    <string name="folder_here">Bu klasörde</string>
+    <string name="folders">Klasörler</string>
     <string name="font_note">Her yazı tipinde her dilin harfleri yoktur — eksik olanlar telefonun yazı tipinden alınır.</string>
     <string name="font_system">Sistem</string>
     <string name="genres">Türler</string>
@@ -96,6 +98,7 @@
     <string name="lang_choose">Dil seçimi</string>
     <string name="lang_expressive">etkileyici</string>
     <string name="lang_expressive_hint">Aynısı, sadece daha canlı ve samimi</string>
+    <string name="library_tabs_hint">Sıralamak için tutamaçtan sürükleyin. Anahtar bir bölümü gösterir veya gizler.</string>
     <string name="light_concrete">Beton</string>
     <string name="light_soft">Ara ton</string>
     <string name="light_white">Beyaz</string>
@@ -240,6 +243,8 @@
     <string name="set_language_sub">Uygulamanın dili ve üslubu</string>
     <string name="set_library">Kitaplık</string>
     <string name="set_library_sub">Tarama ve müzik klasörleri</string>
+    <string name="set_library_tabs">Kütüphane sekmeleri</string>
+    <string name="set_library_tabs_sub">Kütüphane bölümlerini göster, gizle ve yeniden sırala</string>
     <string name="set_light_bg">Açık tema arka planı</string>
     <string name="set_lrc_dots">Duraklamalarda noktalar (düz LRC)</string>
     <string name="set_lrc_dots_sub">Düz LRC bir satırın ne kadar sürdüğünü bilmez, bu yüzden uzun satırlarda da noktalar çıkabilir. İlk satırdan önceki noktalar her zaman kalır.</string>

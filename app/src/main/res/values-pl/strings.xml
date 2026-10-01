@@ -62,6 +62,8 @@
     <string name="disc_n">Płyta %1$s</string>
     <string name="drag">Przeciągnij</string>
     <string name="endless_play">Odtwarzanie bez końca</string>
+    <string name="folder_here">W tym folderze</string>
+    <string name="folders">Foldery</string>
     <string name="font_note">Nie każda czcionka ma litery każdego języka — brakujące są brane z czcionki telefonu.</string>
     <string name="font_system">Systemowa</string>
     <string name="genres">Gatunki</string>
@@ -96,6 +98,7 @@
     <string name="lang_choose">Wybór języka</string>
     <string name="lang_expressive">ekspresyjny</string>
     <string name="lang_expressive_hint">To samo, tylko żywiej i przyjaźniej</string>
+    <string name="library_tabs_hint">Przeciągnij za uchwyt, aby zmienić kolejność. Przełącznik pokazuje lub ukrywa sekcję.</string>
     <string name="light_concrete">Beton</string>
     <string name="light_soft">Pośredni</string>
     <string name="light_white">Biały</string>
@@ -240,6 +243,8 @@
     <string name="set_language_sub">Język i ton aplikacji</string>
     <string name="set_library">Biblioteka</string>
     <string name="set_library_sub">Skanowanie i foldery z muzyką</string>
+    <string name="set_library_tabs">Zakładki biblioteki</string>
+    <string name="set_library_tabs_sub">Pokaż, ukryj i zmień kolejność sekcji biblioteki</string>
     <string name="set_light_bg">Tło jasnego motywu</string>
     <string name="set_lrc_dots">Kropki w przerwach (zwykły LRC)</string>
     <string name="set_lrc_dots_sub">Zwykły LRC nie wie, jak długo trwa wers, więc kropki mogą pojawić się też przy długo śpiewanym wersie. Kropki przed pierwszym wersem zostają zawsze.</string>

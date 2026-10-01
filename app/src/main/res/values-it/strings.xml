@@ -62,6 +62,8 @@
     <string name="disc_n">Disco %1$s</string>
     <string name="drag">Trascina</string>
     <string name="endless_play">Riproduzione infinita</string>
+    <string name="folder_here">In questa cartella</string>
+    <string name="folders">Cartelle</string>
     <string name="font_note">Non tutti i caratteri hanno le lettere di ogni lingua — quelle mancanti vengono prese dal carattere del telefono.</string>
     <string name="font_system">Di sistema</string>
     <string name="genres">Generi</string>
@@ -96,6 +98,7 @@
     <string name="lang_choose">Scelta della lingua</string>
     <string name="lang_expressive">espressivo</string>
     <string name="lang_expressive_hint">Lo stesso, ma più vivace e amichevole</string>
+    <string name="library_tabs_hint">Trascina dalla maniglia per riordinare. L’interruttore mostra o nasconde una sezione.</string>
     <string name="light_concrete">Cemento</string>
     <string name="light_soft">Intermedio</string>
     <string name="light_white">Bianco</string>
@@ -240,6 +243,8 @@
     <string name="set_language_sub">Lingua e tono dell’app</string>
     <string name="set_library">Libreria</string>
     <string name="set_library_sub">Scansione e cartelle della musica</string>
+    <string name="set_library_tabs">Schede della libreria</string>
+    <string name="set_library_tabs_sub">Mostra, nascondi e riordina le sezioni della libreria</string>
     <string name="set_light_bg">Sfondo del tema chiaro</string>
     <string name="set_lrc_dots">Puntini nelle pause (LRC semplice)</string>
     <string name="set_lrc_dots_sub">L\'LRC semplice non sa quanto dura una riga, quindi i puntini possono comparire anche su una riga lunga. I puntini prima della prima riga restano sempre.</string>
