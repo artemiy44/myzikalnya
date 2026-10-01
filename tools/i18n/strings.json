@@ -1536,6 +1536,42 @@
   "en": "Which artist?",
   "ru": "К какому исполнителю?"
  },
+ "widget_controls_desc": {
+  "en": "Cover and controls; tap the cover to see the lyrics instead",
+  "ru": "Обложка и управление; нажми на обложку, чтобы увидеть текст"
+ },
+ "widget_controls_label": {
+  "en": "Cover & controls",
+  "ru": "Обложка и управление"
+ },
+ "widget_cover_desc": {
+  "en": "Just the cover: tap to pause, the edges switch songs, the bottom strip shows the title",
+  "ru": "Только обложка: нажатие — пауза, края переключают песни, нижняя полоска показывает название"
+ },
+ "widget_cover_label": {
+  "en": "Cover",
+  "ru": "Обложка"
+ },
+ "widget_idle": {
+  "en": "Nothing playing",
+  "ru": "Ничего не играет"
+ },
+ "widget_loading_lyrics": {
+  "en": "Loading lyrics…",
+  "ru": "Загружаю текст…"
+ },
+ "widget_lyrics_desc": {
+  "en": "Lyrics of the song that's playing; tap a line to jump to it",
+  "ru": "Текст играющей песни; нажми на строку, чтобы перейти к ней"
+ },
+ "widget_lyrics_label": {
+  "en": "Lyrics",
+  "ru": "Текст песни"
+ },
+ "widget_no_lyrics": {
+  "en": "No synced lyrics",
+  "ru": "Нет синхронного текста"
+ },
  "years": {
   "en": "Years",
   "ru": "Годы"

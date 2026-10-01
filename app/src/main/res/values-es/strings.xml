@@ -339,6 +339,15 @@
     <string name="view_mode">Vista: %1$s</string>
     <string name="weekly_recap">Resumen semanal</string>
     <string name="which_artist">¿Qué artista?</string>
+    <string name="widget_controls_desc">Portada y controles; toca la portada para ver la letra</string>
+    <string name="widget_controls_label">Portada y controles</string>
+    <string name="widget_cover_desc">Solo la portada: tocar pausa, los bordes cambian de canción, la franja inferior muestra el título</string>
+    <string name="widget_cover_label">Portada</string>
+    <string name="widget_idle">No suena nada</string>
+    <string name="widget_loading_lyrics">Cargando letra…</string>
+    <string name="widget_lyrics_desc">Letra de la canción actual; toca una línea para saltar a ella</string>
+    <string name="widget_lyrics_label">Letra</string>
+    <string name="widget_no_lyrics">Sin letra sincronizada</string>
     <string name="years">Años</string>
     <plurals name="albums_count">
         <item quantity="one">%d álbum</item>

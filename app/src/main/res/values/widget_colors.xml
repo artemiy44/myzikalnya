@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The lyrics widget's own look where the system has no Material You colors (before Android 12). -->
+    <color name="widget_bg">#FFF2F2F5</color>
+    <color name="widget_text">#FF1B1B1F</color>
+    <color name="widget_text_dim">#FF6C6C70</color>
+</resources>

@@ -339,6 +339,15 @@
     <string name="view_mode">表示：%1$s</string>
     <string name="weekly_recap">週間まとめ</string>
     <string name="which_artist">どのアーティスト？</string>
+    <string name="widget_controls_desc">カバーと操作。カバーをタップすると歌詞に切り替わります</string>
+    <string name="widget_controls_label">カバーと操作</string>
+    <string name="widget_cover_desc">カバーだけ。タップで一時停止、左右の端で曲の切り替え、下の帯でタイトルを表示</string>
+    <string name="widget_cover_label">カバー</string>
+    <string name="widget_idle">再生中の曲はありません</string>
+    <string name="widget_loading_lyrics">歌詞を読み込み中…</string>
+    <string name="widget_lyrics_desc">再生中の曲の歌詞。行をタップするとそこへジャンプ</string>
+    <string name="widget_lyrics_label">歌詞</string>
+    <string name="widget_no_lyrics">同期歌詞なし</string>
     <string name="years">年</string>
     <plurals name="albums_count">
         <item quantity="other">%d 枚のアルバム</item>

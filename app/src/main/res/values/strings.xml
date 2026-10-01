@@ -369,5 +369,14 @@
     <string name="view_mode">View: %1$s</string>
     <string name="weekly_recap">Weekly recap</string>
     <string name="which_artist">Which artist?</string>
+    <string name="widget_controls_desc">Cover and controls; tap the cover to see the lyrics instead</string>
+    <string name="widget_controls_label">Cover &amp; controls</string>
+    <string name="widget_cover_desc">Just the cover: tap to pause, the edges switch songs, the bottom strip shows the title</string>
+    <string name="widget_cover_label">Cover</string>
+    <string name="widget_idle">Nothing playing</string>
+    <string name="widget_loading_lyrics">Loading lyrics…</string>
+    <string name="widget_lyrics_desc">Lyrics of the song that\'s playing; tap a line to jump to it</string>
+    <string name="widget_lyrics_label">Lyrics</string>
+    <string name="widget_no_lyrics">No synced lyrics</string>
     <string name="years">Years</string>
 </resources>

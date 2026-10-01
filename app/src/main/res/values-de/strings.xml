@@ -339,6 +339,15 @@
     <string name="view_mode">Ansicht: %1$s</string>
     <string name="weekly_recap">Wochenrückblick</string>
     <string name="which_artist">Welcher Künstler?</string>
+    <string name="widget_controls_desc">Cover und Steuerung; Cover antippen, um stattdessen den Text zu sehen</string>
+    <string name="widget_controls_label">Cover &amp; Steuerung</string>
+    <string name="widget_cover_desc">Nur das Cover: Tippen pausiert, die Ränder wechseln den Song, der untere Streifen zeigt den Titel</string>
+    <string name="widget_cover_label">Cover</string>
+    <string name="widget_idle">Es läuft nichts</string>
+    <string name="widget_loading_lyrics">Text wird geladen …</string>
+    <string name="widget_lyrics_desc">Text des laufenden Songs; Zeile antippen, um dorthin zu springen</string>
+    <string name="widget_lyrics_label">Songtext</string>
+    <string name="widget_no_lyrics">Kein synchroner Text</string>
     <string name="years">Jahre</string>
     <plurals name="albums_count">
         <item quantity="one">%d Album</item>

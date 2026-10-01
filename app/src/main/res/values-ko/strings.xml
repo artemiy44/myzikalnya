@@ -339,6 +339,15 @@
     <string name="view_mode">보기: %1$s</string>
     <string name="weekly_recap">주간 요약</string>
     <string name="which_artist">어느 아티스트로 갈까요?</string>
+    <string name="widget_controls_desc">커버와 컨트롤; 커버를 탭하면 가사가 표시됩니다</string>
+    <string name="widget_controls_label">커버 및 컨트롤</string>
+    <string name="widget_cover_desc">커버만 표시: 탭하면 일시정지, 양쪽 가장자리로 곡 전환, 아래 띠에 제목 표시</string>
+    <string name="widget_cover_label">커버</string>
+    <string name="widget_idle">재생 중인 곡이 없습니다</string>
+    <string name="widget_loading_lyrics">가사 불러오는 중…</string>
+    <string name="widget_lyrics_desc">재생 중인 곡의 가사; 줄을 탭하면 그곳으로 이동</string>
+    <string name="widget_lyrics_label">가사</string>
+    <string name="widget_no_lyrics">동기화된 가사 없음</string>
     <string name="years">연도</string>
     <plurals name="albums_count">
         <item quantity="other">앨범 %d개</item>

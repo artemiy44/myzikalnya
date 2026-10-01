@@ -383,5 +383,14 @@
     <string name="view_mode">Вид: %1$s</string>
     <string name="weekly_recap">Итоги недели</string>
     <string name="which_artist">К какому исполнителю?</string>
+    <string name="widget_controls_desc">Обложка и управление; нажми на обложку, чтобы увидеть текст</string>
+    <string name="widget_controls_label">Обложка и управление</string>
+    <string name="widget_cover_desc">Только обложка: нажатие — пауза, края переключают песни, нижняя полоска показывает название</string>
+    <string name="widget_cover_label">Обложка</string>
+    <string name="widget_idle">Ничего не играет</string>
+    <string name="widget_loading_lyrics">Загружаю текст…</string>
+    <string name="widget_lyrics_desc">Текст играющей песни; нажми на строку, чтобы перейти к ней</string>
+    <string name="widget_lyrics_label">Текст песни</string>
+    <string name="widget_no_lyrics">Нет синхронного текста</string>
     <string name="years">Годы</string>
 </resources>

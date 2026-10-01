@@ -339,6 +339,15 @@
     <string name="view_mode">Affichage : %1$s</string>
     <string name="weekly_recap">Bilan de la semaine</string>
     <string name="which_artist">Quel artiste ?</string>
+    <string name="widget_controls_desc">Pochette et commandes ; touchez la pochette pour voir les paroles</string>
+    <string name="widget_controls_label">Pochette et commandes</string>
+    <string name="widget_cover_desc">Juste la pochette : toucher met en pause, les bords changent de morceau, la bande du bas montre le titre</string>
+    <string name="widget_cover_label">Pochette</string>
+    <string name="widget_idle">Rien n\'est en lecture</string>
+    <string name="widget_loading_lyrics">Chargement des paroles…</string>
+    <string name="widget_lyrics_desc">Paroles du morceau en cours ; touchez une ligne pour y aller</string>
+    <string name="widget_lyrics_label">Paroles</string>
+    <string name="widget_no_lyrics">Pas de paroles synchronisées</string>
     <string name="years">Années</string>
     <plurals name="albums_count">
         <item quantity="one">%d album</item>

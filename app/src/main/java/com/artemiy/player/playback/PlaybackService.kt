@@ -49,6 +49,7 @@ class PlaybackService : MediaSessionService() {
 
     private lateinit var player: ExoPlayer
     private lateinit var mediaSession: MediaSession
+    private var widgets: com.artemiy.player.widget.WidgetUpdater? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -63,6 +64,7 @@ class PlaybackService : MediaSessionService() {
             .setMediaSourceFactory(DefaultMediaSourceFactory(this, extractorsFactory))
             .build()
         player.addListener(ErrorRecovery())
+        widgets = com.artemiy.player.widget.WidgetUpdater(this, player)
 
         val sessionActivityIntent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
@@ -212,6 +214,7 @@ class PlaybackService : MediaSessionService() {
 
     override fun onDestroy() {
         recoveryHandler.removeCallbacksAndMessages(null)
+        widgets?.release()
         mediaSession.run {
             player.release()
             release()

@@ -339,6 +339,15 @@
     <string name="view_mode">Вигляд: %1$s</string>
     <string name="weekly_recap">Підсумки тижня</string>
     <string name="which_artist">До якого виконавця?</string>
+    <string name="widget_controls_desc">Обкладинка й керування; торкнись обкладинки, щоб побачити текст</string>
+    <string name="widget_controls_label">Обкладинка й керування</string>
+    <string name="widget_cover_desc">Тільки обкладинка: дотик — пауза, краї перемикають пісні, нижня смужка показує назву</string>
+    <string name="widget_cover_label">Обкладинка</string>
+    <string name="widget_idle">Нічого не грає</string>
+    <string name="widget_loading_lyrics">Завантажую текст…</string>
+    <string name="widget_lyrics_desc">Текст пісні, що грає; торкнись рядка, щоб перейти до нього</string>
+    <string name="widget_lyrics_label">Текст пісні</string>
+    <string name="widget_no_lyrics">Немає синхронного тексту</string>
     <string name="years">Роки</string>
     <plurals name="albums_count">
         <item quantity="one">%d альбом</item>

@@ -42,6 +42,21 @@
                 <action android:name="androidx.media3.session.MediaSessionService" />
             </intent-filter>
         </service>
+
+        <!-- Home-screen widgets: the cover, the lyrics, cover with controls. -->
+        <receiver android:name=".widget.CoverWidget" android:exported="false" android:label="@string/widget_cover_label">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_cover_info" />
+        </receiver>
+        <receiver android:name=".widget.LyricsWidget" android:exported="false" android:label="@string/widget_lyrics_label">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_lyrics_info" />
+        </receiver>
+        <receiver android:name=".widget.ControlsWidget" android:exported="false" android:label="@string/widget_controls_label">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_controls_info" />
+        </receiver>
+        <receiver android:name=".widget.WidgetActionReceiver" android:exported="false" />
     </application>
 
 </manifest>

@@ -339,6 +339,15 @@
     <string name="view_mode">Görünüm: %1$s</string>
     <string name="weekly_recap">Haftalık özet</string>
     <string name="which_artist">Hangi sanatçı?</string>
+    <string name="widget_controls_desc">Kapak ve kontroller; sözleri görmek için kapağa dokun</string>
+    <string name="widget_controls_label">Kapak ve kontroller</string>
+    <string name="widget_cover_desc">Sadece kapak: dokununca duraklar, kenarlar şarkıyı değiştirir, alt şerit başlığı gösterir</string>
+    <string name="widget_cover_label">Kapak</string>
+    <string name="widget_idle">Hiçbir şey çalmıyor</string>
+    <string name="widget_loading_lyrics">Sözler yükleniyor…</string>
+    <string name="widget_lyrics_desc">Çalan şarkının sözleri; bir satıra dokunup oraya atla</string>
+    <string name="widget_lyrics_label">Şarkı sözü</string>
+    <string name="widget_no_lyrics">Eşzamanlı söz yok</string>
     <string name="years">Yıllar</string>
     <plurals name="albums_count">
         <item quantity="one">%d albüm</item>

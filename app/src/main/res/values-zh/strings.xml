@@ -339,6 +339,15 @@
     <string name="view_mode">视图：%1$s</string>
     <string name="weekly_recap">每周回顾</string>
     <string name="which_artist">前往哪位艺人？</string>
+    <string name="widget_controls_desc">封面与控制；点按封面可改为查看歌词</string>
+    <string name="widget_controls_label">封面与控制</string>
+    <string name="widget_cover_desc">仅封面：点按暂停，两侧切歌，底部显示歌名</string>
+    <string name="widget_cover_label">封面</string>
+    <string name="widget_idle">没有在播放</string>
+    <string name="widget_loading_lyrics">正在加载歌词…</string>
+    <string name="widget_lyrics_desc">正在播放歌曲的歌词；点按某一行即可跳转</string>
+    <string name="widget_lyrics_label">歌词</string>
+    <string name="widget_no_lyrics">没有同步歌词</string>
     <string name="years">年份</string>
     <plurals name="albums_count">
         <item quantity="other">%d 张专辑</item>
