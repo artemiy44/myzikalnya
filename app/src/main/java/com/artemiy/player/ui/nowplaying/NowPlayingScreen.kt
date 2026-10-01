@@ -293,6 +293,11 @@ fun NowPlayingScreen(
     val miniArtistColor = PlayerColors.TextSecondary
     val miniIconColor = PlayerColors.TextPrimary
     var titleTarget by remember { mutableStateOf<Rect?>(null) }
+    // A lyric line held down: the share card opens from it.
+    var shareFrom by remember { mutableStateOf<Int?>(null) }
+    shareFrom?.let { start ->
+        if (song != null && lyrics != null) ShareLyricsDialog(song, lyrics, start) { shareFrom = null } else shareFrom = null
+    }
     val playerActive = LocalNowPlayingActive.current
     val coverShadow = nowPlayingBackgroundMode != NowPlayingBackgroundMode.NONE
     // Back from lyrics/queue the cover lands as a flying copy without a shadow: once the real one
@@ -489,6 +494,7 @@ fun NowPlayingScreen(
                                 onSeek(timeMs)
                                 if (lyricsTapPlays && !isPlaying) onTogglePlayPause()
                             },
+                            onLineLongClick = { shareFrom = it },
                             showRomanization = lyricsRomanization,
                             loading = lyricsLoading,
                             // Extra FADE_SPAN at both ends: otherwise the first/last lines can't

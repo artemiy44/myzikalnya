@@ -56,6 +56,15 @@
     <string name="bye_3">Всё остальное — в настройках, вот за этой кнопкой на Главной.</string>
     <string name="bye_4">Приятного прослушивания!</string>
     <string name="cancel">Отмена</string>
+    <string name="card_accent">Акцент</string>
+    <string name="card_blur">Размытая обложка</string>
+    <string name="card_failed">Не получилось сделать картинку</string>
+    <string name="card_paper">Бумага</string>
+    <string name="card_save">Сохранить</string>
+    <string name="card_saved">Сохранено в Pictures/Lumine</string>
+    <string name="card_share">Поделиться</string>
+    <string name="card_tone">Цвета обложки</string>
+    <string name="card_translation">Со строкой перевода</string>
     <string name="cd_back">Назад</string>
     <string name="cd_next_track">Следующий трек</string>
     <string name="cd_pause">Пауза</string>
@@ -326,6 +335,8 @@
     <string name="set_version">Версия %1$s</string>
     <string name="settings">Настройки</string>
     <string name="share">Поделиться</string>
+    <string name="share_lyrics">Поделиться строками</string>
+    <string name="share_lyrics_hint">Нажимай на строки, чтобы выбрать их — до шести</string>
     <string name="show_romanization">Показать романизацию</string>
     <string name="shuffle">Перемешать</string>
     <plurals name="songs_count">

@@ -50,6 +50,15 @@
     <string name="bye_3">そのほかの設定はすべて、ホームのこのボタンの中にあります。</string>
     <string name="bye_4">音楽を楽しんで！</string>
     <string name="cancel">キャンセル</string>
+    <string name="card_accent">アクセント</string>
+    <string name="card_blur">ぼかしたカバー</string>
+    <string name="card_failed">画像を作成できませんでした</string>
+    <string name="card_paper">紙</string>
+    <string name="card_save">保存</string>
+    <string name="card_saved">Pictures/Lumine に保存しました</string>
+    <string name="card_share">共有</string>
+    <string name="card_tone">カバーの色</string>
+    <string name="card_translation">翻訳の行つき</string>
     <string name="cd_back">戻る</string>
     <string name="cd_next_track">次の曲</string>
     <string name="cd_pause">一時停止</string>
@@ -306,6 +315,8 @@
     <string name="set_version">バージョン %1$s</string>
     <string name="settings">設定</string>
     <string name="share">共有</string>
+    <string name="share_lyrics">歌詞をシェア</string>
+    <string name="share_lyrics_hint">行をタップして選択（最大6行）</string>
     <string name="show_romanization">ローマ字を表示</string>
     <string name="shuffle">シャッフル</string>
     <string name="sort_added_order">追加した順</string>

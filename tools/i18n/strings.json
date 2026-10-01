@@ -216,6 +216,42 @@
   "en": "Cancel",
   "ru": "Отмена"
  },
+ "card_accent": {
+  "en": "Accent",
+  "ru": "Акцент"
+ },
+ "card_blur": {
+  "en": "Blurred cover",
+  "ru": "Размытая обложка"
+ },
+ "card_failed": {
+  "en": "Couldn't make the picture",
+  "ru": "Не получилось сделать картинку"
+ },
+ "card_paper": {
+  "en": "Paper",
+  "ru": "Бумага"
+ },
+ "card_save": {
+  "en": "Save",
+  "ru": "Сохранить"
+ },
+ "card_saved": {
+  "en": "Saved to Pictures/Lumine",
+  "ru": "Сохранено в Pictures/Lumine"
+ },
+ "card_share": {
+  "en": "Share",
+  "ru": "Поделиться"
+ },
+ "card_tone": {
+  "en": "Cover colors",
+  "ru": "Цвета обложки"
+ },
+ "card_translation": {
+  "en": "With the translation line",
+  "ru": "Со строкой перевода"
+ },
  "cd_back": {
   "en": "Back",
   "ru": "Назад"
@@ -1349,6 +1385,14 @@
  "share": {
   "en": "Share",
   "ru": "Поделиться"
+ },
+ "share_lyrics": {
+  "en": "Share lyrics",
+  "ru": "Поделиться строками"
+ },
+ "share_lyrics_hint": {
+  "en": "Tap lines to pick them — up to six",
+  "ru": "Нажимай на строки, чтобы выбрать их — до шести"
  },
  "show_romanization": {
   "en": "Show romanization",

@@ -54,6 +54,15 @@
     <string name="bye_3">Everything else is in the settings — behind this button on Home.</string>
     <string name="bye_4">Enjoy the music!</string>
     <string name="cancel">Cancel</string>
+    <string name="card_accent">Accent</string>
+    <string name="card_blur">Blurred cover</string>
+    <string name="card_failed">Couldn\'t make the picture</string>
+    <string name="card_paper">Paper</string>
+    <string name="card_save">Save</string>
+    <string name="card_saved">Saved to Pictures/Lumine</string>
+    <string name="card_share">Share</string>
+    <string name="card_tone">Cover colors</string>
+    <string name="card_translation">With the translation line</string>
     <string name="cd_back">Back</string>
     <string name="cd_next_track">Next track</string>
     <string name="cd_pause">Pause</string>
@@ -320,6 +329,8 @@
     <string name="set_version">Version %1$s</string>
     <string name="settings">Settings</string>
     <string name="share">Share</string>
+    <string name="share_lyrics">Share lyrics</string>
+    <string name="share_lyrics_hint">Tap lines to pick them — up to six</string>
     <string name="show_romanization">Show romanization</string>
     <string name="shuffle">Shuffle</string>
     <plurals name="songs_count">

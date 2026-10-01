@@ -12,6 +12,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -74,6 +75,7 @@ import com.artemiy.player.ui.theme.PlayerColors
 
 // The Lyrics view: synced/unsynced lines, word sweep, glow, romanization readings.
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 internal fun LyricsView(
     lyrics: ParsedLyrics?,
@@ -84,6 +86,8 @@ internal fun LyricsView(
     anchorTopPx: Int,
     anchorBottomPx: Int,
     onLineClick: (timeMs: Long) -> Unit,
+    /** A line held down: its place in the lyrics' plain list of lines, for the share card. */
+    onLineLongClick: (Int) -> Unit = {},
     showRomanization: Boolean,
     contentPadding: PaddingValues = PaddingValues(top = 16.dp, bottom = 220.dp),
     loading: Boolean = false,
@@ -184,6 +188,7 @@ internal fun LyricsView(
             val listState = rememberLazyListState()
             val textLines = remember(lyrics.text) { lyrics.text.lines() }
             val rubyLines = lyrics.rubyLines?.takeIf { showRomanization }
+            val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
@@ -191,7 +196,22 @@ internal fun LyricsView(
             ) {
                 itemsIndexed(textLines) { index, textLine ->
                     val ruby = rubyLines?.getOrNull(index)
-                    Box(modifier = Modifier.fillMaxWidth().fadeInList(listState, index, topFadePx, bottomFadePx)) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fadeInList(listState, index, topFadePx, bottomFadePx)
+                            .combinedClickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = {},
+                                onLongClick = {
+                                    if (textLine.isNotBlank()) {
+                                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                        onLineLongClick(textLines.take(index).count { it.isNotBlank() })
+                                    }
+                                },
+                            ),
+                    ) {
                         if (ruby != null) UnsyncedRubyLine(ruby) else UnsyncedLine(textLine)
                     }
                 }
@@ -216,6 +236,8 @@ internal fun LyricsView(
                     line.instrumentalUntilMs == null && line.singingEndMs() > positionMs
                 }
             }
+            val plainLines = remember(lyrics) { lyrics.lines.filter { it.text.isNotBlank() } }
+            val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
             val listState = rememberLazyListState()
             // How fast the lines are gliding right now — a new line coming before the last glide
             // has settled carries on from this speed instead of stopping and starting over, which
@@ -295,10 +317,20 @@ internal fun LyricsView(
                         modifier = Modifier
                             .fillMaxWidth()
                             .fadeInList(listState, index, topFadePx, bottomFadePx)
-                            .clickable(
+                            .combinedClickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null,
-                            ) { onLineClick(line.timeMs.coerceAtLeast(0L)) },
+                                onClick = { onLineClick(line.timeMs.coerceAtLeast(0L)) },
+                                onLongClick = {
+                                    if (line.instrumentalUntilMs == null) {
+                                        val place = plainLines.indexOfFirst { it.timeMs == line.timeMs }
+                                        if (place >= 0) {
+                                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                            onLineLongClick(place)
+                                        }
+                                    }
+                                },
+                            ),
                     ) {
                         val nextLineStartMs = lines.getOrNull(index + 1)?.timeMs
                         val breakUntil = line.instrumentalUntilMs

@@ -50,6 +50,15 @@
     <string name="bye_3">Wszystko inne jest w ustawieniach — pod tym przyciskiem na ekranie głównym.</string>
     <string name="bye_4">Miłego słuchania!</string>
     <string name="cancel">Anuluj</string>
+    <string name="card_accent">Akcent</string>
+    <string name="card_blur">Rozmyta okładka</string>
+    <string name="card_failed">Nie udało się utworzyć obrazu</string>
+    <string name="card_paper">Papier</string>
+    <string name="card_save">Zapisz</string>
+    <string name="card_saved">Zapisano w Pictures/Lumine</string>
+    <string name="card_share">Udostępnij</string>
+    <string name="card_tone">Kolory okładki</string>
+    <string name="card_translation">Z wersem tłumaczenia</string>
     <string name="cd_back">Wstecz</string>
     <string name="cd_next_track">Następny utwór</string>
     <string name="cd_pause">Pauza</string>
@@ -306,6 +315,8 @@
     <string name="set_version">Wersja %1$s</string>
     <string name="settings">Ustawienia</string>
     <string name="share">Udostępnij</string>
+    <string name="share_lyrics">Udostępnij wersy</string>
+    <string name="share_lyrics_hint">Dotykaj wersów, by je wybrać – do sześciu</string>
     <string name="show_romanization">Pokaż romanizację</string>
     <string name="shuffle">Losowo</string>
     <string name="sort_added_order">W kolejności dodania</string>

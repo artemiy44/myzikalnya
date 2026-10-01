@@ -50,6 +50,15 @@
     <string name="bye_3">Усе інше — у налаштуваннях, ось за цією кнопкою на Головній.</string>
     <string name="bye_4">Приємного прослуховування!</string>
     <string name="cancel">Скасувати</string>
+    <string name="card_accent">Акцент</string>
+    <string name="card_blur">Розмита обкладинка</string>
+    <string name="card_failed">Не вдалося створити картинку</string>
+    <string name="card_paper">Папір</string>
+    <string name="card_save">Зберегти</string>
+    <string name="card_saved">Збережено в Pictures/Lumine</string>
+    <string name="card_share">Поділитися</string>
+    <string name="card_tone">Кольори обкладинки</string>
+    <string name="card_translation">З рядком перекладу</string>
     <string name="cd_back">Назад</string>
     <string name="cd_next_track">Наступний трек</string>
     <string name="cd_pause">Пауза</string>
@@ -306,6 +315,8 @@
     <string name="set_version">Версія %1$s</string>
     <string name="settings">Налаштування</string>
     <string name="share">Поділитися</string>
+    <string name="share_lyrics">Поділитися рядками</string>
+    <string name="share_lyrics_hint">Торкайся рядків, щоб вибрати їх — до шести</string>
     <string name="show_romanization">Показати романізацію</string>
     <string name="shuffle">Перемішати</string>
     <string name="sort_added_order">У порядку додавання</string>

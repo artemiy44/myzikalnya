@@ -50,6 +50,15 @@
     <string name="bye_3">Tutto il resto è nelle impostazioni — dietro questo pulsante della Home.</string>
     <string name="bye_4">Buon ascolto!</string>
     <string name="cancel">Annulla</string>
+    <string name="card_accent">Accento</string>
+    <string name="card_blur">Copertina sfocata</string>
+    <string name="card_failed">Impossibile creare l\'immagine</string>
+    <string name="card_paper">Carta</string>
+    <string name="card_save">Salva</string>
+    <string name="card_saved">Salvato in Pictures/Lumine</string>
+    <string name="card_share">Condividi</string>
+    <string name="card_tone">Colori della copertina</string>
+    <string name="card_translation">Con la riga di traduzione</string>
     <string name="cd_back">Indietro</string>
     <string name="cd_next_track">Brano successivo</string>
     <string name="cd_pause">Pausa</string>
@@ -306,6 +315,8 @@
     <string name="set_version">Versione %1$s</string>
     <string name="settings">Impostazioni</string>
     <string name="share">Condividi</string>
+    <string name="share_lyrics">Condividi righe</string>
+    <string name="share_lyrics_hint">Tocca le righe per sceglierle, fino a sei</string>
     <string name="show_romanization">Mostra la romanizzazione</string>
     <string name="shuffle">Casuale</string>
     <string name="sort_added_order">In ordine di aggiunta</string>

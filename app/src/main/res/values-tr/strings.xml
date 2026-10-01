@@ -50,6 +50,15 @@
     <string name="bye_3">Geri kalan her şey ayarlarda — Ana sayfadaki bu düğmenin arkasında.</string>
     <string name="bye_4">İyi dinlemeler!</string>
     <string name="cancel">İptal</string>
+    <string name="card_accent">Vurgu</string>
+    <string name="card_blur">Bulanık kapak</string>
+    <string name="card_failed">Resim oluşturulamadı</string>
+    <string name="card_paper">Kâğıt</string>
+    <string name="card_save">Kaydet</string>
+    <string name="card_saved">Pictures/Lumine içine kaydedildi</string>
+    <string name="card_share">Paylaş</string>
+    <string name="card_tone">Kapak renkleri</string>
+    <string name="card_translation">Çeviri satırıyla</string>
     <string name="cd_back">Geri</string>
     <string name="cd_next_track">Sonraki parça</string>
     <string name="cd_pause">Duraklat</string>
@@ -306,6 +315,8 @@
     <string name="set_version">Sürüm %1$s</string>
     <string name="settings">Ayarlar</string>
     <string name="share">Paylaş</string>
+    <string name="share_lyrics">Dizeleri paylaş</string>
+    <string name="share_lyrics_hint">Seçmek için satırlara dokun — en fazla altı</string>
     <string name="show_romanization">Latin harfli okunuşu göster</string>
     <string name="shuffle">Karıştır</string>
     <string name="sort_added_order">Eklenme sırasına göre</string>

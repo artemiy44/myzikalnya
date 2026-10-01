@@ -50,6 +50,15 @@
     <string name="bye_3">Todo o resto está nas configurações — atrás deste botão no Início.</string>
     <string name="bye_4">Boa música!</string>
     <string name="cancel">Cancelar</string>
+    <string name="card_accent">Destaque</string>
+    <string name="card_blur">Capa desfocada</string>
+    <string name="card_failed">Não foi possível criar a imagem</string>
+    <string name="card_paper">Papel</string>
+    <string name="card_save">Salvar</string>
+    <string name="card_saved">Salvo em Pictures/Lumine</string>
+    <string name="card_share">Compartilhar</string>
+    <string name="card_tone">Cores da capa</string>
+    <string name="card_translation">Com a linha de tradução</string>
     <string name="cd_back">Voltar</string>
     <string name="cd_next_track">Próxima faixa</string>
     <string name="cd_pause">Pausar</string>
@@ -306,6 +315,8 @@
     <string name="set_version">Versão %1$s</string>
     <string name="settings">Configurações</string>
     <string name="share">Compartilhar</string>
+    <string name="share_lyrics">Compartilhar trechos</string>
+    <string name="share_lyrics_hint">Toque nas linhas para escolhê-las, até seis</string>
     <string name="show_romanization">Mostrar romanização</string>
     <string name="shuffle">Aleatório</string>
     <string name="sort_added_order">Na ordem em que foram adicionadas</string>

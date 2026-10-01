@@ -50,6 +50,15 @@
     <string name="bye_3">Todo lo demás está en los ajustes, tras este botón de Inicio.</string>
     <string name="bye_4">¡Que disfrute la música!</string>
     <string name="cancel">Cancelar</string>
+    <string name="card_accent">Acento</string>
+    <string name="card_blur">Portada desenfocada</string>
+    <string name="card_failed">No se pudo crear la imagen</string>
+    <string name="card_paper">Papel</string>
+    <string name="card_save">Guardar</string>
+    <string name="card_saved">Guardado en Pictures/Lumine</string>
+    <string name="card_share">Compartir</string>
+    <string name="card_tone">Colores de la portada</string>
+    <string name="card_translation">Con la línea de traducción</string>
     <string name="cd_back">Atrás</string>
     <string name="cd_next_track">Pista siguiente</string>
     <string name="cd_pause">Pausa</string>
@@ -306,6 +315,8 @@
     <string name="set_version">Versión %1$s</string>
     <string name="settings">Ajustes</string>
     <string name="share">Compartir</string>
+    <string name="share_lyrics">Compartir líneas</string>
+    <string name="share_lyrics_hint">Toca las líneas para elegirlas, hasta seis</string>
     <string name="show_romanization">Mostrar romanización</string>
     <string name="shuffle">Aleatorio</string>
     <string name="sort_added_order">En orden de adición</string>

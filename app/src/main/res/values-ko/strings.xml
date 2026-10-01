@@ -50,6 +50,15 @@
     <string name="bye_3">나머지는 모두 설정에 있습니다 — 홈의 이 버튼 뒤에요.</string>
     <string name="bye_4">즐거운 감상 되세요!</string>
     <string name="cancel">취소</string>
+    <string name="card_accent">강조색</string>
+    <string name="card_blur">흐린 커버</string>
+    <string name="card_failed">이미지를 만들 수 없습니다</string>
+    <string name="card_paper">종이</string>
+    <string name="card_save">저장</string>
+    <string name="card_saved">Pictures/Lumine에 저장했습니다</string>
+    <string name="card_share">공유</string>
+    <string name="card_tone">커버 색상</string>
+    <string name="card_translation">번역 줄 포함</string>
     <string name="cd_back">뒤로</string>
     <string name="cd_next_track">다음 곡</string>
     <string name="cd_pause">일시정지</string>
@@ -306,6 +315,8 @@
     <string name="set_version">버전 %1$s</string>
     <string name="settings">설정</string>
     <string name="share">공유</string>
+    <string name="share_lyrics">가사 공유</string>
+    <string name="share_lyrics_hint">줄을 탭해 선택하세요 (최대 6줄)</string>
     <string name="show_romanization">로마자 표시</string>
     <string name="shuffle">셔플</string>
     <string name="sort_added_order">추가한 순서</string>

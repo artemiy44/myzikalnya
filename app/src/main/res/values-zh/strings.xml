@@ -50,6 +50,15 @@
     <string name="bye_3">其他一切都在设置里——就在首页的这个按钮后面。</string>
     <string name="bye_4">享受音乐吧！</string>
     <string name="cancel">取消</string>
+    <string name="card_accent">强调色</string>
+    <string name="card_blur">模糊封面</string>
+    <string name="card_failed">无法生成图片</string>
+    <string name="card_paper">纸张</string>
+    <string name="card_save">保存</string>
+    <string name="card_saved">已保存到 Pictures/Lumine</string>
+    <string name="card_share">分享</string>
+    <string name="card_tone">封面配色</string>
+    <string name="card_translation">附带翻译行</string>
     <string name="cd_back">返回</string>
     <string name="cd_next_track">下一首</string>
     <string name="cd_pause">暂停</string>
@@ -306,6 +315,8 @@
     <string name="set_version">版本 %1$s</string>
     <string name="settings">设置</string>
     <string name="share">分享</string>
+    <string name="share_lyrics">分享歌词</string>
+    <string name="share_lyrics_hint">点按歌词行来选择，最多六行</string>
     <string name="show_romanization">显示罗马音</string>
     <string name="shuffle">随机播放</string>
     <string name="sort_added_order">按添加顺序</string>

@@ -50,6 +50,15 @@
     <string name="bye_3">Alles andere steht in den Einstellungen — hinter diesem Knopf auf der Startseite.</string>
     <string name="bye_4">Viel Spaß beim Hören!</string>
     <string name="cancel">Abbrechen</string>
+    <string name="card_accent">Akzent</string>
+    <string name="card_blur">Unscharfes Cover</string>
+    <string name="card_failed">Das Bild konnte nicht erstellt werden</string>
+    <string name="card_paper">Papier</string>
+    <string name="card_save">Speichern</string>
+    <string name="card_saved">In Pictures/Lumine gespeichert</string>
+    <string name="card_share">Teilen</string>
+    <string name="card_tone">Cover-Farben</string>
+    <string name="card_translation">Mit Übersetzungszeile</string>
     <string name="cd_back">Zurück</string>
     <string name="cd_next_track">Nächster Titel</string>
     <string name="cd_pause">Pause</string>
@@ -306,6 +315,8 @@
     <string name="set_version">Version %1$s</string>
     <string name="settings">Einstellungen</string>
     <string name="share">Teilen</string>
+    <string name="share_lyrics">Zeilen teilen</string>
+    <string name="share_lyrics_hint">Zeilen antippen, um sie zu wählen – bis zu sechs</string>
     <string name="show_romanization">Umschrift anzeigen</string>
     <string name="shuffle">Zufallswiedergabe</string>
     <string name="sort_added_order">In Reihenfolge des Hinzufügens</string>
