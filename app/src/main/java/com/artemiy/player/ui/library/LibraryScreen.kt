@@ -257,8 +257,14 @@ fun LibraryScreen(
                     }
                     // Biggest genre first; the songs without one lead the list.
                     val genreGroups = remember(songs) {
-                        songs.groupBy { com.artemiy.player.data.primaryGenre(it)?.let(::genreKey)?.takeIf { k -> k.isNotEmpty() } }
-                            .map { (key, list) -> TagGroup(key, key?.let { mostCommon(list.mapNotNull { s -> com.artemiy.player.data.primaryGenre(s) }) }, list) }
+                        // One tile per genre however its tags are spelled or in what language (see GenreNames).
+                        songs.groupBy { com.artemiy.player.data.GenreNames.keyOf(it) }
+                            .map { (key, list) ->
+                                val name = key?.let { k ->
+                                    com.artemiy.player.data.GenreNames.displayName(k, list.mapNotNull { s -> com.artemiy.player.data.primaryGenre(s) })
+                                }
+                                TagGroup(key, name, list)
+                            }
                             .sortedWith(compareBy<TagGroup>({ it.key != null }, { -it.songs.size }))
                     }
 

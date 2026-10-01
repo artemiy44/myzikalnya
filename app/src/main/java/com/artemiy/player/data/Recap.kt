@@ -71,7 +71,8 @@ fun buildRecap(songs: List<Song>, plays: List<SongEvent>, now: Long): Recap? {
         .sortedByDescending { allCounts[it.id] ?: 0 }.take(5)
 
     val topGenre = week.mapNotNull { primaryGenre(byId.getValue(it.songId)) }
-        .groupBy { it.lowercase() }.values.maxByOrNull { it.size }?.first()
+        .groupBy { GenreNames.canonicalKey(it) }.entries.maxByOrNull { it.value.size }
+        ?.let { (key, spellings) -> GenreNames.displayName(key, spellings) }
 
     val calendar = Calendar.getInstance()
     val busiestDay = week.groupingBy { calendar.apply { timeInMillis = it.at }.get(Calendar.DAY_OF_WEEK) }.eachCount()

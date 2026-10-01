@@ -87,25 +87,28 @@ fun buildMixes(songs: List<Song>, plays: List<SongEvent>, skips: List<SongEvent>
         .flatMap { (id, count) -> byId[id]?.artists().orEmpty().map { it to count } }
         .groupBy({ it.first }, { it.second }).mapValues { it.value.sum() }
         .filterValues { it >= 3 }.entries.sortedByDescending { it.value }.map { it.key }
+    // Genres by their shared key (see GenreNames), most listened-to first; the names to show.
+    val spellingsByGenre = songs.mapNotNull(::primaryGenre).groupBy { GenreNames.canonicalKey(it) }
+    fun genreName(key: String) = GenreNames.displayName(key, spellingsByGenre[key].orEmpty())
     val topGenres = monthCounts.entries
-        .mapNotNull { (id, count) -> byId[id]?.let(::primaryGenre)?.let { it to count } }
-        .groupBy({ it.first.lowercase() }, { it }).mapValues { (_, list) -> list.first().first to list.sumOf { it.second } }
-        .values.sortedByDescending { it.second }.map { it.first }
+        .mapNotNull { (id, count) -> byId[id]?.let(GenreNames::keyOf)?.let { it to count } }
+        .groupBy({ it.first }, { it.second }).mapValues { it.value.sum() }
+        .entries.sortedByDescending { it.value }.map { it.key }
 
     fun artistMix(artist: String): Pair<String, List<Song>>? {
         val own = songs.filter { artist in it.artists() }.sortedByDescending { allCounts[it.id] ?: 0 }
-        val genre = own.mapNotNull(::primaryGenre).groupingBy { it.lowercase() }.eachCount().maxByOrNull { it.value }?.key
+        val genre = own.mapNotNull(GenreNames::keyOf).groupingBy { it }.eachCount().maxByOrNull { it.value }?.key
         val similar = if (genre == null) emptyList() else songs.filter {
-            artist !in it.artists() && primaryGenre(it)?.lowercase() == genre && it.id !in skippedLately
+            artist !in it.artists() && GenreNames.keyOf(it) == genre && it.id !in skippedLately
         }.shuffled(random)
         return res.getString(R.string.mix_artist, artist) to (own.take(12) + similar).take(MIX_SIZE).shuffled(random)
     }
 
     fun genreMix(genre: String): Pair<String, List<Song>> {
-        val inGenre = songs.filter { primaryGenre(it)?.equals(genre, ignoreCase = true) == true && it.id !in skippedLately }
+        val inGenre = songs.filter { GenreNames.keyOf(it) == genre && it.id !in skippedLately }
         val (played, unplayed) = inGenre.partition { (allCounts[it.id] ?: 0) > 0 }
         val picks = played.sortedByDescending { allCounts[it.id] ?: 0 }.take(MIX_SIZE / 2) + unplayed.shuffled(random)
-        return res.getString(R.string.mix_genre, genre) to picks.take(MIX_SIZE).shuffled(random)
+        return res.getString(R.string.mix_genre, genreName(genre)) to picks.take(MIX_SIZE).shuffled(random)
     }
 
     // Not always the very top ones: among the three most listened to, which two get a mix
@@ -169,7 +172,7 @@ fun buildMixes(songs: List<Song>, plays: List<SongEvent>, skips: List<SongEvent>
         val distinct = picks.distinctBy { it.id }
         if (distinct.size < MIX_MIN_SONGS) continue
         val motif = when {
-            id.startsWith("genre-") -> "genre:" + (if (id == "genre-0") genreA else genreB)
+            id.startsWith("genre-") -> "genre:" + genreName((if (id == "genre-0") genreA else genreB).orEmpty())
             id.startsWith("artist-") -> "artist"
             id == "daypart" -> "daypart:" + dayPart.name
             id == "decade" -> "decade:$topDecade"

@@ -116,7 +116,7 @@ sealed class LibraryRoute {
     data object Genres : LibraryRoute()
     /** A year's page; null = songs whose tags have no year. */
     data class YearDetail(val year: Int?) : LibraryRoute()
-    /** A genre's page, by its [genreKey]; null = songs whose tags have no genre. */
+    /** A genre's page, by its GenreNames key; null = songs whose tags have no genre. */
     data class GenreDetail(val key: String?) : LibraryRoute()
     data class ArtistDetail(val artist: String) : LibraryRoute()
     data class AlbumDetail(val album: String, val artist: String) : LibraryRoute()
@@ -131,8 +131,6 @@ internal data class AlbumGroup(val album: String, val artist: String, val songs:
  * it's shown (the library's usual spelling of the genre). */
 internal data class TagGroup(val key: String?, val name: String?, val songs: List<Song>)
 
-/** Two spellings of one genre are one ("J-Pop", "jpop", "J Pop"); different genres never merge. */
-internal fun genreKey(genre: String): String = genre.lowercase().filter { it.isLetterOrDigit() }
 
 /** What makes two songs the same album: its name and artist line, ignoring case and spacing. */
 internal fun albumKey(album: String, artist: String): String = ArtistNames.key(album) + "\u0000" + ArtistNames.key(artist)
