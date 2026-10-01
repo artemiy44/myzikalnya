@@ -567,7 +567,7 @@ fun LibraryScreen(
                             } else {
                                 val seed = remember(group.name) { group.name.lowercase().hashCode() }
                                 androidx.compose.foundation.Canvas(modifier = Modifier.matchParentSize()) {
-                                    drawGenreMotif(group.name, seed, tile = true)
+                                    drawGenreMotif(group.name, seed)
                                 }
                             }
                         }

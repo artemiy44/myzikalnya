@@ -336,14 +336,14 @@ private fun genreArtFor(genre: String, unknownAsTag: Boolean = true): GenreArt {
 }
 
 /** A genre's picture on its own (for the artist page's header art). */
-internal fun DrawScope.drawGenreMotif(genre: String, seed: Int, unknownAsTag: Boolean = true, tile: Boolean = false) = drawGenre(genre, seed, unknownAsTag, tile)
+internal fun DrawScope.drawGenreMotif(genre: String, seed: Int, unknownAsTag: Boolean = true) = drawGenre(genre, seed, unknownAsTag)
 
 /** Which picture a genre gets — two genres with the same picture count as one ("rock", "punk"). */
 internal fun genrePictureOf(genre: String): String = genreArtFor(genre).name
 
-private fun DrawScope.drawGenre(genre: String, seed: Int, unknownAsTag: Boolean = true, tile: Boolean = false) {
+private fun DrawScope.drawGenre(genre: String, seed: Int, unknownAsTag: Boolean = true) {
     when (genreArtFor(genre, unknownAsTag)) {
-        GenreArt.BOLT -> drawBolt(tile)
+        GenreArt.BOLT -> drawBolt()
         GenreArt.ZIGZAG -> drawZigzags()
         GenreArt.BUBBLES -> drawBubbles(seed)
         GenreArt.SQUARE_WAVE -> drawSquareWaves()
@@ -381,12 +381,10 @@ private fun DrawScope.drawGenre(genre: String, seed: Int, unknownAsTag: Boolean 
     }
 }
 
-/** [tile]: on a small square tile (the Genres list) the bolt stands big in the middle instead of
- * sitting small in a corner, where it was easy to miss. */
-private fun DrawScope.drawBolt(tile: Boolean = false) {
-    val u = if (tile) s * 0.14f else s * 0.12f
-    val x = if (tile) w * 0.5f - u * 2.4f else w * 0.46f
-    val y = if (tile) h * 0.04f else h * 0.3f
+private fun DrawScope.drawBolt() {
+    val x = w * 0.46f
+    val y = h * 0.3f
+    val u = s * 0.12f
     val bolt = Path().apply {
         moveTo(x + u * 2.6f, y)
         lineTo(x + u * 0.6f, y + u * 3.4f)
@@ -397,7 +395,7 @@ private fun DrawScope.drawBolt(tile: Boolean = false) {
         lineTo(x + u * 3.9f, y)
         close()
     }
-    drawPath(bolt, ink(if (tile) 0.32f else 0.25f))
+    drawPath(bolt, ink(0.25f))
 }
 
 private fun DrawScope.drawZigzags() {
