@@ -99,6 +99,8 @@
     <string name="hello_3">Toco música direto do telefone — sem internet e sem assinaturas.</string>
     <string name="hello_4">Mostro letras, monto mixes e resumos da semana e escolho música para cada clima.</string>
     <string name="hello_5">Alguns passos — e já dá para ouvir.</string>
+    <string name="hero_classic">Clássico</string>
+    <string name="hero_vivid">Vívido</string>
     <string name="hide_romanization">Ocultar romanização</string>
     <string name="home_quick_picks">Escolhas rápidas</string>
     <string name="home_recently_added">Adicionadas recentemente</string>
@@ -265,6 +267,9 @@
     <string name="set_font">Fonte</string>
     <string name="set_general">Geral</string>
     <string name="set_general_sub">Aba inicial, separação de artistas</string>
+    <string name="set_hero_classic_desc">A imagem desvanece no fundo da página</string>
+    <string name="set_hero_style">Páginas com imagem</string>
+    <string name="set_hero_vivid_desc">A cor da imagem escorre pela página e depois se funde com o fundo</string>
     <string name="set_icons">Ícones</string>
     <string name="set_icons_lucide">Suaves e arredondados — mais perto do GNOME</string>
     <string name="set_icons_tabler">Mais finos e nítidos — mais perto do Apple Music</string>

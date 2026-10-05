@@ -99,6 +99,8 @@
     <string name="hello_3">我直接播放手机里的音乐——无需联网，无需订阅。</string>
     <string name="hello_4">我显示歌词，制作混音和每周回顾，还能按心情挑选音乐。</string>
     <string name="hello_5">再走几步，就可以开始听了。</string>
+    <string name="hero_classic">经典</string>
+    <string name="hero_vivid">鲜明</string>
     <string name="hide_romanization">隐藏罗马音</string>
     <string name="home_quick_picks">快速精选</string>
     <string name="home_recently_added">最近添加</string>
@@ -265,6 +267,9 @@
     <string name="set_font">字体</string>
     <string name="set_general">通用</string>
     <string name="set_general_sub">启动标签页、艺人拆分</string>
+    <string name="set_hero_classic_desc">图片渐隐为页面背景色</string>
+    <string name="set_hero_style">带图片的页面</string>
+    <string name="set_hero_vivid_desc">图片的颜色顺着页面流下，再融入背景</string>
     <string name="set_icons">图标</string>
     <string name="set_icons_lucide">柔和圆润——更接近 GNOME</string>
     <string name="set_icons_tabler">更细更清晰——更接近 Apple Music</string>

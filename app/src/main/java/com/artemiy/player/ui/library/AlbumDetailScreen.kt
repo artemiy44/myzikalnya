@@ -93,6 +93,8 @@ fun AlbumDetailScreen(
         val arrowTint = rememberArrowTint(listOf(coverThumb))
         HeroOverArt(
             topTint = arrowTint,
+            wash = com.artemiy.player.ui.components.rememberHeroWash(coverThumb, "album:$coverUri"),
+            washDrain = minOf(songs.size * 64, 360).dp,
             onBack = onBack,
             barShown = barShown,
             art = {

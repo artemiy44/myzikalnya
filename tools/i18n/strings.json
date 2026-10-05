@@ -424,6 +424,14 @@
   "ru": "Пара шагов — и можно слушать.",
   "ru_x": "Пара шагов — и поехали!"
  },
+ "hero_classic": {
+  "en": "Classic",
+  "ru": "Классический"
+ },
+ "hero_vivid": {
+  "en": "Vivid",
+  "ru": "Яркий"
+ },
  "hide_romanization": {
   "en": "Hide romanization",
   "ru": "Скрыть романизацию"
@@ -1184,6 +1192,18 @@
  "set_general_sub": {
   "en": "Start tab, splitting artists",
   "ru": "Вкладка при запуске, деление исполнителей"
+ },
+ "set_hero_classic_desc": {
+  "en": "The picture fades into the page background",
+  "ru": "Картинка затухает в цвет фона страницы"
+ },
+ "set_hero_style": {
+  "en": "Picture pages",
+  "ru": "Страницы с картинкой"
+ },
+ "set_hero_vivid_desc": {
+  "en": "The picture's colour flows on down the page, then settles into the background",
+  "ru": "Цвет картинки перетекает вниз по странице и потом сходит на фон"
  },
  "set_icons": {
   "en": "Icons",

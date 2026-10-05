@@ -99,6 +99,8 @@
     <string name="hello_3">スマホの中の音楽をそのまま再生します — ネットもサブスクも不要。</string>
     <string name="hello_4">歌詞を表示し、ミックスや週間まとめを作り、気分に合う音楽を選びます。</string>
     <string name="hello_5">あと少しの設定で、すぐに聴けます。</string>
+    <string name="hero_classic">クラシック</string>
+    <string name="hero_vivid">ビビッド</string>
     <string name="hide_romanization">ローマ字を隠す</string>
     <string name="home_quick_picks">クイックピック</string>
     <string name="home_recently_added">最近追加</string>
@@ -265,6 +267,9 @@
     <string name="set_font">フォント</string>
     <string name="set_general">一般</string>
     <string name="set_general_sub">起動時のタブ、アーティストの分割</string>
+    <string name="set_hero_classic_desc">画像がページの背景にフェードします</string>
+    <string name="set_hero_style">画像のあるページ</string>
+    <string name="set_hero_vivid_desc">画像の色がページを流れ落ち、やがて背景に溶け込みます</string>
     <string name="set_icons">アイコン</string>
     <string name="set_icons_lucide">やわらかく丸い — GNOME 寄り</string>
     <string name="set_icons_tabler">細くシャープ — Apple Music 寄り</string>

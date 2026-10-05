@@ -126,6 +126,7 @@ internal fun PlaylistHero(
         // The drawn picture is always deep and dark: a white arrow reads on it.
         topTint = Color.White,
         onBack = onBack,
+        washKey = "playlist:$name",
         height = COLLAGE_HERO_HEIGHT,
         barShown = barShown,
         art = { ArtistGenreArt(name, songs) },

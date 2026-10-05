@@ -524,12 +524,19 @@ private fun WavySeekBar(positionMs: Long, durationMs: Long, isPlaying: Boolean, 
 
             val waveEnd = thumbX - gap
             if (waveEnd > 0f) {
+                // Calm at the start of the bar, swelling to a touch above the usual height by the
+                // time it reaches the thumb (the ramp is measured from the left edge).
+                val ramp = 170.dp.toPx()
+                fun swell(px: Float): Float {
+                    val t = (px / ramp).coerceIn(0f, 1f)
+                    return 0.2f + 0.95f * (t * t * (3f - 2f * t))
+                }
                 val path = Path()
                 var x = 0f
-                path.moveTo(0f, mid + amp * sin(phase))
+                path.moveTo(0f, mid + amp * swell(0f) * sin(phase))
                 while (x < waveEnd) {
                     x = (x + 2f).coerceAtMost(waveEnd)
-                    path.lineTo(x, mid + amp * sin(2f * PI.toFloat() * x / wavelength + phase))
+                    path.lineTo(x, mid + amp * swell(x) * sin(2f * PI.toFloat() * x / wavelength + phase))
                 }
                 drawPath(path, played, style = Stroke(stroke, cap = StrokeCap.Round))
             }

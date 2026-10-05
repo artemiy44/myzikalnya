@@ -105,6 +105,8 @@
     <string name="hello_3">Играю музыку прямо с телефона — без интернета и подписок.</string>
     <string name="hello_4">Показываю тексты песен, собираю миксы и итоги недели, подбираю музыку под настроение.</string>
     <string name="hello_5">Пара шагов — и можно слушать.</string>
+    <string name="hero_classic">Классический</string>
+    <string name="hero_vivid">Яркий</string>
     <string name="hide_romanization">Скрыть романизацию</string>
     <string name="home_quick_picks">Quick picks</string>
     <string name="home_recently_added">Recently added</string>
@@ -285,6 +287,9 @@
     <string name="set_font">Шрифт</string>
     <string name="set_general">Общие</string>
     <string name="set_general_sub">Вкладка при запуске, деление исполнителей</string>
+    <string name="set_hero_classic_desc">Картинка затухает в цвет фона страницы</string>
+    <string name="set_hero_style">Страницы с картинкой</string>
+    <string name="set_hero_vivid_desc">Цвет картинки перетекает вниз по странице и потом сходит на фон</string>
     <string name="set_icons">Иконки</string>
     <string name="set_icons_lucide">Мягкие и скруглённые — ближе к GNOME</string>
     <string name="set_icons_tabler">Тоньше и чётче — ближе к Apple Music</string>

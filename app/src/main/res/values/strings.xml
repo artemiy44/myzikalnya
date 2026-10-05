@@ -103,6 +103,8 @@
     <string name="hello_3">I play music straight from the phone — no internet, no subscriptions.</string>
     <string name="hello_4">I show song lyrics, make mixes and weekly recaps, and pick music for the mood.</string>
     <string name="hello_5">A couple of steps — and it\'s time to listen.</string>
+    <string name="hero_classic">Classic</string>
+    <string name="hero_vivid">Vivid</string>
     <string name="hide_romanization">Hide romanization</string>
     <string name="home_quick_picks">Quick picks</string>
     <string name="home_recently_added">Recently added</string>
@@ -279,6 +281,9 @@
     <string name="set_font">Font</string>
     <string name="set_general">General</string>
     <string name="set_general_sub">Start tab, splitting artists</string>
+    <string name="set_hero_classic_desc">The picture fades into the page background</string>
+    <string name="set_hero_style">Picture pages</string>
+    <string name="set_hero_vivid_desc">The picture\'s colour flows on down the page, then settles into the background</string>
     <string name="set_icons">Icons</string>
     <string name="set_icons_lucide">Soft and rounded — closer to GNOME</string>
     <string name="set_icons_tabler">Thinner and crisper — closer to Apple Music</string>

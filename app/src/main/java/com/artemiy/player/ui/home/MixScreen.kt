@@ -155,6 +155,13 @@ fun MixScreen(
         HeroOverArt(
             topTint = Color.White,
             onBack = onBack,
+            // A mix's fill is known up front (its gradient near the bottom of the header), so the
+            // colour is there from the first frame — no reading it off the picture.
+            wash = remember(mix.colorIndex) {
+                val colors = accentColors(AccentFamily.STOCK)
+                val base = colors[mix.colorIndex % colors.size]
+                com.artemiy.player.ui.components.heroWashFor(lerp(lerp(base, Color.White, 0.12f), lerp(base, Color.Black, 0.35f), 0.8f))
+            },
             barShown = barShown,
             art = {
                 val textMeasurer = rememberTextMeasurer()

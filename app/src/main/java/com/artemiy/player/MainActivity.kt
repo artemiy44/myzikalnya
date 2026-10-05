@@ -152,6 +152,7 @@ class MainActivity : ComponentActivity() {
                 LocalIconSet provides settings.iconSet,
                 com.artemiy.player.ui.theme.LocalUiStyle provides settings.uiStyle,
                 com.artemiy.player.ui.nowplaying.LocalLrcGapDots provides settings.lrcGapDots,
+                com.artemiy.player.ui.components.LocalHeroBleed provides (settings.heroStyle == com.artemiy.player.data.HeroStyle.VIVID),
             ) {
                 PlayerTheme(palette = palette, appTextScale = settings.fontScale, font = settings.appFont) {
                     PlayerApp(settings)
@@ -741,6 +742,8 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 onLrcGapDotsChange = { settings.updateLrcGapDots(it) },
                 playerStyle = settings.playerStyle,
                 onPlayerStyleChange = { settings.updatePlayerStyle(it) },
+                heroStyle = settings.heroStyle,
+                onHeroStyleChange = { settings.updateHeroStyle(it) },
                 themeMode = settings.themeMode,
                 onThemeModeChange = { settings.updateThemeMode(it) },
                 lightVariant = settings.lightVariant,

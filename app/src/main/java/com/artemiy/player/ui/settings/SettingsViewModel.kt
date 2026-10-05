@@ -13,6 +13,7 @@ import com.artemiy.player.data.LiveBlurIntensity
 import com.artemiy.player.data.Mood
 import com.artemiy.player.data.ArtistNames
 import com.artemiy.player.data.NowPlayingBackgroundMode
+import com.artemiy.player.data.HeroStyle
 import com.artemiy.player.data.PlayerStyle
 import com.artemiy.player.data.SettingsRepository
 import com.artemiy.player.data.discoverAllAudioFolders
@@ -53,6 +54,8 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     var infinitePlayMode by mutableStateOf(InfinitePlayMode.RANDOM)
         private set
 
+    var heroStyle by mutableStateOf(HeroStyle.VIVID)
+        private set
     var playerStyle by mutableStateOf(PlayerStyle.CLASSIC)
         private set
 
@@ -124,6 +127,7 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     private var songViewMode by mutableStateOf(LibraryViewMode.GRID_2)
     private var playlistViewMode by mutableStateOf(LibraryViewMode.LIST)
     private var recentViewMode by mutableStateOf(LibraryViewMode.LIST)
+    private var queuePickerViewMode by mutableStateOf(LibraryViewMode.LIST)
 
     init {
         viewModelScope.launch {
@@ -149,6 +153,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             repository.playerStyle.collect { playerStyle = it }
+        }
+        viewModelScope.launch {
+            repository.heroStyle.collect { heroStyle = it }
         }
         viewModelScope.launch {
             repository.liveBlurIntensity.collect { liveBlurIntensity = it }
@@ -235,6 +242,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             repository.viewMode("recent", LibraryViewMode.LIST).collect { recentViewMode = it }
         }
+        viewModelScope.launch {
+            repository.viewMode("queue_picker", LibraryViewMode.LIST).collect { queuePickerViewMode = it }
+        }
         loadAvailableScanFolders()
     }
 
@@ -243,6 +253,7 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         "albums" -> albumViewMode
         "playlist" -> playlistViewMode
         "recent" -> recentViewMode
+        "queue_picker" -> queuePickerViewMode
         else -> songViewMode
     }
 
@@ -252,6 +263,7 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
             "albums" -> albumViewMode = mode
             "playlist" -> playlistViewMode = mode
             "recent" -> recentViewMode = mode
+            "queue_picker" -> queuePickerViewMode = mode
             else -> songViewMode = mode
         }
         viewModelScope.launch { repository.setViewMode(tab, mode) }
@@ -260,6 +272,11 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     fun updateInfinitePlayMode(mode: InfinitePlayMode) {
         infinitePlayMode = mode
         viewModelScope.launch { repository.setInfinitePlayMode(mode) }
+    }
+
+    fun updateHeroStyle(style: HeroStyle) {
+        heroStyle = style
+        viewModelScope.launch { repository.setHeroStyle(style) }
     }
 
     fun updatePlayerStyle(style: PlayerStyle) {

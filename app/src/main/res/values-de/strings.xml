@@ -99,6 +99,8 @@
     <string name="hello_3">Ich spiele Musik direkt vom Telefon — ohne Internet und ohne Abo.</string>
     <string name="hello_4">Ich zeige Songtexte, stelle Mixe und Wochenrückblicke zusammen und finde Musik für jede Stimmung.</string>
     <string name="hello_5">Ein paar Schritte — und es kann losgehen.</string>
+    <string name="hero_classic">Klassisch</string>
+    <string name="hero_vivid">Lebendig</string>
     <string name="hide_romanization">Umschrift ausblenden</string>
     <string name="home_quick_picks">Schnellauswahl</string>
     <string name="home_recently_added">Zuletzt hinzugefügt</string>
@@ -265,6 +267,9 @@
     <string name="set_font">Schrift</string>
     <string name="set_general">Allgemein</string>
     <string name="set_general_sub">Start-Tab, Aufteilen von Künstlern</string>
+    <string name="set_hero_classic_desc">Das Bild blendet in den Seitenhintergrund aus</string>
+    <string name="set_hero_style">Seiten mit Bild</string>
+    <string name="set_hero_vivid_desc">Die Farbe des Bildes fließt die Seite hinunter und geht dann in den Hintergrund über</string>
     <string name="set_icons">Symbole</string>
     <string name="set_icons_lucide">Weich und abgerundet — näher an GNOME</string>
     <string name="set_icons_tabler">Dünner und schärfer — näher an Apple Music</string>

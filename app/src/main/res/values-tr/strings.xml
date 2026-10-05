@@ -99,6 +99,8 @@
     <string name="hello_3">Müziği doğrudan telefondan çalarım — internet yok, abonelik yok.</string>
     <string name="hello_4">Şarkı sözlerini gösterir, miksler ve haftalık özetler hazırlar, her ruh haline göre müzik seçerim.</string>
     <string name="hello_5">Birkaç adım — ve dinlemeye hazır.</string>
+    <string name="hero_classic">Klasik</string>
+    <string name="hero_vivid">Canlı</string>
     <string name="hide_romanization">Latin harfli okunuşu gizle</string>
     <string name="home_quick_picks">Hızlı seçimler</string>
     <string name="home_recently_added">Son eklenenler</string>
@@ -265,6 +267,9 @@
     <string name="set_font">Yazı tipi</string>
     <string name="set_general">Genel</string>
     <string name="set_general_sub">Başlangıç sekmesi, sanatçıların bölünmesi</string>
+    <string name="set_hero_classic_desc">Görsel sayfa arka planına karışır</string>
+    <string name="set_hero_style">Görselli sayfalar</string>
+    <string name="set_hero_vivid_desc">Görselin rengi sayfada aşağı akar, sonra arka plana yerleşir</string>
     <string name="set_icons">Simgeler</string>
     <string name="set_icons_lucide">Yumuşak ve yuvarlak — GNOME\'a daha yakın</string>
     <string name="set_icons_tabler">Daha ince ve net — Apple Music\'e daha yakın</string>

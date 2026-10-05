@@ -99,6 +99,8 @@
     <string name="hello_3">Je joue la musique directement depuis le téléphone — sans internet ni abonnement.</string>
     <string name="hello_4">J’affiche les paroles, je prépare des mix et des bilans de la semaine, et je trouve de la musique selon l’humeur.</string>
     <string name="hello_5">Quelques étapes — et place à l’écoute.</string>
+    <string name="hero_classic">Classique</string>
+    <string name="hero_vivid">Vif</string>
     <string name="hide_romanization">Masquer la romanisation</string>
     <string name="home_quick_picks">Sélection rapide</string>
     <string name="home_recently_added">Ajouts récents</string>
@@ -265,6 +267,9 @@
     <string name="set_font">Police</string>
     <string name="set_general">Général</string>
     <string name="set_general_sub">Onglet au démarrage, séparation des artistes</string>
+    <string name="set_hero_classic_desc">L\'image se fond dans l\'arrière-plan de la page</string>
+    <string name="set_hero_style">Pages avec image</string>
+    <string name="set_hero_vivid_desc">La couleur de l\'image coule le long de la page, puis se fond dans l\'arrière-plan</string>
     <string name="set_icons">Icônes</string>
     <string name="set_icons_lucide">Douces et arrondies — plus proches de GNOME</string>
     <string name="set_icons_tabler">Plus fines et nettes — plus proches d’Apple Music</string>

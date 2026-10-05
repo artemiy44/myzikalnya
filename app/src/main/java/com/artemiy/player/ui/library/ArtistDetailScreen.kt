@@ -117,6 +117,7 @@ fun ArtistDetailScreen(
             // The drawn picture is always deep and dark: a white arrow reads on it.
             topTint = androidx.compose.ui.graphics.Color.White,
             onBack = onBack,
+            washKey = "artist:$title",
             height = COLLAGE_HERO_HEIGHT,
             barShown = barShown,
             art = {

@@ -99,6 +99,8 @@
     <string name="hello_3">휴대폰에 있는 음악을 바로 재생해요 — 인터넷도, 구독도 필요 없어요.</string>
     <string name="hello_4">가사를 보여 주고, 믹스와 주간 요약을 만들고, 기분에 맞는 음악을 골라요.</string>
     <string name="hello_5">몇 단계만 거치면 바로 들을 수 있어요.</string>
+    <string name="hero_classic">클래식</string>
+    <string name="hero_vivid">선명</string>
     <string name="hide_romanization">로마자 숨기기</string>
     <string name="home_quick_picks">빠른 선곡</string>
     <string name="home_recently_added">최근 추가</string>
@@ -265,6 +267,9 @@
     <string name="set_font">글꼴</string>
     <string name="set_general">일반</string>
     <string name="set_general_sub">시작 탭, 아티스트 나누기</string>
+    <string name="set_hero_classic_desc">이미지가 페이지 배경으로 서서히 사라집니다</string>
+    <string name="set_hero_style">이미지 페이지</string>
+    <string name="set_hero_vivid_desc">이미지의 색이 페이지 아래로 흘러내린 뒤 배경에 스며듭니다</string>
     <string name="set_icons">아이콘</string>
     <string name="set_icons_lucide">부드럽고 둥근 — GNOME에 가까움</string>
     <string name="set_icons_tabler">가늘고 선명한 — Apple Music에 가까움</string>

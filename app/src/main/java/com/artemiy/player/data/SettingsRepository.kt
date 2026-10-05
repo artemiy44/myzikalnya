@@ -27,6 +27,9 @@ enum class LiveBlurIntensity { MUTED, NORMAL, VIVID }
 /** Now Playing's layout: ours, or one built from Material 3 Expressive pieces. */
 enum class PlayerStyle { CLASSIC, EXPRESSIVE }
 
+/** Album/artist/playlist/mix headers: the picture fades into the page, or its colour flows on down it. */
+enum class HeroStyle { CLASSIC, VIVID }
+
 class SettingsRepository(private val context: Context) {
 
     companion object {
@@ -45,6 +48,7 @@ class SettingsRepository(private val context: Context) {
         val LIVE_BLUR_INTENSITY_KEY = stringPreferencesKey("live_blur_intensity")
         val LYRICS_ROMANIZATION_KEY = booleanPreferencesKey("lyrics_romanization")
         val LYRICS_TAP_PLAYS_KEY = booleanPreferencesKey("lyrics_tap_plays")
+        val HERO_STYLE_KEY = stringPreferencesKey("hero_style")
         val LRC_GAP_DOTS_KEY = booleanPreferencesKey("lrc_gap_dots")
         val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
         val LIGHT_VARIANT_KEY = stringPreferencesKey("light_variant")
@@ -184,6 +188,14 @@ class SettingsRepository(private val context: Context) {
 
     val playerStyle: Flow<PlayerStyle> = context.settingsDataStore.data.map { prefs ->
         prefs[PLAYER_STYLE_KEY]?.let { runCatching { PlayerStyle.valueOf(it) }.getOrNull() } ?: PlayerStyle.CLASSIC
+    }
+
+    val heroStyle: Flow<HeroStyle> = context.settingsDataStore.data.map { prefs ->
+        prefs[HERO_STYLE_KEY]?.let { runCatching { HeroStyle.valueOf(it) }.getOrNull() } ?: HeroStyle.VIVID
+    }
+
+    suspend fun setHeroStyle(style: HeroStyle) {
+        context.settingsDataStore.edit { prefs -> prefs[HERO_STYLE_KEY] = style.name }
     }
 
     suspend fun setPlayerStyle(style: PlayerStyle) {

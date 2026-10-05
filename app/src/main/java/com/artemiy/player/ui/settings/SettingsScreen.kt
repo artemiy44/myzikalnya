@@ -129,6 +129,8 @@ fun SettingsScreen(
     onLyricsTapPlaysChange: (Boolean) -> Unit,
     playerStyle: PlayerStyle,
     onPlayerStyleChange: (PlayerStyle) -> Unit,
+    heroStyle: com.artemiy.player.data.HeroStyle = com.artemiy.player.data.HeroStyle.VIVID,
+    onHeroStyleChange: (com.artemiy.player.data.HeroStyle) -> Unit = {},
     themeMode: ThemeMode,
     onThemeModeChange: (ThemeMode) -> Unit,
     lightVariant: LightVariant,
@@ -258,6 +260,8 @@ fun SettingsScreen(
                     onLyricsTapPlaysChange = onLyricsTapPlaysChange,
                     playerStyle = playerStyle,
                     onPlayerStyleChange = onPlayerStyleChange,
+                    heroStyle = heroStyle,
+                    onHeroStyleChange = onHeroStyleChange,
                     themeMode = themeMode,
                     onThemeModeChange = onThemeModeChange,
                     lightVariant = lightVariant,
@@ -624,6 +628,8 @@ private fun SettingsSectionContent(
     onLyricsTapPlaysChange: (Boolean) -> Unit,
     playerStyle: PlayerStyle,
     onPlayerStyleChange: (PlayerStyle) -> Unit,
+    heroStyle: com.artemiy.player.data.HeroStyle = com.artemiy.player.data.HeroStyle.VIVID,
+    onHeroStyleChange: (com.artemiy.player.data.HeroStyle) -> Unit = {},
     themeMode: ThemeMode,
     onThemeModeChange: (ThemeMode) -> Unit,
     lightVariant: LightVariant,
@@ -732,6 +738,27 @@ private fun SettingsSectionContent(
                     valueRange = SettingsRepository.MIN_FONT_SCALE..SettingsRepository.MAX_FONT_SCALE,
                     modifier = Modifier.padding(top = 14.dp),
                 )
+            }
+
+            if (section == SettingsRoute.Appearance) {
+                Spacer(modifier = Modifier.height(12.dp))
+                SettingsCard {
+                    SettingsLabel(stringResource(R.string.set_hero_style))
+                    Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                        com.artemiy.player.data.HeroStyle.entries.forEach { style ->
+                            InfinitePlayModeChip(
+                                stringResource(if (style == com.artemiy.player.data.HeroStyle.CLASSIC) R.string.hero_classic else R.string.hero_vivid),
+                                style == heroStyle,
+                            ) { onHeroStyleChange(style) }
+                        }
+                    }
+                    Text(
+                        text = stringResource(if (heroStyle == com.artemiy.player.data.HeroStyle.CLASSIC) R.string.set_hero_classic_desc else R.string.set_hero_vivid_desc),
+                        color = PlayerColors.TextSecondary,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 10.dp),
+                    )
+                }
             }
 
             if (section == SettingsRoute.Library) SettingsCard {

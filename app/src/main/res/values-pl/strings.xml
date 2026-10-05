@@ -99,6 +99,8 @@
     <string name="hello_3">Gram muzykę prosto z telefonu — bez internetu i subskrypcji.</string>
     <string name="hello_4">Pokazuję teksty piosenek, układam miksy i podsumowania tygodnia, dobieram muzykę do nastroju.</string>
     <string name="hello_5">Kilka kroków — i można słuchać.</string>
+    <string name="hero_classic">Klasyczny</string>
+    <string name="hero_vivid">Żywy</string>
     <string name="hide_romanization">Ukryj romanizację</string>
     <string name="home_quick_picks">Szybki wybór</string>
     <string name="home_recently_added">Ostatnio dodane</string>
@@ -265,6 +267,9 @@
     <string name="set_font">Czcionka</string>
     <string name="set_general">Ogólne</string>
     <string name="set_general_sub">Karta startowa, dzielenie wykonawców</string>
+    <string name="set_hero_classic_desc">Obraz zanika w tle strony</string>
+    <string name="set_hero_style">Strony z obrazem</string>
+    <string name="set_hero_vivid_desc">Kolor obrazu spływa w dół strony, a potem przechodzi w tło</string>
     <string name="set_icons">Ikony</string>
     <string name="set_icons_lucide">Miękkie i zaokrąglone — bliżej GNOME</string>
     <string name="set_icons_tabler">Cieńsze i wyraźniejsze — bliżej Apple Music</string>
