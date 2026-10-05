@@ -886,7 +886,9 @@ fun NowPlayingScreen(
         if (showAddToQueuePicker) {
             AddToQueuePicker(
                 songs = allSongs,
-                onAdd = onAddToQueue,
+                actions = remember(onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist) {
+                    QueueSongActions(onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
+                },
                 onDismiss = { showAddToQueuePicker = false },
             )
         }

@@ -47,6 +47,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -451,6 +452,9 @@ internal fun QueueRow(
     }
 }
 
+/** Provided by the app: repeat is on and it's one song that repeats (the button gets a small "1"). */
+val LocalRepeatOne = androidx.compose.runtime.compositionLocalOf { false }
+
 @Composable
 internal fun QueueToggleRow(
     shuffleEnabled: Boolean,
@@ -477,6 +481,7 @@ internal fun QueueToggleRow(
             active = repeatEnabled,
             onClick = onToggleRepeat,
             modifier = Modifier.weight(1f),
+            badge = if (LocalRepeatOne.current) "1" else null,
         )
         QueueToggleButton(
             icon = AppIcons.Infinite,
@@ -495,6 +500,7 @@ internal fun QueueToggleButton(
     active: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    badge: String? = null,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val background by animateColorAsState(
@@ -517,92 +523,119 @@ internal fun QueueToggleButton(
             tint = if (active) PlayerColors.OnAccent else PlayerColors.TextPrimary,
             modifier = Modifier.size(22.dp),
         )
+        if (badge != null) {
+            Text(
+                text = badge,
+                color = if (active) PlayerColors.OnAccent else PlayerColors.TextPrimary,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier.align(Alignment.Center).offset(x = 0.dp, y = 0.dp),
+            )
+        }
     }
 }
 
-/** Full-screen search overlay for the Queue's "Добавить треки в очередь" row — same idea as the
- * Search tab, but tapping a result adds it to the end of the queue instead of playing it, and
- * the sheet stays open so you can queue up several before dismissing. */
+/**
+ * "Add tracks to the queue": the Tracks tab — search, sort, list or grid — except that a tap on a
+ * song queues it (instead of playing it), and the page stays open so several can be queued before
+ * it's closed. It slides up when it opens and slides away when it closes.
+ */
 @Composable
-internal fun AddToQueuePicker(songs: List<Song>, onAdd: (Song) -> Unit, onDismiss: () -> Unit) {
+internal fun AddToQueuePicker(songs: List<Song>, actions: QueueSongActions, onDismiss: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
     var query by remember { mutableStateOf("") }
-    val results = remember(query, songs) {
+    var sort by remember { mutableStateOf(com.artemiy.player.ui.library.SongSort.RECENT) }
+    var viewMode by remember { mutableStateOf(com.artemiy.player.ui.library.ViewMode.LIST) }
+    val filtered = remember(songs, query, sort) {
         val q = query.trim()
-        if (q.isEmpty()) songs
-        else songs.filter {
-            it.title.contains(q, ignoreCase = true) ||
-                it.artist.contains(q, ignoreCase = true) ||
-                it.album.contains(q, ignoreCase = true)
+        songs
+            .filter { q.isEmpty() || it.title.contains(q, ignoreCase = true) || it.artist.contains(q, ignoreCase = true) || it.album.contains(q, ignoreCase = true) }
+            .let { list ->
+                when (sort) {
+                    com.artemiy.player.ui.library.SongSort.TITLE -> list.sortedBy { it.title.lowercase() }
+                    com.artemiy.player.ui.library.SongSort.ARTIST -> list.sortedBy { it.artist.lowercase() }
+                    com.artemiy.player.ui.library.SongSort.RECENT -> list.sortedByDescending { it.dateAddedMs }
+                    com.artemiy.player.ui.library.SongSort.RELEASE_DATE -> list.sortedByDescending { it.year ?: -1 }
+                }
+            }
+    }
+    val appear = remember { androidx.compose.animation.core.Animatable(0f) }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        appear.animateTo(1f, androidx.compose.animation.core.tween(320, easing = androidx.compose.animation.core.FastOutSlowInEasing))
+    }
+    val close: () -> Unit = {
+        scope.launch {
+            appear.animateTo(0f, androidx.compose.animation.core.tween(220, easing = androidx.compose.animation.core.FastOutLinearInEasing))
+            onDismiss()
         }
     }
-    var addedIds by remember { mutableStateOf(emptySet<Long>()) }
-
+    androidx.activity.compose.BackHandler(onBack = close)
+    // A tap queues the song (at the end of the queue) and says so.
+    val add: (Song) -> Unit = { song ->
+        actions.onAddToQueue(song)
+        android.widget.Toast.makeText(context, "✓ ${song.title}", android.widget.Toast.LENGTH_SHORT).show()
+    }
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .graphicsLayer {
+                alpha = appear.value
+                translationY = (1f - appear.value) * 90.dp.toPx()
+            }
             .background(PlayerColors.Background)
             .statusBarsPadding(),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(20.dp, 16.dp, 20.dp, 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(20.dp, 16.dp, 20.dp, 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(text = stringResource(R.string.add_to_queue), color = PlayerColors.TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+                Text(text = stringResource(R.string.add_to_queue), color = PlayerColors.TextPrimary, style = com.artemiy.player.ui.theme.pageTitleStyle)
                 Icon(
                     imageVector = AppIcons.Close,
                     contentDescription = stringResource(R.string.close),
                     tint = PlayerColors.TextSecondary,
                     modifier = Modifier
-                        .size(22.dp)
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onDismiss() },
+                        .size(24.dp)
+                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { close() },
                 )
             }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(PlayerColors.Surface)
-                    .padding(horizontal = 14.dp, vertical = 11.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(imageVector = AppIcons.Search, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(18.dp))
-                com.artemiy.player.ui.components.HintTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    hint = stringResource(R.string.search_title_artist_album),
-                    fontSize = 15.sp,
-                    modifier = Modifier.weight(1f).padding(horizontal = 10.dp),
-                )
-            }
-            LazyColumn(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
-                itemsIndexed(results) { _, song ->
-                    val added = song.id in addedIds
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        AlbumArt(uri = song.uri, size = ART_SIZE_THUMB, modifier = Modifier.size(42.dp).clip(RoundedCornerShape(7.dp)))
-                        Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
-                            Text(text = song.title, color = PlayerColors.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text(text = song.artist, color = PlayerColors.TextSecondary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        }
-                        Icon(
-                            imageVector = if (added) AppIcons.Check else AppIcons.Add,
-                            contentDescription = stringResource(if (added) R.string.added else R.string.add),
-                            tint = if (added) PlayerColors.TextSecondary else PlayerColors.TextPrimary,
-                            modifier = Modifier
-                                .size(24.dp)
-                                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
-                                    onAdd(song)
-                                    addedIds = addedIds + song.id
-                                },
-                        )
-                    }
+            com.artemiy.player.ui.library.ListToolbar(
+                query = query,
+                onQueryChange = { query = it },
+                placeholder = stringResource(R.string.search_tracks),
+                sortOptions = com.artemiy.player.ui.library.SongSort.entries,
+                sortOptionLabel = { stringResource(it.labelRes) },
+                currentSort = stringResource(sort.labelRes),
+                onSortSelect = { sort = it },
+                viewMode = viewMode,
+                onViewModeCycle = { viewMode = viewMode.next() },
+            )
+            Box(modifier = Modifier.weight(1f)) {
+                when (viewMode) {
+                    com.artemiy.player.ui.library.ViewMode.LIST -> com.artemiy.player.ui.library.SongList(
+                        songs = filtered,
+                        onSongClick = add,
+                        onPlayNext = actions.onPlayNext,
+                        onAddToQueue = actions.onAddToQueue,
+                        onAddToPlaylist = actions.onAddToPlaylist,
+                        onGoToAlbum = actions.onGoToAlbum,
+                        onGoToArtist = actions.onGoToArtist,
+                    )
+                    else -> com.artemiy.player.ui.library.SongsGrid(
+                        songs = filtered,
+                        columns = if (viewMode == com.artemiy.player.ui.library.ViewMode.GRID_2) 2 else 3,
+                        state = androidx.compose.foundation.lazy.grid.rememberLazyGridState(),
+                        onSongClick = add,
+                        onPlayNext = actions.onPlayNext,
+                        onAddToQueue = actions.onAddToQueue,
+                        onAddToPlaylist = actions.onAddToPlaylist,
+                        onGoToAlbum = actions.onGoToAlbum,
+                        onGoToArtist = actions.onGoToArtist,
+                    )
                 }
             }
         }

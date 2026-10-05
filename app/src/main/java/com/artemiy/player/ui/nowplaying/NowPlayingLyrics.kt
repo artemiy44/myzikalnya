@@ -471,6 +471,9 @@ internal fun SungLine(
     val readings = line.wordReadings?.takeIf { showRomanization }
     val ruby = line.ruby?.takeIf { showRomanization }
     val fontSize = fittedLyricSize(line.text, withReadings = readings != null || ruby != null)
+    // A light app theme with no blurred background: the text is dark, and a dark glow around dark text only
+    // smudges it — so no glow there (the blurred backgrounds are always dark, and keep theirs).
+    val glowOn = !com.artemiy.player.ui.theme.LocalPlayerPalette.current.isLight
     when {
         line.words != null -> {
             // Word-synced lines keep the same per-word layout whether sung or not (only the
@@ -480,7 +483,7 @@ internal fun SungLine(
                 // so it lines up pixel-for-pixel with the crisp text on top and sweeps forward in
                 // lockstep instead of glowing ahead of what's been sung.
                 Box {
-                    WordSyncedLine(line, positionMs, alpha, fontSize.sp, nextLineStartMs, alignEnd, 8.dp, bottomPadding, readings = readings, glow = true, unsungAlpha = unsungAlpha)
+                    if (glowOn) WordSyncedLine(line, positionMs, alpha, fontSize.sp, nextLineStartMs, alignEnd, 8.dp, bottomPadding, readings = readings, glow = true, unsungAlpha = unsungAlpha)
                     WordSyncedLine(line, positionMs, alpha, fontSize.sp, nextLineStartMs, alignEnd, 8.dp, bottomPadding, readings = readings, unsungAlpha = unsungAlpha)
                 }
             } else {
@@ -489,7 +492,7 @@ internal fun SungLine(
         }
         ruby != null -> if (active) {
             Box {
-                RubyLine(ruby, alpha, fontSize, alignEnd, bottomPadding, glow = true)
+                if (glowOn) RubyLine(ruby, alpha, fontSize, alignEnd, bottomPadding, glow = true)
                 RubyLine(ruby, alpha, fontSize, alignEnd, bottomPadding)
             }
         } else {
@@ -497,7 +500,7 @@ internal fun SungLine(
         }
         // Plain LRC has no per-word timing, so the whole active line glows at once.
         active -> Box {
-            PlainLyricLine(line.text, alpha, fontSize, alignEnd, 8.dp, bottomPadding, glow = true)
+            if (glowOn) PlainLyricLine(line.text, alpha, fontSize, alignEnd, 8.dp, bottomPadding, glow = true)
             PlainLyricLine(line.text, alpha, fontSize, alignEnd, 8.dp, bottomPadding)
         }
         else -> PlainLyricLine(line.text, alpha, fontSize, alignEnd, 8.dp, bottomPadding)
@@ -539,7 +542,7 @@ internal fun BackgroundVocals(
     Box(modifier = Modifier.lyricScale(scale, alignEnd)) {
         if (words != null) {
             // The same glow as the main line's, following the words as they're sung — only softer.
-            if (lineActive) {
+            if (lineActive && !com.artemiy.player.ui.theme.LocalPlayerPalette.current.isLight) {
                 WordSyncedLine(background, positionMs, backgroundAlpha * BACKGROUND_GLOW, grownSize.sp, null, alignEnd, 6.dp, 8.dp, glow = true, unsungAlpha = unsungAlpha)
             }
             WordSyncedLine(background, positionMs, backgroundAlpha, grownSize.sp, null, alignEnd, 6.dp, 8.dp, sweep = swept, unsungAlpha = unsungAlpha)

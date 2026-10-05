@@ -642,6 +642,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
           ) {
           CompositionLocalProvider(
               LocalNowPlayingActive provides showNowPlaying,
+              com.artemiy.player.ui.nowplaying.LocalRepeatOne provides playback.repeatOne,
               com.artemiy.player.ui.nowplaying.LocalQualityLabel provides (if (settings.qualityBadge) playback.qualityLabel else null),
           ) {
             NowPlayingScreen(

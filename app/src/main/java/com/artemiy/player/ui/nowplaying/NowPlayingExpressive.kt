@@ -360,7 +360,9 @@ internal fun ExpressiveNowPlaying(
         if (showAddToQueuePicker) {
             AddToQueuePicker(
                 songs = allSongs,
-                onAdd = onAddToQueue,
+                actions = remember(onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist) {
+                    QueueSongActions(onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
+                },
                 onDismiss = { showAddToQueuePicker = false },
             )
         }
@@ -991,6 +993,9 @@ private fun ExpressiveQueueModes(
                 onClick = onClick,
             ) {
                 Icon(iconAndLabel.first, contentDescription = iconAndLabel.second, tint = tint, modifier = Modifier.size(22.dp))
+                if (index == 1 && LocalRepeatOne.current) {
+                    Text("1", color = tint, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+                }
             }
         }
     }

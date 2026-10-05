@@ -91,6 +91,9 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
 
     var repeatEnabled by mutableStateOf(false)
         private set
+    /** Repeat is on, and it's this one song that repeats (the "1" on the button). */
+    var repeatOne by mutableStateOf(false)
+        private set
 
     /** When the queue naturally runs out, keep going by shuffling in more of the library instead
      * of just stopping — meant for "I tapped one song from search, don't leave me in silence." */
@@ -168,7 +171,7 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
             controller = c
             isPlaying = c.isPlaying
             shuffleEnabled = c.shuffleModeEnabled
-            repeatEnabled = c.repeatMode != Player.REPEAT_MODE_OFF
+            syncRepeat(c.repeatMode)
             // The session/service can outlive this ViewModel (e.g. the task was swiped away and
             // the app reopened) — in that case we're attaching to a session that's already mid-
             // playback, and no `onMediaItemTransition` will ever fire for the item that's already
@@ -187,6 +190,11 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
             }
             refreshDerivedQueues()
             c.addListener(object : Player.Listener {
+                // The player's own repeat mode is the truth: the buttons show what it really does.
+                override fun onRepeatModeChanged(repeatMode: Int) {
+                    syncRepeat(repeatMode)
+                }
+
                 override fun onIsPlayingChanged(playing: Boolean) {
                     Log.d(TAG, "isPlaying -> $playing (playbackState=${c.playbackState})")
                     isPlaying = playing
@@ -316,6 +324,7 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
             .putString("manual", manualQueueIds.joinToString(","))
             .putBoolean("shuffle", shuffleEnabled)
             .putBoolean("repeat", repeatEnabled)
+            .putInt("repeat_mode", c.repeatMode)
             .putBoolean("endless", infinitePlayEnabled)
             .putString("fromName", from?.name)
             .putInt("fromCount", from?.songCount ?: 0)
@@ -385,9 +394,9 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
         manualQueueIds.clear()
         manualQueueIds.addAll(saved.getString("manual", "")!!.split(',').mapNotNull { it.toLongOrNull() }.filter { it in byId })
         shuffleEnabled = saved.getBoolean("shuffle", false)
-        repeatEnabled = saved.getBoolean("repeat", false)
         infinitePlayEnabled = saved.getBoolean("endless", false)
-        c.repeatMode = if (repeatEnabled) Player.REPEAT_MODE_ALL else Player.REPEAT_MODE_OFF
+        c.repeatMode = saved.getInt("repeat_mode", if (saved.getBoolean("repeat", false)) Player.REPEAT_MODE_ALL else Player.REPEAT_MODE_OFF)
+        syncRepeat(c.repeatMode)
         c.setMediaItems(songs.map(::toMediaItem), index, position)
         c.prepare()
         currentSong = songs[index]
@@ -471,12 +480,23 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
         c.addMediaItems(start, restored)
     }
 
+    /** Off → the whole queue again and again → this one song again and again → off. */
     fun toggleRepeat() {
         val c = controller ?: return
-        repeatEnabled = !repeatEnabled
-        c.repeatMode = if (repeatEnabled) Player.REPEAT_MODE_ALL else Player.REPEAT_MODE_OFF
+        c.repeatMode = when (c.repeatMode) {
+            Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
+            Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
+            else -> Player.REPEAT_MODE_OFF
+        }
+        syncRepeat(c.repeatMode)
         refreshDerivedQueues()
         sendModes()
+        saveState()
+    }
+
+    private fun syncRepeat(mode: Int) {
+        repeatEnabled = mode != Player.REPEAT_MODE_OFF
+        repeatOne = mode == Player.REPEAT_MODE_ONE
     }
 
     fun toggleInfinitePlay() {
@@ -600,7 +620,9 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
         val indices = mutableListOf<Int>()
         var index = c.currentMediaItemIndex
         while (indices.size < c.mediaItemCount) {
-            index = timeline.getNextWindowIndex(index, c.repeatMode, false)
+            // "This song again" has no next song of its own: the queue is walked as if the whole list repeats.
+            val walkMode = if (c.repeatMode == Player.REPEAT_MODE_OFF) Player.REPEAT_MODE_OFF else Player.REPEAT_MODE_ALL
+            index = timeline.getNextWindowIndex(index, walkMode, false)
             if (index == C.INDEX_UNSET) break
             indices.add(index)
         }
