@@ -105,6 +105,7 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     var qualityBadge by mutableStateOf(false)
         private set
     /** How the songs inside folders are ordered — one choice for every folder, remembered. */
+    private val sortNames = androidx.compose.runtime.mutableStateMapOf<String, String>()
     var folderSort by mutableStateOf(com.artemiy.player.ui.library.FolderSort.RECENT)
         private set
     var libraryTabs by mutableStateOf(com.artemiy.player.ui.library.LibraryTab.DEFAULT)
@@ -245,7 +246,18 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             repository.viewMode("queue_picker", LibraryViewMode.LIST).collect { queuePickerViewMode = it }
         }
+        for (tab in listOf("artists", "albums", "songs", "queue_picker")) {
+            viewModelScope.launch { repository.sortName(tab).collect { name -> if (name != null) sortNames[tab] = name } }
+        }
         loadAvailableScanFolders()
+    }
+
+    /** The remembered sort of a library tab (an enum entry's name), or null if never chosen. */
+    fun sortName(tab: String): String? = sortNames[tab]
+
+    fun setSortName(tab: String, name: String) {
+        sortNames[tab] = name
+        viewModelScope.launch { repository.setSortName(tab, name) }
     }
 
     fun viewMode(tab: String): LibraryViewMode = when (tab) {

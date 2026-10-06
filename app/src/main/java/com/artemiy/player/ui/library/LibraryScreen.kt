@@ -94,6 +94,7 @@ import com.artemiy.player.ui.components.BlurredCollageArt
 import com.artemiy.player.ui.components.COLLAGE_HERO_HEIGHT
 import com.artemiy.player.ui.components.CircleIconButton
 import com.artemiy.player.ui.components.HeroOverArt
+import com.artemiy.player.ui.components.heroPanel
 import com.artemiy.player.ui.components.HeroTextShadow
 import com.artemiy.player.ui.components.PlayPillButton
 import com.artemiy.player.ui.components.rememberArrowTint
@@ -140,15 +141,15 @@ fun LibraryScreen(
     val songsGridState = rememberLazyGridState()
 
     var artistQuery by remember { mutableStateOf("") }
-    var artistSort by remember { mutableStateOf(ArtistSort.COUNT) }
+    val artistSort = settingsVm.sortOf("artists", ArtistSort.COUNT)
     // Persisted (DataStore, via SettingsViewModel) so the chosen list/grid style survives a
     // restart instead of resetting to each tab's default every time.
     val artistViewMode = ViewMode.valueOf(settingsVm.viewMode("artists").name)
     var albumQuery by remember { mutableStateOf("") }
-    var albumSort by remember { mutableStateOf(AlbumSort.RECENT) }
+    val albumSort = settingsVm.sortOf("albums", AlbumSort.RECENT)
     val albumViewMode = ViewMode.valueOf(settingsVm.viewMode("albums").name)
     var songQuery by remember { mutableStateOf("") }
-    var songSort by remember { mutableStateOf(SongSort.RECENT) }
+    val songSort = settingsVm.sortOf("songs", SongSort.RECENT)
     val songViewMode = ViewMode.valueOf(settingsVm.viewMode("songs").name)
     val playlistViewMode = ViewMode.valueOf(settingsVm.viewMode("playlist").name)
 
@@ -391,7 +392,7 @@ fun LibraryScreen(
                                     sortOptions = ArtistSort.entries,
                                     sortOptionLabel = { stringResource(it.labelRes) },
                                     currentSort = stringResource(artistSort.labelRes),
-                                    onSortSelect = { artistSort = it },
+                                    onSortSelect = { settingsVm.setSortName("artists", it.name) },
                                     viewMode = artistViewMode,
                                     onViewModeCycle = { settingsVm.setViewMode("artists", LibraryViewMode.valueOf(artistViewMode.next().name)) },
                                 )
@@ -449,7 +450,7 @@ fun LibraryScreen(
                                     sortOptions = AlbumSort.entries,
                                     sortOptionLabel = { stringResource(it.labelRes) },
                                     currentSort = stringResource(albumSort.labelRes),
-                                    onSortSelect = { albumSort = it },
+                                    onSortSelect = { settingsVm.setSortName("albums", it.name) },
                                     viewMode = albumViewMode,
                                     onViewModeCycle = { settingsVm.setViewMode("albums", LibraryViewMode.valueOf(albumViewMode.next().name)) },
                                 )
@@ -510,7 +511,7 @@ fun LibraryScreen(
                                     sortOptions = SongSort.entries,
                                     sortOptionLabel = { stringResource(it.labelRes) },
                                     currentSort = stringResource(songSort.labelRes),
-                                    onSortSelect = { songSort = it },
+                                    onSortSelect = { settingsVm.setSortName("songs", it.name) },
                                     viewMode = songViewMode,
                                     onViewModeCycle = { settingsVm.setViewMode("songs", LibraryViewMode.valueOf(songViewMode.next().name)) },
                                 )
@@ -699,6 +700,7 @@ fun LibraryScreen(
                             var playlistQuery by remember(r.playlistId) { mutableStateOf("") }
                             var playlistSort by remember(r.playlistId) { mutableStateOf(PlaylistSongSort.ORDER) }
                             val playlistListState = rememberLazyListState()
+                            val playlistWash = remember(r.playlistId) { com.artemiy.player.ui.components.HeroWashState() }
                             val playlistGridState = rememberLazyGridState()
                             val removeFromPlaylist: (Song) -> Unit = { song -> playlistsVm.removeSongFromPlaylist(r.playlistId, song.id) }
                             val filtered = remember(playlistSongs, playlistQuery, playlistSort) {
@@ -748,16 +750,17 @@ fun LibraryScreen(
                                         onRename = { showRenamePlaylist = true },
                                         onDelete = { showDeletePlaylist = true },
                                         onExportM3u = { exportM3u.launch(r.name.replace('/', '-') + ".m3u") },
+                                        washOut = playlistWash,
                                     )
                                     if (playlistSongs.isEmpty()) {
                                         Text(
                                             text = stringResource(R.string.playlist_empty),
                                             color = PlayerColors.TextSecondary,
                                             fontSize = 14.sp,
-                                            modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+                                            modifier = Modifier.fillMaxWidth().heroPanel(roundTop = true).padding(top = 24.dp),
                                             textAlign = TextAlign.Center,
                                         )
-                                    } else {
+                                    } else Box(modifier = Modifier.fillMaxWidth().then(if (playlistViewMode == ViewMode.LIST) Modifier.heroPanel(roundTop = true) else Modifier).padding(top = 16.dp)) {
                                         ListToolbar(
                                             query = playlistQuery,
                                             onQueryChange = { playlistQuery = it },
@@ -785,6 +788,8 @@ fun LibraryScreen(
                                     onGoToArtist = onGoToArtist,
                                     onRemoveFromPlaylist = removeFromPlaylist,
                                     header = header,
+                                    onHeroPanel = true,
+                                    heroWash = playlistWash,
                                 )
                                 ViewMode.GRID_2, ViewMode.GRID_3 -> SongsGrid(
                                     songs = filtered,
@@ -798,6 +803,8 @@ fun LibraryScreen(
                                     onGoToArtist = onGoToArtist,
                                     onRemoveFromPlaylist = removeFromPlaylist,
                                     header = header,
+                                    onHeroPanel = true,
+                                    heroWash = playlistWash,
                                 )
                             }
                             HeroBar(shown = barShown, title = r.name, onBack = { backStack.removeAt(backStack.lastIndex) })

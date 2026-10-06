@@ -305,6 +305,13 @@ class SettingsRepository(private val context: Context) {
         context.settingsDataStore.edit { it[QUALITY_BADGE_KEY] = value }
     }
 
+    /** The chosen sort order of a library list (by the enum entry's name), per tab. */
+    fun sortName(tab: String): Flow<String?> = context.settingsDataStore.data.map { it[stringPreferencesKey("sort_$tab")] }
+
+    suspend fun setSortName(tab: String, name: String) {
+        context.settingsDataStore.edit { it[stringPreferencesKey("sort_$tab")] = name }
+    }
+
     val folderSort: Flow<String?> = context.settingsDataStore.data.map { it[FOLDER_SORT_KEY] }
 
     suspend fun setFolderSort(value: String) {

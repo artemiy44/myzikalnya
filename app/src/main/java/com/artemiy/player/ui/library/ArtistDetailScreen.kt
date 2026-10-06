@@ -53,6 +53,8 @@ import androidx.compose.ui.window.Dialog
 import com.artemiy.player.ui.components.AlbumArt
 import com.artemiy.player.ui.components.ART_SIZE_THUMB
 import com.artemiy.player.ui.components.HeroOverArt
+import com.artemiy.player.ui.components.heroPanel
+import com.artemiy.player.ui.components.drawHeroDrain
 import com.artemiy.player.ui.components.rememberAlbumArtBitmap
 import com.artemiy.player.ui.components.HeroTextShadow
 import com.artemiy.player.ui.components.rememberArrowTint
@@ -106,7 +108,8 @@ fun ArtistDetailScreen(
     val albumRows = remember(albums) { albums.chunked(2) }
     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
     val barShown = com.artemiy.player.ui.components.rememberHeroBarShown(listState)
-    Box(modifier = Modifier.fillMaxSize()) {
+    val washOut = remember { com.artemiy.player.ui.components.HeroWashState() }
+    Box(modifier = Modifier.fillMaxSize().drawHeroDrain(washOut, listState)) {
     androidx.compose.foundation.lazy.LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
@@ -118,6 +121,7 @@ fun ArtistDetailScreen(
             topTint = androidx.compose.ui.graphics.Color.White,
             onBack = onBack,
             washKey = "artist:$title",
+            washOut = washOut,
             height = COLLAGE_HERO_HEIGHT,
             barShown = barShown,
             art = {
@@ -181,12 +185,12 @@ fun ArtistDetailScreen(
 
         if (albums.isNotEmpty()) {
             item(key = "albumsTitle") {
-                Text(text = stringResource(R.string.albums), color = PlayerColors.TextPrimary, style = com.artemiy.player.ui.theme.sectionTitleStyle, modifier = Modifier.padding(horizontal = 20.dp).padding(top = 4.dp, bottom = 10.dp))
+                Text(text = stringResource(R.string.albums), color = PlayerColors.TextPrimary, style = com.artemiy.player.ui.theme.sectionTitleStyle, modifier = Modifier.fillMaxWidth().heroPanel(roundTop = true).padding(horizontal = 20.dp).padding(top = 20.dp, bottom = 10.dp))
             }
             items(albumRows.size, key = { "albums$it" }) { rowIndex ->
                 val rowAlbums = albumRows[rowIndex]
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 16.dp),
+                        modifier = Modifier.fillMaxWidth().heroPanel().padding(horizontal = 20.dp).padding(bottom = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(14.dp),
                     ) {
                         rowAlbums.forEach { (album, albumSongs) ->
@@ -225,6 +229,8 @@ fun ArtistDetailScreen(
                 color = PlayerColors.TextPrimary,
                 style = com.artemiy.player.ui.theme.sectionTitleStyle,
                 modifier = Modifier
+                    .fillMaxWidth()
+                    .heroPanel(roundTop = albums.isEmpty())
                     .padding(horizontal = com.artemiy.player.ui.components.pageGutter)
                     .padding(top = 20.dp, bottom = 10.dp, start = if (com.artemiy.player.ui.theme.expressiveUi) 8.dp else 0.dp),
             )
@@ -234,6 +240,8 @@ fun ArtistDetailScreen(
                 var menuExpanded by remember { mutableStateOf(false) }
                 Row(
                     modifier = Modifier
+                        .fillMaxWidth()
+                        .heroPanel()
                         .padding(horizontal = com.artemiy.player.ui.components.pageGutter)
                         .staggeredEntrance(index, entrance)
                     .groupedCard(index, songs.size)

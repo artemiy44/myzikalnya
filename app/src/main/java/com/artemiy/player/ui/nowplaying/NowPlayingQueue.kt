@@ -545,10 +545,12 @@ internal fun AddToQueuePicker(songs: List<Song>, actions: QueueSongActions, onDi
     val context = androidx.compose.ui.platform.LocalContext.current
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     var query by remember { mutableStateOf("") }
-    var sort by remember { mutableStateOf(com.artemiy.player.ui.library.SongSort.RECENT) }
     // The chosen look (list / grid) is remembered between visits, like the Tracks tab's.
     val settingsVm: com.artemiy.player.ui.settings.SettingsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
     val viewMode = com.artemiy.player.ui.library.ViewMode.valueOf(settingsVm.viewMode("queue_picker").name)
+    val sort = settingsVm.sortName("queue_picker")
+        ?.let { name -> com.artemiy.player.ui.library.SongSort.entries.firstOrNull { it.name == name } }
+        ?: com.artemiy.player.ui.library.SongSort.RECENT
     val filtered = remember(songs, query, sort) {
         val q = query.trim()
         songs
@@ -612,7 +614,7 @@ internal fun AddToQueuePicker(songs: List<Song>, actions: QueueSongActions, onDi
                 sortOptions = com.artemiy.player.ui.library.SongSort.entries,
                 sortOptionLabel = { stringResource(it.labelRes) },
                 currentSort = stringResource(sort.labelRes),
-                onSortSelect = { sort = it },
+                onSortSelect = { settingsVm.setSortName("queue_picker", it.name) },
                 viewMode = viewMode,
                 onViewModeCycle = { settingsVm.setViewMode("queue_picker", com.artemiy.player.data.LibraryViewMode.valueOf(viewMode.next().name)) },
             )

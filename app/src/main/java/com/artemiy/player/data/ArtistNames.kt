@@ -50,9 +50,16 @@ object ArtistNames {
     fun key(name: String): String =
         java.text.Normalizer.normalize(name, java.text.Normalizer.Form.NFKC).trim().replace(WHITESPACE, " ").lowercase()
 
+    /** Artists the library has on songs of their own (no separators in the line) — a slash right
+     * after one of these ("Porter Robinson/Some Band") separates a guest; "AC/DC" has no such "AC". */
+    private var standalone: Set<String> = emptySet()
+
     /** Reads the whole library once to pick each artist's usual spelling. Call when it (re)loads. */
     fun learn(songs: List<Song>) {
         val kept = userKept
+        standalone = songs.asSequence().map { it.artist.trim() }
+            .filter { it.length >= 3 && '/' !in it && !SEPARATOR.containsMatchIn(it) }
+            .map { key(it) }.toSet()
         val spellings = HashMap<String, HashMap<String, Int>>()
         for (song in songs) {
             for (name in doSplit(song.artist, kept)) {
@@ -84,9 +91,20 @@ object ArtistNames {
 
     private val WHITESPACE = Regex("\\s+")
 
+    /** "Known artist/Guest" → both, or null when it isn't that (a protected name, an unknown left side). */
+    private fun splitBareSlash(trimmed: String, userKept: Set<String>): List<String>? {
+        val slash = trimmed.indexOf('/')
+        if (slash <= 0 || slash == trimmed.lastIndex) return null
+        if ((BUILT_IN_SORTED + userKept).any { it.isNotBlank() && trimmed.contains(it, ignoreCase = true) }) return null
+        val left = trimmed.substring(0, slash).trim()
+        val right = trimmed.substring(slash + 1).trim()
+        if (left.isEmpty() || right.isEmpty() || key(left) !in standalone) return null
+        return listOf(left, right).distinctBy { it.lowercase() }
+    }
+
     private fun doSplit(raw: String, userKept: Set<String>): List<String> {
         val trimmed = raw.trim()
-        if (trimmed.isEmpty() || !SEPARATOR.containsMatchIn(trimmed)) return listOf(trimmed.ifEmpty { raw })
+        if (trimmed.isEmpty() || !SEPARATOR.containsMatchIn(trimmed)) return splitBareSlash(trimmed, userKept) ?: listOf(trimmed.ifEmpty { raw })
         // Protected names are swapped for placeholders first, so the separators inside them
         // don't count; then put back after splitting.
         var work = trimmed

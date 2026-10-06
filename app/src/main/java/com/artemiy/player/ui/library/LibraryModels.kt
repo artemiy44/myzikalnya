@@ -136,8 +136,13 @@ internal data class AlbumGroup(val album: String, val artist: String, val songs:
 internal data class TagGroup(val key: String?, val name: String?, val songs: List<Song>)
 
 
-/** What makes two songs the same album: its name and artist line, ignoring case and spacing. */
-internal fun albumKey(album: String, artist: String): String = ArtistNames.key(album) + "\u0000" + ArtistNames.key(artist)
+/**
+ * What makes two songs the same album: its name and its MAIN artist (the first one in the artist
+ * line), ignoring case and spacing. A guest on one track ("Bring Me The Horizon feat. Underoath",
+ * "Porter Robinson/Totally Enormous Extinct Dinosaurs") doesn't split the album off.
+ */
+internal fun albumKey(album: String, artist: String): String =
+    ArtistNames.key(album) + "\u0000" + ArtistNames.key(ArtistNames.split(artist).firstOrNull() ?: artist)
 
 /** The spelling most of [spellings] use (ties go to the first one seen). */
 internal fun mostCommon(spellings: List<String>): String =
@@ -173,3 +178,8 @@ internal fun shortYear(year: String): String = "'" + year.takeLast(2)
 
 /** How far apart the earliest and latest of [times] are (for the fast scroller's date pill). */
 internal fun dateSpan(times: List<Long>): Long = if (times.isEmpty()) 0L else times.max() - times.min()
+
+
+/** The remembered sort of a library tab, or [default] until one is chosen. */
+internal inline fun <reified E : Enum<E>> com.artemiy.player.ui.settings.SettingsViewModel.sortOf(tab: String, default: E): E =
+    sortName(tab)?.let { name -> enumValues<E>().firstOrNull { it.name == name } } ?: default

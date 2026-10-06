@@ -25,6 +25,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -158,6 +159,21 @@ private fun averageLuminance(bitmap: Bitmap, fromY: Float, toY: Float): Float {
  * Lets a screen drawn edge to edge under the status bar choose the status bar icon color itself
  * (true = dark icons, for a bright image behind them). Null = follow the theme.
  */
+/**
+ * In the Vivid style the list under a picture header sits on a translucent page-coloured panel
+ * (rounded at the top), so the titles stay readable on whatever colour has flowed down — in the
+ * light theme as well as the dark. A no-op in the Classic style.
+ */
+@Composable
+fun Modifier.heroPanel(roundTop: Boolean = false, roundBottom: Boolean = false): Modifier {
+    if (!LocalHeroBleed.current) return this
+    val shape = androidx.compose.foundation.shape.RoundedCornerShape(
+        topStart = if (roundTop) 26.dp else 0.dp, topEnd = if (roundTop) 26.dp else 0.dp,
+        bottomStart = if (roundBottom) 26.dp else 0.dp, bottomEnd = if (roundBottom) 26.dp else 0.dp,
+    )
+    return this.padding(horizontal = 12.dp).background(PlayerColors.Background.copy(alpha = 0.6f), shape)
+}
+
 /** The "Vivid" picture-page style (a setting): the picture's colour flows on down the page. */
 val LocalHeroBleed = compositionLocalOf { true }
 
@@ -171,6 +187,116 @@ val WASH_MAX_DRAIN = 360.dp
 
 /** How far above the title the fade starts. */
 private val HERO_FADE_ABOVE_TITLE = 56.dp
+
+/**
+ * The wash colour a header has settled on, for a page whose header can scroll out of composition
+ * (a lazy list): the page then draws the colour draining down itself ([drawHeroDrain]) instead of
+ * the header, which would take it along when it leaves.
+ */
+class HeroWashState {
+    var color by mutableStateOf(Color.Transparent)
+    var alpha by mutableFloatStateOf(0f)
+}
+
+/**
+ * Draws the wash draining out of a header that is item 0 of the lazy list [state], whatever has
+ * scrolled out of composition. Item heights are remembered as they pass, so the header's bottom
+ * edge can still be placed once it's gone.
+ */
+@Composable
+fun Modifier.drawHeroDrain(
+    wash: HeroWashState,
+    state: androidx.compose.foundation.lazy.LazyListState,
+    drain: Dp = WASH_MAX_DRAIN,
+    /** The header's own height (without the status bar) when item 0 holds more than the header. */
+    heroHeight: Dp? = null,
+): Modifier {
+    val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val vivid = LocalHeroBleed.current
+    val pageBg = PlayerColors.Background
+    val heights = remember { HashMap<Int, Int>() }
+    if (!vivid) return this
+    return this.drawBehind {
+        val items = state.layoutInfo.visibleItemsInfo
+        items.forEach { heights[it.index] = it.size }
+        val first = items.firstOrNull() ?: return@drawBehind
+        // Where item 0 ends, then back up by whatever sits under the header inside it.
+        var bottom = first.offset.toFloat()
+        if (first.index == 0) {
+            bottom += first.size
+        } else {
+            for (j in first.index - 1 downTo 0) bottom -= heights[j] ?: return@drawBehind
+            bottom += heights[0] ?: return@drawBehind
+        }
+        if (heroHeight != null) bottom -= (heights[0] ?: return@drawBehind) - (heroHeight + statusTop).toPx()
+        val h = drain.toPx()
+        if (bottom > size.height || bottom + h < 0f || wash.alpha <= 0f) return@drawBehind
+        drawRect(
+            brush = Brush.verticalGradient(listOf(wash.color, pageBg), startY = bottom, endY = bottom + h),
+            topLeft = Offset(0f, bottom),
+            size = androidx.compose.ui.geometry.Size(size.width, h),
+            alpha = wash.alpha,
+        )
+    }
+}
+
+/**
+ * Like [drawHeroDrain], for a grid whose item 0 is the header and whose other items sit in rows of
+ * [columns]. Where the header's bottom edge is, once it has scrolled out, comes from the row
+ * pitch. With [panel] the translucent page-coloured panel is drawn behind the whole grid too.
+ */
+@Composable
+fun Modifier.drawHeroDrainGrid(
+    wash: HeroWashState,
+    state: androidx.compose.foundation.lazy.grid.LazyGridState,
+    columns: Int,
+    spacing: Dp,
+    heroHeight: Dp,
+    panel: Boolean,
+    drain: Dp = WASH_MAX_DRAIN,
+): Modifier {
+    val vivid = LocalHeroBleed.current
+    val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val pageBg = PlayerColors.Background
+    val known = remember { IntArray(2) }   // [0] header item's height, [1] a cell's height
+    if (!vivid) return this
+    return this.drawBehind {
+        val items = state.layoutInfo.visibleItemsInfo
+        val first = items.firstOrNull() ?: return@drawBehind
+        items.firstOrNull { it.index == 0 }?.let { known[0] = it.size.height }
+        items.firstOrNull { it.index > 0 }?.let { known[1] = it.size.height }
+        val heroPx = (heroHeight + statusTop).toPx()
+        val sp = spacing.toPx()
+        // The header's bottom edge, or null when it can't be told yet.
+        val bottom: Float? = when {
+            first.index == 0 -> first.offset.y + heroPx
+            known[0] > 0 && known[1] > 0 -> {
+                val rowTop = first.offset.y - ((first.index - 1) / columns) * (known[1] + sp)
+                rowTop - sp - known[0] + heroPx
+            }
+            else -> null
+        }
+        val h = drain.toPx()
+        if (bottom != null && bottom <= size.height && bottom + h >= 0f && wash.alpha > 0f) {
+            drawRect(
+                brush = Brush.verticalGradient(listOf(wash.color, pageBg), startY = bottom, endY = bottom + h),
+                topLeft = Offset(0f, bottom),
+                size = androidx.compose.ui.geometry.Size(size.width, h),
+                alpha = wash.alpha,
+            )
+        }
+        if (panel) {
+            val r = 26.dp.toPx()
+            val top = bottom ?: -4 * r
+            drawRoundRect(
+                color = pageBg.copy(alpha = 0.6f),
+                topLeft = Offset(12.dp.toPx(), top),
+                size = androidx.compose.ui.geometry.Size(size.width - 24.dp.toPx(), size.height - top + 2 * r),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(r, r),
+            )
+        }
+    }
+}
 
 /**
  * Album/artist page header: the cover art runs edge to edge (up under the status bar), with the
@@ -192,6 +318,8 @@ fun HeroOverArt(
     washDrain: Dp = WASH_MAX_DRAIN,
     /** Stable id of this page, so its wash colour is remembered between visits. */
     washKey: String? = null,
+    /** A lazy-list page keeps the draining wash itself (see [drawHeroDrain]); the header only reports it. */
+    washOut: HeroWashState? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
@@ -245,13 +373,19 @@ fun HeroOverArt(
         animationSpec = androidx.compose.animation.core.tween(550),
         label = "heroVivid",
     )
+    if (washOut != null) {
+        androidx.compose.runtime.SideEffect {
+            washOut.color = washState
+            washOut.alpha = v
+        }
+    }
     val pageBg = PlayerColors.Background
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(height + statusTop)
             .then(
-                if (!vivid) Modifier else Modifier.drawBehind {
+                if (!vivid || washOut != null) Modifier else Modifier.drawBehind {
                     // Runs out of the header's bounds, behind the rows below it.
                     drawRect(
                         brush = Brush.verticalGradient(listOf(washState, pageBg), startY = size.height, endY = size.height + washDrain.toPx()),

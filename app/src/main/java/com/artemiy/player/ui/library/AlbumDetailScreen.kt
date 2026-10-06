@@ -50,6 +50,7 @@ import com.artemiy.player.ui.components.ART_SIZE_FULL
 import com.artemiy.player.ui.components.AlbumArt
 import com.artemiy.player.ui.components.ART_SIZE_THUMB
 import com.artemiy.player.ui.components.HeroOverArt
+import com.artemiy.player.ui.components.heroPanel
 import com.artemiy.player.ui.components.rememberAlbumArtBitmap
 import com.artemiy.player.ui.components.HeroTextShadow
 import com.artemiy.player.ui.components.rememberArrowTint
@@ -131,7 +132,7 @@ fun AlbumDetailScreen(
             }
         }
 
-        Column(modifier = Modifier.padding(horizontal = com.artemiy.player.ui.components.pageGutter, vertical = 20.dp)) {
+        Column(modifier = Modifier.fillMaxWidth().heroPanel(roundTop = true).padding(start = com.artemiy.player.ui.components.pageGutter, end = com.artemiy.player.ui.components.pageGutter, top = 12.dp, bottom = 20.dp)) {
             songs.forEachIndexed { index, song ->
                 if (multiDisc && song.disc != songs.getOrNull(index - 1)?.disc) {
                     Text(

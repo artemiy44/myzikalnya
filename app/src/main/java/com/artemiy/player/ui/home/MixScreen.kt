@@ -61,6 +61,7 @@ import com.artemiy.player.ui.components.CircleIconButton
 import com.artemiy.player.ui.components.PlayPillButton
 import com.artemiy.player.ui.components.rememberCheckFlash
 import com.artemiy.player.ui.components.HeroOverArt
+import com.artemiy.player.ui.components.heroPanel
 import com.artemiy.player.ui.components.HeroTextShadow
 import com.artemiy.player.ui.components.SongActionsMenu
 import com.artemiy.player.ui.theme.AccentFamily
@@ -216,7 +217,7 @@ fun MixScreen(
             }
         }
 
-        Column(modifier = Modifier.padding(horizontal = com.artemiy.player.ui.components.pageGutter, vertical = 12.dp)) {
+        Column(modifier = Modifier.fillMaxWidth().heroPanel(roundTop = true).padding(horizontal = com.artemiy.player.ui.components.pageGutter, vertical = 12.dp)) {
             mix.songs.forEachIndexed { index, song ->
                 Row(
                     modifier = Modifier

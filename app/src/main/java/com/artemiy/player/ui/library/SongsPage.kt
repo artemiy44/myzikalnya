@@ -93,6 +93,9 @@ import com.artemiy.player.ui.components.BlurredCollageArt
 import com.artemiy.player.ui.components.COLLAGE_HERO_HEIGHT
 import com.artemiy.player.ui.components.CircleIconButton
 import com.artemiy.player.ui.components.HeroOverArt
+import com.artemiy.player.ui.components.heroPanel
+import com.artemiy.player.ui.components.drawHeroDrainGrid
+import com.artemiy.player.ui.components.drawHeroDrain
 import com.artemiy.player.ui.components.HeroTextShadow
 import com.artemiy.player.ui.components.PlayPillButton
 import com.artemiy.player.ui.components.rememberArrowTint
@@ -119,6 +122,9 @@ internal fun SongsGrid(
     onGoToArtist: (Song) -> Unit,
     onRemoveFromPlaylist: ((Song) -> Unit)? = null,
     header: (@Composable () -> Unit)? = null,
+    /** Songs sit on the Vivid picture-page panel, drawn behind the whole grid (a playlist page). */
+    onHeroPanel: Boolean = false,
+    heroWash: com.artemiy.player.ui.components.HeroWashState? = null,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
@@ -126,7 +132,9 @@ internal fun SongsGrid(
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = if (header != null) 0.dp else 4.dp, bottom = 4.dp + LocalBarsInset.current),
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().then(
+            if (heroWash != null) Modifier.drawHeroDrainGrid(heroWash, state, columns, 16.dp, COLLAGE_HERO_HEIGHT, onHeroPanel) else Modifier,
+        ),
     ) {
         if (header != null) {
             // Full width, reaching past the grid's side padding — the header draws edge to edge.
@@ -199,14 +207,19 @@ internal fun SongList(
     onGoToArtist: (Song) -> Unit,
     onRemoveFromPlaylist: ((Song) -> Unit)? = null,
     header: (@Composable () -> Unit)? = null,
+    /** Rows sit on the Vivid picture-page panel (see heroPanel) — a playlist page. */
+    onHeroPanel: Boolean = false,
+    /** The playlist header's wash, drawn draining down by the list itself (see drawHeroDrain). */
+    heroWash: com.artemiy.player.ui.components.HeroWashState? = null,
 ) {
     val entrance = rememberEntrance()
-    LazyColumn(modifier = Modifier.fillMaxWidth(), state = state, contentPadding = PaddingValues(bottom = LocalBarsInset.current)) {
+    LazyColumn(modifier = Modifier.fillMaxWidth().then(if (heroWash != null) Modifier.drawHeroDrain(heroWash, state, heroHeight = COLLAGE_HERO_HEIGHT) else Modifier), state = state, contentPadding = PaddingValues(bottom = LocalBarsInset.current)) {
         if (header != null) item(key = "header") { header() }
         itemsIndexed(songs, key = { _, song -> song.id }) { index, song ->
             val expressive = com.artemiy.player.ui.theme.expressiveUi
             Row(
                 modifier = Modifier
+                    .then(if (onHeroPanel) Modifier.fillMaxWidth().heroPanel() else Modifier)
                     .then(if (expressive) Modifier.padding(horizontal = 12.dp) else Modifier)
                     .staggeredEntrance(index, entrance)
                     .groupedCard(index, songs.size)

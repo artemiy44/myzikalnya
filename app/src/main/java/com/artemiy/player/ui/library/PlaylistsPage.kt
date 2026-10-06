@@ -120,6 +120,7 @@ internal fun PlaylistHero(
     onRename: () -> Unit,
     onDelete: () -> Unit,
     onExportM3u: () -> Unit = {},
+    washOut: com.artemiy.player.ui.components.HeroWashState? = null,
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     HeroOverArt(
@@ -127,6 +128,7 @@ internal fun PlaylistHero(
         topTint = Color.White,
         onBack = onBack,
         washKey = "playlist:$name",
+        washOut = washOut,
         height = COLLAGE_HERO_HEIGHT,
         barShown = barShown,
         art = { ArtistGenreArt(name, songs) },
