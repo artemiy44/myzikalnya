@@ -78,6 +78,8 @@
     <string name="delete_playlist">플레이리스트 삭제</string>
     <string name="delete_playlist_msg">곡 자체는 보관함에 그대로 남습니다.</string>
     <string name="delete_playlist_q">플레이리스트 «%1$s»를 삭제할까요?</string>
+    <string name="delete_song_msg">“%1$s” 곡이 휴대전화에서 영구적으로 삭제됩니다.</string>
+    <string name="delete_song_q">이 곡을 삭제할까요?</string>
     <string name="device_external">외부 기기</string>
     <string name="device_headphones">헤드폰</string>
     <string name="device_usb_audio">USB 오디오</string>
@@ -326,6 +328,9 @@
     <string name="share_lyrics_hint">줄을 탭해 선택하세요 (최대 6줄)</string>
     <string name="show_romanization">로마자 표시</string>
     <string name="shuffle">셔플</string>
+    <string name="song_delete_failed">삭제하지 못했어요</string>
+    <string name="song_deleted">삭제됨</string>
+    <string name="song_queued">대기열에 추가했어요</string>
     <string name="sort_added_order">추가한 순서</string>
     <string name="sort_by_artist">아티스트순</string>
     <string name="sort_by_count">곡 수순</string>
@@ -336,6 +341,7 @@
     <string name="sort_recent">최근 추가</string>
     <string name="sort_recent_library">보관함에 최근 추가</string>
     <string name="sort_release_date">발매일순</string>
+    <string name="swipe_to_queue">대기열에</string>
     <string name="tab_home">홈</string>
     <string name="tab_library">보관함</string>
     <string name="tab_mood">기분</string>

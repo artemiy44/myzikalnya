@@ -238,35 +238,36 @@ fun ArtistDetailScreen(
         items(songs.size, key = { songs[it].id }) { index ->
                 val song = songs[index]
                 var menuExpanded by remember { mutableStateOf(false) }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heroPanel()
-                        .padding(horizontal = com.artemiy.player.ui.components.pageGutter)
-                        .staggeredEntrance(index, entrance)
-                    .groupedCard(index, songs.size)
-                        .fillMaxWidth()
-                        .songLongPressTrigger(
-                            onClick = { onSongClick(song, songs) },
-                            onLongPress = { menuExpanded = true },
+                Box(modifier = Modifier.fillMaxWidth().heroPanel().padding(horizontal = com.artemiy.player.ui.components.pageGutter)) {
+                com.artemiy.player.ui.components.SwipeSongRow(song) {
+                    Row(
+                        modifier = Modifier
+                            .staggeredEntrance(index, entrance)
+                        .groupedCard(index, songs.size)
+                            .fillMaxWidth()
+                            .songLongPressTrigger(
+                                onClick = { onSongClick(song, songs) },
+                                onLongPress = { menuExpanded = true },
+                            )
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        AlbumArt(uri = song.uri, modifier = Modifier.size(52.dp).clip(RoundedCornerShape(10.dp)))
+                        Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                            Text(text = song.title, color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(text = songSubtitle(song), color = PlayerColors.TextSecondary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                        SongActionsMenuPopup(
+                            song = song,
+                            expanded = menuExpanded,
+                            onDismiss = { menuExpanded = false },
+                            onPlayNext = onPlayNext,
+                            onAddToQueue = onAddToQueue,
+                            onAddToPlaylist = onAddToPlaylist,
+                            onGoToAlbum = onGoToAlbum,
                         )
-                        .padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    AlbumArt(uri = song.uri, modifier = Modifier.size(52.dp).clip(RoundedCornerShape(10.dp)))
-                    Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
-                        Text(text = song.title, color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(text = songSubtitle(song), color = PlayerColors.TextSecondary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
-                    SongActionsMenuPopup(
-                        song = song,
-                        expanded = menuExpanded,
-                        onDismiss = { menuExpanded = false },
-                        onPlayNext = onPlayNext,
-                        onAddToQueue = onAddToQueue,
-                        onAddToPlaylist = onAddToPlaylist,
-                        onGoToAlbum = onGoToAlbum,
-                    )
+                }
                 }
         }
     }

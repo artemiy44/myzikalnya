@@ -211,51 +211,65 @@ internal fun SongList(
     onHeroPanel: Boolean = false,
     /** The playlist header's wash, drawn draining down by the list itself (see drawHeroDrain). */
     heroWash: com.artemiy.player.ui.components.HeroWashState? = null,
+    /** Rows can be swiped: to the right to the queue, to the left to delete. Off where a tap already adds. */
+    swipe: Boolean = true,
 ) {
     val entrance = rememberEntrance()
     LazyColumn(modifier = Modifier.fillMaxWidth().then(if (heroWash != null) Modifier.drawHeroDrain(heroWash, state, heroHeight = COLLAGE_HERO_HEIGHT) else Modifier), state = state, contentPadding = PaddingValues(bottom = LocalBarsInset.current)) {
         if (header != null) item(key = "header") { header() }
         itemsIndexed(songs, key = { _, song -> song.id }) { index, song ->
             val expressive = com.artemiy.player.ui.theme.expressiveUi
-            Row(
+            // The side margins sit outside the swiped part, so the swipe strips start at the row's own
+            // edge (the card in the expressive look, the press highlight in the classic one).
+            Box(
                 modifier = Modifier
                     .then(if (onHeroPanel) Modifier.fillMaxWidth().heroPanel() else Modifier)
-                    .then(if (expressive) Modifier.padding(horizontal = 12.dp) else Modifier)
-                    .staggeredEntrance(index, entrance)
-                    .groupedCard(index, songs.size)
-                    .fillMaxWidth()
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onSongClick(song) }
-                    .padding(horizontal = if (expressive) 0.dp else 20.dp, vertical = if (expressive) 12.dp else 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                    .padding(horizontal = 12.dp),
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = song.title,
-                        color = PlayerColors.TextPrimary,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+            com.artemiy.player.ui.components.SwipeSongRow(song, enabled = swipe) {
+                            Row(
+                    modifier = Modifier
+                        .staggeredEntrance(index, entrance)
+                        .groupedCard(index, songs.size)
+                        .fillMaxWidth()
+                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onSongClick(song) }
+                        .padding(horizontal = if (expressive) 0.dp else 8.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    com.artemiy.player.ui.components.AlbumArt(
+                        uri = song.uri,
+                        modifier = Modifier.size(52.dp).clip(RoundedCornerShape(if (expressive) 14.dp else 10.dp)),
                     )
-                    Text(
-                        text = song.artist,
-                        color = PlayerColors.TextSecondary,
-                        fontSize = 12.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                    Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                        Text(
+                            text = song.title,
+                            color = PlayerColors.TextPrimary,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            text = song.artist,
+                            color = PlayerColors.TextSecondary,
+                            fontSize = 12.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    com.artemiy.player.ui.components.SongActionsMenu(
+                        song = song,
+                        onPlayNext = onPlayNext,
+                        onAddToQueue = onAddToQueue,
+                        onAddToPlaylist = onAddToPlaylist,
+                        onGoToAlbum = onGoToAlbum,
+                        onGoToArtist = onGoToArtist,
+                        onRemoveFromPlaylist = onRemoveFromPlaylist,
+                        iconSize = 20.dp,
+                        modifier = Modifier.padding(start = 10.dp),
                     )
                 }
-                com.artemiy.player.ui.components.SongActionsMenu(
-                    song = song,
-                    onPlayNext = onPlayNext,
-                    onAddToQueue = onAddToQueue,
-                    onAddToPlaylist = onAddToPlaylist,
-                    onGoToAlbum = onGoToAlbum,
-                    onGoToArtist = onGoToArtist,
-                    onRemoveFromPlaylist = onRemoveFromPlaylist,
-                    iconSize = 20.dp,
-                    modifier = Modifier.padding(start = 10.dp),
-                )
+            }
             }
         }
     }

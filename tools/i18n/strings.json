@@ -330,6 +330,14 @@
   "en": "Delete the playlist «%1$s»?",
   "ru": "Удалить плейлист «%1$s»?"
  },
+ "delete_song_msg": {
+  "en": "“%1$s” will be deleted from your phone for good.",
+  "ru": "«%1$s» будет удалена с телефона насовсем."
+ },
+ "delete_song_q": {
+  "en": "Delete this song?",
+  "ru": "Удалить эту песню?"
+ },
  "device_external": {
   "en": "External device",
   "ru": "Внешнее устройство"
@@ -1430,6 +1438,18 @@
   "en": "Shuffle",
   "ru": "Перемешать"
  },
+ "song_delete_failed": {
+  "en": "Couldn't delete it",
+  "ru": "Не получилось удалить"
+ },
+ "song_deleted": {
+  "en": "Deleted",
+  "ru": "Удалено"
+ },
+ "song_queued": {
+  "en": "Added to the queue",
+  "ru": "Добавлено в очередь"
+ },
  "songs_count": {
   "en": {
    "one": "%d song",
@@ -1495,6 +1515,10 @@
  "sort_release_date": {
   "en": "By release date",
   "ru": "По дате выпуска"
+ },
+ "swipe_to_queue": {
+  "en": "To queue",
+  "ru": "В очередь"
  },
  "tab_home": {
   "en": "Home",

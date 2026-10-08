@@ -84,6 +84,8 @@
     <string name="delete_playlist">Удалить плейлист</string>
     <string name="delete_playlist_msg">Сами треки останутся в медиатеке.</string>
     <string name="delete_playlist_q">Удалить плейлист «%1$s»?</string>
+    <string name="delete_song_msg">«%1$s» будет удалена с телефона насовсем.</string>
+    <string name="delete_song_q">Удалить эту песню?</string>
     <string name="device_external">Внешнее устройство</string>
     <string name="device_headphones">Наушники</string>
     <string name="device_usb_audio">USB-аудио</string>
@@ -346,6 +348,9 @@
     <string name="share_lyrics_hint">Нажимай на строки, чтобы выбрать их — до шести</string>
     <string name="show_romanization">Показать романизацию</string>
     <string name="shuffle">Перемешать</string>
+    <string name="song_delete_failed">Не получилось удалить</string>
+    <string name="song_deleted">Удалено</string>
+    <string name="song_queued">Добавлено в очередь</string>
     <plurals name="songs_count">
         <item quantity="few">%d песни</item>
         <item quantity="many">%d песен</item>
@@ -368,6 +373,7 @@
     <string name="sort_recent">Недавно добавленные</string>
     <string name="sort_recent_library">Недавно добавленные в медиатеку</string>
     <string name="sort_release_date">По дате выпуска</string>
+    <string name="swipe_to_queue">В очередь</string>
     <string name="tab_home">Главная</string>
     <string name="tab_library">Медиатека</string>
     <string name="tab_mood">Настроение</string>

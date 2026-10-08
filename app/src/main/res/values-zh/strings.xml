@@ -78,6 +78,8 @@
     <string name="delete_playlist">删除歌单</string>
     <string name="delete_playlist_msg">曲目本身仍会保留在音乐库中。</string>
     <string name="delete_playlist_q">删除歌单“%1$s”？</string>
+    <string name="delete_song_msg">“%1$s”将从手机中永久删除。</string>
+    <string name="delete_song_q">删除这首歌？</string>
     <string name="device_external">外部设备</string>
     <string name="device_headphones">耳机</string>
     <string name="device_usb_audio">USB 音频</string>
@@ -326,6 +328,9 @@
     <string name="share_lyrics_hint">点按歌词行来选择，最多六行</string>
     <string name="show_romanization">显示罗马音</string>
     <string name="shuffle">随机播放</string>
+    <string name="song_delete_failed">无法删除</string>
+    <string name="song_deleted">已删除</string>
+    <string name="song_queued">已加入队列</string>
     <string name="sort_added_order">按添加顺序</string>
     <string name="sort_by_artist">按艺人</string>
     <string name="sort_by_count">按曲目数量</string>
@@ -336,6 +341,7 @@
     <string name="sort_recent">最近添加</string>
     <string name="sort_recent_library">最近添加到音乐库</string>
     <string name="sort_release_date">按发行日期</string>
+    <string name="swipe_to_queue">加入队列</string>
     <string name="tab_home">首页</string>
     <string name="tab_library">音乐库</string>
     <string name="tab_mood">心情</string>

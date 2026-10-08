@@ -78,6 +78,8 @@
     <string name="delete_playlist">Usuń playlistę</string>
     <string name="delete_playlist_msg">Same utwory zostaną w bibliotece.</string>
     <string name="delete_playlist_q">Usunąć playlistę „%1$s”?</string>
+    <string name="delete_song_msg">„%1$s” zostanie na zawsze usunięty z telefonu.</string>
+    <string name="delete_song_q">Usunąć ten utwór?</string>
     <string name="device_external">Urządzenie zewnętrzne</string>
     <string name="device_headphones">Słuchawki</string>
     <string name="device_usb_audio">Audio USB</string>
@@ -326,6 +328,9 @@
     <string name="share_lyrics_hint">Dotykaj wersów, by je wybrać – do sześciu</string>
     <string name="show_romanization">Pokaż romanizację</string>
     <string name="shuffle">Losowo</string>
+    <string name="song_delete_failed">Nie udało się usunąć</string>
+    <string name="song_deleted">Usunięto</string>
+    <string name="song_queued">Dodano do kolejki</string>
     <string name="sort_added_order">W kolejności dodania</string>
     <string name="sort_by_artist">Według wykonawcy</string>
     <string name="sort_by_count">Według liczby utworów</string>
@@ -336,6 +341,7 @@
     <string name="sort_recent">Ostatnio dodane</string>
     <string name="sort_recent_library">Ostatnio dodane do biblioteki</string>
     <string name="sort_release_date">Według daty wydania</string>
+    <string name="swipe_to_queue">Do kolejki</string>
     <string name="tab_home">Główna</string>
     <string name="tab_library">Biblioteka</string>
     <string name="tab_mood">Nastrój</string>

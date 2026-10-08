@@ -175,42 +175,46 @@ fun SearchScreen(
             else -> {
                 LazyColumn(modifier = Modifier.fillMaxWidth().padding(top = 12.dp), contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = com.artemiy.player.ui.theme.LocalBarsInset.current)) {
                     items(results, key = { "title-${it.id}" }) { song ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) {
-                                    onSongClick(song, results)
+                        Box(modifier = Modifier.padding(horizontal = 12.dp)) {
+                        com.artemiy.player.ui.components.SwipeSongRow(song) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) {
+                                        onSongClick(song, results)
+                                    }
+                                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                AlbumArt(uri = song.uri, modifier = Modifier.size(52.dp).clip(RoundedCornerShape(10.dp)))
+                                Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                                    Text(
+                                        text = song.title,
+                                        color = PlayerColors.TextPrimary,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                    Text(
+                                        text = song.artist,
+                                        color = PlayerColors.TextSecondary,
+                                        fontSize = 12.sp,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
                                 }
-                                .padding(horizontal = 20.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            AlbumArt(uri = song.uri, modifier = Modifier.size(52.dp).clip(RoundedCornerShape(10.dp)))
-                            Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
-                                Text(
-                                    text = song.title,
-                                    color = PlayerColors.TextPrimary,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                                Text(
-                                    text = song.artist,
-                                    color = PlayerColors.TextSecondary,
-                                    fontSize = 12.sp,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
+                                SongActionsMenu(
+                                    song = song,
+                                    onPlayNext = onPlayNext,
+                                    onAddToQueue = onAddToQueue,
+                                    onAddToPlaylist = onAddToPlaylist,
+                                    onGoToAlbum = onGoToAlbum,
+                                    onGoToArtist = onGoToArtist,
+                                    modifier = Modifier.padding(start = 8.dp),
                                 )
                             }
-                            SongActionsMenu(
-                                song = song,
-                                onPlayNext = onPlayNext,
-                                onAddToQueue = onAddToQueue,
-                                onAddToPlaylist = onAddToPlaylist,
-                                onGoToAlbum = onGoToAlbum,
-                                onGoToArtist = onGoToArtist,
-                                modifier = Modifier.padding(start = 8.dp),
-                            )
+                        }
                         }
                     }
                     if (lyricHits.isNotEmpty()) {
@@ -224,50 +228,54 @@ fun SearchScreen(
                             )
                         }
                         items(lyricHits, key = { "lyrics-${it.song.id}" }) { hit ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) {
-                                        onSongClick(hit.song, lyricHits.map { it.song })
+Box(modifier = Modifier.padding(horizontal = 12.dp)) {
+                            com.artemiy.player.ui.components.SwipeSongRow(hit.song) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) {
+                                            onSongClick(hit.song, lyricHits.map { it.song })
+                                        }
+                                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    AlbumArt(uri = hit.song.uri, modifier = Modifier.size(52.dp).clip(RoundedCornerShape(10.dp)))
+                                    Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                                        Text(
+                                            text = hit.song.title,
+                                            color = PlayerColors.TextPrimary,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
+                                        Text(
+                                            text = hit.song.artist,
+                                            color = PlayerColors.TextSecondary,
+                                            fontSize = 12.sp,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
+                                        Text(
+                                            text = highlightMatch(hit.line, query.trim(), PlayerColors.TextPrimary),
+                                            color = PlayerColors.TextSecondary,
+                                            fontSize = 12.sp,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.padding(top = 2.dp),
+                                        )
                                     }
-                                    .padding(horizontal = 20.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                AlbumArt(uri = hit.song.uri, modifier = Modifier.size(52.dp).clip(RoundedCornerShape(10.dp)))
-                                Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
-                                    Text(
-                                        text = hit.song.title,
-                                        color = PlayerColors.TextPrimary,
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
-                                    Text(
-                                        text = hit.song.artist,
-                                        color = PlayerColors.TextSecondary,
-                                        fontSize = 12.sp,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
-                                    Text(
-                                        text = highlightMatch(hit.line, query.trim(), PlayerColors.TextPrimary),
-                                        color = PlayerColors.TextSecondary,
-                                        fontSize = 12.sp,
-                                        maxLines = 2,
-                                        overflow = TextOverflow.Ellipsis,
-                                        modifier = Modifier.padding(top = 2.dp),
+                                    SongActionsMenu(
+                                        song = hit.song,
+                                        onPlayNext = onPlayNext,
+                                        onAddToQueue = onAddToQueue,
+                                        onAddToPlaylist = onAddToPlaylist,
+                                        onGoToAlbum = onGoToAlbum,
+                                        onGoToArtist = onGoToArtist,
+                                        modifier = Modifier.padding(start = 8.dp),
                                     )
                                 }
-                                SongActionsMenu(
-                                    song = hit.song,
-                                    onPlayNext = onPlayNext,
-                                    onAddToQueue = onAddToQueue,
-                                    onAddToPlaylist = onAddToPlaylist,
-                                    onGoToAlbum = onGoToAlbum,
-                                    onGoToArtist = onGoToArtist,
-                                    modifier = Modifier.padding(start = 8.dp),
-                                )
+                            }
                             }
                         }
                     }

@@ -151,44 +151,46 @@ fun AlbumDetailScreen(
                     )
                 }
                 var menuExpanded by remember { mutableStateOf(false) }
-                Row(
-                    modifier = Modifier
-                        .staggeredEntrance(index, entrance)
-                        .groupedCard(
-                            first = index == 0 || (multiDisc && song.disc != songs[index - 1].disc),
-                            last = index == songs.lastIndex || (multiDisc && song.disc != songs[index + 1].disc),
+                com.artemiy.player.ui.components.SwipeSongRow(song) {
+                    Row(
+                        modifier = Modifier
+                            .staggeredEntrance(index, entrance)
+                            .groupedCard(
+                                first = index == 0 || (multiDisc && song.disc != songs[index - 1].disc),
+                                last = index == songs.lastIndex || (multiDisc && song.disc != songs[index + 1].disc),
+                            )
+                            .fillMaxWidth()
+                            .songLongPressTrigger(
+                                onClick = { onSongClick(song, songs) },
+                                onLongPress = { menuExpanded = true },
+                            )
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        // The track's number instead of the same cover on every row — it's the album's
+                        // page, the cover is right there at the top.
+                        Text(
+                            text = song.trackNumber?.toString() ?: "–",
+                            color = PlayerColors.TextSecondary,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.width(30.dp),
                         )
-                        .fillMaxWidth()
-                        .songLongPressTrigger(
-                            onClick = { onSongClick(song, songs) },
-                            onLongPress = { menuExpanded = true },
+                        Column(modifier = Modifier.weight(1f).padding(start = 10.dp).heightIn(min = 44.dp), verticalArrangement = Arrangement.Center) {
+                            Text(text = song.title, color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(text = song.artist, color = PlayerColors.TextSecondary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                        SongActionsMenuPopup(
+                            song = song,
+                            expanded = menuExpanded,
+                            onDismiss = { menuExpanded = false },
+                            onPlayNext = onPlayNext,
+                            onAddToQueue = onAddToQueue,
+                            onAddToPlaylist = onAddToPlaylist,
+                            onGoToArtist = onGoToArtist,
                         )
-                        .padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    // The track's number instead of the same cover on every row — it's the album's
-                    // page, the cover is right there at the top.
-                    Text(
-                        text = song.trackNumber?.toString() ?: "–",
-                        color = PlayerColors.TextSecondary,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.width(30.dp),
-                    )
-                    Column(modifier = Modifier.weight(1f).padding(start = 10.dp).heightIn(min = 44.dp), verticalArrangement = Arrangement.Center) {
-                        Text(text = song.title, color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(text = song.artist, color = PlayerColors.TextSecondary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
-                    SongActionsMenuPopup(
-                        song = song,
-                        expanded = menuExpanded,
-                        onDismiss = { menuExpanded = false },
-                        onPlayNext = onPlayNext,
-                        onAddToQueue = onAddToQueue,
-                        onAddToPlaylist = onAddToPlaylist,
-                        onGoToArtist = onGoToArtist,
-                    )
                 }
             }
         }

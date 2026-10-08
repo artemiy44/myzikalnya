@@ -33,6 +33,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
+import com.artemiy.player.ui.components.horizontalSwipe
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -300,14 +301,17 @@ internal fun SwipeToRemove(onRemove: () -> Unit, content: @Composable () -> Unit
         Box(
             modifier = Modifier
                 .offset { androidx.compose.ui.unit.IntOffset(dragPx.toInt(), 0) }
-                .draggable(
-                    state = dragState,
-                    orientation = Orientation.Horizontal,
+                .horizontalSwipe(
                     enabled = !removed,
-                    onDragStopped = { velocity ->
-                        val threshold = with(density) { SWIPE_REMOVE_THRESHOLD.toPx() }
-                        val flung = velocity < -with(density) { SWIPE_REMOVE_VELOCITY.toPx() }
-                        val target = if (-dragPx > threshold || flung) -widthPx.toFloat() else 0f
+                    onDrag = { delta -> dragState.dispatchRawDelta(delta) },
+                    onCancel = { scope.launch { androidx.compose.animation.core.animate(dragPx, 0f) { value, _ -> dragPx = value } } },
+                    onEnd = { velocity ->
+                        // Pulled far enough — or flicked fast, but only after a real pull: a finger
+                        // drifting while the list is scrolled must never remove a song.
+                        val threshold = with(density) { com.artemiy.player.ui.components.SWIPE_COMMIT.toPx() }
+                        val flickMin = with(density) { com.artemiy.player.ui.components.SWIPE_FLICK_MIN.toPx() }
+                        val flickSpeed = with(density) { com.artemiy.player.ui.components.SWIPE_FLICK_SPEED.toPx() }
+                        val target = if (-dragPx > threshold || (-dragPx > flickMin && velocity < -flickSpeed)) -widthPx.toFloat() else 0f
                         scope.launch {
                             androidx.compose.animation.core.animate(dragPx, target) { value, _ -> dragPx = value }
                             if (target != 0f) {
@@ -322,10 +326,6 @@ internal fun SwipeToRemove(onRemove: () -> Unit, content: @Composable () -> Unit
         }
     }
 }
-
-/** How far a row has to be pulled, or how fast flung, to be removed on letting go. */
-private val SWIPE_REMOVE_THRESHOLD = 56.dp
-private val SWIPE_REMOVE_VELOCITY = 125.dp
 
 @Composable
 internal fun AddSongsToQueueRow(onClick: () -> Unit, modifier: Modifier = Modifier) {
@@ -653,6 +653,7 @@ internal fun AddToQueuePicker(songs: List<Song>, actions: QueueSongActions, onDi
                         onAddToPlaylist = actions.onAddToPlaylist,
                         onGoToAlbum = actions.onGoToAlbum,
                         onGoToArtist = actions.onGoToArtist,
+                        swipe = false,
                     )
                     else -> com.artemiy.player.ui.library.SongsGrid(
                         songs = filtered,

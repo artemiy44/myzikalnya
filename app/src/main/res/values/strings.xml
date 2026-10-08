@@ -82,6 +82,8 @@
     <string name="delete_playlist">Delete playlist</string>
     <string name="delete_playlist_msg">The tracks themselves stay in the library.</string>
     <string name="delete_playlist_q">Delete the playlist «%1$s»?</string>
+    <string name="delete_song_msg">“%1$s” will be deleted from your phone for good.</string>
+    <string name="delete_song_q">Delete this song?</string>
     <string name="device_external">External device</string>
     <string name="device_headphones">Headphones</string>
     <string name="device_usb_audio">USB audio</string>
@@ -340,6 +342,9 @@
     <string name="share_lyrics_hint">Tap lines to pick them — up to six</string>
     <string name="show_romanization">Show romanization</string>
     <string name="shuffle">Shuffle</string>
+    <string name="song_delete_failed">Couldn\'t delete it</string>
+    <string name="song_deleted">Deleted</string>
+    <string name="song_queued">Added to the queue</string>
     <plurals name="songs_count">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>
@@ -358,6 +363,7 @@
     <string name="sort_recent">Recently added</string>
     <string name="sort_recent_library">Recently added to the library</string>
     <string name="sort_release_date">By release date</string>
+    <string name="swipe_to_queue">To queue</string>
     <string name="tab_home">Home</string>
     <string name="tab_library">Library</string>
     <string name="tab_mood">Mood</string>

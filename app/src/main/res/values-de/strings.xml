@@ -78,6 +78,8 @@
     <string name="delete_playlist">Playlist löschen</string>
     <string name="delete_playlist_msg">Die Titel selbst bleiben in der Mediathek.</string>
     <string name="delete_playlist_q">Playlist „%1$s“ löschen?</string>
+    <string name="delete_song_msg">„%1$s“ wird endgültig von deinem Handy gelöscht.</string>
+    <string name="delete_song_q">Diesen Song löschen?</string>
     <string name="device_external">Externes Gerät</string>
     <string name="device_headphones">Kopfhörer</string>
     <string name="device_usb_audio">USB-Audio</string>
@@ -326,6 +328,9 @@
     <string name="share_lyrics_hint">Zeilen antippen, um sie zu wählen – bis zu sechs</string>
     <string name="show_romanization">Umschrift anzeigen</string>
     <string name="shuffle">Zufallswiedergabe</string>
+    <string name="song_delete_failed">Löschen nicht möglich</string>
+    <string name="song_deleted">Gelöscht</string>
+    <string name="song_queued">Zur Warteschlange hinzugefügt</string>
     <string name="sort_added_order">In Reihenfolge des Hinzufügens</string>
     <string name="sort_by_artist">Nach Künstler</string>
     <string name="sort_by_count">Nach Anzahl der Titel</string>
@@ -336,6 +341,7 @@
     <string name="sort_recent">Zuletzt hinzugefügt</string>
     <string name="sort_recent_library">Zuletzt zur Mediathek hinzugefügt</string>
     <string name="sort_release_date">Nach Erscheinungsdatum</string>
+    <string name="swipe_to_queue">In die Warteschlange</string>
     <string name="tab_home">Start</string>
     <string name="tab_library">Mediathek</string>
     <string name="tab_mood">Stimmung</string>

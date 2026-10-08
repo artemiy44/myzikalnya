@@ -78,6 +78,8 @@
     <string name="delete_playlist">プレイリストを削除</string>
     <string name="delete_playlist_msg">曲そのものはライブラリに残ります。</string>
     <string name="delete_playlist_q">プレイリスト「%1$s」を削除しますか？</string>
+    <string name="delete_song_msg">「%1$s」は端末から完全に削除されます。</string>
+    <string name="delete_song_q">この曲を削除しますか？</string>
     <string name="device_external">外部デバイス</string>
     <string name="device_headphones">ヘッドホン</string>
     <string name="device_usb_audio">USB オーディオ</string>
@@ -326,6 +328,9 @@
     <string name="share_lyrics_hint">行をタップして選択（最大6行）</string>
     <string name="show_romanization">ローマ字を表示</string>
     <string name="shuffle">シャッフル</string>
+    <string name="song_delete_failed">削除できませんでした</string>
+    <string name="song_deleted">削除しました</string>
+    <string name="song_queued">キューに追加しました</string>
     <string name="sort_added_order">追加した順</string>
     <string name="sort_by_artist">アーティスト順</string>
     <string name="sort_by_count">曲数順</string>
@@ -336,6 +341,7 @@
     <string name="sort_recent">最近追加</string>
     <string name="sort_recent_library">ライブラリに最近追加</string>
     <string name="sort_release_date">リリース日順</string>
+    <string name="swipe_to_queue">キューへ</string>
     <string name="tab_home">ホーム</string>
     <string name="tab_library">ライブラリ</string>
     <string name="tab_mood">気分</string>

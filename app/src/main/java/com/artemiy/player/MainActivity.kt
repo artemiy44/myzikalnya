@@ -429,6 +429,65 @@ private fun PlayerApp(settings: SettingsViewModel) {
     // itself (so it reads as depth, not as a lighter strip), by the same 0..1 as the player.
     val backdropColor = PlayerColors.Background
     val screenCornerPx = com.artemiy.player.ui.components.rememberScreenCornerRadiusPx()
+
+    // Deleting a song from the phone (a left swipe on a row): our own question first, then the
+    // system's (Android 11+ asks the person itself before it lets an app delete a media file).
+    var songToDelete by remember { mutableStateOf<Song?>(null) }
+    var deleting by remember { mutableStateOf<Song?>(null) }
+    val deleteLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult(),
+    ) { result ->
+        val song = deleting
+        deleting = null
+        if (result.resultCode == android.app.Activity.RESULT_OK && song != null) {
+            // Before Android 11 the grant only lets us try the delete again.
+            val gone = if (android.os.Build.VERSION.SDK_INT < 30) {
+                runCatching { context.contentResolver.delete(song.uri, null, null) > 0 }.getOrDefault(false)
+            } else {
+                true
+            }
+            if (gone) {
+                rescanTrigger++
+                android.widget.Toast.makeText(context, R.string.song_deleted, android.widget.Toast.LENGTH_SHORT).show()
+            } else {
+                android.widget.Toast.makeText(context, R.string.song_delete_failed, android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    fun deleteSong(song: Song) {
+        val resolver = context.contentResolver
+        deleting = song
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= 30) {
+                val request = android.provider.MediaStore.createDeleteRequest(resolver, listOf(song.uri))
+                deleteLauncher.launch(androidx.activity.result.IntentSenderRequest.Builder(request.intentSender).build())
+            } else if (resolver.delete(song.uri, null, null) > 0) {
+                deleting = null
+                rescanTrigger++
+                android.widget.Toast.makeText(context, R.string.song_deleted, android.widget.Toast.LENGTH_SHORT).show()
+            } else {
+                deleting = null
+                android.widget.Toast.makeText(context, R.string.song_delete_failed, android.widget.Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: SecurityException) {
+            val recoverable = e as? android.app.RecoverableSecurityException
+            if (recoverable != null) {
+                deleteLauncher.launch(androidx.activity.result.IntentSenderRequest.Builder(recoverable.userAction.actionIntent.intentSender).build())
+            } else {
+                deleting = null
+                android.widget.Toast.makeText(context, R.string.song_delete_failed, android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    val swipeActions = remember {
+        com.artemiy.player.ui.components.SongSwipeActions(
+            addToQueue = { song ->
+                playback.addToQueue(song)
+                android.widget.Toast.makeText(context, R.string.song_queued, android.widget.Toast.LENGTH_SHORT).show()
+            },
+            delete = { song -> songToDelete = song },
+        )
+    }
     // How far the app is covered by something sliding over it: the player opening, or Settings
     // (which also lets go as the back gesture pulls it away). The page under it shrinks and dims.
     val settingsCover by androidx.compose.animation.core.animateFloatAsState(
@@ -437,7 +496,10 @@ private fun PlayerApp(settings: SettingsViewModel) {
         label = "settingsCover",
     )
     val coverDepth = { maxOf(nowPlayingExpand.value, settingsCover * (1f - settingsPeek.value)) }
-    CompositionLocalProvider(LocalStatusBarIconsOverride provides statusBarOverride) {
+    CompositionLocalProvider(
+        LocalStatusBarIconsOverride provides statusBarOverride,
+        com.artemiy.player.ui.components.LocalSongSwipeActions provides swipeActions,
+    ) {
     Scaffold(
         modifier = Modifier.drawBehind {
             drawRect(backdropColor)
@@ -887,6 +949,23 @@ private fun PlayerApp(settings: SettingsViewModel) {
             contentAlignment = Alignment.Center,
         ) {
             LoadingBurst(color = PlayerColors.AccentMark, modifier = Modifier.size(96.dp))
+        }
+    }
+
+    songToDelete?.let { song ->
+        com.artemiy.player.ui.components.AppDialog(onDismiss = { songToDelete = null }) {
+            com.artemiy.player.ui.components.DialogTitle(stringResource(R.string.delete_song_q))
+            com.artemiy.player.ui.components.DialogMessage(stringResource(R.string.delete_song_msg, song.title))
+            com.artemiy.player.ui.components.DialogButtons(
+                dismissLabel = stringResource(R.string.cancel),
+                onDismiss = { songToDelete = null },
+                confirmLabel = stringResource(R.string.delete),
+                destructive = true,
+                onConfirm = {
+                    songToDelete = null
+                    deleteSong(song)
+                },
+            )
         }
     }
 

@@ -228,29 +228,31 @@ fun MixScreen(
 
         Column(modifier = Modifier.fillMaxWidth().heroPanel(roundTop = true).padding(horizontal = com.artemiy.player.ui.components.pageGutter, vertical = 12.dp)) {
             mix.songs.take(rowsShown).forEachIndexed { index, song ->
-                Row(
-                    modifier = Modifier
-                        .staggeredEntrance(index, entrance)
-                    .groupedCard(index, mix.songs.size)
-                        .fillMaxWidth()
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onPlay(song, mix.songs) }
-                        .padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    AlbumArt(uri = song.uri, modifier = Modifier.size(52.dp).clip(RoundedCornerShape(10.dp)))
-                    Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
-                        Text(text = song.title, color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(text = song.artist, color = PlayerColors.TextSecondary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                com.artemiy.player.ui.components.SwipeSongRow(song) {
+                    Row(
+                        modifier = Modifier
+                            .staggeredEntrance(index, entrance)
+                        .groupedCard(index, mix.songs.size)
+                            .fillMaxWidth()
+                            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onPlay(song, mix.songs) }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        AlbumArt(uri = song.uri, modifier = Modifier.size(52.dp).clip(RoundedCornerShape(10.dp)))
+                        Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                            Text(text = song.title, color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(text = song.artist, color = PlayerColors.TextSecondary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                        SongActionsMenu(
+                            song = song,
+                            onPlayNext = onPlayNext,
+                            onAddToQueue = onAddToQueue,
+                            onAddToPlaylist = onAddToPlaylist,
+                            onGoToAlbum = onGoToAlbum,
+                            onGoToArtist = onGoToArtist,
+                            modifier = Modifier.padding(start = 8.dp),
+                        )
                     }
-                    SongActionsMenu(
-                        song = song,
-                        onPlayNext = onPlayNext,
-                        onAddToQueue = onAddToQueue,
-                        onAddToPlaylist = onAddToPlaylist,
-                        onGoToAlbum = onGoToAlbum,
-                        onGoToArtist = onGoToArtist,
-                        modifier = Modifier.padding(start = 8.dp),
-                    )
                 }
             }
         }
