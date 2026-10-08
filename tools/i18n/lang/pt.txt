@@ -378,3 +378,5 @@ hero_classic = Clássico
 hero_vivid = Vívido
 set_hero_classic_desc = A imagem desvanece no fundo da página
 set_hero_vivid_desc = A cor da imagem escorre pela página e depois se funde com o fundo
+card_lines = Linhas
+card_done = Concluído

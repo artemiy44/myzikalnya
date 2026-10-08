@@ -378,3 +378,5 @@ hero_classic = Klassisch
 hero_vivid = Lebendig
 set_hero_classic_desc = Das Bild blendet in den Seitenhintergrund aus
 set_hero_vivid_desc = Die Farbe des Bildes fließt die Seite hinunter und geht dann in den Hintergrund über
+card_lines = Zeilen
+card_done = Fertig

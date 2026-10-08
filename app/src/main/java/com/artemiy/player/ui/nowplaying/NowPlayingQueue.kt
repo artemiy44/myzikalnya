@@ -574,7 +574,21 @@ internal fun AddToQueuePicker(songs: List<Song>, actions: QueueSongActions, onDi
             onDismiss()
         }
     }
-    androidx.activity.compose.BackHandler(onBack = close)
+    // The back gesture pulls the page away with the finger (like every other page); let go to
+    // close it, or it settles back.
+    val back = remember { androidx.compose.animation.core.Animatable(0f) }
+    val cornerPx = com.artemiy.player.ui.components.rememberScreenCornerRadiusPx()
+    androidx.activity.compose.PredictiveBackHandler { progress ->
+        try {
+            progress.collect { event -> back.snapTo(event.progress) }
+            back.animateTo(1f, androidx.compose.animation.core.tween(240))
+            onDismiss()
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
+                back.animateTo(0f, androidx.compose.animation.core.tween(200))
+            }
+        }
+    }
     // A tap queues the song (at the end of the queue) and says so.
     val add: (Song) -> Unit = { song ->
         actions.onAddToQueue(song)
@@ -585,8 +599,19 @@ internal fun AddToQueuePicker(songs: List<Song>, actions: QueueSongActions, onDi
         modifier = Modifier
             .fillMaxSize()
             .graphicsLayer {
-                alpha = appear.value
+                // Opening slides up; the back gesture pulls the page away from the middle instead
+                // — shrinking, rounded like the screen, melting away at the end.
+                val b = back.value
+                val s = 1f - 0.12f * b
+                scaleX = s
+                scaleY = s
+                alpha = appear.value * (1f - ((b - 0.4f) / 0.6f).coerceIn(0f, 1f))
                 translationY = (1f - appear.value) * 90.dp.toPx()
+                val radius = cornerPx * (b / 0.2f).coerceIn(0f, 1f)
+                if (radius > 0.5f) {
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(radius)
+                    clip = true
+                }
             }
             .background(PlayerColors.Background)
             .statusBarsPadding(),

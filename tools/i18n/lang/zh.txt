@@ -378,3 +378,5 @@ hero_classic = 经典
 hero_vivid = 鲜明
 set_hero_classic_desc = 图片渐隐为页面背景色
 set_hero_vivid_desc = 图片的颜色顺着页面流下，再融入背景
+card_lines = 歌词行
+card_done = 完成

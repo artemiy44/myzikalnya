@@ -52,7 +52,9 @@
     <string name="cancel">Annuler</string>
     <string name="card_accent">Accent</string>
     <string name="card_blur">Pochette floutée</string>
+    <string name="card_done">Terminé</string>
     <string name="card_failed">Impossible de créer l\'image</string>
+    <string name="card_lines">Lignes</string>
     <string name="card_paper">Papier</string>
     <string name="card_save">Enregistrer</string>
     <string name="card_saved">Enregistré dans Pictures/Lumine</string>

@@ -103,6 +103,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.style.TextAlign
 import com.artemiy.player.ui.components.songLongPressTrigger
+import com.artemiy.player.ui.components.expandAnchor
 import com.artemiy.player.ui.settings.SettingsViewModel
 import com.artemiy.player.ui.theme.PlayerColors
 
@@ -128,6 +129,7 @@ internal fun ArtistsList(groups: List<ArtistGroup>, state: LazyListState, onArti
                     uri = coverUri,
                     modifier = Modifier
                         .size(52.dp)
+                        .expandAnchor(com.artemiy.player.ui.components.LibraryAnchors, "artist:${group.name}", cornerDp = 16.dp, cornerFraction = 0.4f, washKey = "artist:${group.name}")
                         .clip(com.artemiy.player.ui.components.artistShape(group.name, interaction)),
                 )
                 Text(
@@ -174,6 +176,7 @@ internal fun ArtistsGrid(groups: List<ArtistGroup>, columns: Int, state: LazyGri
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f)
+                        .expandAnchor(com.artemiy.player.ui.components.LibraryAnchors, "artist:${group.name}", cornerDp = 16.dp, cornerFraction = 0.4f, washKey = "artist:${group.name}")
                         .clip(com.artemiy.player.ui.components.artistShape(group.name, interaction)),
                 )
                 Text(

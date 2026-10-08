@@ -52,7 +52,9 @@
     <string name="cancel">취소</string>
     <string name="card_accent">강조색</string>
     <string name="card_blur">흐린 커버</string>
+    <string name="card_done">완료</string>
     <string name="card_failed">이미지를 만들 수 없습니다</string>
+    <string name="card_lines">줄</string>
     <string name="card_paper">종이</string>
     <string name="card_save">저장</string>
     <string name="card_saved">Pictures/Lumine에 저장했습니다</string>

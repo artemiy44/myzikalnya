@@ -378,3 +378,5 @@ hero_classic = Klasyczny
 hero_vivid = Żywy
 set_hero_classic_desc = Obraz zanika w tle strony
 set_hero_vivid_desc = Kolor obrazu spływa w dół strony, a potem przechodzi w tło
+card_lines = Wiersze
+card_done = Gotowe

@@ -164,6 +164,8 @@ internal fun ExpressiveNowPlaying(
 ) {
     var showLyrics by memory::expressiveLyrics
     var showAddToQueuePicker by remember { mutableStateOf(false) }
+    // A lyric line held down: the share card opens from it.
+    var shareFrom by remember { mutableStateOf<Int?>(null) }
     val context = LocalContext.current
     val density = LocalDensity.current
     val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
@@ -244,6 +246,7 @@ internal fun ExpressiveNowPlaying(
                                     onSeek(timeMs)
                                     if (lyricsTapPlays && !isPlaying) onTogglePlayPause()
                                 },
+                                onLineLongClick = { shareFrom = it },
                                 showRomanization = lyricsRomanization,
                                 loading = lyricsLoading,
                                 contentPadding = PaddingValues(
@@ -365,6 +368,11 @@ internal fun ExpressiveNowPlaying(
                 },
                 onDismiss = { showAddToQueuePicker = false },
             )
+        }
+
+        // The share card: a page over everything, like the queue picker.
+        shareFrom?.let { start ->
+            if (song != null && lyrics != null) ShareLyricsDialog(song, lyrics, start) { shareFrom = null } else shareFrom = null
         }
     }
     }

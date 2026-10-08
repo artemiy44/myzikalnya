@@ -52,7 +52,9 @@
     <string name="cancel">İptal</string>
     <string name="card_accent">Vurgu</string>
     <string name="card_blur">Bulanık kapak</string>
+    <string name="card_done">Bitti</string>
     <string name="card_failed">Resim oluşturulamadı</string>
+    <string name="card_lines">Satırlar</string>
     <string name="card_paper">Kâğıt</string>
     <string name="card_save">Kaydet</string>
     <string name="card_saved">Pictures/Lumine içine kaydedildi</string>

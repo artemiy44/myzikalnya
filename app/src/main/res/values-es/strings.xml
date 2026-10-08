@@ -52,7 +52,9 @@
     <string name="cancel">Cancelar</string>
     <string name="card_accent">Acento</string>
     <string name="card_blur">Portada desenfocada</string>
+    <string name="card_done">Listo</string>
     <string name="card_failed">No se pudo crear la imagen</string>
+    <string name="card_lines">Líneas</string>
     <string name="card_paper">Papel</string>
     <string name="card_save">Guardar</string>
     <string name="card_saved">Guardado en Pictures/Lumine</string>

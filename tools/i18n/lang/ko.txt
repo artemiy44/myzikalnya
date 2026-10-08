@@ -378,3 +378,5 @@ hero_classic = 클래식
 hero_vivid = 선명
 set_hero_classic_desc = 이미지가 페이지 배경으로 서서히 사라집니다
 set_hero_vivid_desc = 이미지의 색이 페이지 아래로 흘러내린 뒤 배경에 스며듭니다
+card_lines = 줄
+card_done = 완료

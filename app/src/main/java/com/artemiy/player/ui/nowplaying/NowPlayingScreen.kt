@@ -295,9 +295,6 @@ fun NowPlayingScreen(
     var titleTarget by remember { mutableStateOf<Rect?>(null) }
     // A lyric line held down: the share card opens from it.
     var shareFrom by remember { mutableStateOf<Int?>(null) }
-    shareFrom?.let { start ->
-        if (song != null && lyrics != null) ShareLyricsDialog(song, lyrics, start) { shareFrom = null } else shareFrom = null
-    }
     val playerActive = LocalNowPlayingActive.current
     val coverShadow = nowPlayingBackgroundMode != NowPlayingBackgroundMode.NONE
     // Back from lyrics/queue the cover lands as a flying copy without a shadow: once the real one
@@ -891,6 +888,11 @@ fun NowPlayingScreen(
                 },
                 onDismiss = { showAddToQueuePicker = false },
             )
+        }
+
+        // The share card: a page over everything, like the queue picker.
+        shareFrom?.let { start ->
+            if (song != null && lyrics != null) ShareLyricsDialog(song, lyrics, start) { shareFrom = null } else shareFrom = null
         }
     }
 }

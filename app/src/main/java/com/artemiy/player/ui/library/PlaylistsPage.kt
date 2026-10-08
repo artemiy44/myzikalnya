@@ -105,6 +105,7 @@ import androidx.compose.ui.text.style.TextAlign
 import com.artemiy.player.ui.components.songLongPressTrigger
 import com.artemiy.player.ui.settings.SettingsViewModel
 import com.artemiy.player.ui.theme.PlayerColors
+import com.artemiy.player.ui.components.expandAnchor
 
 /** A playlist's header — same build as an artist's: its songs' covers as a blurred collage, name
  * and song count over it, then shuffle / play / playlist actions. */
@@ -193,6 +194,7 @@ internal fun PlaylistsList(playlists: List<PlaylistWithCount>, onPlaylistClick: 
                 Box(
                     modifier = Modifier
                         .size(52.dp)
+                        .expandAnchor(com.artemiy.player.ui.components.LibraryAnchors, "playlist:${playlist.id}", cornerDp = 10.dp, washKey = "playlist:${playlist.name}")
                         .clip(RoundedCornerShape(10.dp))
                         .background(PlayerColors.Surface),
                     contentAlignment = Alignment.Center,

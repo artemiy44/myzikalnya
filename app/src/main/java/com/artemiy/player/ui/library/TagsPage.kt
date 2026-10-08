@@ -103,6 +103,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.style.TextAlign
 import com.artemiy.player.ui.components.songLongPressTrigger
+import com.artemiy.player.ui.components.expandAnchor
 import com.artemiy.player.ui.settings.SettingsViewModel
 import com.artemiy.player.ui.theme.PlayerColors
 
@@ -130,6 +131,8 @@ internal fun TagGrid(
     /** Kept by the Library itself, so coming back from a year's page finds the list where it was. */
     state: LazyGridState,
     onOpen: (TagGroup) -> Unit,
+    /** "year" or "genre": what a tile's page is called for the card that grows into it. */
+    anchorPrefix: String,
     name: @Composable (TagGroup) -> String,
     mark: @Composable androidx.compose.foundation.layout.BoxScope.(TagGroup) -> Unit,
 ) {
@@ -153,6 +156,11 @@ internal fun TagGrid(
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f)
+                        .expandAnchor(
+                            com.artemiy.player.ui.components.LibraryAnchors,
+                            "$anchorPrefix:${group.key}",
+                            cornerDp = if (expressive) 22.dp else 12.dp,
+                        )
                         .clip(RoundedCornerShape(if (expressive) 22.dp else 12.dp)),
                 ) {
                     ToneBackdrop(group.songs)

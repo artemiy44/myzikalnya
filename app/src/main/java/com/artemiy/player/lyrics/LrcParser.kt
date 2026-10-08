@@ -149,9 +149,20 @@ private fun groupSimultaneousLines(lines: List<LyricLine>): List<LyricLine> =
  * segment's text marks a line boundary; whitespace belongs to the segment that follows it.
  */
 fun buildLinesFromSylt(segments: List<UsltFrameDecoder.SyltLine>): List<LyricLine> {
+    // Plenty of tools write one whole LINE per SYLT entry and never put a newline in any of them
+    // (the spec's way of ending a line). Joined as words that made the entire song one giant
+    // line. No newline anywhere, and entries that aren't word pieces ("walk alone" rather than
+    // " alone") -> every entry is a line of its own.
+    val hasNewline = segments.any { '\n' in it.text }
+    val filled = segments.filter { it.text.isNotBlank() }
+    val wordPieces = filled.size >= 8 &&
+        filled.drop(1).count { it.text.startsWith(' ') } * 10 >= (filled.size - 1) * 6
+    if (!hasNewline && !wordPieces) return filled.map { LyricLine(it.timestampMs, it.text.trim()) }
+
     val result = mutableListOf<LyricLine>()
     var words = mutableListOf<LyricWord>()
     var lineStart: Long? = null
+    var previousMs = 0L
 
     fun flush() {
         val text = words.joinToString("") { it.text }.trim()
@@ -163,6 +174,9 @@ fun buildLinesFromSylt(segments: List<UsltFrameDecoder.SyltLine>): List<LyricLin
     }
 
     for (segment in segments) {
+        // Word pieces with no newline marks at all: a line ends where the singing pauses a while.
+        if (!hasNewline && words.isNotEmpty() && segment.timestampMs - previousMs > 2000) flush()
+        previousMs = segment.timestampMs
         val parts = segment.text.split('\n')
         if (parts.size == 1) {
             if (lineStart == null) lineStart = segment.timestampMs

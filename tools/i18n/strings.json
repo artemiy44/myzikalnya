@@ -224,9 +224,17 @@
   "en": "Blurred cover",
   "ru": "Размытая обложка"
  },
+ "card_done": {
+  "en": "Done",
+  "ru": "Готово"
+ },
  "card_failed": {
   "en": "Couldn't make the picture",
   "ru": "Не получилось сделать картинку"
+ },
+ "card_lines": {
+  "en": "Lines",
+  "ru": "Строки"
  },
  "card_paper": {
   "en": "Paper",

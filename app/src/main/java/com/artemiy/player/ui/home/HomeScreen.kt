@@ -48,6 +48,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
@@ -113,12 +115,27 @@ fun HomeScreen(
 
     // Kept out here so the page's scroll position survives opening a mix and coming back.
     val mainScroll = rememberScrollState()
+    val mixesScroll = rememberScrollState()
+    val quickScroll = rememberScrollState()
+    val recentScroll = rememberScrollState()
     LaunchedEffect(rootRequest) {
         if (rootRequest == 0) return@LaunchedEffect
         if (route != HomeRoute.Main) route = HomeRoute.Main else mainScroll.animateScrollTo(0)
     }
     val stack = if (route == HomeRoute.Main) listOf<HomeRoute>(HomeRoute.Main) else listOf(HomeRoute.Main, route)
-    AnimatedBackStack(stack = stack, onBack = back) { r ->
+    // Classic look: a tapped mix card grows into its page (and the page shrinks back into the card).
+    // Where that card is (in the window) is kept for the stack to animate from.
+    var tappedCard by remember { mutableStateOf<androidx.compose.ui.geometry.Rect?>(null) }
+    val classicUi = !com.artemiy.player.ui.theme.expressiveUi
+    AnimatedBackStack(
+        stack = stack,
+        onBack = back,
+        expandFrom = { r ->
+            val card = tappedCard
+            val mix = if (r is HomeRoute.OpenMix) mixes.firstOrNull { it.id == r.id } else null
+            if (classicUi && card != null && mix != null) com.artemiy.player.ui.components.ExpandSource(card, mixBrush(mix.colorIndex)) else null
+        },
+    ) { r ->
         when (r) {
             is HomeRoute.OpenMix -> {
                 val mix = mixes.firstOrNull { it.id == r.id }
@@ -197,13 +214,17 @@ fun HomeScreen(
                         verticalArrangement = Arrangement.spacedBy(22.dp),
                     ) {
                         val menuActions = SongMenuActions(onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
-                        MixesSection(mixes = mixes, statDays = statDays, onOpen = { route = HomeRoute.OpenMix(it.id) })
+                        MixesSection(mixes = mixes, statDays = statDays, scroll = mixesScroll, onOpen = { mix, bounds ->
+                            tappedCard = bounds
+                            route = HomeRoute.OpenMix(mix.id)
+                        })
                         SongRowSection(
                             title = stringResource(R.string.home_quick_picks),
                             songs = quickPicks,
                             emptyHint = stringResource(R.string.quick_picks_empty),
                             onSongClick = { song -> onSongClick(song, quickPicks, PlayOrigin(fromQuickPicks, SourceArt.Place(SourcePlace.QUICK_PICKS))) },
                             menuActions = menuActions,
+                            scroll = quickScroll,
                         )
                         SongRowSection(
                             title = stringResource(R.string.home_recently_added),
@@ -211,6 +232,7 @@ fun HomeScreen(
                             emptyHint = null,
                             onSongClick = { song -> onSongClick(song, recentlyAdded, PlayOrigin(fromRecentlyAdded, SourceArt.Place(SourcePlace.RECENTLY_ADDED))) },
                             menuActions = menuActions,
+                            scroll = recentScroll,
                             onSeeAll = { route = HomeRoute.RecentlyAddedAll },
                         )
                         RecapCard(recap = recap, onOpen = { route = HomeRoute.WeekRecap })
@@ -224,7 +246,7 @@ fun HomeScreen(
 }
 
 @Composable
-private fun MixesSection(mixes: List<Mix>, statDays: Int, onOpen: (Mix) -> Unit) {
+private fun MixesSection(mixes: List<Mix>, statDays: Int, scroll: androidx.compose.foundation.ScrollState, onOpen: (Mix, androidx.compose.ui.geometry.Rect?) -> Unit) {
     Column {
         Text(
             text = stringResource(R.string.mixes_for_you),
@@ -244,11 +266,18 @@ private fun MixesSection(mixes: List<Mix>, statDays: Int, onOpen: (Mix) -> Unit)
         }
         Row(
             modifier = Modifier
-                .horizontalScroll(rememberScrollState())
+                .horizontalScroll(scroll)
                 .padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            mixes.forEach { mix -> MixCard(mix = mix, onClick = { onOpen(mix) }) }
+            mixes.forEach { mix ->
+                var bounds by remember { mutableStateOf<androidx.compose.ui.geometry.Rect?>(null) }
+                MixCard(
+                    mix = mix,
+                    onClick = { onOpen(mix, bounds) },
+                    modifier = Modifier.onGloballyPositioned { bounds = it.boundsInWindow() },
+                )
+            }
         }
     }
 }
@@ -270,6 +299,7 @@ private fun SongRowSection(
     emptyHint: String?,
     onSongClick: (Song) -> Unit,
     menuActions: SongMenuActions,
+    scroll: androidx.compose.foundation.ScrollState,
     onSeeAll: (() -> Unit)? = null,
 ) {
     val artSize = 120.dp
@@ -293,7 +323,7 @@ private fun SongRowSection(
         }
         Row(
             modifier = Modifier
-                .horizontalScroll(rememberScrollState())
+                .horizontalScroll(scroll)
                 .padding(start = 20.dp, end = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {

@@ -56,7 +56,9 @@
     <string name="cancel">Cancel</string>
     <string name="card_accent">Accent</string>
     <string name="card_blur">Blurred cover</string>
+    <string name="card_done">Done</string>
     <string name="card_failed">Couldn\'t make the picture</string>
+    <string name="card_lines">Lines</string>
     <string name="card_paper">Paper</string>
     <string name="card_save">Save</string>
     <string name="card_saved">Saved to Pictures/Lumine</string>

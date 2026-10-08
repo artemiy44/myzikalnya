@@ -165,7 +165,23 @@ fun LibraryScreen(
 
     // Each page of the Library stack, animated: pushing slides in, going back (arrow or the
     // predictive back gesture) slides away with the page underneath showing.
-    AnimatedBackStack(stack = backStack, onBack = { backStack.removeAt(backStack.lastIndex) }) { route ->
+    // Classic look: an album / artist / playlist page grows out of the cover that was tapped (list or
+    // grid, whatever the sort), and shrinks back into it; see ExpandAnchors.
+    val classicUi = !com.artemiy.player.ui.theme.expressiveUi
+    AnimatedBackStack(
+        stack = backStack,
+        onBack = { backStack.removeAt(backStack.lastIndex) },
+        expandFrom = { r ->
+            if (!classicUi) null else when (r) {
+                is LibraryRoute.AlbumDetail -> com.artemiy.player.ui.components.LibraryAnchors.sourceFor("album:${albumKey(r.album, r.artist)}")
+                is LibraryRoute.ArtistDetail -> com.artemiy.player.ui.components.LibraryAnchors.sourceFor("artist:${r.artist}")
+                is LibraryRoute.PlaylistDetail -> com.artemiy.player.ui.components.LibraryAnchors.sourceFor("playlist:${r.playlistId}")
+                is LibraryRoute.YearDetail -> com.artemiy.player.ui.components.LibraryAnchors.sourceFor("year:${r.year}")
+                is LibraryRoute.GenreDetail -> com.artemiy.player.ui.components.LibraryAnchors.sourceFor("genre:${r.key}")
+                else -> null
+            }
+        },
+    ) { route ->
         // Artist/album/playlist pages run their header art up under the status bar themselves.
         val edgeToEdge = route is LibraryRoute.ArtistDetail || route is LibraryRoute.AlbumDetail || route is LibraryRoute.PlaylistDetail ||
             route is LibraryRoute.YearDetail || route is LibraryRoute.GenreDetail
@@ -590,6 +606,7 @@ fun LibraryScreen(
                             groups = yearGroups,
                             state = yearsGridState,
                             onOpen = { push(LibraryRoute.YearDetail(it.key?.toIntOrNull())) },
+                            anchorPrefix = "year",
                             name = { it.name ?: stringResource(R.string.no_year) },
                         ) { group -> TileMark(if (group.key == null) "?" else shortYear(group.key)) }
 
@@ -597,6 +614,7 @@ fun LibraryScreen(
                             groups = genreGroups,
                             state = genresGridState,
                             onOpen = { push(LibraryRoute.GenreDetail(it.key)) },
+                            anchorPrefix = "genre",
                             name = { it.name ?: stringResource(R.string.no_genre) },
                         ) { group ->
                             if (group.name == null) {

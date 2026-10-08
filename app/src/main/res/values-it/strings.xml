@@ -52,7 +52,9 @@
     <string name="cancel">Annulla</string>
     <string name="card_accent">Accento</string>
     <string name="card_blur">Copertina sfocata</string>
+    <string name="card_done">Fatto</string>
     <string name="card_failed">Impossibile creare l\'immagine</string>
+    <string name="card_lines">Righe</string>
     <string name="card_paper">Carta</string>
     <string name="card_save">Salva</string>
     <string name="card_saved">Salvato in Pictures/Lumine</string>

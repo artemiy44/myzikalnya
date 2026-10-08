@@ -58,7 +58,9 @@
     <string name="cancel">Отмена</string>
     <string name="card_accent">Акцент</string>
     <string name="card_blur">Размытая обложка</string>
+    <string name="card_done">Готово</string>
     <string name="card_failed">Не получилось сделать картинку</string>
+    <string name="card_lines">Строки</string>
     <string name="card_paper">Бумага</string>
     <string name="card_save">Сохранить</string>
     <string name="card_saved">Сохранено в Pictures/Lumine</string>

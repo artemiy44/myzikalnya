@@ -81,6 +81,13 @@ fun AlbumDetailScreen(
         songs.sortedWith(compareBy<Song>({ it.disc }, { it.trackNumber ?: Int.MAX_VALUE }, { it.title.lowercase() }))
     }
     val multiDisc = remember(songs) { songs.map { it.disc }.distinct().size > 1 }
+    // The rows are built in two goes (the first few at once, the rest when the page has settled):
+    // all of them in the opening frame made it a long one.
+    var rowsShown by remember { androidx.compose.runtime.mutableIntStateOf(7) }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(600)
+        rowsShown = Int.MAX_VALUE
+    }
     val scroll = rememberScrollState()
     val barShown = com.artemiy.player.ui.components.rememberHeroBarShown(scroll, 430.dp)
     Box(modifier = Modifier.fillMaxSize()) {
@@ -133,7 +140,7 @@ fun AlbumDetailScreen(
         }
 
         Column(modifier = Modifier.fillMaxWidth().heroPanel(roundTop = true).padding(start = com.artemiy.player.ui.components.pageGutter, end = com.artemiy.player.ui.components.pageGutter, top = 12.dp, bottom = 20.dp)) {
-            songs.forEachIndexed { index, song ->
+            songs.take(rowsShown).forEachIndexed { index, song ->
                 if (multiDisc && song.disc != songs.getOrNull(index - 1)?.disc) {
                     Text(
                         text = stringResource(R.string.disc_n, song.disc.toString()),

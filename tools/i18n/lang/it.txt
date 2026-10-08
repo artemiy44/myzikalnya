@@ -378,3 +378,5 @@ hero_classic = Classico
 hero_vivid = Vivace
 set_hero_classic_desc = L'immagine sfuma nello sfondo della pagina
 set_hero_vivid_desc = Il colore dell'immagine scorre lungo la pagina e poi si fonde con lo sfondo
+card_lines = Righe
+card_done = Fatto

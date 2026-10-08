@@ -103,6 +103,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.style.TextAlign
 import com.artemiy.player.ui.components.songLongPressTrigger
+import com.artemiy.player.ui.components.expandAnchor
 import com.artemiy.player.ui.settings.SettingsViewModel
 import com.artemiy.player.ui.theme.PlayerColors
 
@@ -113,6 +114,8 @@ internal fun AlbumsList(groups: List<AlbumGroup>, state: LazyListState, menu: @C
         itemsIndexed(groups, key = { _, group -> "${group.album}|${group.artist}" }) { index, group ->
             val expressive = com.artemiy.player.ui.theme.expressiveUi
             var menuOpen by remember { mutableStateOf(false) }
+            val coverUri = group.songs.firstOrNull()?.uri
+            com.artemiy.player.ui.components.WarmHeroWash(coverUri, "album:$coverUri")
             Row(
                 modifier = Modifier
                     .then(if (expressive) Modifier.padding(horizontal = 12.dp) else Modifier)
@@ -125,9 +128,10 @@ internal fun AlbumsList(groups: List<AlbumGroup>, state: LazyListState, menu: @C
             ) {
                 menu(group.songs, menuOpen) { menuOpen = false }
                 AlbumArt(
-                    uri = group.songs.firstOrNull()?.uri,
+                    uri = coverUri,
                     modifier = Modifier
                         .size(52.dp)
+                        .expandAnchor(com.artemiy.player.ui.components.LibraryAnchors, "album:${albumKey(group.album, group.artist)}", if (expressive) 14.dp else 10.dp, washKey = "album:$coverUri")
                         .clip(RoundedCornerShape(if (expressive) 14.dp else 10.dp)),
                 )
                 Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
@@ -171,16 +175,19 @@ internal fun AlbumsGrid(groups: List<AlbumGroup>, columns: Int, state: LazyGridS
     ) {
         gridItems(groups) { group ->
             var menuOpen by remember { mutableStateOf(false) }
+            val coverUri = group.songs.firstOrNull()?.uri
+            com.artemiy.player.ui.components.WarmHeroWash(coverUri, "album:$coverUri")
             Column(
                 modifier = Modifier
                     .songLongPressTrigger(onClick = { onAlbumClick(group) }, onLongPress = { menuOpen = true }),
             ) {
                 menu(group.songs, menuOpen) { menuOpen = false }
                 AlbumArt(
-                    uri = group.songs.firstOrNull()?.uri,
+                    uri = coverUri,
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f)
+                        .expandAnchor(com.artemiy.player.ui.components.LibraryAnchors, "album:${albumKey(group.album, group.artist)}", if (com.artemiy.player.ui.theme.expressiveUi) 22.dp else 10.dp, washKey = "album:$coverUri")
                         .clip(RoundedCornerShape(if (com.artemiy.player.ui.theme.expressiveUi) 22.dp else 10.dp)),
                 )
                 Text(

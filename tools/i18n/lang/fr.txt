@@ -378,3 +378,5 @@ hero_classic = Classique
 hero_vivid = Vif
 set_hero_classic_desc = L'image se fond dans l'arrière-plan de la page
 set_hero_vivid_desc = La couleur de l'image coule le long de la page, puis se fond dans l'arrière-plan
+card_lines = Lignes
+card_done = Terminé

@@ -99,6 +99,9 @@ fun rememberHeroWash(art: Bitmap?, key: String? = null): Color? {
     return wash
 }
 
+/** The colour already read for a page, if any. */
+fun peekHeroWash(key: String): Color? = washCache[key]
+
 /** Wash colours already read, by page: coming back to a page (or scrolling its header back into
  * view) shows the colour at once instead of reading it again. */
 private val washCache = java.util.concurrent.ConcurrentHashMap<String, Color>()

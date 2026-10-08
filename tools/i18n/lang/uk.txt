@@ -378,3 +378,5 @@ hero_classic = Класичний
 hero_vivid = Яскравий
 set_hero_classic_desc = Картинка згасає в колір тла сторінки
 set_hero_vivid_desc = Колір картинки перетікає вниз по сторінці й потім сходить на тло
+card_lines = Рядки
+card_done = Готово

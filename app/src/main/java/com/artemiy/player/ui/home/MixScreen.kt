@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -77,10 +78,10 @@ fun mixBrush(colorIndex: Int): Brush {
 
 /** The Home card for one mix: tall, colored, title up top, its artists at the bottom. */
 @Composable
-fun MixCard(mix: Mix, onClick: () -> Unit) {
+fun MixCard(mix: Mix, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val textMeasurer = rememberTextMeasurer()
     Column(
-        modifier = Modifier
+        modifier = modifier
             .width(200.dp)
             .height(250.dp)
             .clip(RoundedCornerShape(if (com.artemiy.player.ui.theme.expressiveUi) 26.dp else 18.dp))
@@ -151,6 +152,14 @@ fun MixScreen(
     val savedFlash = rememberCheckFlash()
     val scroll = rememberScrollState()
     val barShown = com.artemiy.player.ui.components.rememberHeroBarShown(scroll, 430.dp)
+    // The rows are built in two goes — the first few at once, the rest once the page has settled:
+    // a page opening as a card shares its frames with being built, and twenty rows with their
+    // covers at that moment made the opening stutter.
+    var rowsShown by remember { androidx.compose.runtime.mutableIntStateOf(FIRST_ROWS) }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(550)
+        rowsShown = Int.MAX_VALUE
+    }
     Box(modifier = Modifier.fillMaxSize().background(PlayerColors.Background)) {
     Column(modifier = Modifier.fillMaxSize().verticalScroll(scroll).barsInset()) {
         HeroOverArt(
@@ -218,7 +227,7 @@ fun MixScreen(
         }
 
         Column(modifier = Modifier.fillMaxWidth().heroPanel(roundTop = true).padding(horizontal = com.artemiy.player.ui.components.pageGutter, vertical = 12.dp)) {
-            mix.songs.forEachIndexed { index, song ->
+            mix.songs.take(rowsShown).forEachIndexed { index, song ->
                 Row(
                     modifier = Modifier
                         .staggeredEntrance(index, entrance)
@@ -249,3 +258,6 @@ fun MixScreen(
     HeroBar(shown = barShown, title = mix.title, onBack = onBack)
     }
 }
+
+/** How many rows of a mix page are built right away. */
+private const val FIRST_ROWS = 7

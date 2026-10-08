@@ -52,7 +52,9 @@
     <string name="cancel">Anuluj</string>
     <string name="card_accent">Akcent</string>
     <string name="card_blur">Rozmyta okładka</string>
+    <string name="card_done">Gotowe</string>
     <string name="card_failed">Nie udało się utworzyć obrazu</string>
+    <string name="card_lines">Wiersze</string>
     <string name="card_paper">Papier</string>
     <string name="card_save">Zapisz</string>
     <string name="card_saved">Zapisano w Pictures/Lumine</string>

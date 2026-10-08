@@ -52,7 +52,9 @@
     <string name="cancel">キャンセル</string>
     <string name="card_accent">アクセント</string>
     <string name="card_blur">ぼかしたカバー</string>
+    <string name="card_done">完了</string>
     <string name="card_failed">画像を作成できませんでした</string>
+    <string name="card_lines">行</string>
     <string name="card_paper">紙</string>
     <string name="card_save">保存</string>
     <string name="card_saved">Pictures/Lumine に保存しました</string>

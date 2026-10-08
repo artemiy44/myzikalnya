@@ -378,3 +378,5 @@ hero_classic = Klasik
 hero_vivid = Canlı
 set_hero_classic_desc = Görsel sayfa arka planına karışır
 set_hero_vivid_desc = Görselin rengi sayfada aşağı akar, sonra arka plana yerleşir
+card_lines = Satırlar
+card_done = Bitti

@@ -57,3 +57,33 @@ fun PlayPauseIcon(isPlaying: Boolean, tint: Color, modifier: Modifier = Modifier
         )
     }
 }
+
+
+/**
+ * The radius of the phone's screen corners in pixels (Android 12+ reports it; 0 = square corners,
+ * an older Android, or not known yet). The window may not know its insets in the very first
+ * frames, so it asks a few times.
+ */
+@Composable
+fun rememberScreenCornerRadiusPx(): Float {
+    val view = androidx.compose.ui.platform.LocalView.current
+    val radius by androidx.compose.runtime.produceState(0f, view) {
+        repeat(6) {
+            val r = screenCornerRadiusPx(view)
+            if (r > 0f) { value = r; return@produceState }
+            kotlinx.coroutines.delay(300)
+        }
+    }
+    return radius
+}
+
+private fun screenCornerRadiusPx(view: android.view.View): Float {
+    if (android.os.Build.VERSION.SDK_INT < 31) return 0f
+    val insets = view.rootWindowInsets ?: return 0f
+    return listOf(
+        android.view.RoundedCorner.POSITION_TOP_LEFT,
+        android.view.RoundedCorner.POSITION_TOP_RIGHT,
+        android.view.RoundedCorner.POSITION_BOTTOM_LEFT,
+        android.view.RoundedCorner.POSITION_BOTTOM_RIGHT,
+    ).maxOf { insets.getRoundedCorner(it)?.radius ?: 0 }.toFloat()
+}

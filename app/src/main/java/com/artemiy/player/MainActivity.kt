@@ -12,6 +12,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
 import androidx.compose.animation.core.Animatable
@@ -412,7 +414,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
         androidx.activity.compose.PredictiveBackHandler { progress ->
             try {
                 progress.collect { event -> settingsPeek.snapTo(event.progress) }
-                settingsPeek.animateTo(1f, tween(180))
+                settingsPeek.animateTo(1f, tween(240))
                 showSettings = false
             } catch (e: kotlinx.coroutines.CancellationException) {
                 kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) { settingsPeek.animateTo(0f, tween(200)) }
@@ -423,9 +425,26 @@ private fun PlayerApp(settings: SettingsViewModel) {
     // The drag distance that opens the player all the way — most of the screen's height.
     val expandTravelPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() } * 0.8f
 
+    // What shows around the shrunken page: the page colour, darkened a bit more than the page
+    // itself (so it reads as depth, not as a lighter strip), by the same 0..1 as the player.
+    val backdropColor = PlayerColors.Background
+    val screenCornerPx = com.artemiy.player.ui.components.rememberScreenCornerRadiusPx()
+    // How far the app is covered by something sliding over it: the player opening, or Settings
+    // (which also lets go as the back gesture pulls it away). The page under it shrinks and dims.
+    val settingsCover by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (showSettings) 1f else 0f,
+        animationSpec = tween(280),
+        label = "settingsCover",
+    )
+    val coverDepth = { maxOf(nowPlayingExpand.value, settingsCover * (1f - settingsPeek.value)) }
     CompositionLocalProvider(LocalStatusBarIconsOverride provides statusBarOverride) {
     Scaffold(
-        containerColor = PlayerColors.Background,
+        modifier = Modifier.drawBehind {
+            drawRect(backdropColor)
+            val depth = coverDepth()
+            if (depth > 0f) drawRect(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.55f * depth))
+        },
+        containerColor = androidx.compose.ui.graphics.Color.Transparent,
         bottomBar = {
             Column {
                 if (!com.artemiy.player.ui.theme.expressiveUi) Box(
@@ -486,7 +505,27 @@ private fun PlayerApp(settings: SettingsViewModel) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = if (floatingBars) 0.dp else innerPadding.calculateBottomPadding()),
+                .padding(bottom = if (floatingBars) 0.dp else innerPadding.calculateBottomPadding())
+                // Depth: while the player opens (or is dragged, or backed out of), the page under
+                // it shrinks a little and dims — drawn from the same 0..1 as the player itself.
+                .graphicsLayer {
+                    val p = nowPlayingExpand.value
+                    val s = 1f - 0.06f * coverDepth()
+                    scaleX = s
+                    scaleY = s
+                    // Round it like the phone's own screen corners (none on a square screen) — the
+                    // radius grows and fades with the opening instead of switching on and off.
+                    val radius = screenCornerPx * maxOf((p / 0.33f).coerceIn(0f, 1f), settingsCover * (1f - settingsPeek.value))
+                    if (radius > 0.5f) {
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(radius)
+                        clip = true
+                    }
+                }
+                .drawWithContent {
+                    drawContent()
+                    val depth = coverDepth()
+                    if (depth > 0f) drawRect(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.35f * depth))
+                },
         ) {
             // Switching tabs: the old one fades out quickly, the new one fades in rising slightly
             // from 96% — Material's "fade through".
@@ -702,10 +741,18 @@ private fun PlayerApp(settings: SettingsViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .graphicsLayer {
+                    // The back gesture: the page pulls away from the middle — shrinking and
+                    // rounded like the screen, melting away over the last stretch.
                     val p = settingsPeek.value
-                    translationX = p * size.width
-                    scaleX = 1f - 0.06f * p
-                    scaleY = 1f - 0.06f * p
+                    val s = 1f - 0.12f * p
+                    scaleX = s
+                    scaleY = s
+                    alpha = 1f - ((p - 0.4f) / 0.6f).coerceIn(0f, 1f)
+                    val radius = screenCornerPx * (p / 0.2f).coerceIn(0f, 1f)
+                    if (radius > 0.5f) {
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(radius)
+                        clip = true
+                    }
                 }
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },

@@ -8,6 +8,10 @@ import android.os.Build
 import android.provider.MediaStore
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.ui.draw.clipToBounds
@@ -117,9 +121,10 @@ private const val MAX_PICKED = 6
 private const val CARD_PX = 1080
 
 /**
- * The share card: pick up to six lines of the lyrics, a look for the picture, its proportions —
- * then save it to Pictures/Lumine or hand it to any app. The picture is the very card shown here,
- * drawn once at full size (1080 px wide) however small it appears on screen.
+ * The share card, as a page of the player itself (not a separate window): the card big on top, its
+ * look / proportions / translation underneath, and the lines to put on it chosen in a tall panel
+ * that slides up — then save it to Pictures/Lumine or hand it to any app. The picture is the very
+ * card shown here, drawn once at full size (1080 px wide) however small it appears on screen.
  */
 @Composable
 internal fun ShareLyricsDialog(song: Song, lyrics: ParsedLyrics, startIndex: Int, onDismiss: () -> Unit) {
@@ -132,14 +137,17 @@ internal fun ShareLyricsDialog(song: Song, lyrics: ParsedLyrics, startIndex: Int
     var style by remember { mutableStateOf(CardStyle.TONE) }
     var shape by remember { mutableStateOf(CardShape.PORTRAIT) }
     var withTranslation by remember { mutableStateOf(true) }
+    var panelOpen by remember { mutableStateOf(false) }
     val hasTranslation = remember(all) { all.any { it.secondary != null } }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val layer = rememberGraphicsLayer()
-    val app = LocalAppPalette.current
+    val cornerPx = com.artemiy.player.ui.components.rememberScreenCornerRadiusPx()
 
-    // Slides up and fades in; closing plays it backwards.
+    // Slides up when it opens; the close button plays that backwards, the back gesture pulls the
+    // page away from the middle instead (shrinking, rounded like the screen, melting away).
     val appear = remember { androidx.compose.animation.core.Animatable(0f) }
+    val back = remember { androidx.compose.animation.core.Animatable(0f) }
     androidx.compose.runtime.LaunchedEffect(Unit) { appear.animateTo(1f, androidx.compose.animation.core.tween(320, easing = androidx.compose.animation.core.FastOutSlowInEasing)) }
     val close: () -> Unit = {
         scope.launch {
@@ -147,19 +155,48 @@ internal fun ShareLyricsDialog(song: Song, lyrics: ParsedLyrics, startIndex: Int
             onDismiss()
         }
     }
-    Dialog(onDismissRequest = close, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
-        PaletteScope(app) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        alpha = appear.value
-                        translationY = (1f - appear.value) * 90.dp.toPx()
+    androidx.activity.compose.PredictiveBackHandler(enabled = !panelOpen) { progress ->
+        try {
+            progress.collect { event -> back.snapTo(event.progress) }
+            back.animateTo(1f, androidx.compose.animation.core.tween(240))
+            onDismiss()
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
+                back.animateTo(0f, androidx.compose.animation.core.tween(200))
+            }
+        }
+    }
+    // Registered after the one above, so it gets the back press first while the panel is up.
+    androidx.activity.compose.BackHandler(enabled = panelOpen) { panelOpen = false }
+
+    // In the player's own palette (dark, like the queue picker), not the app's.
+    run {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    val b = back.value
+                    val sc = 1f - 0.12f * b
+                    scaleX = sc
+                    scaleY = sc
+                    alpha = appear.value * (1f - ((b - 0.4f) / 0.6f).coerceIn(0f, 1f))
+                    translationY = (1f - appear.value) * 90.dp.toPx()
+                    val radius = cornerPx * (b / 0.2f).coerceIn(0f, 1f)
+                    if (radius > 0.5f) {
+                        this.shape = RoundedCornerShape(radius)
+                        clip = true
                     }
-                    .background(PlayerColors.Background)
-                    .statusBarsPadding()
-                    .navigationBarsPadding(),
-            ) {
+                }
+                .background(PlayerColors.Background)
+                // The page is on top of the player: nothing touched here reaches what's under it
+                // (the player's own drag-to-close included).
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) awaitPointerEvent().changes.forEach { it.consume() }
+                    }
+                },
+        ) {
+            Column(modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -173,7 +210,7 @@ internal fun ShareLyricsDialog(song: Song, lyrics: ParsedLyrics, startIndex: Int
                     )
                     Icon(
                         imageVector = AppIcons.Close,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.close),
                         tint = PlayerColors.TextPrimary,
                         modifier = Modifier
                             .clip(CircleShape)
@@ -210,7 +247,7 @@ internal fun ShareLyricsDialog(song: Song, lyrics: ParsedLyrics, startIndex: Int
                                 song = song,
                                 lines = picked.sorted().map { all[it] },
                                 style = style,
-                                withTranslation = withTranslation,
+                                withTranslation = withTranslation && hasTranslation,
                                 widthDp = cardW,
                                 heightDp = cardH,
                             )
@@ -218,51 +255,59 @@ internal fun ShareLyricsDialog(song: Song, lyrics: ParsedLyrics, startIndex: Int
                     }
                 }
 
-                LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 230.dp), contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 20.dp)) {
-                    item {
-                        OptionsRows(style, { style = it }, shape, { shape = it }, withTranslation && hasTranslation, hasTranslation) { withTranslation = it }
-                        Text(
-                            text = stringResource(R.string.share_lyrics_hint),
-                            color = PlayerColors.TextSecondary,
-                            fontSize = 12.sp,
-                            modifier = Modifier.padding(top = 12.dp, bottom = 6.dp),
-                        )
+                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
+                    // The look: a strip you can swipe.
+                    androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(CardStyle.entries.size) { i ->
+                            val st = CardStyle.entries[i]
+                            LookChip(st, selected = st == style, accent = PlayerColors.Accent) { style = st }
+                        }
                     }
-                    itemsIndexed(all) { index, line ->
-                        val chosen = index in picked
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(if (chosen) PlayerColors.Accent.copy(alpha = 0.16f) else Color.Transparent)
-                                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) {
-                                    picked = when {
-                                        chosen && picked.size > 1 -> picked - index
-                                        !chosen && picked.size < MAX_PICKED -> picked + index
-                                        else -> picked
-                                    }
-                                }
-                                .padding(horizontal = 10.dp, vertical = 9.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(18.dp)
-                                    .clip(CircleShape)
-                                    .background(if (chosen) PlayerColors.Accent else PlayerColors.SurfaceDim),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                if (chosen) Icon(AppIcons.Check, null, tint = PlayerColors.OnAccent, modifier = Modifier.size(12.dp))
-                            }
-                            Text(
-                                text = line.text,
-                                color = PlayerColors.TextPrimary,
-                                fontSize = 14.sp,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.padding(start = 12.dp),
+                    Row(modifier = Modifier.fillMaxWidth().padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        CardShape.entries.forEach { sh ->
+                            Chip(sh.label, sh == shape) { shape = sh }
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
+                    }
+                    if (hasTranslation) {
+                        Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text(stringResource(R.string.card_translation), color = PlayerColors.TextPrimary, fontSize = 14.sp, modifier = Modifier.weight(1f))
+                            Switch(
+                                checked = withTranslation,
+                                onCheckedChange = { withTranslation = it },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = PlayerColors.OnAccent,
+                                    checkedTrackColor = PlayerColors.Accent,
+                                    uncheckedThumbColor = PlayerColors.TextSecondary,
+                                    uncheckedTrackColor = PlayerColors.SurfaceDim,
+                                    uncheckedBorderColor = PlayerColors.Border,
+                                ),
                             )
                         }
+                    }
+                    // The lines on the card: one button opening the panel to choose them.
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 10.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(PlayerColors.SurfaceDim)
+                            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { panelOpen = true }
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(stringResource(R.string.card_lines), color = PlayerColors.TextSecondary, fontSize = 12.sp)
+                            Text(
+                                text = all[picked.min()].text,
+                                color = PlayerColors.TextPrimary,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        Text("${picked.size} / $MAX_PICKED  ›", color = PlayerColors.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 12.dp))
                     }
                 }
 
@@ -289,42 +334,123 @@ internal fun ShareLyricsDialog(song: Song, lyrics: ParsedLyrics, startIndex: Int
                     }
                 }
             }
+
+            // The panel for choosing lines: over a dimmed page, sliding up from the bottom.
+            androidx.compose.animation.AnimatedVisibility(
+                visible = panelOpen,
+                enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(200)),
+                exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(160)),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.4f))
+                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { panelOpen = false },
+                )
+            }
+            androidx.compose.animation.AnimatedVisibility(
+                visible = panelOpen,
+                modifier = Modifier.align(Alignment.BottomCenter),
+                enter = androidx.compose.animation.slideInVertically(androidx.compose.animation.core.tween(300, easing = androidx.compose.animation.core.FastOutSlowInEasing)) { it },
+                exit = androidx.compose.animation.slideOutVertically(androidx.compose.animation.core.tween(220, easing = androidx.compose.animation.core.FastOutLinearInEasing)) { it },
+            ) {
+                val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+                androidx.compose.runtime.LaunchedEffect(Unit) { listState.scrollToItem((picked.min() - 1).coerceAtLeast(0)) }
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.68f)
+                        .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+                        .background(PlayerColors.Background)
+                        .navigationBarsPadding(),
+                ) {
+                    Row(modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = 12.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = stringResource(R.string.share_lyrics_hint),
+                            color = PlayerColors.TextSecondary,
+                            fontSize = 13.sp,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Text(
+                            text = stringResource(R.string.card_done),
+                            color = PlayerColors.Accent,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { panelOpen = false }
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                        )
+                    }
+                    LazyColumn(state = listState, modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 4.dp)) {
+                        itemsIndexed(all) { index, line ->
+                            val chosen = index in picked
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(if (chosen) PlayerColors.Accent.copy(alpha = 0.16f) else Color.Transparent)
+                                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) {
+                                        picked = when {
+                                            chosen && picked.size > 1 -> picked - index
+                                            !chosen && picked.size < MAX_PICKED -> picked + index
+                                            else -> picked
+                                        }
+                                    }
+                                    .padding(horizontal = 12.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(20.dp)
+                                        .clip(CircleShape)
+                                        .background(if (chosen) PlayerColors.Accent else PlayerColors.SurfaceDim),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    if (chosen) Icon(AppIcons.Check, null, tint = PlayerColors.OnAccent, modifier = Modifier.size(13.dp))
+                                }
+                                Text(
+                                    text = line.text,
+                                    color = PlayerColors.TextPrimary,
+                                    fontSize = 15.sp,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.padding(start = 14.dp),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+/** A look in the strip: a coloured dot showing it, and its name. */
 @Composable
-private fun OptionsRows(
-    style: CardStyle,
-    onStyle: (CardStyle) -> Unit,
-    shape: CardShape,
-    onShape: (CardShape) -> Unit,
-    translation: Boolean,
-    translationAvailable: Boolean,
-    onTranslation: (Boolean) -> Unit,
-) {
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 4.dp)) {
-        CardStyle.entries.forEach { Chip(stringResource(it.labelRes), it == style) { onStyle(it) } }
+private fun LookChip(style: CardStyle, selected: Boolean, accent: Color, onClick: () -> Unit) {
+    val dot = when (style) {
+        CardStyle.TONE -> Brush.linearGradient(listOf(Color(0xFF8C6B6B), Color(0xFFB59A9A)))
+        CardStyle.PAPER -> Brush.linearGradient(listOf(Color(0xFFF3EFE6), Color(0xFFE4DDCD)))
+        CardStyle.BLUR -> Brush.linearGradient(listOf(Color(0xFF2A2A2D), Color(0xFF5A4A50)))
+        CardStyle.ACCENT -> Brush.linearGradient(listOf(accent, accent))
     }
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
-        CardShape.entries.forEach { Chip(it.label, it == shape) { onShape(it) } }
-    }
-    if (translationAvailable) {
-        Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.card_translation), color = PlayerColors.TextPrimary, fontSize = 14.sp, modifier = Modifier.weight(1f))
-            Switch(
-                checked = translation,
-                onCheckedChange = onTranslation,
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = PlayerColors.OnAccent,
-                    checkedTrackColor = PlayerColors.Accent,
-                    uncheckedThumbColor = PlayerColors.TextSecondary,
-                    uncheckedTrackColor = PlayerColors.SurfaceDim,
-                    uncheckedBorderColor = PlayerColors.Border,
-                ),
-            )
-        }
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(if (selected) PlayerColors.Accent else PlayerColors.SurfaceDim)
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress, onClick = onClick)
+            .padding(start = 8.dp, end = 14.dp, top = 8.dp, bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(modifier = Modifier.size(22.dp).clip(CircleShape).background(dot).border(1.dp, Color.Black.copy(alpha = 0.12f), CircleShape))
+        Text(
+            text = stringResource(style.labelRes),
+            color = if (selected) PlayerColors.OnAccent else PlayerColors.TextPrimary,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(start = 8.dp),
+        )
     }
 }
 
