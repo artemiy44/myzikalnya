@@ -13,6 +13,9 @@ import java.util.Locale
 enum class AppLanguage(val tag: String, val nativeName: String, val expressive: Boolean = false) {
     RUSSIAN("ru", "Русский"),
     RUSSIAN_EXPRESSIVE("ru-XE", "Русский", expressive = true),
+    /** Pre-reform spelling (до 1918): hard signs, yat and all — generated from the Russian texts
+     * (tools/i18n/oldrus.py) under the private-use region "XP". */
+    RUSSIAN_OLD("ru-XP", "Русскій дореформенный"),
     ENGLISH("en", "English"),
     ENGLISH_EXPRESSIVE("en-XE", "English", expressive = true),
     UKRAINIAN("uk", "Українська"),

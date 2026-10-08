@@ -106,6 +106,8 @@ def write():
         os.makedirs(os.path.join(RES, folder), exist_ok=True)
         open(os.path.join(RES, folder, "strings.xml"), "w").write("\n".join(out) + "\n")
     write_extra_languages(db)
+    import oldrus
+    print(f"pre-reform Russian: {oldrus.write_old_russian(db, RES, _xml_text)} texts")
     print(f"{len(db)} strings written")
 
 
