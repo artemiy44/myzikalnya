@@ -87,3 +87,24 @@ private fun screenCornerRadiusPx(view: android.view.View): Float {
         android.view.RoundedCorner.POSITION_BOTTOM_RIGHT,
     ).maxOf { insets.getRoundedCorner(it)?.radius ?: 0 }.toFloat()
 }
+
+
+/**
+ * [androidx.compose.animation.core.CubicBezierEasing], without its one flaw: for some curves the
+ * search for the answer fails very close to the end of the way (0.9999999) and it throws — which
+ * took the whole app down (seen in the bouncing-dots loading mark). Same curve, same look; the very
+ * ends answer 0 and 1 at once, and a failed search answers with the straight line instead.
+ */
+class SafeCubicBezier(a: Float, b: Float, c: Float, d: Float) : androidx.compose.animation.core.Easing {
+    private val curve = androidx.compose.animation.core.CubicBezierEasing(a, b, c, d)
+
+    override fun transform(fraction: Float): Float {
+        if (fraction <= 0.0001f) return 0f
+        if (fraction >= 0.9999f) return 1f
+        return try {
+            curve.transform(fraction)
+        } catch (e: IllegalArgumentException) {
+            fraction
+        }
+    }
+}

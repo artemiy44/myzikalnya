@@ -56,8 +56,8 @@ private fun BouncingDots(color: Color, modifier: Modifier) {
 
 private const val HOP_MS = 600f
 private const val DOTS_CYCLE_MS = 1050f
-private val HOP_UP = CubicBezierEasing(0.33f, 0.66f, 0.66f, 1f)
-private val HOP_DOWN = CubicBezierEasing(0.33f, 0f, 0.66f, 0.33f)
+private val HOP_UP = SafeCubicBezier(0.33f, 0.66f, 0.66f, 1f)
+private val HOP_DOWN = SafeCubicBezier(0.33f, 0f, 0.66f, 0.33f)
 
 /** Two rings growing out of the middle and fading as they go, half a beat apart. */
 @Composable
@@ -80,4 +80,4 @@ private fun PulseRings(color: Color, modifier: Modifier) {
 }
 
 private const val RING_MS = 1200f
-private val RING_EASE = CubicBezierEasing(0.52f, 0.6f, 0.25f, 0.99f)
+private val RING_EASE = SafeCubicBezier(0.52f, 0.6f, 0.25f, 0.99f)

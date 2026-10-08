@@ -973,7 +973,7 @@ private const val RECENTER_AFTER_MS = 2_000L
 private const val SMOOTH_SNAP_MS = 500L
 
 /** Moving on to the next line: a quick start easing out into place — decisive, but not a snap. */
-private val LINE_EASE = androidx.compose.animation.core.CubicBezierEasing(0.2f, 0f, 0f, 1f)
+private val LINE_EASE = com.artemiy.player.ui.components.SafeCubicBezier(0.2f, 0f, 0f, 1f)
 private val LINE_CHANGE = tween<Float>(320, easing = LINE_EASE)
 
 /**
