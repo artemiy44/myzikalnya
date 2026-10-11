@@ -88,6 +88,8 @@
     <string name="device_headphones">Headphones</string>
     <string name="device_usb_audio">USB audio</string>
     <string name="device_usb_headphones">USB headphones</string>
+    <string name="dial_look_card">Card</string>
+    <string name="dial_look_full">Full screen</string>
     <string name="disc_n">Disc %1$s</string>
     <string name="drag">Drag</string>
     <string name="endless_play">Endless play</string>
@@ -204,6 +206,7 @@
     <string name="output_device">Playback device</string>
     <string name="play_next">Play next</string>
     <string name="player_classic">Classic</string>
+    <string name="player_dial">Dial</string>
     <string name="player_expressive">Expressive</string>
     <string name="playing_from">Playing from </string>
     <string name="playing_from_queue">the queue</string>
@@ -229,6 +232,7 @@
     <string name="recap_most_played">Most played: «%1$s» — %2$s.</string>
     <string name="recap_new_in_library">New in the library</string>
     <string name="recap_of_music">of music</string>
+    <string name="recap_show_all">Show all (%1$d)</string>
     <string name="recap_top_artist">Top artist: %1$s</string>
     <string name="recap_top_artists">Top artists</string>
     <string name="recap_top_genre">Genre of the week</string>
@@ -272,6 +276,9 @@
     <string name="set_colors">Colors &amp; accent</string>
     <string name="set_colors_sub">Backgrounds of the light and dark themes, accent colour</string>
     <string name="set_dark_bg">Dark theme background</string>
+    <string name="set_dial_card_desc">The background (the blur you picked; with no blur, the album\'s colour and its genre picture) sits in a card up top; the rest stays in the app\'s own colours.</string>
+    <string name="set_dial_full_desc">The background fills the whole screen; with no blur, just the app\'s background colour, the accent only on the play button.</string>
+    <string name="set_dial_look">Look</string>
     <string name="set_dont_split">Don\'t split</string>
     <string name="set_endless">Endless play</string>
     <string name="set_endless_desc">When the queue is running out and the \"∞\" button is on in the player — what to top it up with.</string>
@@ -315,6 +322,7 @@
     <string name="set_playback_sub">Equalizer, endless play</string>
     <string name="set_player_background">Player background</string>
     <string name="set_player_classic_desc">Rounded cover, volume slider; lyrics and queue open in place of the cover</string>
+    <string name="set_player_dial_desc">The title big up top; below, a grid of square buttons: a plate that spins with the song (turn it with a finger to wind), the queue (hold it for the lyrics), back, next and play.</string>
     <string name="set_player_expressive_desc">Big rounded cover, wavy bar, chunky buttons, queue in a pull-up sheet</string>
     <string name="set_player_style">Player style</string>
     <string name="set_player_sub">Style, background, lyrics</string>
@@ -342,6 +350,7 @@
     <string name="share_lyrics_hint">Tap lines to pick them — up to six</string>
     <string name="show_romanization">Show romanization</string>
     <string name="shuffle">Shuffle</string>
+    <string name="smart_playlists">Smart playlists</string>
     <string name="song_delete_failed">Couldn\'t delete it</string>
     <string name="song_deleted">Deleted</string>
     <string name="song_queued">Added to the queue</string>
@@ -363,6 +372,19 @@
     <string name="sort_recent">Recently added</string>
     <string name="sort_recent_library">Recently added to the library</string>
     <string name="sort_release_date">By release date</string>
+    <string name="sp_added_month">Added this month</string>
+    <string name="sp_long">Long tracks</string>
+    <string name="sp_most_ever">Most played ever</string>
+    <string name="sp_never_played">Never played</string>
+    <string name="sp_night">Night listening</string>
+    <string name="sp_not_heard">Not played for a month</string>
+    <string name="sp_old_favorites">Old favorites</string>
+    <string name="sp_played_week">Played this week</string>
+    <string name="sp_short">Short tracks</string>
+    <string name="sp_skipped">Often skipped</string>
+    <string name="sp_this_year">From this year</string>
+    <string name="sp_top_month">Top of the month</string>
+    <string name="sp_top_year">Top of the year</string>
     <string name="swipe_to_queue">To queue</string>
     <string name="tab_home">Home</string>
     <string name="tab_library">Library</string>

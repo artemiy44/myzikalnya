@@ -1235,3 +1235,19 @@ internal val TablerPalette: ImageVector by lazy {
         path(dot("16.5", "10.5"), fill = false, stroke = true)
     }
 }
+
+internal val LucideSparkles: ImageVector by lazy {
+    iconVector("LucideSparkles", scale = LUCIDE_SCALE) {
+        path("M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z", fill = false, stroke = true)
+        path("M20 3v4", fill = false, stroke = true)
+        path("M22 5h-4", fill = false, stroke = true)
+        path("M4 17v2", fill = false, stroke = true)
+        path("M5 18H3", fill = false, stroke = true)
+    }
+}
+
+internal val TablerSparkles: ImageVector by lazy {
+    iconVector("TablerSparkles") {
+        path("M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z m0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z m-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6z", fill = false, stroke = true)
+    }
+}

@@ -979,6 +979,10 @@
   "en": "of music",
   "ru": "музыки"
  },
+ "recap_show_all": {
+  "en": "Show all (%1$d)",
+  "ru": "Показать все (%1$d)"
+ },
  "recap_top_artist": {
   "en": "Top artist: %1$s",
   "en_x": "Star of the week: %1$s",
@@ -1438,6 +1442,10 @@
   "en": "Shuffle",
   "ru": "Перемешать"
  },
+ "smart_playlists": {
+  "en": "Smart playlists",
+  "ru": "Умные плейлисты"
+ },
  "song_delete_failed": {
   "en": "Couldn't delete it",
   "ru": "Не получилось удалить"
@@ -1515,6 +1523,58 @@
  "sort_release_date": {
   "en": "By release date",
   "ru": "По дате выпуска"
+ },
+ "sp_added_month": {
+  "en": "Added this month",
+  "ru": "Добавлено за месяц"
+ },
+ "sp_long": {
+  "en": "Long tracks",
+  "ru": "Длинные треки"
+ },
+ "sp_most_ever": {
+  "en": "Most played ever",
+  "ru": "Самое прослушиваемое"
+ },
+ "sp_never_played": {
+  "en": "Never played",
+  "ru": "Ни разу не слушали"
+ },
+ "sp_night": {
+  "en": "Night listening",
+  "ru": "Ночное прослушивание"
+ },
+ "sp_not_heard": {
+  "en": "Not played for a month",
+  "ru": "Давно не слушали"
+ },
+ "sp_old_favorites": {
+  "en": "Old favorites",
+  "ru": "Старые любимые"
+ },
+ "sp_played_week": {
+  "en": "Played this week",
+  "ru": "Слушали на этой неделе"
+ },
+ "sp_short": {
+  "en": "Short tracks",
+  "ru": "Короткие треки"
+ },
+ "sp_skipped": {
+  "en": "Often skipped",
+  "ru": "Часто пропускаете"
+ },
+ "sp_this_year": {
+  "en": "From this year",
+  "ru": "Этого года"
+ },
+ "sp_top_month": {
+  "en": "Top of the month",
+  "ru": "Лучшее за месяц"
+ },
+ "sp_top_year": {
+  "en": "Top of the year",
+  "ru": "Любимое за год"
  },
  "swipe_to_queue": {
   "en": "To queue",
@@ -1707,5 +1767,33 @@
  "years": {
   "en": "Years",
   "ru": "Годы"
+ },
+ "player_dial": {
+  "en": "Dial",
+  "ru": "Диск"
+ },
+ "set_player_dial_desc": {
+  "en": "The title big up top; below, a grid of square buttons: a plate that spins with the song (turn it with a finger to wind), the queue (hold it for the lyrics), back, next and play.",
+  "ru": "Название крупно сверху; внизу сетка квадратных кнопок: пластинка, которая крутится вместе с песней (покрути пальцем — перемотка), очередь (зажми — текст песни), назад, вперёд и пауза."
+ },
+ "set_dial_look": {
+  "en": "Look",
+  "ru": "Вид"
+ },
+ "dial_look_card": {
+  "en": "Card",
+  "ru": "Карточка"
+ },
+ "dial_look_full": {
+  "en": "Full screen",
+  "ru": "На весь экран"
+ },
+ "set_dial_card_desc": {
+  "en": "The background (the blur you picked; with no blur, the album's colour and its genre picture) sits in a card up top; the rest stays in the app's own colours.",
+  "ru": "Фон (выбранный блюр, а без блюра — цвет альбома и картинка жанра) лежит в карточке сверху, а всё остальное — в цветах приложения."
+ },
+ "set_dial_full_desc": {
+  "en": "The background fills the whole screen; with no blur, just the app's background colour, the accent only on the play button.",
+  "ru": "Фон заполняет весь экран; без блюра — просто фон приложения, акцент только на кнопке плей."
  }
 }

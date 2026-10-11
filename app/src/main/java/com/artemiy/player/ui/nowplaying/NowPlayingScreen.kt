@@ -115,6 +115,7 @@ fun NowPlayingScreen(
     onToggleLyricsRomanization: () -> Unit = {},
     lyricsTapPlays: Boolean = false,
     playerStyle: PlayerStyle = PlayerStyle.CLASSIC,
+    dialCard: Boolean = true,
     playingFrom: PlaySource? = null,
     lyricsLoading: Boolean = false,
     /** Classic style: how far the player is open (0 = still the mini player, 1 = open). */
@@ -130,7 +131,7 @@ fun NowPlayingScreen(
     val nextUp = (manualQueue.firstOrNull() ?: continueQueue.firstOrNull())?.uri
     com.artemiy.player.ui.components.rememberAlbumArtBitmap(nextUp, com.artemiy.player.ui.components.ART_SIZE_FULL)
     com.artemiy.player.ui.components.rememberAlbumArtBitmap(nextUp)
-    if (playerStyle == PlayerStyle.EXPRESSIVE) {
+    if (playerStyle != PlayerStyle.CLASSIC) {
         ExpressiveNowPlaying(
             song = song, isPlaying = isPlaying, positionMs = positionMs, durationMs = durationMs,
             manualQueue = manualQueue, continueQueue = continueQueue,
@@ -149,6 +150,8 @@ fun NowPlayingScreen(
             memory = memory,
             expand = expand,
             mini = mini,
+            dial = playerStyle == PlayerStyle.DIAL,
+            dialCard = dialCard,
         )
         return
     }

@@ -122,6 +122,8 @@ internal fun PlaylistHero(
     onDelete: () -> Unit,
     onExportM3u: () -> Unit = {},
     washOut: com.artemiy.player.ui.components.HeroWashState? = null,
+    /** A smart playlist fills itself: it can't be renamed or deleted. */
+    smart: Boolean = false,
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     HeroOverArt(
@@ -160,9 +162,9 @@ internal fun PlaylistHero(
                 onTrailing = { menuExpanded = true },
                 trailingOverlay = {
                     AppDropdownMenu(expanded = menuExpanded, onDismiss = { menuExpanded = false }) {
-                        AppMenuItem(text = stringResource(R.string.rename), icon = AppIcons.Edit, onClick = { menuExpanded = false; onRename() })
+                        if (!smart) AppMenuItem(text = stringResource(R.string.rename), icon = AppIcons.Edit, onClick = { menuExpanded = false; onRename() })
                         AppMenuItem(text = stringResource(R.string.playlist_export_m3u), icon = AppIcons.Upload, onClick = { menuExpanded = false; onExportM3u() })
-                        AppMenuItem(text = stringResource(R.string.delete_playlist), icon = AppIcons.Delete, destructive = true, onClick = { menuExpanded = false; onDelete() })
+                        if (!smart) AppMenuItem(text = stringResource(R.string.delete_playlist), icon = AppIcons.Delete, destructive = true, onClick = { menuExpanded = false; onDelete() })
                     }
                 },
             )
@@ -171,8 +173,12 @@ internal fun PlaylistHero(
 }
 
 @Composable
-internal fun PlaylistsList(playlists: List<PlaylistWithCount>, onPlaylistClick: (PlaylistWithCount) -> Unit) {
-    if (playlists.isEmpty()) {
+internal fun PlaylistsList(
+    playlists: List<PlaylistWithCount>,
+    smart: List<PlaylistWithCount>,
+    onPlaylistClick: (PlaylistWithCount) -> Unit,
+) {
+    if (playlists.isEmpty() && smart.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
             Text(
                 text = stringResource(R.string.no_playlists),
@@ -182,36 +188,64 @@ internal fun PlaylistsList(playlists: List<PlaylistWithCount>, onPlaylistClick: 
         }
         return
     }
-    LazyColumn(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(bottom = LocalBarsInset.current)) {
-        items(playlists, key = { it.id }) { playlist ->
-            Row(
+    @Composable
+    fun PlaylistRow(playlist: PlaylistWithCount, isSmart: Boolean) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onPlaylistClick(playlist) }
+                .padding(horizontal = 20.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onPlaylistClick(playlist) }
-                    .padding(horizontal = 20.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                    .size(52.dp)
+                    .expandAnchor(com.artemiy.player.ui.components.LibraryAnchors, "playlist:${playlist.id}", cornerDp = 10.dp, washKey = "playlist:${playlist.name}")
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(if (isSmart) PlayerColors.AccentStandalone.copy(alpha = 0.14f) else PlayerColors.Surface),
+                contentAlignment = Alignment.Center,
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(52.dp)
-                        .expandAnchor(com.artemiy.player.ui.components.LibraryAnchors, "playlist:${playlist.id}", cornerDp = 10.dp, washKey = "playlist:${playlist.name}")
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(PlayerColors.Surface),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(imageVector = AppIcons.Playlist, contentDescription = null, tint = PlayerColors.TextPrimary, modifier = Modifier.size(24.dp))
-                }
-                Text(
-                    text = playlist.name,
-                    color = PlayerColors.TextPrimary,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f).padding(start = 12.dp),
+                Icon(
+                    imageVector = if (isSmart) AppIcons.Sparkles else AppIcons.Playlist,
+                    contentDescription = null,
+                    tint = if (isSmart) PlayerColors.AccentStandalone else PlayerColors.TextPrimary,
+                    modifier = Modifier.size(24.dp),
                 )
-                Text(text = "${playlist.songCount}", color = PlayerColors.TextTertiary, fontSize = 12.sp)
             }
+            Text(
+                text = playlist.name,
+                color = PlayerColors.TextPrimary,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f).padding(start = 12.dp),
+            )
+            Text(text = "${playlist.songCount}", color = PlayerColors.TextTertiary, fontSize = 12.sp)
+        }
+    }
+    LazyColumn(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(bottom = LocalBarsInset.current)) {
+        if (playlists.isEmpty()) {
+            item(key = "no-playlists") {
+                Text(
+                    text = stringResource(R.string.no_playlists),
+                    color = PlayerColors.TextSecondary,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                )
+            }
+        }
+        items(playlists, key = { it.id }) { playlist -> PlaylistRow(playlist, isSmart = false) }
+        if (smart.isNotEmpty()) {
+            item(key = "smart-header") {
+                Text(
+                    text = stringResource(R.string.smart_playlists),
+                    color = PlayerColors.TextPrimary,
+                    style = com.artemiy.player.ui.theme.sectionTitleStyle,
+                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = if (playlists.isEmpty()) 4.dp else 22.dp, bottom = 4.dp),
+                )
+            }
+            items(smart, key = { it.id }) { playlist -> PlaylistRow(playlist, isSmart = true) }
         }
     }
 }

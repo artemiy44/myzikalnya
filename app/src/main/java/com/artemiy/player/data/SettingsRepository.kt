@@ -25,7 +25,7 @@ enum class NowPlayingBackgroundMode { LIVE_BLUR, STATIC_BLUR, NONE }
 enum class LiveBlurIntensity { MUTED, NORMAL, VIVID }
 
 /** Now Playing's layout: ours, or one built from Material 3 Expressive pieces. */
-enum class PlayerStyle { CLASSIC, EXPRESSIVE }
+enum class PlayerStyle { CLASSIC, EXPRESSIVE, DIAL }
 
 /** Album/artist/playlist/mix headers: the picture fades into the page, or its colour flows on down it. */
 enum class HeroStyle { CLASSIC, VIVID }
@@ -45,6 +45,7 @@ class SettingsRepository(private val context: Context) {
         val NOTIF_REPEAT_KEY = androidx.datastore.preferences.core.booleanPreferencesKey("notification_repeat_button")
         val NOW_PLAYING_BACKGROUND_MODE_KEY = stringPreferencesKey("now_playing_background_mode")
         val PLAYER_STYLE_KEY = stringPreferencesKey("player_style")
+        val DIAL_CARD_KEY = androidx.datastore.preferences.core.booleanPreferencesKey("dial_card")
         val LIVE_BLUR_INTENSITY_KEY = stringPreferencesKey("live_blur_intensity")
         val LYRICS_ROMANIZATION_KEY = booleanPreferencesKey("lyrics_romanization")
         val LYRICS_TAP_PLAYS_KEY = booleanPreferencesKey("lyrics_tap_plays")
@@ -188,6 +189,13 @@ class SettingsRepository(private val context: Context) {
 
     val playerStyle: Flow<PlayerStyle> = context.settingsDataStore.data.map { prefs ->
         prefs[PLAYER_STYLE_KEY]?.let { runCatching { PlayerStyle.valueOf(it) }.getOrNull() } ?: PlayerStyle.CLASSIC
+    }
+
+    /** The "Диск" style: the blur / picture in a card up top (true) or over the whole screen. */
+    val dialCard: Flow<Boolean> = context.settingsDataStore.data.map { prefs -> prefs[DIAL_CARD_KEY] ?: true }
+
+    suspend fun setDialCard(card: Boolean) {
+        context.settingsDataStore.edit { prefs -> prefs[DIAL_CARD_KEY] = card }
     }
 
     val heroStyle: Flow<HeroStyle> = context.settingsDataStore.data.map { prefs ->

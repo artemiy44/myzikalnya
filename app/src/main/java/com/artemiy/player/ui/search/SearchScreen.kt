@@ -41,6 +41,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.artemiy.player.data.Song
+import com.artemiy.player.data.artists
+import com.artemiy.player.ui.library.albumKey
 import com.artemiy.player.data.normalizeForSearch
 import com.artemiy.player.ui.components.AlbumArt
 import com.artemiy.player.ui.components.SongActionsMenu
@@ -57,6 +59,7 @@ fun SearchScreen(
     onAddToPlaylist: (Song) -> Unit,
     onGoToAlbum: (Song) -> Unit,
     onGoToArtist: (Song) -> Unit,
+    onGoToArtistNamed: (String) -> Unit,
     searchLyrics: suspend (String) -> List<LyricsHit>,
     lyricsIndexProgress: Pair<Int, Int>?,
 ) {
@@ -82,6 +85,37 @@ fun SearchScreen(
                 it.album.contains(q, ignoreCase = true)
         }
     }
+
+    // Artists and albums by name, each with how well the typed text fits them.
+    val artistGroups = remember(songs) { songs.flatMap { s -> s.artists().map { it to s } }.groupBy({ it.first }, { it.second }).toList() }
+    val albumGroups = remember(songs) { songs.filter { it.album.isNotBlank() }.groupBy { albumKey(it.album, it.artist) }.toList() }
+    val artistHits = remember(query, artistGroups) {
+        val q = query.trim()
+        if (q.isEmpty()) emptyList()
+        else artistGroups.map { it to nameFit(it.first, q) }.filter { it.second > 0 }
+            .sortedWith(compareByDescending<Pair<Pair<String, List<Song>>, Int>> { it.second }.thenByDescending { it.first.second.size })
+            .take(SECTION_MAX).map { it.first }
+    }
+    val albumHits = remember(query, albumGroups) {
+        val q = query.trim()
+        if (q.isEmpty()) emptyList()
+        else albumGroups.map { it to nameFit(it.second.first().album, q) }.filter { it.second > 0 }
+            .sortedWith(compareByDescending<Pair<Pair<String, List<Song>>, Int>> { it.second }.thenByDescending { it.first.second.size })
+            .take(SECTION_MAX).map { it.first }
+    }
+    val order = remember(query, artistHits, albumHits, results, lyricHits) {
+        val q = query.trim()
+        val fit = mapOf(
+            SearchSection.Artists to (artistHits.maxOfOrNull { nameFit(it.first, q) } ?: 0).toFloat(),
+            SearchSection.Albums to (albumHits.maxOfOrNull { nameFit(it.second.first().album, q) } ?: 0).toFloat(),
+            // Songs found only by their artist or album still count as a weak match.
+            SearchSection.Songs to if (results.isEmpty()) 0f else maxOf(1f, results.maxOf { nameFit(it.title, q) }.toFloat()),
+            // A line of several words is most likely a lyric being remembered; one word is more likely a name.
+            SearchSection.Lyrics to if (lyricHits.isEmpty()) 0f else if (q.split(Regex("\\s+")).size >= 3) 2.5f else 0.5f,
+        )
+        SearchSection.entries.filter { (fit[it] ?: 0f) > 0f }.sortedByDescending { fit[it] }.ifEmpty { listOf(SearchSection.Songs) }
+    }
+    val showHeaders = order.size > 1
 
     Column(
         modifier = Modifier
@@ -174,6 +208,59 @@ fun SearchScreen(
 
             else -> {
                 LazyColumn(modifier = Modifier.fillMaxWidth().padding(top = 12.dp), contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = com.artemiy.player.ui.theme.LocalBarsInset.current)) {
+                    // What was typed decides the order: names (an artist, an album, a title) or, for a few
+                    // words, the lyrics — whichever matches most closely goes first.
+                    for (section in order) {
+                    when (section) {
+                    SearchSection.Artists -> {
+                        if (showHeaders) item(key = "artists-header") { SectionTitle(stringResource(R.string.artists), first = order.first() == SearchSection.Artists) }
+                        items(artistHits, key = { "artist-${it.first}" }) { (name, artistSongs) ->
+                            Box(modifier = Modifier.padding(horizontal = 12.dp)) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onGoToArtistNamed(name) }
+                                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    AlbumArt(uri = artistSongs.first().uri, modifier = Modifier.size(52.dp).clip(androidx.compose.foundation.shape.CircleShape))
+                                    Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                                        Text(text = name, color = PlayerColors.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        Text(
+                                            text = androidx.compose.ui.res.pluralStringResource(R.plurals.songs_count, artistSongs.size, artistSongs.size),
+                                            color = PlayerColors.TextSecondary,
+                                            fontSize = 12.sp,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    SearchSection.Albums -> {
+                        if (showHeaders) item(key = "albums-header") { SectionTitle(stringResource(R.string.albums), first = order.first() == SearchSection.Albums) }
+                        items(albumHits, key = { "album-${it.first}" }) { (_, albumSongs) ->
+                            val first = albumSongs.first()
+                            Box(modifier = Modifier.padding(horizontal = 12.dp)) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onGoToAlbum(first) }
+                                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    AlbumArt(uri = first.uri, modifier = Modifier.size(52.dp).clip(RoundedCornerShape(10.dp)))
+                                    Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                                        Text(text = first.album, color = PlayerColors.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        Text(text = first.artist, color = PlayerColors.TextSecondary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    SearchSection.Songs -> {
+                        if (showHeaders) item(key = "songs-header") { SectionTitle(stringResource(R.string.tracks), first = order.first() == SearchSection.Songs) }
                     items(results, key = { "title-${it.id}" }) { song ->
                         Box(modifier = Modifier.padding(horizontal = 12.dp)) {
                         com.artemiy.player.ui.components.SwipeSongRow(song) {
@@ -217,6 +304,8 @@ fun SearchScreen(
                         }
                         }
                     }
+                    }
+                    SearchSection.Lyrics -> {
                     if (lyricHits.isNotEmpty()) {
                         item(key = "lyrics-header") {
                             Text(
@@ -224,7 +313,7 @@ fun SearchScreen(
                                 color = PlayerColors.TextPrimary,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = if (results.isEmpty()) 0.dp else 18.dp, bottom = 4.dp),
+                                modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = if (order.first() == SearchSection.Lyrics) 0.dp else 18.dp, bottom = 4.dp),
                             )
                         }
                         items(lyricHits, key = { "lyrics-${it.song.id}" }) { hit ->
@@ -279,6 +368,9 @@ Box(modifier = Modifier.padding(horizontal = 12.dp)) {
                             }
                         }
                     }
+                    }
+                    }
+                    }
                 }
             }
         }
@@ -293,4 +385,34 @@ private fun highlightMatch(line: String, query: String, highlight: Color): Annot
     if (start >= 0 && start + query.length <= line.length) {
         addStyle(SpanStyle(color = highlight, fontWeight = FontWeight.SemiBold), start, start + query.length)
     }
+}
+
+/** The parts of the results; the order they come in depends on what was typed. */
+private enum class SearchSection { Artists, Albums, Songs, Lyrics }
+
+/** How many artists / albums are shown. */
+private const val SECTION_MAX = 5
+
+/** How well [query] fits [name]: 3 the same, 2 the start of it or of one of its words, 1 somewhere inside, 0 not at all. */
+private fun nameFit(name: String, query: String): Int {
+    val n = normalizeForSearch(name)
+    val q = normalizeForSearch(query)
+    if (q.isEmpty()) return 0
+    return when {
+        n == q -> 3
+        n.startsWith(q) || n.split(' ', '-', '(', '.').any { it.startsWith(q) } -> 2
+        n.contains(q) -> 1
+        else -> 0
+    }
+}
+
+@androidx.compose.runtime.Composable
+private fun SectionTitle(text: String, first: Boolean) {
+    Text(
+        text = text,
+        color = PlayerColors.TextPrimary,
+        fontSize = 15.sp,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = if (first) 0.dp else 18.dp, bottom = 4.dp),
+    )
 }

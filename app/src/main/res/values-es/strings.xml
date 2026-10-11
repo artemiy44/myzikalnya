@@ -84,6 +84,8 @@
     <string name="device_headphones">Auriculares</string>
     <string name="device_usb_audio">Audio USB</string>
     <string name="device_usb_headphones">Auriculares USB</string>
+    <string name="dial_look_card">Tarjeta</string>
+    <string name="dial_look_full">Pantalla completa</string>
     <string name="disc_n">Disco %1$s</string>
     <string name="drag">Arrastrar</string>
     <string name="endless_play">Reproducción sin fin</string>
@@ -198,6 +200,7 @@
     <string name="output_device">Dispositivo de reproducción</string>
     <string name="play_next">Reproducir a continuación</string>
     <string name="player_classic">Clásico</string>
+    <string name="player_dial">Disco</string>
     <string name="player_expressive">Expresivo</string>
     <string name="playing_from">Sonando desde </string>
     <string name="playing_from_queue">la cola</string>
@@ -215,6 +218,7 @@
     <string name="recap_most_played">Lo más escuchado: «%1$s», %2$s.</string>
     <string name="recap_new_in_library">Nuevo en la biblioteca</string>
     <string name="recap_of_music">de música</string>
+    <string name="recap_show_all">Ver todo (%1$d)</string>
     <string name="recap_top_artist">Artista principal: %1$s</string>
     <string name="recap_top_artists">Artistas más escuchados</string>
     <string name="recap_top_genre">Género de la semana</string>
@@ -258,6 +262,9 @@
     <string name="set_colors">Colores y acento</string>
     <string name="set_colors_sub">Fondos de los temas claro y oscuro, color de acento</string>
     <string name="set_dark_bg">Fondo del tema oscuro</string>
+    <string name="set_dial_card_desc">El fondo (el desenfoque elegido; sin desenfoque, el color del álbum y una imagen del género) va en una tarjeta arriba; el resto queda en los colores de la app.</string>
+    <string name="set_dial_full_desc">El fondo ocupa toda la pantalla; sin desenfoque, solo el color de fondo de la app, con el acento únicamente en el botón de reproducir.</string>
+    <string name="set_dial_look">Aspecto</string>
     <string name="set_dont_split">No dividir</string>
     <string name="set_endless">Reproducción sin fin</string>
     <string name="set_endless_desc">Cuando la cola se acaba y el botón \"∞\" está activo en el reproductor: con qué rellenarla.</string>
@@ -301,6 +308,7 @@
     <string name="set_playback_sub">Ecualizador, reproducción sin fin</string>
     <string name="set_player_background">Fondo del reproductor</string>
     <string name="set_player_classic_desc">Portada redondeada, volumen; la letra y la cola se abren en lugar de la portada</string>
+    <string name="set_player_dial_desc">El título grande arriba; abajo, una cuadrícula de botones cuadrados: un plato que gira con la canción (gíralo con el dedo para avanzar), la cola (mantén pulsado para la letra), anterior, siguiente y reproducir.</string>
     <string name="set_player_expressive_desc">Portada grande y redondeada, barra ondulada, botones grandes, cola en un panel deslizante</string>
     <string name="set_player_style">Estilo del reproductor</string>
     <string name="set_player_sub">Estilo, fondo, letra</string>
@@ -328,6 +336,7 @@
     <string name="share_lyrics_hint">Toca las líneas para elegirlas, hasta seis</string>
     <string name="show_romanization">Mostrar romanización</string>
     <string name="shuffle">Aleatorio</string>
+    <string name="smart_playlists">Listas inteligentes</string>
     <string name="song_delete_failed">No se pudo eliminar</string>
     <string name="song_deleted">Eliminada</string>
     <string name="song_queued">Añadida a la cola</string>
@@ -341,6 +350,19 @@
     <string name="sort_recent">Añadido recientemente</string>
     <string name="sort_recent_library">Añadido recientemente a la biblioteca</string>
     <string name="sort_release_date">Por fecha de lanzamiento</string>
+    <string name="sp_added_month">Añadidas este mes</string>
+    <string name="sp_long">Canciones largas</string>
+    <string name="sp_most_ever">Las más escuchadas</string>
+    <string name="sp_never_played">Nunca escuchadas</string>
+    <string name="sp_night">Escucha nocturna</string>
+    <string name="sp_not_heard">Sin escuchar hace un mes</string>
+    <string name="sp_old_favorites">Viejos favoritos</string>
+    <string name="sp_played_week">Escuchadas esta semana</string>
+    <string name="sp_short">Canciones cortas</string>
+    <string name="sp_skipped">Omitidas a menudo</string>
+    <string name="sp_this_year">De este año</string>
+    <string name="sp_top_month">Lo mejor del mes</string>
+    <string name="sp_top_year">Lo mejor del año</string>
     <string name="swipe_to_queue">A la cola</string>
     <string name="tab_home">Inicio</string>
     <string name="tab_library">Biblioteca</string>

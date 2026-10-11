@@ -84,6 +84,8 @@
     <string name="device_headphones">헤드폰</string>
     <string name="device_usb_audio">USB 오디오</string>
     <string name="device_usb_headphones">USB 헤드폰</string>
+    <string name="dial_look_card">카드</string>
+    <string name="dial_look_full">전체 화면</string>
     <string name="disc_n">디스크 %1$s</string>
     <string name="drag">끌기</string>
     <string name="endless_play">무한 재생</string>
@@ -198,6 +200,7 @@
     <string name="output_device">재생 기기</string>
     <string name="play_next">다음에 재생</string>
     <string name="player_classic">클래식</string>
+    <string name="player_dial">다이얼</string>
     <string name="player_expressive">익스프레시브</string>
     <string name="playing_from">재생 위치: </string>
     <string name="playing_from_queue">대기열</string>
@@ -215,6 +218,7 @@
     <string name="recap_most_played">가장 많이 들은 곡: «%1$s» — %2$s.</string>
     <string name="recap_new_in_library">보관함에 새로 추가</string>
     <string name="recap_of_music">의 음악</string>
+    <string name="recap_show_all">모두 보기 (%1$d)</string>
     <string name="recap_top_artist">이번 주 아티스트: %1$s</string>
     <string name="recap_top_artists">인기 아티스트</string>
     <string name="recap_top_genre">이번 주 장르</string>
@@ -258,6 +262,9 @@
     <string name="set_colors">색상 및 강조색</string>
     <string name="set_colors_sub">라이트/다크 테마 배경과 강조색</string>
     <string name="set_dark_bg">다크 테마 배경</string>
+    <string name="set_dial_card_desc">배경(선택한 블러, 블러가 없으면 앨범 색과 장르 그림)은 위쪽 카드에 들어가고 나머지는 앱 고유의 색을 유지합니다.</string>
+    <string name="set_dial_full_desc">배경이 화면 전체를 채웁니다. 블러가 없으면 앱 배경색만 쓰고 강조색은 재생 버튼에만 씁니다.</string>
+    <string name="set_dial_look">모양</string>
     <string name="set_dont_split">나누지 않기</string>
     <string name="set_endless">무한 재생</string>
     <string name="set_endless_desc">대기열이 끝나 가고 플레이어의 \"∞\" 버튼이 켜져 있을 때 — 무엇으로 채울지.</string>
@@ -301,6 +308,7 @@
     <string name="set_playback_sub">이퀄라이저, 무한 재생</string>
     <string name="set_player_background">플레이어 배경</string>
     <string name="set_player_classic_desc">둥근 커버, 볼륨. 가사와 대기열은 커버 자리에서 열립니다</string>
+    <string name="set_player_dial_desc">위에는 큰 제목, 아래에는 정사각형 버튼 격자: 곡에 맞춰 도는 플레이트(손가락으로 돌려 탐색), 대기열(길게 누르면 가사), 이전, 다음, 재생.</string>
     <string name="set_player_expressive_desc">크고 둥근 커버, 물결 모양 바, 큰 버튼, 서랍식 대기열</string>
     <string name="set_player_style">플레이어 스타일</string>
     <string name="set_player_sub">스타일, 배경, 가사</string>
@@ -328,6 +336,7 @@
     <string name="share_lyrics_hint">줄을 탭해 선택하세요 (최대 6줄)</string>
     <string name="show_romanization">로마자 표시</string>
     <string name="shuffle">셔플</string>
+    <string name="smart_playlists">스마트 플레이리스트</string>
     <string name="song_delete_failed">삭제하지 못했어요</string>
     <string name="song_deleted">삭제됨</string>
     <string name="song_queued">대기열에 추가했어요</string>
@@ -341,6 +350,19 @@
     <string name="sort_recent">최근 추가</string>
     <string name="sort_recent_library">보관함에 최근 추가</string>
     <string name="sort_release_date">발매일순</string>
+    <string name="sp_added_month">이번 달에 추가됨</string>
+    <string name="sp_long">긴 곡</string>
+    <string name="sp_most_ever">가장 많이 들은 곡</string>
+    <string name="sp_never_played">한 번도 안 들은 곡</string>
+    <string name="sp_night">밤에 듣는 곡</string>
+    <string name="sp_not_heard">한 달간 안 들은 곡</string>
+    <string name="sp_old_favorites">옛날 즐겨찾기</string>
+    <string name="sp_played_week">이번 주에 들은 곡</string>
+    <string name="sp_short">짧은 곡</string>
+    <string name="sp_skipped">자주 건너뛴 곡</string>
+    <string name="sp_this_year">올해 발매곡</string>
+    <string name="sp_top_month">이달의 인기곡</string>
+    <string name="sp_top_year">올해의 인기곡</string>
     <string name="swipe_to_queue">대기열에</string>
     <string name="tab_home">홈</string>
     <string name="tab_library">보관함</string>

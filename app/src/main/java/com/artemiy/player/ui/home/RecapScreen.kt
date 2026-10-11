@@ -7,6 +7,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -17,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +30,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -58,7 +64,7 @@ private fun hoursLabel(minutes: Int): String =
 
 /** Home's last section: the week's recap, or when the first one will show up. */
 @Composable
-fun RecapCard(recap: Recap?, onOpen: () -> Unit) {
+fun RecapCard(recap: Recap?, onOpen: (androidx.compose.ui.geometry.Rect?) -> Unit) {
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
         Text(text = stringResource(R.string.weekly_recap), color = PlayerColors.TextPrimary, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 10.dp))
         if (recap == null) {
@@ -69,12 +75,15 @@ fun RecapCard(recap: Recap?, onOpen: () -> Unit) {
             )
             return
         }
+        // Where the card is, so the page can grow out of it (classic look).
+        var bounds by remember { mutableStateOf<androidx.compose.ui.geometry.Rect?>(null) }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .onGloballyPositioned { bounds = it.boundsInWindow() }
                 .clip(RoundedCornerShape(16.dp))
                 .background(PlayerColors.Surface)
-                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress, onClick = onOpen)
+                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onOpen(bounds) }
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -102,16 +111,21 @@ fun RecapCard(recap: Recap?, onOpen: () -> Unit) {
 }
 
 @Composable
-fun RecapScreen(recap: Recap, onBack: () -> Unit, onPlay: (Song, List<Song>) -> Unit) {
+fun RecapScreen(recap: Recap, onBack: () -> Unit, onShowAllSongs: () -> Unit, onShowAllArtists: () -> Unit, onPlay: (Song, List<Song>) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(PlayerColors.Background)
             .statusBarsPadding(),
     ) {
-        LibraryHeader(title = stringResource(R.string.weekly_recap), showBack = true, onBack = onBack)
+        com.artemiy.player.ui.components.CollapsingHeader(
+            title = stringResource(R.string.weekly_recap),
+            onBack = onBack,
+            bigHeader = { LibraryHeader(title = stringResource(R.string.weekly_recap), showBack = true, onBack = onBack) },
+        ) {
         Column(
             modifier = Modifier
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState()).barsInset()
                 .padding(horizontal = 20.dp)
                 .navigationBarsPadding(),
@@ -138,17 +152,19 @@ fun RecapScreen(recap: Recap, onBack: () -> Unit, onPlay: (Song, List<Song>) -> 
             recap.topSongs.forEachIndexed { index, (song, count) ->
                 RecapSongRow(place = index + 1, song = song, note = pluralStringResource(R.plurals.times_count, count, count), onClick = { onPlay(song, topSongs) })
             }
+            if (recap.rankedSongs.size > topSongs.size) ShowAllRow(recap.rankedSongs.size, onShowAllSongs)
 
             RecapTitle(stringResource(R.string.recap_top_artists))
             RecapBlock {
                 recap.topArtists.forEachIndexed { index, (artist, count) ->
                     Row(modifier = Modifier.padding(vertical = 4.dp)) {
-                        Text(text = "${index + 1}", color = PlayerColors.TextTertiary, fontSize = 14.sp, modifier = Modifier.padding(end = 12.dp))
+                        Text(text = "${index + 1}", color = PlayerColors.TextTertiary, fontSize = 14.sp, modifier = Modifier.width(28.dp))
                         Text(text = artist, color = PlayerColors.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Text(text = "$count", color = PlayerColors.TextSecondary, fontSize = 13.sp)
                     }
                 }
             }
+            if (recap.rankedArtists.size > recap.topArtists.size) ShowAllRow(recap.rankedArtists.size, onShowAllArtists)
 
             if (recap.topGenre != null || recap.busiestDay != null || recap.busiestPart != null) {
                 RecapTitle(stringResource(R.string.recap_how))
@@ -175,6 +191,7 @@ fun RecapScreen(recap: Recap, onBack: () -> Unit, onPlay: (Song, List<Song>) -> 
                 }
             }
             Spacer(modifier = Modifier.height(24.dp))
+        }
         }
     }
 }
@@ -228,7 +245,8 @@ private fun RecapSongRow(place: Int?, song: Song, note: String?, onClick: () -> 
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (place != null) {
-            Text(text = "$place", color = PlayerColors.TextTertiary, fontSize = 14.sp, modifier = Modifier.padding(end = 12.dp))
+            // A fixed width, or "10" is wider than "9" and the rows step to the right.
+            Text(text = "$place", color = PlayerColors.TextTertiary, fontSize = 14.sp, modifier = Modifier.width(28.dp))
         }
         AlbumArt(uri = song.uri, modifier = Modifier.size(52.dp).clip(RoundedCornerShape(10.dp)))
         Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
@@ -236,5 +254,79 @@ private fun RecapSongRow(place: Int?, song: Song, note: String?, onClick: () -> 
             Text(text = song.artist, color = PlayerColors.TextSecondary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         if (note != null) Text(text = note, color = PlayerColors.TextSecondary, fontSize = 12.sp)
+    }
+}
+
+/** "Show all (N)" under a top five: opens the full list. */
+@Composable
+private fun ShowAllRow(count: Int, onClick: () -> Unit) {
+    Text(
+        text = stringResource(R.string.recap_show_all, count),
+        color = PlayerColors.AccentStandalone,
+        fontSize = 14.sp,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier
+            .padding(top = 6.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress, onClick = onClick)
+            .padding(horizontal = 4.dp, vertical = 8.dp),
+    )
+}
+
+/** The week's full list of songs played often enough (the page behind "Show all"). */
+@Composable
+fun RecapSongsScreen(songs: List<Pair<Song, Int>>, onBack: () -> Unit, onPlay: (Song, List<Song>) -> Unit) {
+    val list = remember(songs) { songs.map { it.first } }
+    Column(modifier = Modifier.fillMaxSize().background(PlayerColors.Background).statusBarsPadding()) {
+        com.artemiy.player.ui.components.CollapsingHeader(
+            title = stringResource(R.string.recap_top_songs),
+            onBack = onBack,
+            bigHeader = { LibraryHeader(title = stringResource(R.string.recap_top_songs), showBack = true, onBack = onBack) },
+        ) {
+        androidx.compose.foundation.lazy.LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 20.dp, bottom = 24.dp),
+        ) {
+            items(songs.size, key = { songs[it].first.id }) { index ->
+                val (song, count) = songs[index]
+                RecapSongRow(place = index + 1, song = song, note = pluralStringResource(R.plurals.times_count, count, count), onClick = { onPlay(song, list) })
+            }
+            item { Spacer(modifier = Modifier.navigationBarsPadding()) }
+        }
+        }
+    }
+}
+
+/** The week's full list of artists played often enough; a tap opens the artist's page. */
+@Composable
+fun RecapArtistsScreen(artists: List<Pair<String, Int>>, onBack: () -> Unit, onArtist: (String) -> Unit) {
+    Column(modifier = Modifier.fillMaxSize().background(PlayerColors.Background).statusBarsPadding()) {
+        com.artemiy.player.ui.components.CollapsingHeader(
+            title = stringResource(R.string.recap_top_artists),
+            onBack = onBack,
+            bigHeader = { LibraryHeader(title = stringResource(R.string.recap_top_artists), showBack = true, onBack = onBack) },
+        ) {
+        androidx.compose.foundation.lazy.LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 20.dp, bottom = 24.dp),
+        ) {
+            items(artists.size, key = { artists[it].first }) { index ->
+                val (artist, count) = artists[index]
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onArtist(artist) }
+                        .padding(vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(text = "${index + 1}", color = PlayerColors.TextTertiary, fontSize = 14.sp, modifier = Modifier.width(28.dp))
+                    Text(text = artist, color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(text = pluralStringResource(R.plurals.times_count, count, count), color = PlayerColors.TextSecondary, fontSize = 12.sp)
+                }
+            }
+            item { Spacer(modifier = Modifier.navigationBarsPadding()) }
+        }
+        }
     }
 }

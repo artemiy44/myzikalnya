@@ -90,6 +90,8 @@
     <string name="device_headphones">Наушники</string>
     <string name="device_usb_audio">USB-аудіо</string>
     <string name="device_usb_headphones">USB-наушники</string>
+    <string name="dial_look_card">Карточка</string>
+    <string name="dial_look_full">На весь экранъ</string>
     <string name="disc_n">Дискъ %1$s</string>
     <string name="drag">Перетащить</string>
     <string name="endless_play">Безконечное возпроизведеніе</string>
@@ -206,6 +208,7 @@
     <string name="output_device">Устройство возпроизведенія</string>
     <string name="play_next">Играть слѣдующимъ</string>
     <string name="player_classic">Классическій</string>
+    <string name="player_dial">Дискъ</string>
     <string name="player_expressive">Экспрессивный</string>
     <string name="playing_from">Играетъ изъ </string>
     <string name="playing_from_queue">очереди</string>
@@ -235,6 +238,7 @@
     <string name="recap_most_played">Больше всего заслушана «%1$s» — %2$s.</string>
     <string name="recap_new_in_library">Новое въ медіатекѣ</string>
     <string name="recap_of_music">музыки</string>
+    <string name="recap_show_all">Показать всѣ (%1$d)</string>
     <string name="recap_top_artist">Главный артистъ: %1$s</string>
     <string name="recap_top_artists">Топъ артистовъ</string>
     <string name="recap_top_genre">Любимый жанръ недѣли</string>
@@ -278,6 +282,9 @@
     <string name="set_colors">Цвѣта и акцентъ</string>
     <string name="set_colors_sub">Фонъ свѣтлой и темной ѳемы, цвѣтъ акцента</string>
     <string name="set_dark_bg">Фонъ темной ѳемы</string>
+    <string name="set_dial_card_desc">Фонъ (выбранный блюръ, а безъ блюра — цвѣтъ альбома и картинка жанра) лежитъ въ карточке сверху, а все остальное — въ цветахъ приложенія.</string>
+    <string name="set_dial_full_desc">Фонъ заполняетъ весь экранъ; безъ блюра — просто фонъ приложенія, акцентъ только на кнопке плей.</string>
+    <string name="set_dial_look">Видъ</string>
     <string name="set_dont_split">Не дѣлить</string>
     <string name="set_endless">«Безконечное» возпроизведеніе</string>
     <string name="set_endless_desc">Когда очередь подходитъ къ концу, а въ плеерѣ включена кнопка \"∞\" — чѣмъ ея подмѣшивать.</string>
@@ -321,6 +328,7 @@
     <string name="set_playback_sub">Эквалайзеръ, «безконечное» возпроизведеніе</string>
     <string name="set_player_background">Фонъ плеера</string>
     <string name="set_player_classic_desc">Скругленная обложка, громкость; текстъ и очередь открываются на мѣстѣ обложки</string>
+    <string name="set_player_dial_desc">Названіе крупно сверху; внизу сѣтка квадратныхъ кнопокъ: пластинка, которая крутится вместе съ песней (покрути пальцемъ — перемотка), очередь (зажми — текстъ пѣсни), назадъ, впередъ и пауза.</string>
     <string name="set_player_expressive_desc">Большая скругленная обложка, волнистая полоса, крупныя кнопки, очередь въ выдвижной шторкѣ</string>
     <string name="set_player_style">Стиль плеера</string>
     <string name="set_player_sub">Стиль, фонъ, текстъ пѣсни</string>
@@ -348,6 +356,7 @@
     <string name="share_lyrics_hint">Нажимай на строки, чтобы выбрать ихъ — до шести</string>
     <string name="show_romanization">Показать романизацію</string>
     <string name="shuffle">Перемѣшать</string>
+    <string name="smart_playlists">Умные плейлисты</string>
     <string name="song_delete_failed">Не получилось удалить</string>
     <string name="song_deleted">Удалено</string>
     <string name="song_queued">Добавлено въ очередь</string>
@@ -373,6 +382,19 @@
     <string name="sort_recent">Недавно добавленныя</string>
     <string name="sort_recent_library">Недавно добавленныя въ медіатеку</string>
     <string name="sort_release_date">По датѣ выпуска</string>
+    <string name="sp_added_month">Добавлено за месяцъ</string>
+    <string name="sp_long">Длинные треки</string>
+    <string name="sp_most_ever">Самое прослушиваемое</string>
+    <string name="sp_never_played">Ни разу не слушали</string>
+    <string name="sp_night">Ночное прослушиваніе</string>
+    <string name="sp_not_heard">Давно не слушали</string>
+    <string name="sp_old_favorites">Старые любимые</string>
+    <string name="sp_played_week">Слушали на этой неделе</string>
+    <string name="sp_short">Короткіе треки</string>
+    <string name="sp_skipped">Часто пропускаете</string>
+    <string name="sp_this_year">Этого года</string>
+    <string name="sp_top_month">Лучшее за месяцъ</string>
+    <string name="sp_top_year">Любимое за годъ</string>
     <string name="swipe_to_queue">Въ очередь</string>
     <string name="tab_home">Главная</string>
     <string name="tab_library">Медіатека</string>

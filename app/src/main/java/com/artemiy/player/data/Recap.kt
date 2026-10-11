@@ -12,6 +12,9 @@ data class Recap(
     val minutes: Int,
     val topSongs: List<Pair<Song, Int>>,
     val topArtists: List<Pair<String, Int>>,
+    /** Everything played often enough this week (see [RECAP_LIST_MIN_PLAYS]), most played first: the full lists behind "Show all". */
+    val rankedSongs: List<Pair<Song, Int>>,
+    val rankedArtists: List<Pair<String, Int>>,
     /** Songs that joined the library this week, grouped by artist. */
     val newByArtist: List<Pair<String, List<Song>>>,
     /** Songs you used to play, untouched for 2+ months. */
@@ -20,6 +23,12 @@ data class Recap(
     val busiestDay: String?,
     val busiestPart: DayPart?,
 )
+
+/** A song / artist joins the full list of the week from this many plays. */
+const val RECAP_LIST_MIN_PLAYS = 5
+
+/** The most the full list shows. */
+const val RECAP_LIST_MAX = 50
 
 private const val DAY_MS = 24L * 60 * 60 * 1000
 
@@ -56,9 +65,11 @@ fun buildRecap(songs: List<Song>, plays: List<SongEvent>, now: Long): Recap? {
     if (week.isEmpty()) return null
 
     val songCounts = week.groupingBy { it.songId }.eachCount()
-    val topSongs = songCounts.entries.sortedByDescending { it.value }.take(5).map { byId.getValue(it.key) to it.value }
+    val songRanking = songCounts.entries.sortedByDescending { it.value }.map { byId.getValue(it.key) to it.value }
+    val topSongs = songRanking.take(5)
     val artistCounts = week.flatMap { byId.getValue(it.songId).artists() }.groupingBy { it }.eachCount()
-    val topArtists = artistCounts.entries.sortedByDescending { it.value }.take(5).map { it.key to it.value }
+    val artistRanking = artistCounts.entries.sortedByDescending { it.value }.map { it.key to it.value }
+    val topArtists = artistRanking.take(5)
     val minutes = (week.sumOf { byId.getValue(it.songId).durationMs } / 60_000L).toInt()
 
     val newByArtist = songs.filter { it.dateAddedMs in start until end }
@@ -87,6 +98,8 @@ fun buildRecap(songs: List<Song>, plays: List<SongEvent>, now: Long): Recap? {
         minutes = minutes,
         topSongs = topSongs,
         topArtists = topArtists,
+        rankedSongs = songRanking.filter { it.second >= RECAP_LIST_MIN_PLAYS }.take(RECAP_LIST_MAX),
+        rankedArtists = artistRanking.filter { it.second >= RECAP_LIST_MIN_PLAYS }.take(RECAP_LIST_MAX),
         newByArtist = newByArtist,
         forgotten = forgotten,
         topGenre = topGenre,

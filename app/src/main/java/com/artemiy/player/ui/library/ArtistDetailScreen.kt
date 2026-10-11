@@ -39,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.artemiy.player.ui.components.expandAnchor
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -89,6 +90,8 @@ fun ArtistDetailScreen(
     queueMessageRes: Int = R.string.add_artist_to_queue_msg,
     /** Which genres' pictures the header shows; null = worked out from [songs]. */
     genrePictures: List<String>? = null,
+    /** Kept by the caller so the page is where it was left when an album it opened is closed. */
+    listState: androidx.compose.foundation.lazy.LazyListState = androidx.compose.foundation.lazy.rememberLazyListState(),
     onBack: () -> Unit,
     onPlayAll: (List<Song>) -> Unit,
     onShuffleAll: (List<Song>) -> Unit,
@@ -106,7 +109,6 @@ fun ArtistDetailScreen(
     // A lazy list: only the rows on screen are built (and their covers loaded) — a page of hundreds
     // of songs ("no genre") built all at once heated the phone up.
     val albumRows = remember(albums) { albums.chunked(2) }
-    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
     val barShown = com.artemiy.player.ui.components.rememberHeroBarShown(listState)
     val washOut = remember { com.artemiy.player.ui.components.HeroWashState() }
     Box(modifier = Modifier.fillMaxSize().drawHeroDrain(washOut, listState)) {
@@ -195,6 +197,7 @@ fun ArtistDetailScreen(
                     ) {
                         rowAlbums.forEach { (album, albumSongs) ->
                             var albumMenuOpen by remember { mutableStateOf(false) }
+                            com.artemiy.player.ui.components.WarmHeroWash(albumSongs.firstOrNull()?.uri, "album:${albumSongs.firstOrNull()?.uri}")
                             Column(
                                 modifier = Modifier
                                     .weight(1f)
@@ -203,7 +206,16 @@ fun ArtistDetailScreen(
                                 albumMenu(albumSongs, albumMenuOpen) { albumMenuOpen = false }
                                 AlbumArt(
                                     uri = albumSongs.firstOrNull()?.uri,
-                                    modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(if (com.artemiy.player.ui.theme.expressiveUi) 22.dp else 10.dp)),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .aspectRatio(1f)
+                                        .expandAnchor(
+                                            com.artemiy.player.ui.components.LibraryAnchors,
+                                            "album:${albumKey(album, albumSongs.firstOrNull()?.artist.orEmpty())}",
+                                            if (com.artemiy.player.ui.theme.expressiveUi) 22.dp else 10.dp,
+                                            washKey = "album:${albumSongs.firstOrNull()?.uri}",
+                                        )
+                                        .clip(RoundedCornerShape(if (com.artemiy.player.ui.theme.expressiveUi) 22.dp else 10.dp)),
                                 )
                                 Text(
                                     text = album.ifBlank { stringResource(R.string.no_album) },

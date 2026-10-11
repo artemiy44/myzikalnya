@@ -57,6 +57,7 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     var heroStyle by mutableStateOf(HeroStyle.VIVID)
         private set
     var playerStyle by mutableStateOf(PlayerStyle.CLASSIC)
+    var dialCard by mutableStateOf(true)
         private set
 
     var nowPlayingBackgroundMode by mutableStateOf(NowPlayingBackgroundMode.LIVE_BLUR)
@@ -154,6 +155,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             repository.playerStyle.collect { playerStyle = it }
+        }
+        viewModelScope.launch {
+            repository.dialCard.collect { dialCard = it }
         }
         viewModelScope.launch {
             repository.heroStyle.collect { heroStyle = it }
@@ -289,6 +293,11 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     fun updateHeroStyle(style: HeroStyle) {
         heroStyle = style
         viewModelScope.launch { repository.setHeroStyle(style) }
+    }
+
+    fun updateDialCard(card: Boolean) {
+        dialCard = card
+        viewModelScope.launch { repository.setDialCard(card) }
     }
 
     fun updatePlayerStyle(style: PlayerStyle) {

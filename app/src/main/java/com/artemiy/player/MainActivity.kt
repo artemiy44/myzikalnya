@@ -392,7 +392,9 @@ private fun PlayerApp(settings: SettingsViewModel) {
     // Dark status/nav bar icons on a light theme — except over the Now Playing screen's blur
     // backgrounds, which stay dark whatever the theme is.
     val lightTheme = LocalPlayerPalette.current.isLight
-    val lightBars = lightTheme && !(showNowPlaying && settings.nowPlayingBackgroundMode != NowPlayingBackgroundMode.NONE)
+    // (The "Диск" style's card leaves the status bar on the app's own background.)
+    val dialCardLook = settings.playerStyle == PlayerStyle.DIAL && settings.dialCard
+    val lightBars = lightTheme && !(showNowPlaying && settings.nowPlayingBackgroundMode != NowPlayingBackgroundMode.NONE && !dialCardLook)
     // Album/artist pages put their cover art under the status bar and pick its icon color from
     // the art; overlays drawn on top of them (player, settings) go back to the theme's choice.
     val statusBarOverride = remember { mutableStateOf<Boolean?>(null) }
@@ -634,6 +636,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                             onAddToPlaylist = { song -> addToPlaylistSongs = listOf(song) },
                             onGoToAlbum = ::goToAlbum,
                             onGoToArtist = ::goToArtist,
+                            onGoToArtistNamed = ::goToArtistNamed,
                         )
                         AppTab.Library -> LibraryScreen(
                             permissionGranted = permissionGranted,
@@ -667,6 +670,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                             onAddToPlaylist = { song -> addToPlaylistSongs = listOf(song) },
                             onGoToAlbum = ::goToAlbum,
                             onGoToArtist = ::goToArtist,
+                            onGoToArtistNamed = ::goToArtistNamed,
                             searchLyrics = { query -> lyricsSearch.search(query, songs.toList()) },
                             lyricsIndexProgress = lyricsSearch.indexProgress,
                         )
@@ -782,6 +786,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 onToggleLyricsRomanization = { settings.toggleLyricsRomanization() },
                 lyricsTapPlays = settings.lyricsTapPlays,
                 playerStyle = settings.playerStyle,
+                dialCard = settings.dialCard,
                 playingFrom = playback.playingFrom,
                 expand = { nowPlayingExpand.value },
                 mini = miniAnchors,
@@ -851,6 +856,8 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 onLrcGapDotsChange = { settings.updateLrcGapDots(it) },
                 playerStyle = settings.playerStyle,
                 onPlayerStyleChange = { settings.updatePlayerStyle(it) },
+                dialCard = settings.dialCard,
+                onDialCardChange = { settings.updateDialCard(it) },
                 heroStyle = settings.heroStyle,
                 onHeroStyleChange = { settings.updateHeroStyle(it) },
                 themeMode = settings.themeMode,

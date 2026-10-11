@@ -83,6 +83,8 @@ private sealed interface HomeRoute {
     data class OpenMix(val id: String) : HomeRoute
     data object RecentlyAddedAll : HomeRoute
     data object WeekRecap : HomeRoute
+    data object RecapSongs : HomeRoute
+    data object RecapArtists : HomeRoute
 }
 
 @Composable
@@ -105,9 +107,11 @@ fun HomeScreen(
     onAddToPlaylist: (Song) -> Unit,
     onGoToAlbum: (Song) -> Unit,
     onGoToArtist: (Song) -> Unit,
+    onGoToArtistNamed: (String) -> Unit,
 ) {
     var route by androidx.compose.runtime.saveable.rememberSaveable(stateSaver = HomeRouteSaver) { mutableStateOf<HomeRoute>(HomeRoute.Main) }
-    val back = { route = HomeRoute.Main }
+    // One step back: the full lists go back to the recap, everything else to the main page.
+    val back = { route = if (route == HomeRoute.RecapSongs || route == HomeRoute.RecapArtists) HomeRoute.WeekRecap else HomeRoute.Main }
     // Where playback started from, for the "Играет из" line — in the app's language.
     val fromRecentlyAdded = stringResource(R.string.recently_added)
     val fromRecap = stringResource(R.string.weekly_recap)
@@ -115,6 +119,8 @@ fun HomeScreen(
 
     // Kept out here so the page's scroll position survives opening a mix and coming back.
     val mainScroll = rememberScrollState()
+    // Kept here with the scroll position: the page is taken apart while another is open on top of it.
+    val mainFold = remember { androidx.compose.runtime.mutableStateOf(0f) }
     val mixesScroll = rememberScrollState()
     val quickScroll = rememberScrollState()
     val recentScroll = rememberScrollState()
@@ -122,18 +128,26 @@ fun HomeScreen(
         if (rootRequest == 0) return@LaunchedEffect
         if (route != HomeRoute.Main) route = HomeRoute.Main else mainScroll.animateScrollTo(0)
     }
-    val stack = if (route == HomeRoute.Main) listOf<HomeRoute>(HomeRoute.Main) else listOf(HomeRoute.Main, route)
+    val stack = when (route) {
+        HomeRoute.Main -> listOf<HomeRoute>(HomeRoute.Main)
+        HomeRoute.RecapSongs, HomeRoute.RecapArtists -> listOf(HomeRoute.Main, HomeRoute.WeekRecap, route)
+        else -> listOf(HomeRoute.Main, route)
+    }
     // Classic look: a tapped mix card grows into its page (and the page shrinks back into the card).
     // Where that card is (in the window) is kept for the stack to animate from.
     var tappedCard by remember { mutableStateOf<androidx.compose.ui.geometry.Rect?>(null) }
     val classicUi = !com.artemiy.player.ui.theme.expressiveUi
+    val recapFill = androidx.compose.ui.graphics.SolidColor(PlayerColors.Surface)
     AnimatedBackStack(
         stack = stack,
         onBack = back,
         expandFrom = { r ->
             val card = tappedCard
             val mix = if (r is HomeRoute.OpenMix) mixes.firstOrNull { it.id == r.id } else null
-            if (classicUi && card != null && mix != null) com.artemiy.player.ui.components.ExpandSource(card, mixBrush(mix.colorIndex)) else null
+            if (!classicUi || card == null) null
+            else if (mix != null) com.artemiy.player.ui.components.ExpandSource(card, mixBrush(mix.colorIndex))
+            else if (r is HomeRoute.WeekRecap) com.artemiy.player.ui.components.ExpandSource(card, recapFill, cornerDp = 16.dp)
+            else null
         },
     ) { r ->
         when (r) {
@@ -149,7 +163,13 @@ fun HomeScreen(
                 RecentlyAddedScreen(recentlyAddedAll, back, { song, list -> onSongClick(song, list, PlayOrigin(fromRecentlyAdded, SourceArt.Place(SourcePlace.RECENTLY_ADDED))) }, onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
             }
             HomeRoute.WeekRecap -> {
-                if (recap == null) LaunchedEffect(Unit) { route = HomeRoute.Main } else RecapScreen(recap, back) { song, list -> onSongClick(song, list, PlayOrigin(fromRecap, SourceArt.Place(SourcePlace.RECAP))) }
+                if (recap == null) LaunchedEffect(Unit) { route = HomeRoute.Main } else RecapScreen(recap, back, { route = HomeRoute.RecapSongs }, { route = HomeRoute.RecapArtists }) { song, list -> onSongClick(song, list, PlayOrigin(fromRecap, SourceArt.Place(SourcePlace.RECAP))) }
+            }
+            HomeRoute.RecapSongs -> {
+                if (recap == null) LaunchedEffect(Unit) { route = HomeRoute.Main } else RecapSongsScreen(recap.rankedSongs, back) { song, list -> onSongClick(song, list, PlayOrigin(fromRecap, SourceArt.Place(SourcePlace.RECAP))) }
+            }
+            HomeRoute.RecapArtists -> {
+                if (recap == null) LaunchedEffect(Unit) { route = HomeRoute.Main } else RecapArtistsScreen(recap.rankedArtists, back, onGoToArtistNamed)
             }
             HomeRoute.Main -> {
                 // The header scrolls away with the page instead of being pinned under the status bar, and the
@@ -173,6 +193,7 @@ fun HomeScreen(
                     }
                     Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
                     com.artemiy.player.ui.components.CollapsingHeader(
+                        foldState = mainFold,
                         title = stringResource(R.string.tab_home),
                         trailing = settingsButton,
                         bigHeader = {
@@ -235,7 +256,7 @@ fun HomeScreen(
                             scroll = recentScroll,
                             onSeeAll = { route = HomeRoute.RecentlyAddedAll },
                         )
-                        RecapCard(recap = recap, onOpen = { route = HomeRoute.WeekRecap })
+                        RecapCard(recap = recap, onOpen = { bounds -> tappedCard = bounds; route = HomeRoute.WeekRecap })
                                         }
                     }
                     }
@@ -399,6 +420,8 @@ private val HomeRouteSaver = androidx.compose.runtime.saveable.Saver<HomeRoute, 
             is HomeRoute.OpenMix -> "mix:" + route.id
             HomeRoute.RecentlyAddedAll -> "recent"
             HomeRoute.WeekRecap -> "recap"
+            HomeRoute.RecapSongs -> "recapsongs"
+            HomeRoute.RecapArtists -> "recapartists"
         }
     },
     restore = { text ->
@@ -406,6 +429,8 @@ private val HomeRouteSaver = androidx.compose.runtime.saveable.Saver<HomeRoute, 
             text.startsWith("mix:") -> HomeRoute.OpenMix(text.removePrefix("mix:"))
             text == "recent" -> HomeRoute.RecentlyAddedAll
             text == "recap" -> HomeRoute.WeekRecap
+            text == "recapsongs" -> HomeRoute.RecapSongs
+            text == "recapartists" -> HomeRoute.RecapArtists
             else -> HomeRoute.Main
         }
     },

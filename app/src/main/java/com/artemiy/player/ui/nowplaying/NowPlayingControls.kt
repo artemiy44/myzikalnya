@@ -473,6 +473,8 @@ internal fun TransportControls(
     nextModifier: Modifier = Modifier,
     /** Color of play and next — the classic player blends it from the mini player's while opening. */
     iconTint: () -> Color = { Color.Unspecified },
+    /** Air on each side of the play button. */
+    playGap: androidx.compose.ui.unit.Dp = 46.dp,
 ) {
     val tint = iconTint().takeOrElse { PlayerColors.TextPrimary }
     Row(
@@ -496,7 +498,7 @@ internal fun TransportControls(
             isPlaying = isPlaying,
             tint = tint,
             modifier = Modifier
-                .padding(horizontal = 46.dp)
+                .padding(horizontal = playGap)
                 .size(58.dp)
                 .then(playModifier)
                 .pressScale(playInteraction)

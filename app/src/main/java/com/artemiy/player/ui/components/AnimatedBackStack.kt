@@ -154,7 +154,7 @@ fun <T : Any> AnimatedBackStack(
             // Same depth: the page was swapped in place (e.g. a renamed playlist) — no movement.
             if (from == to) {
                 ContentTransform(EnterTransition.None, ExitTransition.None, targetContentZIndex = layer)
-            } else if (expandOf(if (to > from) targetState else initialState) != null) {
+            } else if (kotlin.math.abs(to - from) == 1 && expandOf(if (to > from) targetState else initialState) != null) {
                 // A card growing into its page (or back): the page animates itself, below.
                 ContentTransform(EnterTransition.None, ExitTransition.None, targetContentZIndex = layer)
             } else if (to < from) {
@@ -196,6 +196,9 @@ fun <T : Any> AnimatedBackStack(
         // window that opens (and closes again), the page showing in it and fading in as it grows.
         val expand = expandOf(page)
         val expandRect = expand?.bounds
+        // Several pages at once (the Library tab tapped while deep in it): there's no card to shrink
+        // into — the page leaves the ordinary way, as with the back gesture.
+        fun skipsPages() = kotlin.math.abs((depth[transition.targetState] ?: 0) - (depth[transition.currentState] ?: 0)) > 1
         // 0 = the card, 1 = the page — on the same kind of spring as the player opening from the
         // mini bar (settling without overshoot): the colour grows out, the page shows on it
         // part-way through, and the colour melts into / out of the real card at the very start / end.
@@ -222,7 +225,7 @@ fun <T : Any> AnimatedBackStack(
                     if (expandRect == null) Modifier else Modifier
                         .onGloballyPositioned { origin = it.positionInWindow() }
                         .graphicsLayer {
-                            val e = (revealState?.value ?: 1f).coerceIn(0f, 1f)
+                            val e = (if (skipsPages()) 1f else revealState?.value ?: 1f).coerceIn(0f, 1f)
                             alpha = (e / 0.2f).coerceIn(0f, 1f)
                             val left = expandRect!!.left - origin.x
                             val top = expandRect.top - origin.y
@@ -247,7 +250,7 @@ fun <T : Any> AnimatedBackStack(
                     scaleY = s
                     // Only the top corners: the bottom edge stays put, resting on the bars below.
                     // (Also the page being uncovered underneath, so both read as rounded screens.)
-                    val radius = cornerPx * maxOf(if (expandRect != null) 0f else leaving, covered)
+                    val radius = cornerPx * maxOf(if (expandRect != null && !skipsPages()) 0f else leaving, covered)
                     if (radius > 0.5f) {
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(topStart = radius, topEnd = radius)
                         clip = true
@@ -271,7 +274,7 @@ fun <T : Any> AnimatedBackStack(
                 run {
                     Box(
                         modifier = Modifier.fillMaxSize().graphicsLayer {
-                            alpha = (((revealState?.value ?: 1f) - 0.35f) / 0.4f).coerceIn(0f, 1f)
+                            alpha = (((if (skipsPages()) 1f else revealState?.value ?: 1f) - 0.35f) / 0.4f).coerceIn(0f, 1f)
                         },
                     ) {
                         androidx.compose.runtime.CompositionLocalProvider(LocalPageRevealed provides revealed) {

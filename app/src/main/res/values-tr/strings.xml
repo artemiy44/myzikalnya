@@ -84,6 +84,8 @@
     <string name="device_headphones">Kulaklık</string>
     <string name="device_usb_audio">USB ses</string>
     <string name="device_usb_headphones">USB kulaklık</string>
+    <string name="dial_look_card">Kart</string>
+    <string name="dial_look_full">Tam ekran</string>
     <string name="disc_n">Disk %1$s</string>
     <string name="drag">Sürükle</string>
     <string name="endless_play">Sonsuz çalma</string>
@@ -198,6 +200,7 @@
     <string name="output_device">Çalma cihazı</string>
     <string name="play_next">Sıradaki olarak çal</string>
     <string name="player_classic">Klasik</string>
+    <string name="player_dial">Kadran</string>
     <string name="player_expressive">Etkileyici</string>
     <string name="playing_from">Çalınan kaynak: </string>
     <string name="playing_from_queue">kuyruk</string>
@@ -215,6 +218,7 @@
     <string name="recap_most_played">En çok dinlenen: «%1$s» — %2$s.</string>
     <string name="recap_new_in_library">Kitaplıkta yeni</string>
     <string name="recap_of_music">müzik</string>
+    <string name="recap_show_all">Tümünü göster (%1$d)</string>
     <string name="recap_top_artist">Haftanın sanatçısı: %1$s</string>
     <string name="recap_top_artists">En çok dinlenen sanatçılar</string>
     <string name="recap_top_genre">Haftanın türü</string>
@@ -258,6 +262,9 @@
     <string name="set_colors">Renkler ve vurgu</string>
     <string name="set_colors_sub">Açık ve koyu temanın arka planları, vurgu rengi</string>
     <string name="set_dark_bg">Koyu tema arka planı</string>
+    <string name="set_dial_card_desc">Arka plan (seçtiğin bulanıklık; bulanıklık yoksa albümün rengi ve tür resmi) üstteki bir kartın içinde durur; geri kalanı uygulamanın kendi renklerinde kalır.</string>
+    <string name="set_dial_full_desc">Arka plan tüm ekranı kaplar; bulanıklık yoksa yalnızca uygulamanın arka plan rengi, vurgu sadece oynat düğmesinde.</string>
+    <string name="set_dial_look">Görünüm</string>
     <string name="set_dont_split">Bölme</string>
     <string name="set_endless">Sonsuz çalma</string>
     <string name="set_endless_desc">Kuyruk biterken ve oynatıcıda \"∞\" düğmesi açıkken — kuyruğun neyle doldurulacağı.</string>
@@ -301,6 +308,7 @@
     <string name="set_playback_sub">Ekolayzer, sonsuz çalma</string>
     <string name="set_player_background">Oynatıcı arka planı</string>
     <string name="set_player_classic_desc">Yuvarlak köşeli kapak, ses düzeyi; sözler ve kuyruk kapağın yerinde açılır</string>
+    <string name="set_player_dial_desc">Üstte büyük başlık; altta kare düğmelerden oluşan bir ızgara: şarkıyla dönen bir plaka (parmağınla çevirerek sar), sıra (söz için basılı tut), geri, ileri ve oynat.</string>
     <string name="set_player_expressive_desc">Büyük yuvarlak köşeli kapak, dalgalı çubuk, iri düğmeler, açılır panelde kuyruk</string>
     <string name="set_player_style">Oynatıcı stili</string>
     <string name="set_player_sub">Stil, arka plan, şarkı sözleri</string>
@@ -328,6 +336,7 @@
     <string name="share_lyrics_hint">Seçmek için satırlara dokun — en fazla altı</string>
     <string name="show_romanization">Latin harfli okunuşu göster</string>
     <string name="shuffle">Karıştır</string>
+    <string name="smart_playlists">Akıllı çalma listeleri</string>
     <string name="song_delete_failed">Silinemedi</string>
     <string name="song_deleted">Silindi</string>
     <string name="song_queued">Sıraya eklendi</string>
@@ -341,6 +350,19 @@
     <string name="sort_recent">Son eklenenler</string>
     <string name="sort_recent_library">Kitaplığa son eklenenler</string>
     <string name="sort_release_date">Çıkış tarihine göre</string>
+    <string name="sp_added_month">Bu ay eklenenler</string>
+    <string name="sp_long">Uzun parçalar</string>
+    <string name="sp_most_ever">En çok dinlenenler</string>
+    <string name="sp_never_played">Hiç dinlenmeyenler</string>
+    <string name="sp_night">Gece dinlemeleri</string>
+    <string name="sp_not_heard">Bir aydır dinlenmeyenler</string>
+    <string name="sp_old_favorites">Eski favoriler</string>
+    <string name="sp_played_week">Bu hafta dinlenenler</string>
+    <string name="sp_short">Kısa parçalar</string>
+    <string name="sp_skipped">Sık atlananlar</string>
+    <string name="sp_this_year">Bu yıldan</string>
+    <string name="sp_top_month">Ayın en iyileri</string>
+    <string name="sp_top_year">Yılın en iyileri</string>
     <string name="swipe_to_queue">Sıraya</string>
     <string name="tab_home">Ana sayfa</string>
     <string name="tab_library">Kitaplık</string>

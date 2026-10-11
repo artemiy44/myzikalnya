@@ -84,6 +84,8 @@
     <string name="device_headphones">ヘッドホン</string>
     <string name="device_usb_audio">USB オーディオ</string>
     <string name="device_usb_headphones">USB ヘッドホン</string>
+    <string name="dial_look_card">カード</string>
+    <string name="dial_look_full">全画面</string>
     <string name="disc_n">ディスク %1$s</string>
     <string name="drag">ドラッグ</string>
     <string name="endless_play">エンドレス再生</string>
@@ -198,6 +200,7 @@
     <string name="output_device">再生デバイス</string>
     <string name="play_next">次に再生</string>
     <string name="player_classic">クラシック</string>
+    <string name="player_dial">ダイヤル</string>
     <string name="player_expressive">エクスプレッシブ</string>
     <string name="playing_from">再生元：</string>
     <string name="playing_from_queue">キュー</string>
@@ -215,6 +218,7 @@
     <string name="recap_most_played">いちばん聴いた曲：「%1$s」— %2$s。</string>
     <string name="recap_new_in_library">ライブラリの新着</string>
     <string name="recap_of_music">の音楽</string>
+    <string name="recap_show_all">すべて表示 (%1$d)</string>
     <string name="recap_top_artist">今週のアーティスト：%1$s</string>
     <string name="recap_top_artists">トップアーティスト</string>
     <string name="recap_top_genre">今週のジャンル</string>
@@ -258,6 +262,9 @@
     <string name="set_colors">色とアクセント</string>
     <string name="set_colors_sub">ライト／ダークテーマの背景色とアクセントカラー</string>
     <string name="set_dark_bg">ダークテーマの背景</string>
+    <string name="set_dial_card_desc">背景（選んだぼかし。ぼかしなしの場合はアルバムの色とジャンルの絵）は上のカードに入り、残りはアプリ本来の色のままです。</string>
+    <string name="set_dial_full_desc">背景は画面全体に広がります。ぼかしなしの場合はアプリの背景色のみで、アクセントは再生ボタンだけです。</string>
+    <string name="set_dial_look">見た目</string>
     <string name="set_dont_split">分けない</string>
     <string name="set_endless">エンドレス再生</string>
     <string name="set_endless_desc">キューが終わりそうで、プレーヤーの「∞」ボタンがオンのとき — 何で補うか。</string>
@@ -301,6 +308,7 @@
     <string name="set_playback_sub">イコライザー、エンドレス再生</string>
     <string name="set_player_background">プレーヤーの背景</string>
     <string name="set_player_classic_desc">角の丸いジャケット、音量。歌詞とキューはジャケットの位置に開きます</string>
+    <string name="set_player_dial_desc">上に大きなタイトル。下には四角いボタンのグリッド：曲に合わせて回るプレート（指で回すと早送り・巻き戻し）、キュー（長押しで歌詞）、戻る、次へ、再生。</string>
     <string name="set_player_expressive_desc">大きく角の丸いジャケット、波打つバー、大きなボタン、引き出し式のキュー</string>
     <string name="set_player_style">プレーヤーのスタイル</string>
     <string name="set_player_sub">スタイル、背景、歌詞</string>
@@ -328,6 +336,7 @@
     <string name="share_lyrics_hint">行をタップして選択（最大6行）</string>
     <string name="show_romanization">ローマ字を表示</string>
     <string name="shuffle">シャッフル</string>
+    <string name="smart_playlists">スマートプレイリスト</string>
     <string name="song_delete_failed">削除できませんでした</string>
     <string name="song_deleted">削除しました</string>
     <string name="song_queued">キューに追加しました</string>
@@ -341,6 +350,19 @@
     <string name="sort_recent">最近追加</string>
     <string name="sort_recent_library">ライブラリに最近追加</string>
     <string name="sort_release_date">リリース日順</string>
+    <string name="sp_added_month">今月追加</string>
+    <string name="sp_long">長い曲</string>
+    <string name="sp_most_ever">再生回数ランキング</string>
+    <string name="sp_never_played">まだ聴いていない曲</string>
+    <string name="sp_night">夜に聴く曲</string>
+    <string name="sp_not_heard">1か月聴いていない曲</string>
+    <string name="sp_old_favorites">昔のお気に入り</string>
+    <string name="sp_played_week">今週聴いた曲</string>
+    <string name="sp_short">短い曲</string>
+    <string name="sp_skipped">よくスキップする曲</string>
+    <string name="sp_this_year">今年の曲</string>
+    <string name="sp_top_month">今月のトップ</string>
+    <string name="sp_top_year">今年のトップ</string>
     <string name="swipe_to_queue">キューへ</string>
     <string name="tab_home">ホーム</string>
     <string name="tab_library">ライブラリ</string>

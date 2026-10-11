@@ -69,6 +69,7 @@ object AppIcons {
     val Settings: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideSettings, TablerSettings)
     val RemoveFromPlaylist: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideRemoveFromPlaylist, TablerRemoveFromPlaylist)
     val Refresh: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideRefresh, TablerRefresh)
+    val Sparkles: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideSparkles, TablerSparkles)
     val Player: ImageVector @Composable @ReadOnlyComposable get() = pick(LucidePlayer, TablerPlayer)
     val Songs: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideSongs, TablerSongs)
     val Folder: ImageVector @Composable @ReadOnlyComposable get() = pick(LucideFolder, TablerFolder)

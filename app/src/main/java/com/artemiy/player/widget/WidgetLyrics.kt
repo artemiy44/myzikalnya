@@ -108,7 +108,17 @@ fun nextLyricEvent(items: List<WItem>, positionMs: Long): Long? {
  * colour makes grey accents): the part already sung is at full strength, the rest of that line a bit
  * under, every other line under half.
  */
-class LyricColors(val dim: Int, val text: Int, val sung: Int)
+class LyricColors(val dim: Int, val text: Int, val sung: Int, val nightDim: Int = dim, val nightText: Int = text, val nightSung: Int = sung)
+
+/**
+ * A row's text colour that follows the system theme by itself: from Android 12 the home screen
+ * picks the day or the night colour whenever the theme flips, without us being awake to rebuild
+ * the widget (a colour set the plain way stays as it was when the widget was last drawn).
+ */
+private fun RemoteViews.setThemedTextColor(viewId: Int, day: Int, night: Int) {
+    if (android.os.Build.VERSION.SDK_INT >= 31) setColorInt(viewId, "setTextColor", day, night)
+    else setTextColor(viewId, day)
+}
 
 private const val LAYOUTS = 4
 
@@ -119,7 +129,7 @@ private const val DOT_STEPS = 9
 private const val DOTS_FOLD_EARLY_MS = 450L
 
 /** The rows as views, with the one being sung coloured (its sung part in [LyricColors.sung]). */
-fun lyricViews(context: Context, items: List<WItem>, positionMs: Long, colors: LyricColors): List<RemoteViews> {
+fun lyricViews(context: Context, items: List<WItem>, positionMs: Long, colors: LyricColors, playing: Boolean = true): List<RemoteViews> {
     val active = activeRow(items, positionMs)
     return items.mapIndexed { index, item ->
         val layout = when {
@@ -137,10 +147,16 @@ fun lyricViews(context: Context, items: List<WItem>, positionMs: Long, colors: L
             if (showing) {
                 val progress = ((positionMs - item.timeMs).toFloat() / (breakUntil - item.timeMs).coerceAtLeast(1)).coerceIn(0f, 1f)
                 val dots = SpannableString("●  ●  ●")
-                for (i in 0 until 3) {
-                    val lit = (progress * 3f - i).coerceIn(0f, 1f)
-                    val alpha = ((0.3f + 0.7f * lit) * 255).toInt()
-                    dots.setSpan(ForegroundColorSpan((colors.sung and 0x00FFFFFF) or (alpha shl 24)), i * 3, i * 3 + 1, Spanned.SPAN_INCLUSIVE_INCLUSIVE)
+                // The dots' fill is a colour set per dot, which — unlike a row's own colour — can't
+                // follow the theme by itself; so it's only drawn while playing (redrawn all the time).
+                if (playing) {
+                    for (i in 0 until 3) {
+                        val lit = (progress * 3f - i).coerceIn(0f, 1f)
+                        val alpha = ((0.3f + 0.7f * lit) * 255).toInt()
+                        dots.setSpan(ForegroundColorSpan((colors.sung and 0x00FFFFFF) or (alpha shl 24)), i * 3, i * 3 + 1, Spanned.SPAN_INCLUSIVE_INCLUSIVE)
+                    }
+                } else {
+                    rv.setThemedTextColor(R.id.lyric_item, colors.text, colors.nightText)
                 }
                 rv.setTextViewText(R.id.lyric_item, dots)
                 rv.setTextViewTextSize(R.id.lyric_item, android.util.TypedValue.COMPLEX_UNIT_SP, 15f)
@@ -155,11 +171,17 @@ fun lyricViews(context: Context, items: List<WItem>, positionMs: Long, colors: L
         }
         val timed = item.timeMs >= 0
         // Lyrics that aren't timed are all just read; timed ones: the one being sung stands out.
-        rv.setTextColor(R.id.lyric_item, if (isActive) colors.text else if (!timed) colors.sung else colors.dim)
+        // The sung part of the line is a span with a fixed colour, which stays in the old theme's colour
+        // if the phone's theme flips; paused, the whole line is simply drawn in the full colour instead.
+        if (isActive) {
+            if (playing) rv.setThemedTextColor(R.id.lyric_item, colors.text, colors.nightText)
+            else rv.setThemedTextColor(R.id.lyric_item, colors.sung, colors.nightSung)
+        } else if (!timed) rv.setThemedTextColor(R.id.lyric_item, colors.sung, colors.nightSung)
+        else rv.setThemedTextColor(R.id.lyric_item, colors.dim, colors.nightDim)
         // The line being sung is a size bigger as well, so it can't be missed.
         if (!item.small) rv.setTextViewTextSize(R.id.lyric_item, android.util.TypedValue.COMPLEX_UNIT_SP, if (isActive) 22f else 17f)
         val text = SpannableString(item.text)
-        if (isActive) {
+        if (isActive && playing) {
             val sungUpTo = item.marks?.lastOrNull { it.first <= positionMs }?.second ?: if (item.marks == null) text.length else 0
             if (sungUpTo > 0) text.setSpan(ForegroundColorSpan(colors.sung), 0, sungUpTo.coerceAtMost(text.length), Spanned.SPAN_INCLUSIVE_INCLUSIVE)
         }
@@ -183,7 +205,7 @@ fun setLyricList(context: Context, rv: RemoteViews, widgetId: Int, listId: Int, 
     rv.setTextViewText(emptyId, emptyText)
     rv.setEmptyView(listId, emptyId)
     if (Build.VERSION.SDK_INT >= 31) {
-        val views = lyricViews(context, items, snap.positionMs, colors)
+        val views = lyricViews(context, items, snap.positionMs, colors, snap.playing)
         rv.setRemoteAdapter(
             listId,
             RemoteViews.RemoteCollectionItems.Builder()
@@ -221,11 +243,26 @@ fun setLyricList(context: Context, rv: RemoteViews, widgetId: Int, listId: Int, 
 /** The line each widget was last scrolled to, to tell going on from jumping back. */
 private val lastActive = HashMap<Int, Int>()
 
-fun lyricColors(context: Context, dark: Boolean): LyricColors =
-    (if (dark) 0xFFFFFFFF.toInt() else context.getColor(R.color.widget_active)).let { full ->
-        fun strength(percent: Int) = (full and 0x00FFFFFF) or ((255 * percent / 100) shl 24)
-        LyricColors(dim = strength(40), text = strength(70), sung = full)
-    }
+fun lyricColors(context: Context, dark: Boolean): LyricColors {
+    fun strength(full: Int, percent: Int) = (full and 0x00FFFFFF) or ((255 * percent / 100) shl 24)
+    val white = 0xFFFFFFFF.toInt()
+    // The day colour is the one in values/, the night colour the one in values-night/ — whichever
+    // theme the phone is in right now.
+    val day = if (dark) white else themed(context, night = false).getColor(R.color.widget_active)
+    val night = if (dark) white else themed(context, night = true).getColor(R.color.widget_active)
+    return LyricColors(
+        dim = strength(day, 40), text = strength(day, 70), sung = day,
+        nightDim = strength(night, 40), nightText = strength(night, 70), nightSung = night,
+    )
+}
+
+/** [context] as it would be in the day theme, or in the night theme. */
+private fun themed(context: Context, night: Boolean): Context {
+    val config = android.content.res.Configuration(context.resources.configuration)
+    val mode = if (night) android.content.res.Configuration.UI_MODE_NIGHT_YES else android.content.res.Configuration.UI_MODE_NIGHT_NO
+    config.uiMode = (config.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK.inv()) or mode
+    return context.createConfigurationContext(config)
+}
 
 /** Before Android 12 a widget's list comes from a service like this one. */
 class LyricWidgetService : RemoteViewsService() {
@@ -239,7 +276,7 @@ class LyricWidgetService : RemoteViewsService() {
 
         override fun onDataSetChanged() {
             val snap = WidgetState.snapshot
-            views = lyricViews(context, snap.items.orEmpty(), snap.positionMs, lyricColors(context, dark))
+            views = lyricViews(context, snap.items.orEmpty(), snap.positionMs, lyricColors(context, dark), snap.playing)
         }
 
         override fun onDestroy() {}

@@ -3,7 +3,6 @@ package com.artemiy.player.ui.onboarding
 import androidx.compose.ui.res.pluralStringResource
 import com.artemiy.player.R
 import androidx.compose.ui.res.stringResource
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -113,10 +112,27 @@ fun OnboardingScreen(state: OnboardingState, actions: OnboardingActions) {
         if (steps.getOrNull(to) == Step.Folders && !state.musicAllowed) to++
         if (to > steps.lastIndex) actions.finish() else go(to)
     }
-    BackHandler(enabled = index > 0) {
-        var to = index - 1
-        if (steps.getOrNull(to) == Step.Folders && !state.musicAllowed) to--
-        go(to)
+    // The back gesture: the step shrinks and fades under the finger like every other page here;
+    // let go and the step before comes in (just fading — the shrink already was the movement).
+    val back = remember { androidx.compose.animation.core.Animatable(0f) }
+    var byGesture by remember { mutableStateOf(false) }
+    var gestureLeave by remember { mutableStateOf(false) }
+    androidx.activity.compose.PredictiveBackHandler(enabled = index > 0) { progress ->
+        try {
+            progress.collect { event -> back.snapTo(event.progress) }
+            back.animateTo(1f, tween(240))
+            var to = index - 1
+            if (steps.getOrNull(to) == Step.Folders && !state.musicAllowed) to--
+            byGesture = true
+            gestureLeave = true
+            go(to)
+            back.snapTo(0f)
+            // The step that was left stays out of sight while it's taken away.
+            delay(400)
+            gestureLeave = false
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) { back.animateTo(0f, tween(200)) }
+        }
     }
 
     // Leaving at the end: the burst says goodbye its own way (flying at the viewer, or bursting
@@ -142,15 +158,27 @@ fun OnboardingScreen(state: OnboardingState, actions: OnboardingActions) {
     ) {
         AnimatedContent(
             targetState = steps[index],
+            modifier = Modifier.graphicsLayer {
+                val b = back.value
+                val sc = 1f - 0.12f * b
+                scaleX = sc
+                scaleY = sc
+                alpha = 1f - ((b - 0.4f) / 0.6f).coerceIn(0f, 1f)
+            },
             transitionSpec = {
+                if (byGesture) {
+                    byGesture = false
+                    return@AnimatedContent fadeIn(tween(280)).togetherWith(fadeOut(tween(1)))
+                }
                 val dir = if (forward) 1 else -1
                 (slideInHorizontally(tween(380)) { it / 4 * dir } + fadeIn(tween(380)))
                     .togetherWith(slideOutHorizontally(tween(320)) { -it / 4 * dir } + fadeOut(tween(260)))
             },
             label = "onboardingStep",
         ) { step ->
+          Box(modifier = Modifier.graphicsLayer { if (gestureLeave && step != steps[index]) alpha = 0f }) {
             when (step) {
-                Step.Hello -> TalkingStep(lines = HELLO_LINES.map { stringResource(it) }, lastButton = stringResource(R.string.onb_start), onLastTap = ::next)
+                Step.Hello -> TalkingStep(lines = HELLO_LINES.map { stringResource(it) }, lastButton = stringResource(R.string.onb_start), onLastTap = ::next, startAtEnd = !forward)
                 Step.Music -> StepPage(
                     title = stringResource(R.string.onb_music_title),
                     text = stringResource(R.string.onb_music_text),
@@ -287,6 +315,7 @@ fun OnboardingScreen(state: OnboardingState, actions: OnboardingActions) {
                     },
                 )
             }
+          }
         }
     }
 }
@@ -312,15 +341,23 @@ private fun TalkingStep(
     onLastTap: () -> Unit,
     lastButton: String? = null,
     lastHint: String? = null,
+    /** Coming back to it from a later step: it stands on its last line, already said. */
+    startAtEnd: Boolean = false,
     exit: () -> Float = { 0f },
     farewell: Farewell = Farewell.FlyAtViewer,
     below: @Composable (line: Int, lineDone: Boolean) -> Unit = { _, _ -> },
 ) {
-    var line by remember { mutableIntStateOf(0) }
-    var shown by remember { mutableIntStateOf(0) }
+    var line by remember { mutableIntStateOf(if (startAtEnd) lines.lastIndex else 0) }
+    var shown by remember { mutableIntStateOf(if (startAtEnd) lines.last().length else 0) }
+    var skipTyping by remember { mutableStateOf(startAtEnd) }
     val text = lines[line]
     val typing = shown < text.length
     LaunchedEffect(line) {
+        if (skipTyping) {
+            skipTyping = false
+            shown = text.length
+            return@LaunchedEffect
+        }
         shown = 0
         delay(350)
         while (shown < text.length) {

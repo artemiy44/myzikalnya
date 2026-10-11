@@ -41,6 +41,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -124,12 +125,26 @@ fun LibraryScreen(
 ) {
     val route = backStack.last()
     val playlistsVm: PlaylistsViewModel = viewModel()
+    // The smart playlists (they fill themselves): worked out again when the library changes or
+    // this page is opened, since what's been played since changes them. Empty ones aren't shown.
+    LaunchedEffect(songs, route) { if (route == LibraryRoute.Playlists) playlistsVm.refreshSmart(songs) }
+    val smartPlaylistRows = com.artemiy.player.data.SmartKind.entries.mapNotNull { kind ->
+        val count = playlistsVm.smart[kind]?.size ?: 0
+        if (count == 0) null else PlaylistWithCount(kind.id, stringResource(kind.titleRes), count)
+    }
     val settingsVm: SettingsViewModel = viewModel()
 
     var showCreatePlaylist by remember { mutableStateOf(false) }
     var showRenamePlaylist by remember { mutableStateOf(false) }
     var showDeletePlaylist by remember { mutableStateOf(false) }
 
+    // Where an artist's / year's / genre's page was scrolled to, while an album opened from it is
+    // on top; dropped once back at the tabs.
+    val detailScroll = remember { mutableMapOf<String, androidx.compose.foundation.lazy.LazyListState>() }
+    if (backStack.size <= 1) detailScroll.clear()
+    // The same for how far each page's header has folded (the page is taken apart while another is on top).
+    val headerFolds = remember { mutableMapOf<LibraryRoute, androidx.compose.runtime.MutableState<Float>>() }
+    headerFolds.keys.retainAll(backStack.toSet())
     // Hoisted so scroll position survives navigating into a detail screen and back.
     val artistsListState = rememberLazyListState()
     val artistsGridState = rememberLazyGridState()
@@ -324,6 +339,7 @@ fun LibraryScreen(
                                 .sortedBy { it.first.lowercase() }
                         }
                         ArtistDetailScreen(
+                            listState = detailScroll.getOrPut("tag:" + (group?.key ?: title)) { androidx.compose.foundation.lazy.LazyListState() },
                             artist = "tag:" + (group?.key ?: title),
                             title = title,
                             bigMark = bigMark,
@@ -385,6 +401,7 @@ fun LibraryScreen(
 
                         LibraryRoute.Playlists -> PlaylistsList(
                             playlists = playlistsVm.playlists,
+                            smart = smartPlaylistRows,
                             onPlaylistClick = { p -> push(LibraryRoute.PlaylistDetail(p.id, p.name)) },
                         )
 
@@ -656,6 +673,7 @@ fun LibraryScreen(
                                     .sortedBy { it.first.lowercase() }
                             }
                             ArtistDetailScreen(
+                                listState = detailScroll.getOrPut(r.artist) { androidx.compose.foundation.lazy.LazyListState() },
                                 artist = r.artist,
                                 songs = artistSongs,
                                 albums = artistAlbums,
@@ -769,13 +787,19 @@ fun LibraryScreen(
                                         onDelete = { showDeletePlaylist = true },
                                         onExportM3u = { exportM3u.launch(r.name.replace('/', '-') + ".m3u") },
                                         washOut = playlistWash,
+                                        smart = r.playlistId < 0,
                                     )
                                     if (playlistSongs.isEmpty()) {
                                         Text(
                                             text = stringResource(R.string.playlist_empty),
                                             color = PlayerColors.TextSecondary,
-                                            fontSize = 14.sp,
-                                            modifier = Modifier.fillMaxWidth().heroPanel(roundTop = true).padding(top = 24.dp),
+                                            fontSize = 18.sp,
+                                            lineHeight = 26.sp,
+                                            modifier = Modifier.fillMaxWidth().heroPanel(roundTop = true)
+                                                // Tall enough that the panel runs off the bottom, not ends in a strip.
+                                                .heightIn(min = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp)
+                                                .padding(horizontal = 24.dp)
+                                                .padding(top = 32.dp),
                                             textAlign = TextAlign.Center,
                                         )
                                     } else Box(modifier = Modifier.fillMaxWidth().then(if (playlistViewMode == ViewMode.LIST) Modifier.heroPanel(roundTop = true) else Modifier).padding(top = 16.dp)) {
@@ -804,7 +828,7 @@ fun LibraryScreen(
                                     onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
                                     onGoToAlbum = onGoToAlbum,
                                     onGoToArtist = onGoToArtist,
-                                    onRemoveFromPlaylist = removeFromPlaylist,
+                                    onRemoveFromPlaylist = if (r.playlistId < 0) null else removeFromPlaylist,
                                     header = header,
                                     onHeroPanel = true,
                                     heroWash = playlistWash,
@@ -819,7 +843,7 @@ fun LibraryScreen(
                                     onAddToPlaylist = { song -> onAddToPlaylist(listOf(song)) },
                                     onGoToAlbum = onGoToAlbum,
                                     onGoToArtist = onGoToArtist,
-                                    onRemoveFromPlaylist = removeFromPlaylist,
+                                    onRemoveFromPlaylist = if (r.playlistId < 0) null else removeFromPlaylist,
                                     header = header,
                                     onHeroPanel = true,
                                     heroWash = playlistWash,
@@ -836,6 +860,7 @@ fun LibraryScreen(
                 pageContent()
             } else {
                 com.artemiy.player.ui.components.CollapsingHeader(
+                    foldState = headerFolds.getOrPut(route) { androidx.compose.runtime.mutableStateOf(0f) },
                     title = pageTitle,
                     bigHeader = { LibraryHeader(title = pageTitle, showBack = route != LibraryRoute.Home, onBack = goBack, trailing = pageTrailing) },
                     onBack = if (route != LibraryRoute.Home) goBack else null,

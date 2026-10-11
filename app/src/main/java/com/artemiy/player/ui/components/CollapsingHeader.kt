@@ -67,6 +67,10 @@ fun CollapsingHeader(
     /** Off for pages whose top holds a fixed search field: the soft fade (and the line) would lie
      * over it like a shadow. */
     fade: Boolean = true,
+    /** How far the header has folded, px. A page that other pages open on top of passes its own
+     * (kept by the caller): the page is taken apart underneath, and a header that forgot its fold
+     * comes back big over a page that's still scrolled. */
+    foldState: androidx.compose.runtime.MutableState<Float>? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val density = LocalDensity.current
@@ -75,7 +79,8 @@ fun CollapsingHeader(
     // It moves with the finger, one to one.
     // Remembered with the page's scroll position: coming back to a tab scrolled halfway, the
     // header has to still be as folded as it was, or it unfolds and folds again on the next swipe.
-    var folded by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(0f) }
+    val ownFold = androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(0f) }
+    var folded by (foldState ?: ownFold)
     val range = remember { floatArrayOf(0f) }
     val progress = { if (range[0] > 0f) (folded / range[0]).coerceIn(0f, 1f) else 0f }
     val connection = remember {
@@ -186,12 +191,6 @@ fun CollapsingHeader(
             }
             if (fade) {
                 Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(PlayerColors.Border))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(FADE_HEIGHT)
-                        .background(Brush.verticalGradient(listOf(PlayerColors.Background, Color.Transparent))),
-                )
             }
         }
     }

@@ -84,6 +84,8 @@
     <string name="device_headphones">耳机</string>
     <string name="device_usb_audio">USB 音频</string>
     <string name="device_usb_headphones">USB 耳机</string>
+    <string name="dial_look_card">卡片</string>
+    <string name="dial_look_full">全屏</string>
     <string name="disc_n">碟 %1$s</string>
     <string name="drag">拖动</string>
     <string name="endless_play">无尽播放</string>
@@ -198,6 +200,7 @@
     <string name="output_device">播放设备</string>
     <string name="play_next">下一首播放</string>
     <string name="player_classic">经典</string>
+    <string name="player_dial">转盘</string>
     <string name="player_expressive">活泼</string>
     <string name="playing_from">正在播放：</string>
     <string name="playing_from_queue">队列</string>
@@ -215,6 +218,7 @@
     <string name="recap_most_played">听得最多的：“%1$s”——%2$s。</string>
     <string name="recap_new_in_library">音乐库新增</string>
     <string name="recap_of_music">的音乐</string>
+    <string name="recap_show_all">显示全部 (%1$d)</string>
     <string name="recap_top_artist">本周艺人：%1$s</string>
     <string name="recap_top_artists">热门艺人</string>
     <string name="recap_top_genre">本周流派</string>
@@ -258,6 +262,9 @@
     <string name="set_colors">颜色与强调色</string>
     <string name="set_colors_sub">浅色和深色主题的背景、强调色</string>
     <string name="set_dark_bg">深色主题背景</string>
+    <string name="set_dial_card_desc">背景（所选的模糊；无模糊时为专辑颜色和流派图案）放在顶部的卡片里，其余保持应用自己的配色。</string>
+    <string name="set_dial_full_desc">背景铺满整个屏幕；无模糊时只用应用的背景色，强调色只出现在播放按钮上。</string>
+    <string name="set_dial_look">外观</string>
     <string name="set_dont_split">不拆分</string>
     <string name="set_endless">无尽播放</string>
     <string name="set_endless_desc">当队列快结束且播放器中开启了\"∞\"按钮时——用什么来补充。</string>
@@ -301,6 +308,7 @@
     <string name="set_playback_sub">均衡器、无尽播放</string>
     <string name="set_player_background">播放器背景</string>
     <string name="set_player_classic_desc">圆角封面、音量；歌词和队列在封面的位置打开</string>
+    <string name="set_player_dial_desc">顶部是大标题；下方是方形按钮网格：随歌曲旋转的圆盘（用手指转动即可快进或快退）、队列（长按显示歌词）、上一首、下一首和播放。</string>
     <string name="set_player_expressive_desc">大圆角封面、波浪进度条、大按钮、抽屉式队列</string>
     <string name="set_player_style">播放器样式</string>
     <string name="set_player_sub">样式、背景、歌词</string>
@@ -328,6 +336,7 @@
     <string name="share_lyrics_hint">点按歌词行来选择，最多六行</string>
     <string name="show_romanization">显示罗马音</string>
     <string name="shuffle">随机播放</string>
+    <string name="smart_playlists">智能播放列表</string>
     <string name="song_delete_failed">无法删除</string>
     <string name="song_deleted">已删除</string>
     <string name="song_queued">已加入队列</string>
@@ -341,6 +350,19 @@
     <string name="sort_recent">最近添加</string>
     <string name="sort_recent_library">最近添加到音乐库</string>
     <string name="sort_release_date">按发行日期</string>
+    <string name="sp_added_month">本月新增</string>
+    <string name="sp_long">长曲目</string>
+    <string name="sp_most_ever">历史最多播放</string>
+    <string name="sp_never_played">从未播放</string>
+    <string name="sp_night">深夜聆听</string>
+    <string name="sp_not_heard">一个月没听过</string>
+    <string name="sp_old_favorites">老歌最爱</string>
+    <string name="sp_played_week">本周播放</string>
+    <string name="sp_short">短曲目</string>
+    <string name="sp_skipped">常被跳过</string>
+    <string name="sp_this_year">今年发行</string>
+    <string name="sp_top_month">本月最爱</string>
+    <string name="sp_top_year">年度最爱</string>
     <string name="swipe_to_queue">加入队列</string>
     <string name="tab_home">首页</string>
     <string name="tab_library">音乐库</string>

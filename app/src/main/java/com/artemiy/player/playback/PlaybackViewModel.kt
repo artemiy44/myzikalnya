@@ -397,13 +397,15 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
         infinitePlayEnabled = saved.getBoolean("endless", false)
         c.repeatMode = saved.getInt("repeat_mode", if (saved.getBoolean("repeat", false)) Player.REPEAT_MODE_ALL else Player.REPEAT_MODE_OFF)
         syncRepeat(c.repeatMode)
+        // The source goes back first: putting the songs in makes the player report changes, which
+        // write the state down at once, and would write it down with no source.
+        playingFrom = saved.getString("fromName", null)?.let { name ->
+            decodeArt(saved.getString("fromArt", null), songs)?.let { PlaySource(name, saved.getInt("fromCount", songs.size), it) }
+        }
         c.setMediaItems(songs.map(::toMediaItem), index, position)
         c.prepare()
         currentSong = songs[index]
         positionMs = position
-        playingFrom = saved.getString("fromName", null)?.let { name ->
-            decodeArt(saved.getString("fromArt", null), songs)?.let { PlaySource(name, saved.getInt("fromCount", songs.size), it) }
-        }
         refreshDerivedQueues()
         loadLyricsFor(currentSong)
         sendModes()

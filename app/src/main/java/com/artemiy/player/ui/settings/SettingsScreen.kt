@@ -129,6 +129,8 @@ fun SettingsScreen(
     onLyricsTapPlaysChange: (Boolean) -> Unit,
     playerStyle: PlayerStyle,
     onPlayerStyleChange: (PlayerStyle) -> Unit,
+    dialCard: Boolean = true,
+    onDialCardChange: (Boolean) -> Unit = {},
     heroStyle: com.artemiy.player.data.HeroStyle = com.artemiy.player.data.HeroStyle.VIVID,
     onHeroStyleChange: (com.artemiy.player.data.HeroStyle) -> Unit = {},
     themeMode: ThemeMode,
@@ -260,6 +262,8 @@ fun SettingsScreen(
                     onLyricsTapPlaysChange = onLyricsTapPlaysChange,
                     playerStyle = playerStyle,
                     onPlayerStyleChange = onPlayerStyleChange,
+                    dialCard = dialCard,
+                    onDialCardChange = onDialCardChange,
                     heroStyle = heroStyle,
                     onHeroStyleChange = onHeroStyleChange,
                     themeMode = themeMode,
@@ -628,6 +632,8 @@ private fun SettingsSectionContent(
     onLyricsTapPlaysChange: (Boolean) -> Unit,
     playerStyle: PlayerStyle,
     onPlayerStyleChange: (PlayerStyle) -> Unit,
+    dialCard: Boolean = true,
+    onDialCardChange: (Boolean) -> Unit = {},
     heroStyle: com.artemiy.player.data.HeroStyle = com.artemiy.player.data.HeroStyle.VIVID,
     onHeroStyleChange: (com.artemiy.player.data.HeroStyle) -> Unit = {},
     themeMode: ThemeMode,
@@ -914,17 +920,30 @@ private fun SettingsSectionContent(
                     Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
                         PlayerStyle.entries.forEach { style ->
                             InfinitePlayModeChip(
-                                stringResource(if (style == PlayerStyle.CLASSIC) R.string.player_classic else R.string.player_expressive),
+                                stringResource(when (style) { PlayerStyle.CLASSIC -> R.string.player_classic; PlayerStyle.EXPRESSIVE -> R.string.player_expressive; PlayerStyle.DIAL -> R.string.player_dial }),
                                 style == playerStyle,
                             ) { onPlayerStyleChange(style) }
                         }
                     }
                     Text(
-                        text = stringResource(if (playerStyle == PlayerStyle.CLASSIC) R.string.set_player_classic_desc else R.string.set_player_expressive_desc),
+                        text = stringResource(when (playerStyle) { PlayerStyle.CLASSIC -> R.string.set_player_classic_desc; PlayerStyle.EXPRESSIVE -> R.string.set_player_expressive_desc; PlayerStyle.DIAL -> R.string.set_player_dial_desc }),
                         color = PlayerColors.TextSecondary,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(top = 10.dp),
                     )
+                    if (playerStyle == PlayerStyle.DIAL) {
+                        SettingsLabel(stringResource(R.string.set_dial_look), top = 14.dp)
+                        Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                            InfinitePlayModeChip(stringResource(R.string.dial_look_card), dialCard) { onDialCardChange(true) }
+                            InfinitePlayModeChip(stringResource(R.string.dial_look_full), !dialCard) { onDialCardChange(false) }
+                        }
+                        Text(
+                            text = stringResource(if (dialCard) R.string.set_dial_card_desc else R.string.set_dial_full_desc),
+                            color = PlayerColors.TextSecondary,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(top = 10.dp),
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
             }
