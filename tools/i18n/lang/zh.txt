@@ -408,3 +408,5 @@ dial_look_card = 卡片
 dial_look_full = 全屏
 set_dial_card_desc = 背景（所选的模糊；无模糊时为专辑颜色和流派图案）放在顶部的卡片里，其余保持应用自己的配色。
 set_dial_full_desc = 背景铺满整个屏幕；无模糊时只用应用的背景色，强调色只出现在播放按钮上。
+onb_player_dial_hint = 个性十足，像一件口袋小设备：大字体、方形按钮，以及一个可转动来快进快退的圆盘。
+cd_plate_seek = 快进快退

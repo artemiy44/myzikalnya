@@ -1795,5 +1795,13 @@
  "set_dial_full_desc": {
   "en": "The background fills the whole screen; with no blur, just the app's background colour, the accent only on the play button.",
   "ru": "Фон заполняет весь экран; без блюра — просто фон приложения, акцент только на кнопке плей."
+ },
+ "onb_player_dial_hint": {
+  "en": "Distinct, in the spirit of a pocket gadget: big type, square buttons and a plate you turn to wind the song.",
+  "ru": "Особенный, в духе карманного гаджета: крупный шрифт, квадратные кнопки и пластинка, которую можно крутить для перемотки."
+ },
+ "cd_plate_seek": {
+  "en": "Seek",
+  "ru": "Перемотка"
  }
 }

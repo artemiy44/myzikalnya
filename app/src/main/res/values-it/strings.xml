@@ -64,6 +64,7 @@
     <string name="cd_back">Indietro</string>
     <string name="cd_next_track">Brano successivo</string>
     <string name="cd_pause">Pausa</string>
+    <string name="cd_plate_seek">Scorri il brano</string>
     <string name="cd_play">Riproduci</string>
     <string name="cd_previous_track">Brano precedente</string>
     <string name="clear">Cancella</string>
@@ -192,6 +193,7 @@
     <string name="onb_notif_title">Notifiche</string>
     <string name="onb_player">Lettore</string>
     <string name="onb_player_classic_hint">Tranquillo, nello stile di Apple Music: copertina, testo e coda nello stesso posto.</string>
+    <string name="onb_player_dial_hint">Particolare, nello spirito di un gadget tascabile: testo grande, pulsanti quadrati e un piatto da girare per scorrere il brano.</string>
     <string name="onb_player_expressive_hint">Audace, nello stile di Material: pulsanti grandi, barra ondulata e coda in basso.</string>
     <string name="onb_start">Inizia</string>
     <string name="onb_tap_to_continue">Un tocco sullo schermo per continuare</string>

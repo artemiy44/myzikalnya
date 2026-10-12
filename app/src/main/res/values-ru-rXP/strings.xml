@@ -70,6 +70,7 @@
     <string name="cd_back">Назадъ</string>
     <string name="cd_next_track">Слѣдующій трекъ</string>
     <string name="cd_pause">Пауза</string>
+    <string name="cd_plate_seek">Перемотка</string>
     <string name="cd_play">Играть</string>
     <string name="cd_previous_track">Предыдущій трекъ</string>
     <string name="clear">Очистить</string>
@@ -200,6 +201,7 @@
     <string name="onb_notif_title">Извѣщенія</string>
     <string name="onb_player">Плееръ</string>
     <string name="onb_player_classic_hint">Спокойный, въ духѣ Apple Music: обложка, текстъ и очередь въ одномъ мѣстѣ.</string>
+    <string name="onb_player_dial_hint">Особенный, въ духѣ карманного гаджета: крупный шрифтъ, квадратные кнопки и пластинка, которую можно крутить для перемотки.</string>
     <string name="onb_player_expressive_hint">Смѣлый, въ духѣ Material: крупныя кнопки, волнистая полоса и очередь снизу.</string>
     <string name="onb_start">Начать</string>
     <string name="onb_tap_to_continue">Нажатіе по экрану — дальше</string>

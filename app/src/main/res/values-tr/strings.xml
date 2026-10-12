@@ -64,6 +64,7 @@
     <string name="cd_back">Geri</string>
     <string name="cd_next_track">Sonraki parça</string>
     <string name="cd_pause">Duraklat</string>
+    <string name="cd_plate_seek">Sarma</string>
     <string name="cd_play">Oynat</string>
     <string name="cd_previous_track">Önceki parça</string>
     <string name="clear">Temizle</string>
@@ -192,6 +193,7 @@
     <string name="onb_notif_title">Bildirimler</string>
     <string name="onb_player">Oynatıcı</string>
     <string name="onb_player_classic_hint">Sakin, Apple Music tarzında: kapak, sözler ve kuyruk tek bir yerde.</string>
+    <string name="onb_player_dial_hint">Farklı, bir cep aleti ruhunda: büyük yazı, kare düğmeler ve şarkıyı sarmak için çevirdiğin bir plaka.</string>
     <string name="onb_player_expressive_hint">Cesur, Material tarzında: büyük düğmeler, dalgalı çubuk ve alttaki kuyruk.</string>
     <string name="onb_start">Başla</string>
     <string name="onb_tap_to_continue">Devam etmek için ekrana dokunma</string>

@@ -64,6 +64,7 @@
     <string name="cd_back">Wstecz</string>
     <string name="cd_next_track">Następny utwór</string>
     <string name="cd_pause">Pauza</string>
+    <string name="cd_plate_seek">Przewijanie</string>
     <string name="cd_play">Odtwórz</string>
     <string name="cd_previous_track">Poprzedni utwór</string>
     <string name="clear">Wyczyść</string>
@@ -192,6 +193,7 @@
     <string name="onb_notif_title">Powiadomienia</string>
     <string name="onb_player">Odtwarzacz</string>
     <string name="onb_player_classic_hint">Spokojny, w duchu Apple Music: okładka, tekst i kolejka w jednym miejscu.</string>
+    <string name="onb_player_dial_hint">Wyrazisty, w duchu kieszonkowego gadżetu: duża czcionka, kwadratowe przyciski i talerz do kręcenia, by przewijać utwór.</string>
     <string name="onb_player_expressive_hint">Odważny, w duchu Material: duże przyciski, falista belka i kolejka na dole.</string>
     <string name="onb_start">Zaczynamy</string>
     <string name="onb_tap_to_continue">Dotknięcie ekranu — dalej</string>

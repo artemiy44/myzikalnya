@@ -64,6 +64,7 @@
     <string name="cd_back">뒤로</string>
     <string name="cd_next_track">다음 곡</string>
     <string name="cd_pause">일시정지</string>
+    <string name="cd_plate_seek">탐색</string>
     <string name="cd_play">재생</string>
     <string name="cd_previous_track">이전 곡</string>
     <string name="clear">지우기</string>
@@ -192,6 +193,7 @@
     <string name="onb_notif_title">알림</string>
     <string name="onb_player">플레이어</string>
     <string name="onb_player_classic_hint">차분한 Apple Music 스타일: 커버, 가사, 대기열이 한곳에.</string>
+    <string name="onb_player_dial_hint">주머니 속 기기 같은 개성파: 큰 글자, 정사각형 버튼, 돌려서 곡을 탐색하는 플레이트.</string>
     <string name="onb_player_expressive_hint">과감한 Material 스타일: 큰 버튼, 물결 모양 바, 아래쪽 대기열.</string>
     <string name="onb_start">시작하기</string>
     <string name="onb_tap_to_continue">화면을 탭하면 다음으로</string>

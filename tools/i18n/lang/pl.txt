@@ -408,3 +408,5 @@ dial_look_card = Karta
 dial_look_full = Pełny ekran
 set_dial_card_desc = Tło (wybrane rozmycie; bez rozmycia kolor albumu i obrazek gatunku) jest w karcie u góry; reszta zostaje w kolorach aplikacji.
 set_dial_full_desc = Tło wypełnia cały ekran; bez rozmycia tylko kolor tła aplikacji, akcent wyłącznie na przycisku odtwarzania.
+onb_player_dial_hint = Wyrazisty, w duchu kieszonkowego gadżetu: duża czcionka, kwadratowe przyciski i talerz do kręcenia, by przewijać utwór.
+cd_plate_seek = Przewijanie

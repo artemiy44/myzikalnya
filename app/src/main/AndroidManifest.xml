@@ -4,6 +4,8 @@
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- The "Диск" plate ticks under the finger as it winds the song. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
     <!-- Only to show the name you gave your Bluetooth headphones/speaker in the player. -->
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />

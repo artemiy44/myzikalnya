@@ -64,6 +64,7 @@
     <string name="cd_back">Retour</string>
     <string name="cd_next_track">Titre suivant</string>
     <string name="cd_pause">Pause</string>
+    <string name="cd_plate_seek">Avance et retour</string>
     <string name="cd_play">Lecture</string>
     <string name="cd_previous_track">Titre précédent</string>
     <string name="clear">Effacer</string>
@@ -192,6 +193,7 @@
     <string name="onb_notif_title">Notifications</string>
     <string name="onb_player">Lecteur</string>
     <string name="onb_player_classic_hint">Calme, dans l’esprit d’Apple Music : pochette, paroles et file au même endroit.</string>
+    <string name="onb_player_dial_hint">Singulier, dans l\'esprit d\'un gadget de poche : grands caractères, boutons carrés et un plateau qu\'on tourne pour avancer dans le morceau.</string>
     <string name="onb_player_expressive_hint">Audacieux, dans l’esprit de Material : gros boutons, barre ondulée et file en bas.</string>
     <string name="onb_start">Commencer</string>
     <string name="onb_tap_to_continue">Un toucher sur l’écran pour continuer</string>

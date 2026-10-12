@@ -259,16 +259,18 @@ fun OnboardingScreen(state: OnboardingState, actions: OnboardingActions) {
                     )
                     ChoiceLabel(stringResource(R.string.onb_player))
                     Choices(
-                        options = listOf(PlayerStyle.CLASSIC to stringResource(R.string.player_classic), PlayerStyle.EXPRESSIVE to stringResource(R.string.player_expressive)),
+                        options = listOf(PlayerStyle.CLASSIC to stringResource(R.string.player_classic), PlayerStyle.EXPRESSIVE to stringResource(R.string.player_expressive), PlayerStyle.DIAL to stringResource(R.string.player_dial)),
                         selected = state.playerStyle,
                         onSelect = actions.setPlayerStyle,
                     )
                     Text(
-                        text = if (state.playerStyle == PlayerStyle.CLASSIC) {
-                            stringResource(R.string.onb_player_classic_hint)
-                        } else {
-                            stringResource(R.string.onb_player_expressive_hint)
-                        },
+                        text = stringResource(
+                            when (state.playerStyle) {
+                                PlayerStyle.CLASSIC -> R.string.onb_player_classic_hint
+                                PlayerStyle.EXPRESSIVE -> R.string.onb_player_expressive_hint
+                                PlayerStyle.DIAL -> R.string.onb_player_dial_hint
+                            },
+                        ),
                         color = PlayerColors.TextSecondary,
                         fontSize = 13.sp,
                         modifier = Modifier.padding(top = 10.dp),

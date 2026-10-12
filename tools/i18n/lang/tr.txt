@@ -408,3 +408,5 @@ dial_look_card = Kart
 dial_look_full = Tam ekran
 set_dial_card_desc = Arka plan (seçtiğin bulanıklık; bulanıklık yoksa albümün rengi ve tür resmi) üstteki bir kartın içinde durur; geri kalanı uygulamanın kendi renklerinde kalır.
 set_dial_full_desc = Arka plan tüm ekranı kaplar; bulanıklık yoksa yalnızca uygulamanın arka plan rengi, vurgu sadece oynat düğmesinde.
+onb_player_dial_hint = Farklı, bir cep aleti ruhunda: büyük yazı, kare düğmeler ve şarkıyı sarmak için çevirdiğin bir plaka.
+cd_plate_seek = Sarma

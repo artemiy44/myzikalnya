@@ -64,6 +64,7 @@
     <string name="cd_back">Zurück</string>
     <string name="cd_next_track">Nächster Titel</string>
     <string name="cd_pause">Pause</string>
+    <string name="cd_plate_seek">Spulen</string>
     <string name="cd_play">Abspielen</string>
     <string name="cd_previous_track">Vorheriger Titel</string>
     <string name="clear">Leeren</string>
@@ -192,6 +193,7 @@
     <string name="onb_notif_title">Benachrichtigungen</string>
     <string name="onb_player">Player</string>
     <string name="onb_player_classic_hint">Ruhig, im Stil von Apple Music: Cover, Songtext und Warteschlange an einem Ort.</string>
+    <string name="onb_player_dial_hint">Eigenwillig, im Stil eines Taschengeräts: große Schrift, quadratische Tasten und eine Platte, die man zum Spulen dreht.</string>
     <string name="onb_player_expressive_hint">Mutig, im Stil von Material: große Knöpfe, eine wellige Leiste und die Warteschlange unten.</string>
     <string name="onb_start">Los geht’s</string>
     <string name="onb_tap_to_continue">Tippen auf den Bildschirm — weiter</string>

@@ -55,6 +55,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.BoxScope
+import com.artemiy.player.ui.library.AnimatedToneBackdrop
 import com.artemiy.player.ui.library.ToneBackdrop
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.drawscope.rotate
@@ -62,6 +63,12 @@ import androidx.compose.ui.graphics.drawscope.scale
 import com.artemiy.player.ui.home.drawGenreMotif
 import com.artemiy.player.ui.components.SongActionsMenuPopup
 import com.artemiy.player.data.artists
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.setProgress
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.runtime.mutableFloatStateOf
@@ -292,7 +299,9 @@ internal fun ExpressiveNowPlaying(
                 onQueueOpenChange = { dialQueueOpen = it; memory.expressiveQueueOpen = it },
                 queuePanel = { panelModifier ->
                     DialQueuePanel(
-                        song = song,
+                        // Lit modes wear the app's accent where the play tile does (the card, or no blur);
+                        // over a full-screen blur they stay plain, like the white play tile.
+                        accentModes = cardLook || backgroundMode == NowPlayingBackgroundMode.NONE,
                         manualQueue = manualQueue,
                         continueQueue = continueQueue,
                         shuffleEnabled = shuffleEnabled,
@@ -399,14 +408,17 @@ internal fun ExpressiveNowPlaying(
 
             // Close handle and (with lyrics open) the romanization toggle, at the top of the screen.
             // (The "Диск" card draws its own, inside the card.)
+            // (In the "Диск" full-screen look it gives way to the open queue panel, which covers it.)
+            val handleAlpha by animateFloatAsState(if (dial && dialQueueOpen) 0f else 1f, tween(200), label = "closeHandle")
             if (!cardLook) Box(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(top = statusTop + 10.dp)
                     .size(width = 36.dp, height = 5.dp)
+                    .graphicsLayer { alpha = handleAlpha }
                     .clip(RoundedCornerShape(3.dp))
                     .background(PlayerColors.TextPrimary.copy(alpha = 0.7f))
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onClose() },
+                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { if (handleAlpha > 0.5f) onClose() },
             )
             if (!cardLook && showLyrics && lyrics?.hasRomanization() == true) {
                 Box(modifier = Modifier.align(Alignment.TopEnd).padding(top = statusTop + 4.dp, end = 16.dp)) {
@@ -1168,14 +1180,42 @@ private fun DialContent(
     onQueueOpenChange: (Boolean) -> Unit,
     queuePanel: @Composable (Modifier) -> Unit,
 ) {
+    // However big the text is set (system size × the app's), the Dial keeps to a size its tiles and
+    // card can hold; everywhere else in the app the setting applies in full.
+    val outerDensity = LocalDensity.current
+    val dialDensity = remember(outerDensity.density, outerDensity.fontScale) {
+        androidx.compose.ui.unit.Density(outerDensity.density, minOf(outerDensity.fontScale, DIAL_MAX_FONT_SCALE))
+    }
+    androidx.compose.runtime.CompositionLocalProvider(LocalDensity provides dialDensity) {
     val density = LocalDensity.current
+    // Winding the song with the plate makes the player blink "stopped" for a moment while it loads the
+    // new spot; the play tile and the plate keep to what they showed when the finger went down, and
+    // let go of it a little after the finger comes off.
+    var windHold by remember { mutableStateOf(false) }
+    var windHeldPlaying by remember { mutableStateOf(isPlaying) }
+    var windingNow by remember { mutableStateOf(false) }
+    // Keyed on "a finger is down": when it comes up the release is timed, and a finger coming down
+    // again before that cancels it (otherwise the old timer let go in the middle of the new turn).
+    LaunchedEffect(windingNow) {
+        if (!windingNow && windHold) {
+            kotlinx.coroutines.delay(900)
+            windHold = false
+        }
+    }
+    val shownPlaying = if (windHold) windHeldPlaying else isPlaying
+    val onWinding: (Boolean) -> Unit = { winding ->
+        if (winding && !windHold) windHeldPlaying = isPlaying
+        if (winding) windHold = true
+        windingNow = winding
+    }
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     val appPalette = com.artemiy.player.ui.theme.LocalAppPalette.current
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val sidePad = 16.dp
         val tileGap = 10.dp
         val tile = ((maxWidth - sidePad * 2 - tileGap * 2) / 3).coerceAtMost(124.dp)
-        val groupBottom = barHeight + 14.dp
+        // The same air under the grid as at its sides (16 dp), on top of the system's own bottom inset.
+        val groupBottom = barHeight + 8.dp
         // Without the card the timecode runs along the top of the grid (with it, along the card's bottom).
         val timeRow = if (card) 0.dp else 52.dp
         val gridHeight = tile * 2 + tileGap + timeRow + (if (card) 0.dp else tileGap)
@@ -1187,6 +1227,32 @@ private fun DialContent(
         val onTheme = card || backgroundMode == NowPlayingBackgroundMode.NONE
 
         BackHandler(enabled = queueOpen && LocalNowPlayingActive.current) { onQueueOpenChange(false) }
+
+        val queueShown by animateFloatAsState(
+            if (queueOpen) 1f else 0f,
+            spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow),
+            label = "dialQueue",
+        )
+        val panelLayer: @Composable BoxScope.() -> Unit = {
+            // The queue panel, the same size in both looks: it rises over the title and stops above the tiles — in the card
+            // an even frame all round, over the screen (the full-screen look) about as far from the edges, and
+            // over the handle and the timecode in both, which come back when it closes.
+            if (queueShown > 0.001f) {
+                queuePanel(
+                    Modifier
+                        .align(Alignment.TopCenter)
+                        .then(
+                            if (card) Modifier.padding(DIAL_PANEL_FRAME)
+                            else Modifier.padding(start = sidePad, end = sidePad, top = statusTop + 14.dp, bottom = groupBottom + tile * 2 + tileGap + 12.dp),
+                        )
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            alpha = queueShown.coerceIn(0f, 1f)
+                            translationY = (1f - queueShown) * 48.dp.toPx()
+                        },
+                )
+            }
+        }
 
         // The "screen": title (or lyrics), the queue panel, the close handle and the song's menu.
         val screenPart: @Composable BoxScope.() -> Unit = {
@@ -1302,28 +1368,6 @@ private fun DialContent(
                 }
             }
 
-            // The queue panel: rises over the title, stopping above the grid (inside the card, filling it).
-            val queueShown by animateFloatAsState(
-                if (queueOpen) 1f else 0f,
-                spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow),
-                label = "dialQueue",
-            )
-            if (queueShown > 0.001f) {
-                queuePanel(
-                    Modifier
-                        .align(Alignment.TopCenter)
-                        .then(
-                            if (card) Modifier.padding(start = 8.dp, end = 8.dp, top = 36.dp, bottom = CARD_TIME_ROOM)
-                            else Modifier.padding(start = sidePad, end = sidePad, top = statusTop + 40.dp, bottom = aboveGrid),
-                        )
-                        .fillMaxSize()
-                        .graphicsLayer {
-                            alpha = queueShown.coerceIn(0f, 1f)
-                            translationY = (1f - queueShown) * 48.dp.toPx()
-                        },
-                )
-            }
-
             if (card) {
                 // In the card these two belong to it, not to the screen.
                 Box(
@@ -1349,10 +1393,12 @@ private fun DialContent(
                     verticalAlignment = Alignment.Bottom,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text(text = formatMs(positionMs), color = PlayerColors.TextPrimary, fontSize = 40.sp, fontWeight = FontWeight.Medium, maxLines = 1)
-                    Text(text = formatMs(durationMs), color = LocalAdaptiveSecondaryColor.current, fontSize = 22.sp, maxLines = 1, modifier = Modifier.padding(bottom = 4.dp))
+                    Text(text = dialTime(positionMs), color = PlayerColors.TextPrimary, fontSize = 40.sp, fontWeight = FontWeight.Medium, maxLines = 1)
+                    Text(text = dialTime(durationMs), color = LocalAdaptiveSecondaryColor.current, fontSize = 22.sp, maxLines = 1, modifier = Modifier.padding(bottom = 4.dp))
                 }
             }
+
+            if (card) panelLayer()
         }
 
         if (card) {
@@ -1361,7 +1407,7 @@ private fun DialContent(
                 mode = backgroundMode,
                 intensity = blurIntensity,
                 modifier = Modifier
-                    .padding(start = 12.dp, end = 12.dp, top = (statusTop - 6.dp).coerceAtLeast(8.dp), bottom = aboveGrid)
+                    .padding(start = 12.dp, end = 12.dp, top = statusTop + 4.dp, bottom = aboveGrid)
                     .fillMaxSize(),
                 content = screenPart,
             )
@@ -1382,12 +1428,17 @@ private fun DialContent(
                 if (!card) {
                     // The timecode: elapsed time at the grid's left edge, the full length at its right.
                     Row(
-                        modifier = Modifier.fillMaxWidth().height(timeRow).padding(horizontal = 6.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(timeRow)
+                            .padding(horizontal = 6.dp)
+                            // Gives way to the queue panel as it opens, so no edge of the digits peeks out under it.
+                            .graphicsLayer { alpha = 1f - queueShown.coerceIn(0f, 1f) },
                         verticalAlignment = Alignment.Bottom,
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        Text(text = formatMs(positionMs), color = PlayerColors.TextPrimary, fontSize = 40.sp, fontWeight = FontWeight.Medium, maxLines = 1)
-                        Text(text = formatMs(durationMs), color = LocalAdaptiveSecondaryColor.current, fontSize = 22.sp, maxLines = 1, modifier = Modifier.padding(bottom = 4.dp))
+                        Text(text = dialTime(positionMs), color = PlayerColors.TextPrimary, fontSize = 40.sp, fontWeight = FontWeight.Medium, maxLines = 1)
+                        Text(text = dialTime(durationMs), color = LocalAdaptiveSecondaryColor.current, fontSize = 22.sp, maxLines = 1, modifier = Modifier.padding(bottom = 4.dp))
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(tileGap), verticalAlignment = Alignment.Bottom) {
@@ -1440,17 +1491,18 @@ private fun DialContent(
                         }
                     }
                     DialPlate(
-                        isPlaying = isPlaying,
+                        isPlaying = shownPlaying,
                         active = active,
                         positionMs = positionMs,
                         durationMs = durationMs,
                         onSeek = onSeek,
+                        onWinding = onWinding,
                         modifier = Modifier.size(tile),
                     )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(tileGap)) {
                     DialTile(filled = true, accent = onTheme, onClick = onTogglePlayPause, modifier = Modifier.size(tile)) {
-                        PlayPauseIcon(isPlaying = isPlaying, tint = if (onTheme) PlayerColors.OnAccent else PlayerColors.Background, modifier = Modifier.size(38.dp))
+                        PlayPauseIcon(isPlaying = shownPlaying, tint = if (onTheme) PlayerColors.OnAccent else PlayerColors.Background, modifier = Modifier.size(38.dp))
                     }
                     DialTile(filled = false, onClick = onSkipPrevious, modifier = Modifier.size(tile)) {
                         Icon(AppIcons.SkipPrevious, stringResource(R.string.cd_previous_track), tint = PlayerColors.TextPrimary, modifier = Modifier.size(34.dp))
@@ -1461,6 +1513,10 @@ private fun DialContent(
                 }
             }
         }
+
+        // In the full-screen look the panel is drawn last, so it covers the timecode above the tiles too.
+        if (!card) panelLayer()
+    }
     }
 }
 
@@ -1476,7 +1532,19 @@ private fun DialGridPalette(onTheme: Boolean, appPalette: com.artemiy.player.ui.
     }
 }
 
+/** The most the Dial lets text grow (system × app text size). */
+private const val DIAL_MAX_FONT_SCALE = 1.3f
+
 private val DIAL_CARD_CORNER = 34.dp
+
+/** The queue panel's frame inside the card: the same on every side. */
+private val DIAL_PANEL_FRAME = 10.dp
+
+/** The "Диск" timecode: just digits, minutes and seconds with no colon — 27 s is "0027", 3:18 is "0318". */
+private fun dialTime(ms: Long): String {
+    val total = (ms / 1000).coerceAtLeast(0)
+    return "%02d%02d".format(total / 60, total % 60)
+}
 
 /** Room kept at the card's bottom for the timecode. */
 private val CARD_TIME_ROOM = 76.dp
@@ -1495,19 +1563,25 @@ private fun DialCard(
 ) {
     Box(modifier = modifier.clip(RoundedCornerShape(DIAL_CARD_CORNER))) {
         if (mode != NowPlayingBackgroundMode.NONE) {
-            NowPlayingSurface(song = song, mode = mode, intensity = intensity, content = content)
+            NowPlayingSurface(song = song, mode = mode, intensity = intensity, matte = true, content = content)
         } else {
             com.artemiy.player.ui.theme.PaletteScope(com.artemiy.player.ui.theme.NowPlayingPalette) {
                 androidx.compose.runtime.CompositionLocalProvider(LocalAdaptiveSecondaryColor provides com.artemiy.player.ui.theme.NowPlayingPalette.textSecondary) {
                     Box(modifier = Modifier.fillMaxSize()) {
-                        ToneBackdrop(listOfNotNull(song))
-                        val seed = (song?.id ?: 0L).toInt()
-                        val genre = song?.genre?.takeIf { it.isNotBlank() } ?: song?.artist.orEmpty()
-                        Canvas(modifier = Modifier.matchParentSize()) {
-                            translate(size.width * 0.1f, size.height * 0.02f) {
-                                rotate(-8f) {
-                                    scale(1.25f) {
-                                        drawGenreMotif(genre, seed, unknownAsTag = false)
+                        // The picture (tone and genre drawing), in the same matte treatment as the blur card; when
+                        // the song changes the colours ease over and the drawing cross-fades instead of cutting.
+                        Box(modifier = Modifier.matchParentSize().matteColor()) {
+                            AnimatedToneBackdrop(song)
+                            val seed = (song?.id ?: 0L).toInt()
+                            val genre = song?.genre?.takeIf { it.isNotBlank() } ?: song?.artist.orEmpty()
+                            Crossfade(targetState = genre to seed, animationSpec = tween(900), label = "cardGenreArt") { (g, sd) ->
+                                Canvas(modifier = Modifier.fillMaxSize()) {
+                                    translate(size.width * 0.1f, size.height * 0.02f) {
+                                        rotate(-8f) {
+                                            scale(1.25f) {
+                                                drawGenreMotif(g, sd, unknownAsTag = false)
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -1542,7 +1616,7 @@ private fun PlayerSurface(
 /** The queue as a panel for the "Диск" style: the app theme's colors, the list, the play modes under it. */
 @Composable
 private fun DialQueuePanel(
-    song: Song?,
+    accentModes: Boolean,
     manualQueue: List<Song>,
     continueQueue: List<Song>,
     shuffleEnabled: Boolean,
@@ -1564,8 +1638,7 @@ private fun DialQueuePanel(
         Column(
             modifier = modifier
                 .clip(RoundedCornerShape(DIAL_CORNER))
-                .background(appPalette.background.copy(alpha = 1f))
-                .padding(horizontal = 20.dp),
+                .background(appPalette.background.copy(alpha = 1f)),
         ) {
             QueueList(
                 manualQueue = manualQueue,
@@ -1579,19 +1652,79 @@ private fun DialQueuePanel(
                 songActions = songActions,
                 topFadePx = { 0 },
                 bottomFadePx = { 0 },
-                modifier = Modifier.fillMaxWidth().weight(1f),
+                modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 20.dp),
                 contentPadding = PaddingValues(top = 12.dp, bottom = 12.dp),
             )
-            ExpressiveQueueModes(
-                song = song,
+            DialQueueModes(
+                accented = accentModes,
                 shuffleEnabled = shuffleEnabled,
                 repeatEnabled = repeatEnabled,
                 infinitePlayEnabled = infinitePlayEnabled,
                 onToggleShuffle = onToggleShuffle,
                 onToggleRepeat = onToggleRepeat,
                 onToggleInfinitePlay = onToggleInfinitePlay,
-                modifier = Modifier.padding(top = 4.dp, bottom = 16.dp),
+                modifier = Modifier.padding(start = DIAL_MODES_INSET, end = DIAL_MODES_INSET, bottom = DIAL_MODES_INSET),
             )
+        }
+    }
+}
+
+/** The gap between the queue panel's edge and its row of mode buttons. */
+private val DIAL_MODES_INSET = 8.dp
+
+/**
+ * Shuffle / repeat / endless play for the "Диск" queue: three rounded rectangles set into the panel's
+ * foot. Their corners at the panel's own corners follow its curve (the panel's radius less the gap),
+ * the rest are tighter. Off: a faint plate; on: filled in the app's accent (or plain, see [accented]).
+ */
+@Composable
+private fun DialQueueModes(
+    accented: Boolean,
+    shuffleEnabled: Boolean,
+    repeatEnabled: Boolean,
+    infinitePlayEnabled: Boolean,
+    onToggleShuffle: () -> Unit,
+    onToggleRepeat: () -> Unit,
+    onToggleInfinitePlay: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    // Lit: the app's accent (or, when plain, the text color itself, as the play tile is white).
+    val accent = if (accented) PlayerColors.Accent else PlayerColors.TextPrimary
+    val onAccent = if (accented) PlayerColors.OnAccent else PlayerColors.Background
+    val offFill = PlayerColors.TextPrimary.copy(alpha = 0.10f)
+    val follow = DIAL_CORNER - DIAL_MODES_INSET
+    val inner = 12.dp
+    Row(modifier = modifier.fillMaxWidth().height(54.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        listOf(
+            Triple(AppIcons.Shuffle to stringResource(R.string.shuffle), shuffleEnabled, onToggleShuffle),
+            Triple(AppIcons.Repeat to stringResource(R.string.repeat), repeatEnabled, onToggleRepeat),
+            Triple(AppIcons.Infinite to stringResource(R.string.endless_play), infinitePlayEnabled, onToggleInfinitePlay),
+        ).forEachIndexed { index, (iconAndLabel, enabled, onClick) ->
+            val interaction = remember { MutableInteractionSource() }
+            val fill by animateColorAsState(if (enabled) accent else offFill, tween(220), label = "dialModeFill")
+            val tint by animateColorAsState(if (enabled) onAccent else PlayerColors.TextPrimary, tween(220), label = "dialModeTint")
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .pressScale(interaction, pressedScale = 0.95f)
+                    .clip(
+                        RoundedCornerShape(
+                            topStart = inner,
+                            topEnd = inner,
+                            bottomStart = if (index == 0) follow else inner,
+                            bottomEnd = if (index == 2) follow else inner,
+                        ),
+                    )
+                    .background(fill)
+                    .clickable(interactionSource = interaction, indication = null, onClick = onClick),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(iconAndLabel.first, contentDescription = iconAndLabel.second, tint = tint, modifier = Modifier.size(22.dp))
+                if (index == 1 && LocalRepeatOne.current) {
+                    Text("1", color = tint, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+                }
+            }
         }
     }
 }
@@ -1650,6 +1783,8 @@ private fun DialPlate(
     positionMs: Long,
     durationMs: Long,
     onSeek: (Long) -> Unit,
+    /** Told when a finger starts winding the song (true) and when it lets go (false). */
+    onWinding: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var angle by remember { mutableFloatStateOf(0f) }
@@ -1658,7 +1793,8 @@ private fun DialPlate(
     val positionNow by rememberUpdatedState(positionMs)
     val durationNow by rememberUpdatedState(durationMs)
     val onSeekNow by rememberUpdatedState(onSeek)
-    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+    val onWindingNow by rememberUpdatedState(onWinding)
+    val context = LocalContext.current
 
     // Frame by frame: the speed eases toward its goal (full when playing, none when paused), so the
     // disc takes a moment to get going and keeps turning a moment after the pause. Idle when still.
@@ -1683,30 +1819,60 @@ private fun DialPlate(
 
     val disc = PlayerColors.TextPrimary
     val mark = PlayerColors.Background
+    val seekLabel = stringResource(R.string.cd_plate_seek)
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(DIAL_CORNER))
             .background(PlayerColors.TextPrimary.copy(alpha = 0.14f))
+            // What a screen reader (TalkBack) says and does: it is a seek control, and adjusting it
+            // (the volume keys, "increase / decrease") winds the song like turning it does.
+            .semantics {
+                contentDescription = seekLabel
+                progressBarRangeInfo = ProgressBarRangeInfo(
+                    current = if (durationMs > 0) (positionMs.toFloat() / durationMs).coerceIn(0f, 1f) else 0f,
+                    range = 0f..1f,
+                )
+                setProgress { fraction ->
+                    if (durationNow > 0L) {
+                        onSeekNow((fraction.coerceIn(0f, 1f) * durationNow).toLong())
+                        true
+                    } else false
+                }
+            }
             .pointerInput(Unit) {
                 var lastTouch = 0f
                 var target = 0f
                 var tickCarry = 0f
                 var lastSeekAt = 0L
                 fun touchAngle(o: Offset) = Math.toDegrees(kotlin.math.atan2((o.y - size.height / 2f).toDouble(), (o.x - size.width / 2f).toDouble())).toFloat()
+                // While the song's length is still unknown (a moment after a skip, a file that won't
+                // open) the plate just keeps turning and leaves the song be.
+                var blocked = false
                 detectDragGestures(
                     onDragStart = { o ->
-                        dragging = true
-                        lastTouch = touchAngle(o)
-                        target = positionNow.toFloat()
-                        tickCarry = 0f
+                        blocked = durationNow <= 0L
+                        if (!blocked) {
+                            dragging = true
+                            onWindingNow(true)
+                            lastTouch = touchAngle(o)
+                            target = positionNow.toFloat()
+                            tickCarry = 0f
+                        }
                     },
                     onDragEnd = {
-                        onSeekNow(target.toLong())
-                        dragging = false
+                        if (!blocked) {
+                            onSeekNow(target.toLong())
+                            dragging = false
+                            onWindingNow(false)
+                        }
                     },
-                    onDragCancel = { dragging = false },
+                    onDragCancel = {
+                        dragging = false
+                        if (!blocked) onWindingNow(false)
+                    },
                 ) { change, _ ->
                     change.consume()
+                    if (blocked) return@detectDragGestures
                     val a = touchAngle(change.position)
                     var d = a - lastTouch
                     if (d > 180f) d -= 360f
@@ -1723,7 +1889,7 @@ private fun DialPlate(
                     tickCarry += kotlin.math.abs(d)
                     if (tickCarry >= 12f) {
                         tickCarry = 0f
-                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                        plateTick(context)
                     }
                 }
             },
@@ -1812,5 +1978,23 @@ private fun DialFitText(
                     onLongClick = onLongClick,
                 ),
         )
+    }
+}
+
+
+/**
+ * One short tick from the vibration motor, for the plate. It goes to the motor directly: the usual
+ * "haptic feedback" call doesn't buzz for a drag this fast on some phones. It still follows the
+ * system's "touch feedback" switch.
+ */
+private fun plateTick(context: android.content.Context) {
+    val touchFeedbackOn = android.provider.Settings.System.getInt(context.contentResolver, android.provider.Settings.System.HAPTIC_FEEDBACK_ENABLED, 1) == 1
+    if (!touchFeedbackOn) return
+    val vibrator = context.getSystemService(android.os.Vibrator::class.java) ?: return
+    if (!vibrator.hasVibrator()) return
+    when {
+        android.os.Build.VERSION.SDK_INT >= 29 -> vibrator.vibrate(android.os.VibrationEffect.createPredefined(android.os.VibrationEffect.EFFECT_TICK))
+        android.os.Build.VERSION.SDK_INT >= 26 -> vibrator.vibrate(android.os.VibrationEffect.createOneShot(8, 90))
+        else -> @Suppress("DEPRECATION") vibrator.vibrate(8)
     }
 }

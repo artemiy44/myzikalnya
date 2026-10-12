@@ -408,3 +408,5 @@ dial_look_card = Karte
 dial_look_full = Vollbild
 set_dial_card_desc = Der Hintergrund (der gewählte Blur; ohne Blur die Farbe des Albums und ein Genrebild) liegt in einer Karte oben; der Rest bleibt in den Farben der App.
 set_dial_full_desc = Der Hintergrund füllt den ganzen Bildschirm; ohne Blur nur die Hintergrundfarbe der App, der Akzent nur auf der Play-Taste.
+onb_player_dial_hint = Eigenwillig, im Stil eines Taschengeräts: große Schrift, quadratische Tasten und eine Platte, die man zum Spulen dreht.
+cd_plate_seek = Spulen

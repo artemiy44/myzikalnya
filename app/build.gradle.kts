@@ -15,8 +15,8 @@ android {
         applicationId = "com.artemiy.player"
         minSdk = 24
         targetSdk = 34
-        versionCode = 14
-        versionName = "0.74 beta"
+        versionCode = 15
+        versionName = "0.79 beta"
     }
 
     buildFeatures {
@@ -52,6 +52,16 @@ android {
             isDebuggable = false
             isMinifyEnabled = false
             signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
+        }
+        // The same as release, but run through R8: unused code is stripped and the rest shrunk, so
+        // the APK is smaller. Built separately (./gradlew assembleCompressed) and tried on its own,
+        // because R8 can break things that only show up at run time.
+        create("compressed") {
+            initWith(getByName("release"))
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            matchingFallbacks += listOf("release")
         }
     }
 

@@ -36,7 +36,7 @@ class SettingsRepository(private val context: Context) {
         val FONT_SCALE_KEY = floatPreferencesKey("font_scale")
         const val DEFAULT_FONT_SCALE = 1.08f
         const val MIN_FONT_SCALE = 0.9f
-        const val MAX_FONT_SCALE = 1.35f
+        const val MAX_FONT_SCALE = 1.2f
         val SCAN_FOLDERS_KEY = stringSetPreferencesKey("scan_folders")
         val MIN_DURATION_KEY = androidx.datastore.preferences.core.intPreferencesKey("min_duration_s")
         const val DEFAULT_MIN_DURATION_S = 60
@@ -111,7 +111,8 @@ class SettingsRepository(private val context: Context) {
     }
 
     val fontScale: Flow<Float> = context.settingsDataStore.data.map { prefs ->
-        prefs[FONT_SCALE_KEY] ?: DEFAULT_FONT_SCALE
+        // A size saved back when the slider went higher is brought down to what it reaches now.
+        (prefs[FONT_SCALE_KEY] ?: DEFAULT_FONT_SCALE).coerceIn(MIN_FONT_SCALE, MAX_FONT_SCALE)
     }
 
     suspend fun setFontScale(value: Float) {

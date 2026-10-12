@@ -27,6 +27,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
@@ -253,6 +255,8 @@ internal fun NowPlayingSurface(
     openFrom: Rect? = null,
     openProgress: () -> Float = { 1f },
     openTint: Color = Color.Transparent,
+    /** The "Диск" card: the background gets the mixes' matte, even colour (see [matteColor]). */
+    matte: Boolean = false,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val palette = if (mode == NowPlayingBackgroundMode.NONE) LocalPlayerPalette.current else NowPlayingPalette
@@ -317,7 +321,8 @@ internal fun NowPlayingSurface(
                             clip = false
                         }
                     }
-                    .background(PlayerColors.Background),
+                    .background(PlayerColors.Background)
+                    .then(if (matte) Modifier.matteColor() else Modifier),
             ) {
             when (mode) {
                 NowPlayingBackgroundMode.LIVE_BLUR -> LiveBlurBackground(
@@ -369,3 +374,44 @@ internal fun NowPlayingSurface(
 }
 
 private val SHEET_CORNER = 18.dp
+
+
+/**
+ * The colour treatment of the "Диск" card, to look like the Home mix cards rather than a plain blur:
+ * a little more colour, a lifted floor and softened highlights (the matte of a print instead of the
+ * deep black of a screen), and a soft darkening from the top-left to the bottom-right corner, like
+ * the mixes' own gradient. The treatment goes over the picture only; what is drawn on the card stays
+ * as it is.
+ */
+internal fun Modifier.matteColor(): Modifier = this.drawWithContent {
+    val paint = androidx.compose.ui.graphics.Paint().apply { colorFilter = MATTE_FILTER }
+    drawIntoCanvas { canvas ->
+        canvas.saveLayer(androidx.compose.ui.geometry.Rect(0f, 0f, size.width, size.height), paint)
+        drawContent()
+        canvas.restore()
+    }
+    drawRect(
+        androidx.compose.ui.graphics.Brush.linearGradient(
+            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.20f)),
+            start = androidx.compose.ui.geometry.Offset(size.width * 0.15f, size.height * 0.1f),
+            end = androidx.compose.ui.geometry.Offset(size.width, size.height),
+        ),
+    )
+}
+
+private val MATTE_FILTER: androidx.compose.ui.graphics.ColorFilter = run {
+    val saturate = androidx.compose.ui.graphics.ColorMatrix().apply { setToSaturation(1.3f) }
+    // out = in × contrast + lift (lift is 0–255 per channel)
+    val contrast = 0.86f
+    val lift = 26f
+    val levels = androidx.compose.ui.graphics.ColorMatrix(
+        floatArrayOf(
+            contrast, 0f, 0f, 0f, lift,
+            0f, contrast, 0f, 0f, lift,
+            0f, 0f, contrast, 0f, lift,
+            0f, 0f, 0f, 1f, 0f,
+        ),
+    )
+    levels.timesAssign(saturate)
+    androidx.compose.ui.graphics.ColorFilter.colorMatrix(levels)
+}

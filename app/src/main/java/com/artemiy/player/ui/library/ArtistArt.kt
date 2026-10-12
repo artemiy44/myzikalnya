@@ -10,7 +10,10 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -92,6 +95,30 @@ fun BoxScope.ToneBackdrop(songs: List<Song>) {
         drawRect(Brush.linearGradient(listOf(colors[0], colors[1]), start = Offset(0f, 0f), end = Offset(size.width, size.height)))
         glow(colors[2], Offset(size.width * 0.85f, size.height * 0.2f), size.maxDimension * 0.55f)
         glow(colors[3], Offset(size.width * 0.1f, size.height * 0.8f), size.maxDimension * 0.5f)
+    }
+}
+
+/**
+ * The colours of [ToneBackdrop] for one playing song, easing over to the next song's when it changes
+ * (the colours ride the cover's tone; while a new cover is being read, the old tone is held rather
+ * than dipping to grey).
+ */
+@Composable
+fun BoxScope.AnimatedToneBackdrop(song: Song?) {
+    val tone = rememberCoverTone(song?.uri)
+    var held by remember { mutableStateOf<CoverTone?>(null) }
+    LaunchedEffect(tone) { if (tone != null) held = tone }
+    val light = com.artemiy.player.ui.theme.LocalPlayerPalette.current.isLight
+    val target = remember(held, light) { palette(held, light) }
+    val spec = androidx.compose.animation.core.tween<Color>(900)
+    val c0 by androidx.compose.animation.animateColorAsState(target[0], spec, label = "toneBackdrop0")
+    val c1 by androidx.compose.animation.animateColorAsState(target[1], spec, label = "toneBackdrop1")
+    val c2 by androidx.compose.animation.animateColorAsState(target[2], spec, label = "toneBackdrop2")
+    val c3 by androidx.compose.animation.animateColorAsState(target[3], spec, label = "toneBackdrop3")
+    Canvas(modifier = Modifier.matchParentSize()) {
+        drawRect(Brush.linearGradient(listOf(c0, c1), start = Offset(0f, 0f), end = Offset(size.width, size.height)))
+        glow(c2, Offset(size.width * 0.85f, size.height * 0.2f), size.maxDimension * 0.55f)
+        glow(c3, Offset(size.width * 0.1f, size.height * 0.8f), size.maxDimension * 0.5f)
     }
 }
 

@@ -64,6 +64,7 @@
     <string name="cd_back">返回</string>
     <string name="cd_next_track">下一首</string>
     <string name="cd_pause">暂停</string>
+    <string name="cd_plate_seek">快进快退</string>
     <string name="cd_play">播放</string>
     <string name="cd_previous_track">上一首</string>
     <string name="clear">清除</string>
@@ -192,6 +193,7 @@
     <string name="onb_notif_title">通知</string>
     <string name="onb_player">播放器</string>
     <string name="onb_player_classic_hint">沉稳的 Apple Music 风格：封面、歌词和队列都在同一处。</string>
+    <string name="onb_player_dial_hint">个性十足，像一件口袋小设备：大字体、方形按钮，以及一个可转动来快进快退的圆盘。</string>
     <string name="onb_player_expressive_hint">大胆的 Material 风格：大按钮、波浪进度条，队列在底部。</string>
     <string name="onb_start">开始</string>
     <string name="onb_tap_to_continue">轻触屏幕继续</string>

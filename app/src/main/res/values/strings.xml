@@ -68,6 +68,7 @@
     <string name="cd_back">Back</string>
     <string name="cd_next_track">Next track</string>
     <string name="cd_pause">Pause</string>
+    <string name="cd_plate_seek">Seek</string>
     <string name="cd_play">Play</string>
     <string name="cd_previous_track">Previous track</string>
     <string name="clear">Clear</string>
@@ -198,6 +199,7 @@
     <string name="onb_notif_title">Notifications</string>
     <string name="onb_player">Player</string>
     <string name="onb_player_classic_hint">Calm, in the spirit of Apple Music: cover, lyrics and queue all in one place.</string>
+    <string name="onb_player_dial_hint">Distinct, in the spirit of a pocket gadget: big type, square buttons and a plate you turn to wind the song.</string>
     <string name="onb_player_expressive_hint">Bold, in the spirit of Material: big buttons, a wavy bar and the queue at the bottom.</string>
     <string name="onb_start">Start</string>
     <string name="onb_tap_to_continue">Tap the screen to go on</string>

@@ -64,6 +64,7 @@
     <string name="cd_back">Atrás</string>
     <string name="cd_next_track">Pista siguiente</string>
     <string name="cd_pause">Pausa</string>
+    <string name="cd_plate_seek">Avanzar y retroceder</string>
     <string name="cd_play">Reproducir</string>
     <string name="cd_previous_track">Pista anterior</string>
     <string name="clear">Borrar</string>
@@ -192,6 +193,7 @@
     <string name="onb_notif_title">Notificaciones</string>
     <string name="onb_player">Reproductor</string>
     <string name="onb_player_classic_hint">Tranquilo, al estilo de Apple Music: portada, letra y cola en un solo lugar.</string>
+    <string name="onb_player_dial_hint">Singular, con espíritu de aparato de bolsillo: letra grande, botones cuadrados y un plato que se gira para avanzar la canción.</string>
     <string name="onb_player_expressive_hint">Atrevido, al estilo de Material: botones grandes, barra ondulada y la cola abajo.</string>
     <string name="onb_start">Empezar</string>
     <string name="onb_tap_to_continue">Un toque en la pantalla para seguir</string>

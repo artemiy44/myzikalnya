@@ -408,3 +408,5 @@ dial_look_card = Carte
 dial_look_full = Plein écran
 set_dial_card_desc = L'arrière-plan (le flou choisi ; sans flou, la couleur de l'album et une image de genre) se trouve dans une carte en haut ; le reste garde les couleurs de l'appli.
 set_dial_full_desc = L'arrière-plan remplit tout l'écran ; sans flou, simplement la couleur de fond de l'appli, l'accent seulement sur le bouton lecture.
+onb_player_dial_hint = Singulier, dans l'esprit d'un gadget de poche : grands caractères, boutons carrés et un plateau qu'on tourne pour avancer dans le morceau.
+cd_plate_seek = Avance et retour

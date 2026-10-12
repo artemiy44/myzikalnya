@@ -33,6 +33,10 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.flow.first
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -224,16 +228,20 @@ internal fun LyricsView(
             // The lines plus instrumental breaks (three dots) where nothing is sung.
             val gapDots = LocalLrcGapDots.current
             val lines = remember(lyrics, gapDots) { withInstrumentalBreaks(lyrics.lines, lrcGapDots = gapDots) }
-            val activeIndex = remember(lines, positionMs) {
-                lines.indexOfLast { it.timeMs <= positionMs }
-            }
+            // Judged by the smooth clock that moves the sweeps, not by the player's coarser poll: with
+            // two clocks, the next line could start (and the last one stop, jumping its sweep to the
+            // end) a moment before the sweep had actually got there.
+            val activeIndexState = remember(lines) { derivedStateOf { lines.indexOfLast { it.timeMs <= smoothPositionMs } } }
+            val activeIndex = activeIndexState.value
             // Lines still being finished while a later one has already started: the file gives
             // them an end time past the next line's start (overlapping vocals). They stay lit and
             // keep their sweep going until then, alongside the new one.
-            val stillSinging = remember(lines, positionMs, activeIndex) {
-                (0 until activeIndex.coerceAtLeast(0)).filterTo(HashSet()) { i ->
-                    val line = lines[i]
-                    line.instrumentalUntilMs == null && line.singingEndMs() > positionMs
+            val stillSinging by remember(lines) {
+                derivedStateOf {
+                    (0 until activeIndexState.value.coerceAtLeast(0)).filterTo(HashSet()) { i ->
+                        val line = lines[i]
+                        line.instrumentalUntilMs == null && line.singingEndMs() > smoothPositionMs
+                    }
                 }
             }
             val plainLines = remember(lyrics) { lyrics.lines.filter { it.text.isNotBlank() } }
@@ -265,31 +273,43 @@ internal fun LyricsView(
                 if (browsed) return@LaunchedEffect
                 val panelToggled = anchorBottomPx != lastAnchorBottomPx
                 lastAnchorBottomPx = anchorBottomPx
-                val info = listState.layoutInfo
-                val itemInfo = info.visibleItemsInfo.firstOrNull { it.index == activeIndex }
-                if (itemInfo != null) {
-                    // Anchored within the gap that's actually visible between the header and
-                    // the control panel (or the screen bottom when the panel is hidden): dead
-                    // center of it while the panel is up, a bit above center otherwise. No
-                    // artificial padding backs this — near the start/end of a song the scroll
-                    // simply clamps instead of faking empty space to reach the anchor.
+                // How far the line sits from its mark. The mark is within the gap that's actually
+                // visible between the header and the control panel (or the screen bottom when the
+                // panel is hidden): dead center of it while the panel is up, a bit above center
+                // otherwise. No artificial padding backs this — near the start/end of a song the
+                // scroll simply clamps instead of faking empty space to reach the mark.
+                fun offFromMark(info: androidx.compose.foundation.lazy.LazyListLayoutInfo, item: androidx.compose.foundation.lazy.LazyListItemInfo): Float {
                     val viewportHeight = info.viewportSize.height
                     val gap = (viewportHeight - anchorTopPx - anchorBottomPx).coerceAtLeast(0)
                     val fraction = if (anchorBottomPx > 0) 0.5f else 0.4f
                     val anchor = anchorTopPx + gap * fraction
                     // offset is measured from the end of the top content padding, not from the
                     // top of the list (viewportStartOffset == -beforeContentPadding).
-                    val itemCenterOnScreen = itemInfo.offset + itemInfo.size / 2f - info.viewportStartOffset
+                    return item.offset + item.size / 2f - info.viewportStartOffset - anchor
+                }
+                val info = listState.layoutInfo
+                val itemInfo = info.visibleItemsInfo.firstOrNull { it.index == activeIndex }
+                if (itemInfo != null) {
                     // Panel show/hide: a quick, eased glide to the new spot. Line changes: a soft,
                     // unhurried spring (the default one snapped over a little abruptly).
                     if (panelToggled) {
-                        listState.animateScrollBy(itemCenterOnScreen - anchor, tween(320, easing = FastOutSlowInEasing))
+                        listState.animateScrollBy(offFromMark(info, itemInfo), tween(320, easing = FastOutSlowInEasing))
                     } else {
-                        listState.glideBy(itemCenterOnScreen - anchor, scrollVelocity)
+                        listState.glideBy(offFromMark(info, itemInfo), scrollVelocity)
                     }
                 } else {
-                    // Big jump (e.g. track just changed) — land roughly nearby first.
-                    listState.animateScrollToItem((activeIndex - 2).coerceAtLeast(0))
+                    // The line is far from what's on screen — the lyrics were just opened in the
+                    // middle of a song, the track changed, or a seek landed elsewhere. Jump to its
+                    // neighbourhood at once, and as soon as it has been laid out put it on its mark
+                    // (landing "roughly nearby" and stopping there left it a little low until the
+                    // lyrics were scrolled by hand).
+                    listState.scrollToItem((activeIndex - 2).coerceAtLeast(0))
+                    val landed = kotlinx.coroutines.withTimeoutOrNull(600) {
+                        snapshotFlow { listState.layoutInfo }.first { li -> li.visibleItemsInfo.any { it.index == activeIndex } }
+                    }
+                    landed?.visibleItemsInfo?.firstOrNull { it.index == activeIndex }?.let { item ->
+                        listState.scrollBy(offFromMark(landed, item))
+                    }
                 }
             }
             LazyColumn(
@@ -307,7 +327,13 @@ internal fun LyricsView(
                     // Only a line being sung follows the smooth per-frame clock; the rest get the
                     // player's ~10-a-second position — reading the clock made every visible line
                     // rebuild itself 120 times a second.
-                    val linePositionMs = if (active) smoothPositionMs else positionMs
+                    // A line already behind the sung one is simply finished: it doesn't read the (coarser,
+                    // slightly older) player position, which could draw its last word a hair short again.
+                    val linePositionMs = when {
+                        active -> smoothPositionMs
+                        index < activeIndex && line.instrumentalUntilMs == null -> maxOf(positionMs, line.singingEndMs())
+                        else -> positionMs
+                    }
                     val alpha by animateFloatAsState(if (active) 1f else 0.35f, LINE_CHANGE, label = "lineAlpha")
                     // Every line is laid out at the sung size and inactive ones are only shrunk
                     // visually, so a line wraps the same way whether it's being sung or not —
@@ -474,36 +500,35 @@ internal fun SungLine(
     // A light app theme with no blurred background: the text is dark, and a dark glow around dark text only
     // smudges it — so no glow there (the blurred backgrounds are always dark, and keep theirs).
     val glowOn = !com.artemiy.player.ui.theme.LocalPlayerPalette.current.isLight
+    // The glow fades out after the line stops being the sung one (when nothing else lights up in
+    // its place — dots, a pause — it was visibly cut off), and comes on at once when it becomes it.
+    val glowFade by animateFloatAsState(
+        if (active) 1f else 0f,
+        if (active) androidx.compose.animation.core.snap() else tween(500, easing = LINE_EASE),
+        label = "lineGlow",
+    )
+    val glowShown = glowOn && glowFade > 0.01f
     when {
         line.words != null -> {
             // Word-synced lines keep the same per-word layout whether sung or not (only the
             // sweep is off), so their words wrap identically in both states.
-            if (active) {
-                // The glow pass is the exact same word-by-word composable, just recolored/blurred,
-                // so it lines up pixel-for-pixel with the crisp text on top and sweeps forward in
-                // lockstep instead of glowing ahead of what's been sung.
-                Box {
-                    if (glowOn) WordSyncedLine(line, positionMs, alpha, fontSize.sp, nextLineStartMs, alignEnd, 8.dp, bottomPadding, readings = readings, glow = true, unsungAlpha = unsungAlpha)
-                    WordSyncedLine(line, positionMs, alpha, fontSize.sp, nextLineStartMs, alignEnd, 8.dp, bottomPadding, readings = readings, unsungAlpha = unsungAlpha)
-                }
-            } else {
-                WordSyncedLine(line, positionMs, alpha, fontSize.sp, nextLineStartMs, alignEnd, 8.dp, bottomPadding, readings = readings, sweep = false)
+            // The glow pass is the exact same word-by-word composable, just recolored/blurred,
+            // so it lines up pixel-for-pixel with the crisp text on top and sweeps forward in
+            // lockstep instead of glowing ahead of what's been sung.
+            Box {
+                if (glowShown) WordSyncedLine(line, positionMs, alpha * glowFade, fontSize.sp, nextLineStartMs, alignEnd, 8.dp, bottomPadding, readings = readings, glow = true, unsungAlpha = unsungAlpha)
+                WordSyncedLine(line, positionMs, alpha, fontSize.sp, nextLineStartMs, alignEnd, 8.dp, bottomPadding, readings = readings, sweep = active, unsungAlpha = unsungAlpha)
             }
         }
-        ruby != null -> if (active) {
-            Box {
-                if (glowOn) RubyLine(ruby, alpha, fontSize, alignEnd, bottomPadding, glow = true)
-                RubyLine(ruby, alpha, fontSize, alignEnd, bottomPadding)
-            }
-        } else {
+        ruby != null -> Box {
+            if (glowShown) RubyLine(ruby, alpha * glowFade, fontSize, alignEnd, bottomPadding, glow = true)
             RubyLine(ruby, alpha, fontSize, alignEnd, bottomPadding)
         }
         // Plain LRC has no per-word timing, so the whole active line glows at once.
-        active -> Box {
-            if (glowOn) PlainLyricLine(line.text, alpha, fontSize, alignEnd, 8.dp, bottomPadding, glow = true)
+        else -> Box {
+            if (glowShown) PlainLyricLine(line.text, alpha * glowFade, fontSize, alignEnd, 8.dp, bottomPadding, glow = true)
             PlainLyricLine(line.text, alpha, fontSize, alignEnd, 8.dp, bottomPadding)
         }
-        else -> PlainLyricLine(line.text, alpha, fontSize, alignEnd, 8.dp, bottomPadding)
     }
     if (background != null) {
         val mainLineEndMs = line.endTimeMs ?: line.words?.last()?.timeMs?.plus(400L) ?: nextLineStartMs ?: line.timeMs
@@ -675,9 +700,9 @@ internal fun SecondaryLyricLine(
 private const val BACKGROUND_GLOW = 0.5f
 
 /** Shared by the eLRC and plain-LRC glow passes so both look identical. */
-internal val LYRIC_GLOW_BLUR = 18.dp
+internal val LYRIC_GLOW_BLUR = 15.dp
 
-internal const val LYRIC_GLOW_ALPHA = 0.75f
+internal const val LYRIC_GLOW_ALPHA = 0.6f
 
 @Composable
 internal fun PlainLyricLine(
@@ -806,9 +831,15 @@ internal fun WordSyncedLine(
           // "Held" is one piece of the word really being stretched, not several quick ones that
           // only add up to a long time together.
           val heldFor = if (currentIndex == words.lastIndex) HELD_LAST_WORD_MS else HELD_WORD_MS
-          val groupHeld = sweep && currentIndex in group && words[currentIndex].text.isNotBlank() &&
-              endOf(currentIndex) - words[currentIndex].timeMs >= heldFor && positionMs < endOf(currentIndex)
-          val swell by animateFloatAsState(if (groupHeld) 1f else 0f, tween(700, easing = FastOutSlowInEasing), label = "heldWord")
+          val inThisGroup = sweep && currentIndex in group && words[currentIndex].text.isNotBlank() && positionMs < endOf(currentIndex)
+          // How much the word lingers: nothing for a quick one, a little for a medium one, all of it
+          // by [heldFor] — it grows with the length rather than switching on at a threshold.
+          val holdLevel = if (inThisGroup) {
+              val length = endOf(currentIndex) - words[currentIndex].timeMs
+              val t = ((length - HELD_START_MS).toFloat() / (heldFor - HELD_START_MS)).coerceIn(0f, 1f)
+              t * t * (3f - 2f * t)
+          } else 0f
+          val swell by animateFloatAsState(holdLevel, tween(700, easing = FastOutSlowInEasing), label = "heldWord")
           Row(
               modifier = Modifier
                   .graphicsLayer {
@@ -823,7 +854,6 @@ internal fun WordSyncedLine(
             // The last word's trailing space would leave a gap against the right edge of a v2 line.
             val text = if (index == words.lastIndex) word.text.trimEnd() else word.text
             val reading = readings?.getOrNull(index)
-            val held = groupHeld
             Column(
                 modifier = Modifier
                     // Latin and Japanese glyphs sit at different heights in the same font; lining
@@ -832,8 +862,14 @@ internal fun WordSyncedLine(
                     .padding(end = if (reading != null && text.lastOrNull()?.isWhitespace() == false) 4.dp else 0.dp),
             ) {
                 if (readings != null) ReadingText(reading, fontSize.value, glow)
+                // The extra glow of a lingering word follows the same easing as its lift: it stays
+                // with the word after the singing has moved on and fades out together with the lift,
+                // instead of being cut off the moment the next word starts.
+                val lingerStyle = if (glow && swell > 0f) {
+                    sungStyle.copy(color = PlayerColors.TextPrimary.copy(alpha = LYRIC_GLOW_ALPHA + (1f - LYRIC_GLOW_ALPHA) * swell))
+                } else sungStyle
                 when {
-                    index < currentIndex -> Text(text = text, style = sungStyle)
+                    index < currentIndex -> Text(text = text, style = lingerStyle)
                     index > currentIndex -> Text(text = text, style = unsungStyle)
                     else -> {
                         val wordEndMs = endOf(index)
@@ -850,7 +886,7 @@ internal fun WordSyncedLine(
                             // hard cut; the reveal runs a little past the word so it ends fully lit.
                             Text(
                                 text = text,
-                                style = if (glow && held) sungStyle.copy(color = PlayerColors.TextPrimary) else sungStyle,
+                                style = lingerStyle,
                                 modifier = Modifier
                                     .graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
                                     .drawWithContent {
@@ -899,6 +935,14 @@ internal fun InstrumentalDots(startMs: Long, endMs: Long, positionMs: Long, acti
             androidx.compose.animation.shrinkVertically(tween(320, delayMillis = 120), clip = false),
     ) {
         val color = PlayerColors.TextPrimary
+        // A slow, small sway, forward and back, each dot a beat behind the one before it — like a
+        // wave rolling along the three. Only while the dots are on screen.
+        val sway = androidx.compose.animation.core.rememberInfiniteTransition(label = "dotsSway").animateFloat(
+            initialValue = 0f,
+            targetValue = (2 * Math.PI).toFloat(),
+            animationSpec = androidx.compose.animation.core.infiniteRepeatable(tween(2600, easing = LinearEasing)),
+            label = "dotsSwayPhase",
+        )
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
             horizontalArrangement = if (alignEnd) Arrangement.End else Arrangement.Start,
@@ -908,7 +952,10 @@ internal fun InstrumentalDots(startMs: Long, endMs: Long, positionMs: Long, acti
                 // as it lights up.
                 val lit = (progress * 3f - i).coerceIn(0f, 1f)
                 Box(
-                    modifier = Modifier.padding(end = if (i < 2) 12.dp else 0.dp).size(14.dp),
+                    modifier = Modifier
+                        .padding(end = if (i < 2) 12.dp else 0.dp)
+                        .size(14.dp)
+                        .graphicsLayer { translationX = kotlin.math.sin(sway.value - i * 0.9f) * 3.dp.toPx() },
                     contentAlignment = Alignment.Center,
                 ) {
                     // The halo: a bit bigger than the dot and blurred a bit less than text's glow —
@@ -941,6 +988,8 @@ private const val DOTS_FOLD_EARLY_MS = 450L
 
 /** A word held at least this long counts as a long, stretched note — in the middle of a line,
  * and as a line's last word (which files often stretch to the next line anyway, so more). */
+/** A word shorter than this doesn't linger at all; from here the lift and glow grow with its length. */
+private const val HELD_START_MS = 600L
 private const val HELD_WORD_MS = 2_000L
 private const val HELD_LAST_WORD_MS = 3_000L
 
@@ -963,8 +1012,8 @@ private suspend fun androidx.compose.foundation.lazy.LazyListState.glideBy(delta
     }
 }
 
-/** The line-change glide: no overshoot, settles in a little under half a second. */
-private val LINE_GLIDE = androidx.compose.animation.core.spring<Float>(dampingRatio = 1f, stiffness = 230f)
+/** The line-change glide: settles in about half a second, with a small springy overshoot past its mark. */
+private val LINE_GLIDE = androidx.compose.animation.core.spring<Float>(dampingRatio = 0.68f, stiffness = 260f)
 
 /** How long after scrolling the lyrics by hand they return to the line being sung. */
 private const val RECENTER_AFTER_MS = 2_000L
@@ -973,8 +1022,9 @@ private const val RECENTER_AFTER_MS = 2_000L
 private const val SMOOTH_SNAP_MS = 500L
 
 /** Moving on to the next line: a quick start easing out into place — decisive, but not a snap. */
-private val LINE_EASE = com.artemiy.player.ui.components.SafeCubicBezier(0.2f, 0f, 0f, 1f)
-private val LINE_CHANGE = tween<Float>(320, easing = LINE_EASE)
+private val LINE_EASE = com.artemiy.player.ui.components.SafeCubicBezier(0.25f, 0f, 0.1f, 1f)
+private val LINE_CHANGE = tween<Float>(340, easing = LINE_EASE)
+
 
 /**
  * [words] split into what can wrap as a unit: a timed piece that doesn't end in a space runs on

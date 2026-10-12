@@ -111,6 +111,10 @@ fun ArtistDetailScreen(
     val albumRows = remember(albums) { albums.chunked(2) }
     val barShown = com.artemiy.player.ui.components.rememberHeroBarShown(listState)
     val washOut = remember { com.artemiy.player.ui.components.HeroWashState() }
+    // No stretching of the list's edge on this page: the picture behind it (the wash, the panel) is
+    // drawn from the scroll position and doesn't stretch along, so pulling past the end tore a light
+    // strip between the picture and the panel.
+    androidx.compose.runtime.CompositionLocalProvider(androidx.compose.foundation.LocalOverscrollFactory provides null) {
     Box(modifier = Modifier.fillMaxSize().drawHeroDrain(washOut, listState)) {
     androidx.compose.foundation.lazy.LazyColumn(
         state = listState,
@@ -284,6 +288,7 @@ fun ArtistDetailScreen(
         }
     }
     HeroBar(shown = barShown, title = title, onBack = onBack)
+    }
     }
 }
 

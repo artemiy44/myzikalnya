@@ -64,6 +64,7 @@
     <string name="cd_back">戻る</string>
     <string name="cd_next_track">次の曲</string>
     <string name="cd_pause">一時停止</string>
+    <string name="cd_plate_seek">シーク</string>
     <string name="cd_play">再生</string>
     <string name="cd_previous_track">前の曲</string>
     <string name="clear">クリア</string>
@@ -192,6 +193,7 @@
     <string name="onb_notif_title">通知</string>
     <string name="onb_player">プレーヤー</string>
     <string name="onb_player_classic_hint">落ち着いた Apple Music 風：ジャケット・歌詞・キューがひとつの場所に。</string>
+    <string name="onb_player_dial_hint">ポケットガジェット風の個性派：大きな文字、四角いボタン、回して曲を早送りできるプレート。</string>
     <string name="onb_player_expressive_hint">大胆な Material 風：大きなボタン、波打つバー、下にキュー。</string>
     <string name="onb_start">はじめる</string>
     <string name="onb_tap_to_continue">画面をタップして次へ</string>

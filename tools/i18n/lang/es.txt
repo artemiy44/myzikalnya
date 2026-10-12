@@ -408,3 +408,5 @@ dial_look_card = Tarjeta
 dial_look_full = Pantalla completa
 set_dial_card_desc = El fondo (el desenfoque elegido; sin desenfoque, el color del álbum y una imagen del género) va en una tarjeta arriba; el resto queda en los colores de la app.
 set_dial_full_desc = El fondo ocupa toda la pantalla; sin desenfoque, solo el color de fondo de la app, con el acento únicamente en el botón de reproducir.
+onb_player_dial_hint = Singular, con espíritu de aparato de bolsillo: letra grande, botones cuadrados y un plato que se gira para avanzar la canción.
+cd_plate_seek = Avanzar y retroceder
