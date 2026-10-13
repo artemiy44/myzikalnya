@@ -45,6 +45,7 @@ class SettingsRepository(private val context: Context) {
         val NOTIF_REPEAT_KEY = androidx.datastore.preferences.core.booleanPreferencesKey("notification_repeat_button")
         val NOW_PLAYING_BACKGROUND_MODE_KEY = stringPreferencesKey("now_playing_background_mode")
         val PLAYER_STYLE_KEY = stringPreferencesKey("player_style")
+        val SCREEN_CORNER_KEY = androidx.datastore.preferences.core.intPreferencesKey("screen_corner_dp")
         val DIAL_CARD_KEY = androidx.datastore.preferences.core.booleanPreferencesKey("dial_card")
         val LIVE_BLUR_INTENSITY_KEY = stringPreferencesKey("live_blur_intensity")
         val LYRICS_ROMANIZATION_KEY = booleanPreferencesKey("lyrics_romanization")
@@ -197,6 +198,13 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setDialCard(card: Boolean) {
         context.settingsDataStore.edit { prefs -> prefs[DIAL_CARD_KEY] = card }
+    }
+
+    /** How round the screen's corners are, in dp, for a phone that doesn't say (0 = not set). */
+    val screenCornerDp: Flow<Int> = context.settingsDataStore.data.map { prefs -> prefs[SCREEN_CORNER_KEY] ?: 0 }
+
+    suspend fun setScreenCornerDp(dp: Int) {
+        context.settingsDataStore.edit { prefs -> prefs[SCREEN_CORNER_KEY] = dp.coerceIn(0, 70) }
     }
 
     val heroStyle: Flow<HeroStyle> = context.settingsDataStore.data.map { prefs ->

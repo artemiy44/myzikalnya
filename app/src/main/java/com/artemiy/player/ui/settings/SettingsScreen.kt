@@ -353,18 +353,44 @@ private fun ColorsContent(
     SettingsCard {
         // Each background picker only matters for the theme it belongs to ("as in system" can be
         // either, so it shows both).
+        // The backgrounds are on three shelves (neutral, with a tint, from the wallpaper): the shelf of
+        // the chosen one shows first, the chips switch between them.
+        val wallpaperOk = com.artemiy.player.ui.theme.WallpaperAccents.available
+        val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
+        var group by remember { mutableStateOf(if (themeMode == ThemeMode.LIGHT || (themeMode == ThemeMode.SYSTEM && !systemDark)) lightVariant.group else darkVariant.group) }
+        FlowRow(
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+        ) {
+            com.artemiy.player.ui.theme.BackgroundGroup.entries.filter { it != com.artemiy.player.ui.theme.BackgroundGroup.WALLPAPER || wallpaperOk }.forEach { g ->
+                InfinitePlayModeChip(
+                    stringResource(when (g) {
+                        com.artemiy.player.ui.theme.BackgroundGroup.NEUTRAL -> R.string.bg_group_neutral
+                        com.artemiy.player.ui.theme.BackgroundGroup.TINTED -> R.string.bg_group_tinted
+                        com.artemiy.player.ui.theme.BackgroundGroup.WALLPAPER -> R.string.accent_wallpaper
+                    }),
+                    g == group,
+                ) { group = g }
+            }
+        }
         if (themeMode != ThemeMode.DARK) {
             SettingsLabel(stringResource(R.string.set_light_bg), top = 18.dp)
-            Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(18.dp)) {
-                LightVariant.entries.forEach { variant ->
+            FlowRow(
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(18.dp),
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp),
+            ) {
+                LightVariant.entries.filter { it.group == group }.forEach { variant ->
                     LabeledSwatch(variant.label, lightPalette(variant).background, variant == lightVariant) { onLightVariantChange(variant) }
                 }
             }
         }
         if (themeMode != ThemeMode.LIGHT) {
             SettingsLabel(stringResource(R.string.set_dark_bg), top = 18.dp)
-            Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(18.dp)) {
-                DarkVariant.entries.forEach { variant ->
+            FlowRow(
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(18.dp),
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp),
+            ) {
+                DarkVariant.entries.filter { it.group == group }.forEach { variant ->
                     LabeledSwatch(variant.label, darkPalette(variant).background, variant == darkVariant) { onDarkVariantChange(variant) }
                 }
             }
@@ -682,13 +708,25 @@ private fun SettingsSectionContent(
                     Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
                         com.artemiy.player.ui.theme.UiStyle.entries.forEach { style ->
                             InfinitePlayModeChip(
-                                stringResource(if (style == com.artemiy.player.ui.theme.UiStyle.CLASSIC) R.string.ui_style_classic else R.string.ui_style_expressive),
+                                stringResource(
+                                    when (style) {
+                                        com.artemiy.player.ui.theme.UiStyle.CLASSIC -> R.string.ui_style_classic
+                                        com.artemiy.player.ui.theme.UiStyle.EXPRESSIVE -> R.string.ui_style_expressive
+                                        com.artemiy.player.ui.theme.UiStyle.DISC -> R.string.ui_style_disc
+                                    },
+                                ),
                                 style == uiStyle,
                             ) { onUiStyleChange(style) }
                         }
                     }
                     Text(
-                        text = stringResource(if (uiStyle == com.artemiy.player.ui.theme.UiStyle.CLASSIC) R.string.ui_style_classic_note else R.string.ui_style_expressive_note),
+                        text = stringResource(
+                            when (uiStyle) {
+                                com.artemiy.player.ui.theme.UiStyle.CLASSIC -> R.string.ui_style_classic_note
+                                com.artemiy.player.ui.theme.UiStyle.EXPRESSIVE -> R.string.ui_style_expressive_note
+                                com.artemiy.player.ui.theme.UiStyle.DISC -> R.string.ui_style_disc_note
+                            },
+                        ),
                         color = PlayerColors.TextSecondary,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(top = 10.dp),
@@ -943,6 +981,36 @@ private fun SettingsSectionContent(
                             fontSize = 12.sp,
                             modifier = Modifier.padding(top = 10.dp),
                         )
+                        // A phone that tells its screen's corners is followed on its own; one that doesn't gets this.
+                        if (com.artemiy.player.ui.theme.systemScreenCornerDp() == null) {
+                            val corner = com.artemiy.player.ui.theme.LocalScreenCornerSetting.current
+                            Row(modifier = Modifier.padding(top = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = stringResource(R.string.set_screen_corners),
+                                    color = PlayerColors.TextPrimary,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                Text(
+                                    text = if (corner.manualDp == 0) stringResource(R.string.screen_corners_default) else "${corner.manualDp} dp",
+                                    color = PlayerColors.TextSecondary,
+                                    fontSize = 13.sp,
+                                )
+                            }
+                            MinimalSlider(
+                                value = corner.manualDp.toFloat(),
+                                onValueChange = { corner.onChange(it.toInt()) },
+                                valueRange = 0f..60f,
+                                modifier = Modifier.padding(top = 14.dp),
+                            )
+                            Text(
+                                text = stringResource(R.string.set_screen_corners_desc),
+                                color = PlayerColors.TextSecondary,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(top = 10.dp),
+                            )
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
@@ -990,9 +1058,9 @@ private fun SettingsSectionContent(
 private fun SectionTitle(text: String) {
     Text(
         text = text,
-        color = PlayerColors.TextSecondary,
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Bold,
+        color = if (com.artemiy.player.ui.theme.discUi) PlayerColors.TextPrimary else PlayerColors.TextSecondary,
+        fontSize = if (com.artemiy.player.ui.theme.discUi) 20.sp else 12.sp,
+        fontWeight = if (com.artemiy.player.ui.theme.discUi) FontWeight.ExtraBold else FontWeight.Bold,
         modifier = Modifier.padding(top = 20.dp, bottom = 8.dp),
     )
 }
@@ -1002,8 +1070,8 @@ internal fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(PlayerColors.Surface)
+            .clip(RoundedCornerShape(if (com.artemiy.player.ui.theme.discUi) com.artemiy.player.ui.theme.Disc.panelCorner else 14.dp))
+            .background(if (com.artemiy.player.ui.theme.discUi) com.artemiy.player.ui.theme.Disc.tileFill else PlayerColors.Surface)
             .padding(16.dp),
         content = content,
     )
@@ -1406,7 +1474,7 @@ private fun InfinitePlayModeChip(label: String, selected: Boolean, onClick: () -
         fontWeight = FontWeight.SemiBold,
         modifier = Modifier
             .pressScale(press, 0.92f)
-            .clip(RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(if (com.artemiy.player.ui.theme.discUi) 14.dp else 10.dp))
             .background(if (selected) PlayerColors.Accent else PlayerColors.SurfaceDim)
             .clickable(interactionSource = press, indication = null, onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 7.dp),

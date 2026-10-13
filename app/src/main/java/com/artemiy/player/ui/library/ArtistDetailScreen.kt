@@ -130,6 +130,8 @@ fun ArtistDetailScreen(
             washOut = washOut,
             height = COLLAGE_HERO_HEIGHT,
             barShown = barShown,
+            roundArt = true,
+            discStats = listOf(pluralStringResource(R.plurals.songs_count, songs.size, songs.size), pluralStringResource(R.plurals.albums_count, albums.size, albums.size)),
             art = {
                 ArtistGenreArt(artist, songs, genrePictures)
                 if (bigMark != null) {
@@ -147,17 +149,17 @@ fun ArtistDetailScreen(
         ) {
             Text(
                 text = title,
-                color = Color.White,
-                fontSize = 30.sp,
+                color = com.artemiy.player.ui.components.heroText,
+                fontSize = com.artemiy.player.ui.components.heroTitleSize(30.sp),
                 style = TextStyle(shadow = HeroTextShadow).inAppFont(),
                 fontWeight = FontWeight.ExtraBold,
-                textAlign = TextAlign.Center,
+                textAlign = com.artemiy.player.ui.components.heroTextAlign,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
                 text = pluralStringResource(R.plurals.songs_count, songs.size, songs.size) + " · " + pluralStringResource(R.plurals.albums_count, albums.size, albums.size),
-                color = Color.White.copy(alpha = 0.85f),
+                color = com.artemiy.player.ui.components.heroSubText,
                 fontSize = 13.sp,
                 style = TextStyle(shadow = HeroTextShadow).inAppFont(),
                 modifier = Modifier.padding(top = 4.dp),

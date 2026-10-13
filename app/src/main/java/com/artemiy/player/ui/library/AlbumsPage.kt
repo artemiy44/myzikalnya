@@ -112,7 +112,7 @@ internal fun AlbumsList(groups: List<AlbumGroup>, state: LazyListState, menu: @C
     val entrance = rememberEntrance()
     LazyColumn(modifier = Modifier.fillMaxWidth(), state = state, contentPadding = PaddingValues(bottom = LocalBarsInset.current)) {
         itemsIndexed(groups, key = { _, group -> "${group.album}|${group.artist}" }) { index, group ->
-            val expressive = com.artemiy.player.ui.theme.expressiveUi
+            val expressive = com.artemiy.player.ui.theme.expressiveUi || com.artemiy.player.ui.theme.discUi
             var menuOpen by remember { mutableStateOf(false) }
             val coverUri = group.songs.firstOrNull()?.uri
             com.artemiy.player.ui.components.WarmHeroWash(coverUri, "album:$coverUri")

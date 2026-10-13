@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -26,6 +28,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.artemiy.player.ui.theme.PlayerColors
 import com.artemiy.player.ui.theme.expressiveUi
+import com.artemiy.player.ui.theme.discUi
+import com.artemiy.player.ui.theme.Disc
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.spring
@@ -50,6 +55,10 @@ val AppTab.label: String @Composable get() = stringResource(labelRes)
 
 @Composable
 fun PlayerBottomBar(selected: AppTab, onSelect: (AppTab) -> Unit) {
+    if (discUi) {
+        DiscBottomBar(selected, onSelect)
+        return
+    }
     if (expressiveUi) {
         ExpressiveBottomBar(selected, onSelect)
         return
@@ -159,6 +168,44 @@ private fun ExpressiveBottomBar(selected: AppTab, onSelect: (AppTab) -> Unit) {
                         modifier = Modifier.padding(start = 8.dp),
                     )
                 }
+            }
+        }
+    }
+}
+
+/** The "Диск" tab bar: four low rounded tiles; the chosen one is filled with the text colour. */
+@Composable
+private fun DiscBottomBar(selected: AppTab, onSelect: (AppTab) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(horizontal = 12.dp)
+            .padding(top = 8.dp, bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        AppTab.entries.forEach { tab ->
+            val active = tab == selected
+            val fill by animateColorAsState(
+                if (active) PlayerColors.TextPrimary else androidx.compose.ui.graphics.lerp(PlayerColors.Background, PlayerColors.TextPrimary, 0.09f), tween(180), label = "discTile",
+            )
+            val tint by animateColorAsState(
+                if (active) PlayerColors.Background else PlayerColors.TextPrimary, tween(180), label = "discTileTint",
+            )
+            val interaction = remember { MutableInteractionSource() }
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(Disc.navTileHeight)
+                    .pressScale(interaction, pressedScale = 0.94f)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(fill)
+                    .clickable(interactionSource = interaction, indication = null) { onSelect(tab) },
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterVertically),
+            ) {
+                TabIcon(tab, active, tint, 22.dp)
+                Text(text = tab.label, color = tint, fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
             }
         }
     }

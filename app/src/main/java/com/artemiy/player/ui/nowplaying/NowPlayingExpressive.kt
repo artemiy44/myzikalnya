@@ -770,8 +770,9 @@ private fun androidx.compose.foundation.layout.RowScope.ExpressiveButton(
         modifier = Modifier
             .weight(weight)
             .fillMaxSize()
-            .clip(RoundedCornerShape(topStart = start, bottomStart = start, topEnd = end, bottomEnd = end))
-            .background(fill)
+            // Drawn as a shape rather than clipped to one: a clip with unequal corners (these side buttons)
+            // is a path clip, which some older GPUs (the Adreno 3xx of old phones) draw flickering or not at all.
+            .background(fill, RoundedCornerShape(topStart = start, bottomStart = start, topEnd = end, bottomEnd = end))
             .clickable(interactionSource = interaction, indication = null, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
@@ -1213,7 +1214,18 @@ private fun DialContent(
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val sidePad = 16.dp
         val tileGap = 10.dp
-        val tile = ((maxWidth - sidePad * 2 - tileGap * 2) / 3).coerceAtMost(124.dp)
+        // The tiles fill the width the card has (a phone set to a small display size is a lot wider in dp
+        // than 392: the grid then grows with it, rather than staying small and leaving the card wider
+        // than it). Only a very short screen holds them back, and then the whole thing sits centred.
+        val tile = ((maxWidth - sidePad * 2 - tileGap * 2) / 3).coerceAtMost(maxHeight * 0.19f)
+        val gridWidth = tile * 3 + tileGap * 2
+        val gridSide = ((maxWidth - gridWidth) / 2).coerceAtLeast(sidePad)
+        // A phone with round screen corners: the card's top corners and the grid's two bottom outer ones
+        // run parallel to them (the screen's radius less the gap to the edge), never rounder-than-usual
+        // by less than before. Without the data the usual corners stay.
+        val screenCorner = com.artemiy.player.ui.theme.screenCornerDp()
+        val cardTopCorner = maxOf(DIAL_CARD_CORNER, screenCorner - (gridSide - 4.dp))
+        val outerTileCorner = maxOf(DIAL_CORNER, screenCorner - gridSide)
         // The same air under the grid as at its sides (16 dp), on top of the system's own bottom inset.
         val groupBottom = barHeight + 8.dp
         // Without the card the timecode runs along the top of the grid (with it, along the card's bottom).
@@ -1243,7 +1255,7 @@ private fun DialContent(
                         .align(Alignment.TopCenter)
                         .then(
                             if (card) Modifier.padding(DIAL_PANEL_FRAME)
-                            else Modifier.padding(start = sidePad, end = sidePad, top = statusTop + 14.dp, bottom = groupBottom + tile * 2 + tileGap + 12.dp),
+                            else Modifier.padding(start = gridSide, end = gridSide, top = statusTop + 14.dp, bottom = groupBottom + tile * 2 + tileGap + 12.dp),
                         )
                         .fillMaxSize()
                         .graphicsLayer {
@@ -1406,8 +1418,9 @@ private fun DialContent(
                 song = song,
                 mode = backgroundMode,
                 intensity = blurIntensity,
+                topCorner = cardTopCorner,
                 modifier = Modifier
-                    .padding(start = 12.dp, end = 12.dp, top = statusTop + 4.dp, bottom = aboveGrid)
+                    .padding(start = gridSide - 4.dp, end = gridSide - 4.dp, top = statusTop + 4.dp, bottom = aboveGrid)
                     .fillMaxSize(),
                 content = screenPart,
             )
@@ -1420,8 +1433,8 @@ private fun DialContent(
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(start = sidePad, end = sidePad, bottom = groupBottom)
-                    .fillMaxWidth()
+                    .padding(bottom = groupBottom)
+                    .width(gridWidth)
                     .popIn(expand, active, order = 3),
                 verticalArrangement = Arrangement.spacedBy(tileGap),
             ) {
@@ -1501,13 +1514,13 @@ private fun DialContent(
                     )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(tileGap)) {
-                    DialTile(filled = true, accent = onTheme, onClick = onTogglePlayPause, modifier = Modifier.size(tile)) {
+                    DialTile(filled = true, accent = onTheme, onClick = onTogglePlayPause, modifier = Modifier.size(tile), shape = RoundedCornerShape(topStart = DIAL_CORNER, topEnd = DIAL_CORNER, bottomEnd = DIAL_CORNER, bottomStart = outerTileCorner)) {
                         PlayPauseIcon(isPlaying = shownPlaying, tint = if (onTheme) PlayerColors.OnAccent else PlayerColors.Background, modifier = Modifier.size(38.dp))
                     }
                     DialTile(filled = false, onClick = onSkipPrevious, modifier = Modifier.size(tile)) {
                         Icon(AppIcons.SkipPrevious, stringResource(R.string.cd_previous_track), tint = PlayerColors.TextPrimary, modifier = Modifier.size(34.dp))
                     }
-                    DialTile(filled = false, onClick = onSkipNext, modifier = Modifier.size(tile)) {
+                    DialTile(filled = false, onClick = onSkipNext, modifier = Modifier.size(tile), shape = RoundedCornerShape(topStart = DIAL_CORNER, topEnd = DIAL_CORNER, bottomStart = DIAL_CORNER, bottomEnd = outerTileCorner)) {
                         Icon(AppIcons.SkipNext, stringResource(R.string.cd_next_track), tint = PlayerColors.TextPrimary, modifier = Modifier.size(34.dp))
                     }
                 }
@@ -1558,10 +1571,11 @@ private fun DialCard(
     song: Song?,
     mode: NowPlayingBackgroundMode,
     intensity: LiveBlurIntensity,
+    topCorner: androidx.compose.ui.unit.Dp = DIAL_CARD_CORNER,
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    Box(modifier = modifier.clip(RoundedCornerShape(DIAL_CARD_CORNER))) {
+    Box(modifier = modifier.clip(RoundedCornerShape(topStart = topCorner, topEnd = topCorner, bottomStart = DIAL_CARD_CORNER, bottomEnd = DIAL_CARD_CORNER))) {
         if (mode != NowPlayingBackgroundMode.NONE) {
             NowPlayingSurface(song = song, mode = mode, intensity = intensity, matte = true, content = content)
         } else {
@@ -1745,6 +1759,7 @@ private fun DialTile(
     /** The solid tile in the theme's accent color rather than the text color. */
     accent: Boolean = false,
     onLongClick: (() -> Unit)? = null,
+    shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(DIAL_CORNER),
     content: @Composable () -> Unit,
 ) {
     val interaction = remember { MutableInteractionSource() }
@@ -1756,8 +1771,7 @@ private fun DialTile(
     Box(
         modifier = modifier
             .pressScale(interaction, pressedScale = 0.94f)
-            .clip(RoundedCornerShape(DIAL_CORNER))
-            .background(plate)
+            .background(plate, shape)
             .combinedClickable(interactionSource = interaction, indication = null, onClick = onClick, onLongClick = onLongClick),
         contentAlignment = Alignment.Center,
     ) {
@@ -1787,9 +1801,9 @@ private fun DialPlate(
     onWinding: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var angle by remember { mutableFloatStateOf(0f) }
-    var spin by remember { mutableFloatStateOf(0f) }
-    var dragging by remember { mutableStateOf(false) }
+    // The turning is shared with the mini player's small plate, so the two always match.
+    var angle by com.artemiy.player.ui.components.PlateRotation::angle
+    var dragging by com.artemiy.player.ui.components.PlateRotation::dragging
     val positionNow by rememberUpdatedState(positionMs)
     val durationNow by rememberUpdatedState(durationMs)
     val onSeekNow by rememberUpdatedState(onSeek)
@@ -1800,20 +1814,9 @@ private fun DialPlate(
     // disc takes a moment to get going and keeps turning a moment after the pause. Idle when still.
     LaunchedEffect(isPlaying, active) {
         if (!active) return@LaunchedEffect
-        var last = withFrameNanos { it }
         while (true) {
             val now = withFrameNanos { it }
-            val dt = ((now - last) / 1_000_000_000f).coerceAtMost(0.1f)
-            last = now
-            if (!dragging) {
-                val goal = if (isPlaying) DIAL_SPIN else 0f
-                spin += (goal - spin) * (1f - kotlin.math.exp(-dt * 3f))
-                angle = (angle + spin * dt) % 360f
-                if (!isPlaying && kotlin.math.abs(spin) < 0.3f) {
-                    spin = 0f
-                    break
-                }
-            }
+            if (!com.artemiy.player.ui.components.PlateRotation.tick(now, isPlaying)) break
         }
     }
 

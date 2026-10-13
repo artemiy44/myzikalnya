@@ -25,6 +25,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -120,7 +130,8 @@ fun HomeScreen(
     // Kept out here so the page's scroll position survives opening a mix and coming back.
     val mainScroll = rememberScrollState()
     // Kept here with the scroll position: the page is taken apart while another is open on top of it.
-    val mainFold = remember { androidx.compose.runtime.mutableStateOf(0f) }
+    // (Saved with it: leaving the tab takes the page apart, and the scroll position comes back from the saved state.)
+    val mainFold = androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(0f) }
     val mixesScroll = rememberScrollState()
     val quickScroll = rememberScrollState()
     val recentScroll = rememberScrollState()
@@ -204,7 +215,9 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(
+                            if (com.artemiy.player.ui.theme.discUi) com.artemiy.player.ui.components.DiscPageTitle(
+                                stringResource(R.string.tab_home), stringResource(R.string.disc_sub_home),
+                            ) else Text(
                                 text = stringResource(R.string.tab_home),
                                 color = PlayerColors.TextPrimary,
                                 style = com.artemiy.player.ui.theme.pageTitleStyle,
@@ -212,8 +225,8 @@ fun HomeScreen(
                             Box(
                                 modifier = Modifier
                                     .size(40.dp)
-                                    .clip(RoundedCornerShape(20.dp))
-                                    .background(PlayerColors.Surface)
+                                    .clip(RoundedCornerShape(if (com.artemiy.player.ui.theme.discUi) 14.dp else 20.dp))
+                                    .background(if (com.artemiy.player.ui.theme.discUi) com.artemiy.player.ui.theme.Disc.tileFill else PlayerColors.Surface)
                                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onSettingsClick() },
                                 contentAlignment = Alignment.Center,
                             ) {
@@ -285,11 +298,18 @@ private fun MixesSection(mixes: List<Mix>, statDays: Int, scroll: androidx.compo
             Text(text = hint, color = PlayerColors.TextSecondary, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 20.dp))
             return
         }
+        val disc = com.artemiy.player.ui.theme.discUi
         Row(
-            modifier = Modifier
+            modifier = (if (disc) Modifier
+                .padding(horizontal = 12.dp)
+                .clip(RoundedCornerShape(com.artemiy.player.ui.theme.Disc.panelCorner))
+                .background(com.artemiy.player.ui.theme.Disc.panelFill)
                 .horizontalScroll(scroll)
-                .padding(horizontal = 20.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(10.dp)
+            else Modifier
+                .horizontalScroll(scroll)
+                .padding(horizontal = 20.dp)),
+            horizontalArrangement = Arrangement.spacedBy(if (disc) 10.dp else 12.dp),
         ) {
             mixes.forEach { mix ->
                 var bounds by remember { mutableStateOf<androidx.compose.ui.geometry.Rect?>(null) }

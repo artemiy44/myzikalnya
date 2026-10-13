@@ -39,12 +39,15 @@
     <string name="backup_save">Enregistrer un fichier de sauvegarde</string>
     <string name="backup_save_sub">Playlists, statistiques et réglages dans un seul fichier</string>
     <string name="backup_saved">Sauvegarde enregistrée</string>
+    <string name="bg_group_neutral">Neutres</string>
+    <string name="bg_group_tinted">Teintés</string>
     <string name="bg_live">Flou vivant</string>
     <string name="bg_live_sub">La pochette floutée « respire » doucement — mouvement et zoom fluides.</string>
     <string name="bg_none">Sans flou</string>
     <string name="bg_none_sub">Le fond habituel de l’application, sans pochette.</string>
     <string name="bg_static">Flou fixe</string>
     <string name="bg_static_sub">La pochette est floutée mais reste immobile.</string>
+    <string name="bg_wallpaper">Fond</string>
     <string name="bye_1">Tout est prêt !</string>
     <string name="bye_2">Les mix et les bilans de la semaine ont besoin d’environ neuf jours pour cerner les goûts.</string>
     <string name="bye_3">Tout le reste est dans les réglages — derrière ce bouton de l’Accueil.</string>
@@ -71,6 +74,13 @@
     <string name="close">Fermer</string>
     <string name="create">Créer</string>
     <string name="create_playlist">Créer une playlist</string>
+    <string name="dark_amoled">AMOLED</string>
+    <string name="dark_coffee">Café</string>
+    <string name="dark_forest">Forêt</string>
+    <string name="dark_gnome">GNOME</string>
+    <string name="dark_material">Material</string>
+    <string name="dark_midnight">Minuit</string>
+    <string name="dark_plum">Prune</string>
     <string name="daypart_afternoon">l’après-midi</string>
     <string name="daypart_evening">le soir</string>
     <string name="daypart_morning">le matin</string>
@@ -88,6 +98,9 @@
     <string name="dial_look_card">Carte</string>
     <string name="dial_look_full">Plein écran</string>
     <string name="disc_n">Disque %1$s</string>
+    <string name="disc_sub_home">Ce soir</string>
+    <string name="disc_sub_library">À toi</string>
+    <string name="disc_sub_search">Tout</string>
     <string name="drag">Déplacer</string>
     <string name="endless_play">Lecture sans fin</string>
     <string name="fade_long">Longue</string>
@@ -134,6 +147,8 @@
     <string name="lang_expressive_hint">La même chose, en plus vivant et chaleureux</string>
     <string name="library_tabs_hint">Faites glisser par la poignée pour réorganiser. L’interrupteur affiche ou masque une section.</string>
     <string name="light_concrete">Béton</string>
+    <string name="light_mist">Brume</string>
+    <string name="light_paper">Papier</string>
     <string name="light_soft">Intermédiaire</string>
     <string name="light_white">Blanc</string>
     <string name="lyrics">Paroles</string>
@@ -239,6 +254,7 @@
     <string name="save">Enregistrer</string>
     <string name="save_to_my_playlists">Enregistrer dans mes playlists</string>
     <string name="saved_to_playlists">Enregistré dans les playlists</string>
+    <string name="screen_corners_default">Par défaut</string>
     <string name="search_albums">Rechercher des albums</string>
     <string name="search_artists">Rechercher des artistes</string>
     <string name="search_hint">Titre, artiste, une ligne d’une chanson</string>
@@ -321,6 +337,8 @@
     <string name="set_scan_all">Rien de choisi — tout ce que le système considère comme de la musique est analysé (des sonneries et notifications s’y glissent parfois). Avec des dossiers cochés, seuls ceux-ci sont analysés.</string>
     <string name="set_scan_folders">Dossiers à analyser</string>
     <string name="set_scan_picked">Seuls les dossiers choisis et tout ce qu’ils contiennent (sous-dossiers compris) sont analysés.</string>
+    <string name="set_screen_corners">Coins de l\'écran</string>
+    <string name="set_screen_corners_desc">Ce téléphone ne dit pas à l\'appli à quel point son écran est arrondi. Réglez-le pour que la carte et les boutons du lecteur Disque suivent les coins.</string>
     <string name="set_show_welcome">Revoir l’accueil</string>
     <string name="set_split_now">Actuellement séparés en plusieurs artistes</string>
     <string name="set_start_tab">Ouvrir au démarrage</string>
@@ -378,6 +396,8 @@
     <string name="tracks">Titres</string>
     <string name="ui_style_classic">Classique</string>
     <string name="ui_style_classic_note">Calme et plat — l’apparence habituelle.</string>
+    <string name="ui_style_disc">Disque</string>
+    <string name="ui_style_disc_note">Titres gras bicolores, tuiles arrondies, panneaux mats et un seul accent, dans l\'esprit du lecteur Disque.</string>
     <string name="ui_style_expressive">Expressif</string>
     <string name="ui_style_expressive_note">Grands titres, barres flottantes, cartes arrondies et formes ludiques.</string>
     <string name="unit_hours_approx">≈ %1$.1f h</string>

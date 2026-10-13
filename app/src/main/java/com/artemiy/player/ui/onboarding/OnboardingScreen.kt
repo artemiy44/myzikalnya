@@ -245,13 +245,18 @@ fun OnboardingScreen(state: OnboardingState, actions: OnboardingActions) {
                         options = listOf(
                             com.artemiy.player.ui.theme.UiStyle.CLASSIC to stringResource(R.string.ui_style_classic),
                             com.artemiy.player.ui.theme.UiStyle.EXPRESSIVE to stringResource(R.string.ui_style_expressive),
+                            com.artemiy.player.ui.theme.UiStyle.DISC to stringResource(R.string.ui_style_disc),
                         ),
                         selected = state.uiStyle,
                         onSelect = actions.setUiStyle,
                     )
                     Text(
                         text = stringResource(
-                            if (state.uiStyle == com.artemiy.player.ui.theme.UiStyle.CLASSIC) R.string.ui_style_classic_note else R.string.ui_style_expressive_note,
+                            when (state.uiStyle) {
+                                com.artemiy.player.ui.theme.UiStyle.CLASSIC -> R.string.ui_style_classic_note
+                                com.artemiy.player.ui.theme.UiStyle.EXPRESSIVE -> R.string.ui_style_expressive_note
+                                com.artemiy.player.ui.theme.UiStyle.DISC -> R.string.ui_style_disc_note
+                            },
                         ),
                         color = PlayerColors.TextSecondary,
                         fontSize = 13.sp,

@@ -26,6 +26,13 @@ fun Modifier.groupedCard(index: Int, count: Int, inner: Dp = 12.dp): Modifier =
 /** The same, for a group that isn't a whole list (one disc of an album, say). */
 @Composable
 fun Modifier.groupedCard(first: Boolean, last: Boolean, inner: Dp = 12.dp): Modifier {
+    if (com.artemiy.player.ui.theme.discUi) {
+        return this
+            .padding(bottom = if (last) 0.dp else 6.dp)
+            .clip(RoundedCornerShape(com.artemiy.player.ui.theme.Disc.tileCorner))
+            .background(com.artemiy.player.ui.theme.Disc.tileFill)
+            .padding(horizontal = inner)
+    }
     if (!expressiveUi) return this
     return this
         .padding(bottom = if (last) 0.dp else GROUP_GAP)
@@ -42,11 +49,11 @@ fun Modifier.groupedCard(first: Boolean, last: Boolean, inner: Dp = 12.dp): Modi
 }
 
 /** The side margin of a page's content: grouped cards sit a little closer to the edges. */
-val pageGutter: Dp @Composable get() = if (expressiveUi) 12.dp else 20.dp
+val pageGutter: Dp @Composable get() = if (expressiveUi || com.artemiy.player.ui.theme.discUi) 12.dp else 20.dp
 
 /** A tonal accent fill for small shapes on cards (icon tiles and such); plain surface in classic. */
 val tonalAccent: Color
-    @Composable get() = if (expressiveUi) lerp(PlayerColors.Surface, PlayerColors.AccentStandalone, 0.2f) else PlayerColors.Surface
+    @Composable get() = if (expressiveUi) lerp(PlayerColors.Surface, PlayerColors.AccentStandalone, 0.2f) else if (com.artemiy.player.ui.theme.discUi) lerp(PlayerColors.Background, PlayerColors.TextPrimary, 0.10f) else PlayerColors.Surface
 
 private val OUTER = 22.dp
 private val INNER = 6.dp

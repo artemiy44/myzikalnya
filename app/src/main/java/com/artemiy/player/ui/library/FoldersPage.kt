@@ -212,7 +212,7 @@ private fun naturalKey(name: String): String =
 
 @Composable
 private fun FolderRow(folder: FolderNode, modifier: Modifier, onClick: () -> Unit) {
-    val expressive = com.artemiy.player.ui.theme.expressiveUi
+    val expressive = com.artemiy.player.ui.theme.expressiveUi || com.artemiy.player.ui.theme.discUi
     Row(
         modifier = modifier
             .fillMaxWidth()

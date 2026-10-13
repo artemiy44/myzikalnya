@@ -45,12 +45,15 @@
     <string name="backup_save">Сохранить файл копии</string>
     <string name="backup_save_sub">Плейлисты, статистика и настройки в одном файле</string>
     <string name="backup_saved">Копия сохранена</string>
+    <string name="bg_group_neutral">Нейтральные</string>
+    <string name="bg_group_tinted">С оттенком</string>
     <string name="bg_live">Живой блюр</string>
     <string name="bg_live_sub">Размытая обложка мягко «дышит» — плавное движение и масштаб.</string>
     <string name="bg_none">Без блюра</string>
     <string name="bg_none_sub">Обычный фон приложения, без обложки.</string>
     <string name="bg_static">Статичный блюр</string>
     <string name="bg_static_sub">Обложка размыта, но неподвижна.</string>
+    <string name="bg_wallpaper">Обои</string>
     <string name="bye_1">Всё готово!</string>
     <string name="bye_2">Миксам и итогам недели нужно около девяти дней, чтобы понять вкус.</string>
     <string name="bye_3">Всё остальное — в настройках, вот за этой кнопкой на Главной.</string>
@@ -77,6 +80,13 @@
     <string name="close">Закрыть</string>
     <string name="create">Создать</string>
     <string name="create_playlist">Создать плейлист</string>
+    <string name="dark_amoled">AMOLED</string>
+    <string name="dark_coffee">Кофе</string>
+    <string name="dark_forest">Лес</string>
+    <string name="dark_gnome">GNOME</string>
+    <string name="dark_material">Material</string>
+    <string name="dark_midnight">Полночь</string>
+    <string name="dark_plum">Слива</string>
     <string name="daypart_afternoon">днём</string>
     <string name="daypart_evening">вечером</string>
     <string name="daypart_morning">утром</string>
@@ -94,6 +104,9 @@
     <string name="dial_look_card">Карточка</string>
     <string name="dial_look_full">На весь экран</string>
     <string name="disc_n">Диск %1$s</string>
+    <string name="disc_sub_home">Сегодня</string>
+    <string name="disc_sub_library">Твоя</string>
+    <string name="disc_sub_search">Всё</string>
     <string name="drag">Перетащить</string>
     <string name="endless_play">Бесконечное воспроизведение</string>
     <string name="fade_long">Долго</string>
@@ -142,6 +155,8 @@
     <string name="lang_plain_chip">Обычный</string>
     <string name="library_tabs_hint">Тяните за ручку, чтобы переставить. Переключатель показывает или прячет раздел.</string>
     <string name="light_concrete">Бетон</string>
+    <string name="light_mist">Дымка</string>
+    <string name="light_paper">Бумага</string>
     <string name="light_soft">Между</string>
     <string name="light_white">Белый</string>
     <string name="lyrics">Текст песни</string>
@@ -259,6 +274,7 @@
     <string name="save">Сохранить</string>
     <string name="save_to_my_playlists">Сохранить в мои плейлисты</string>
     <string name="saved_to_playlists">Сохранено в плейлисты</string>
+    <string name="screen_corners_default">Обычное</string>
     <string name="search_albums">Поиск по альбомам</string>
     <string name="search_artists">Поиск по артистам</string>
     <string name="search_hint">Название, исполнитель, строчка из песни</string>
@@ -341,6 +357,8 @@
     <string name="set_scan_all">Ничего не выбрано — сканируется всё, что система считает музыкой (иногда туда попадают рингтоны и уведомления). Если отметить папки, сканироваться будут только они.</string>
     <string name="set_scan_folders">Какие папки сканировать</string>
     <string name="set_scan_picked">Сканируются только выбранные папки и всё, что лежит в них (включая подпапки).</string>
+    <string name="set_screen_corners">Скругление экрана</string>
+    <string name="set_screen_corners_desc">Этот телефон не сообщает приложению, насколько скруглён его экран. Задай, чтобы карточка и кнопки плеера «Диск» шли вровень с углами.</string>
     <string name="set_show_welcome">Показать приветствие снова</string>
     <string name="set_split_now">Сейчас делятся на нескольких исполнителей</string>
     <string name="set_start_tab">Открывать при запуске</string>
@@ -422,6 +440,8 @@
     </plurals>
     <string name="ui_style_classic">Классический</string>
     <string name="ui_style_classic_note">Спокойный и плоский — привычный вид.</string>
+    <string name="ui_style_disc">Диск</string>
+    <string name="ui_style_disc_note">Жирные двухцветные заголовки, скруглённые плитки, матовые панели и один акцент — в духе плеера «Диск».</string>
     <string name="ui_style_expressive">Экспрессивный</string>
     <string name="ui_style_expressive_note">Крупные заголовки, парящие панели, скруглённые карточки и игривые формы.</string>
     <string name="unit_hours_approx">≈ %1$.1f ч</string>

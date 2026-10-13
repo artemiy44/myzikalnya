@@ -134,21 +134,22 @@ internal fun PlaylistHero(
         washOut = washOut,
         height = COLLAGE_HERO_HEIGHT,
         barShown = barShown,
+        discStats = listOf(pluralStringResource(R.plurals.songs_count, songCount, songCount)) + songs.map { it.album }.distinct().size.let { n -> if (n > 0) listOf(pluralStringResource(R.plurals.albums_count, n, n)) else emptyList() },
         art = { ArtistGenreArt(name, songs) },
     ) {
         Text(
             text = name,
-            color = Color.White,
-            fontSize = 30.sp,
+            color = com.artemiy.player.ui.components.heroText,
+            fontSize = com.artemiy.player.ui.components.heroTitleSize(30.sp),
             fontWeight = FontWeight.ExtraBold,
-            textAlign = TextAlign.Center,
+            textAlign = com.artemiy.player.ui.components.heroTextAlign,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             style = TextStyle(shadow = HeroTextShadow).inAppFont(),
         )
         Text(
             text = pluralStringResource(R.plurals.songs_count, songCount, songCount),
-            color = Color.White.copy(alpha = 0.85f),
+            color = com.artemiy.player.ui.components.heroSubText,
             fontSize = 13.sp,
             style = TextStyle(shadow = HeroTextShadow).inAppFont(),
             modifier = Modifier.padding(top = 4.dp),

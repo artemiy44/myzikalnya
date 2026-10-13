@@ -164,6 +164,10 @@ fun HeroButtons(
     trailingCheck: Boolean = false,
     trailingOverlay: @Composable () -> Unit = {},
 ) {
+    if (com.artemiy.player.ui.theme.discUi) {
+        DiscHeroButtons(onShuffle, onPlay, trailingIcon, trailingDescription, onTrailing, trailingCheck, trailingOverlay)
+        return
+    }
     if (!expressiveUi) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             CircleIconButton(icon = AppIcons.Shuffle, description = stringResource(R.string.shuffle), onClick = onShuffle)
@@ -246,5 +250,51 @@ private fun RowScope.HeroGroupButton(
         contentAlignment = Alignment.Center,
     ) {
         content()
+    }
+}
+
+/** "Диск": shuffle, a wide accent play tile and one more, as three rounded-square tiles. */
+@Composable
+private fun DiscHeroButtons(
+    onShuffle: () -> Unit,
+    onPlay: () -> Unit,
+    trailingIcon: ImageVector,
+    trailingDescription: String,
+    onTrailing: () -> Unit,
+    trailingCheck: Boolean,
+    trailingOverlay: @Composable () -> Unit,
+) {
+    val tile = com.artemiy.player.ui.theme.Disc.tileFill
+    val shape = RoundedCornerShape(20.dp)
+    val shuffleInteraction = remember { MutableInteractionSource() }
+    val playInteraction = remember { MutableInteractionSource() }
+    val trailingInteraction = remember { MutableInteractionSource() }
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Box(
+            modifier = Modifier.size(60.dp).pressScale(shuffleInteraction, pressedScale = 0.93f).clip(shape).background(tile)
+                .clickable(interactionSource = shuffleInteraction, indication = null, onClick = onShuffle),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(AppIcons.Shuffle, contentDescription = stringResource(R.string.shuffle), tint = PlayerColors.TextPrimary, modifier = Modifier.size(22.dp))
+        }
+        Row(
+            modifier = Modifier.weight(1f).height(60.dp).pressScale(playInteraction, pressedScale = 0.96f).clip(shape).background(PlayerColors.Accent)
+                .clickable(interactionSource = playInteraction, indication = null, onClick = onPlay),
+            horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(AppIcons.Play, contentDescription = null, tint = PlayerColors.OnAccent, modifier = Modifier.size(20.dp))
+            Text(text = stringResource(R.string.action_listen), color = PlayerColors.OnAccent, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+        }
+        Box {
+            Box(
+                modifier = Modifier.size(60.dp).pressScale(trailingInteraction, pressedScale = 0.93f).clip(shape).background(tile)
+                    .clickable(interactionSource = trailingInteraction, indication = null, onClick = onTrailing),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(if (trailingCheck) AppIcons.Check else trailingIcon, contentDescription = trailingDescription, tint = PlayerColors.TextPrimary, modifier = Modifier.size(22.dp))
+            }
+            trailingOverlay()
+        }
     }
 }

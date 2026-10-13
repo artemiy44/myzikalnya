@@ -43,6 +43,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
@@ -112,6 +114,8 @@ internal fun LibraryHeader(
     showBack: Boolean,
     onBack: () -> Unit,
     trailing: (@Composable () -> Unit)? = null,
+    /** "Диск": the second line of the heading (the Library's own page only). */
+    discSub: String? = null,
 ) {
     Row(
         modifier = Modifier
@@ -126,11 +130,11 @@ internal fun LibraryHeader(
                 tint = PlayerColors.TextPrimary,
                 modifier = Modifier
                     .padding(end = 12.dp)
-                    .size(24.dp)
+                    .then(if (com.artemiy.player.ui.theme.discUi) Modifier.size(44.dp).clip(androidx.compose.foundation.shape.CircleShape).background(com.artemiy.player.ui.theme.Disc.tileFill).padding(10.dp) else Modifier.size(24.dp))
                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onBack() },
             )
         }
-        Text(
+        if (discSub != null && com.artemiy.player.ui.theme.discUi) com.artemiy.player.ui.components.DiscPageTitle(title, discSub, Modifier.weight(1f)) else Text(
             text = title,
             color = PlayerColors.TextPrimary,
             style = com.artemiy.player.ui.theme.pageTitleStyle,
@@ -236,17 +240,18 @@ internal fun LibraryHomeList(
 @Composable
 internal fun LibraryRow(label: String, count: Int, icon: ImageVector, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val expressive = com.artemiy.player.ui.theme.expressiveUi
+    val disc = com.artemiy.player.ui.theme.discUi
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onClick() }
-            .padding(vertical = if (expressive) 10.dp else 13.dp),
+            .padding(vertical = if (expressive || disc) 10.dp else 13.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
             modifier = Modifier
                 .size(52.dp)
-                .clip(RoundedCornerShape(if (expressive) 16.dp else 10.dp))
+                .clip(RoundedCornerShape(if (expressive) 16.dp else if (disc) 14.dp else 10.dp))
                 .background(com.artemiy.player.ui.components.tonalAccent),
             contentAlignment = Alignment.Center,
         ) {
@@ -255,11 +260,17 @@ internal fun LibraryRow(label: String, count: Int, icon: ImageVector, onClick: (
         Text(
             text = label,
             color = PlayerColors.TextPrimary,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontSize = if (disc) 17.sp else 15.sp,
+            fontWeight = if (disc) FontWeight.ExtraBold else FontWeight.SemiBold,
             modifier = Modifier.weight(1f).padding(start = 14.dp),
         )
-        Text(text = "$count", color = PlayerColors.TextTertiary, fontSize = 13.sp, modifier = Modifier.padding(end = 2.dp))
+        Text(
+            text = "$count",
+            color = PlayerColors.TextTertiary,
+            fontSize = if (disc) 22.sp else 13.sp,
+            fontWeight = if (disc) FontWeight.ExtraBold else FontWeight.Normal,
+            modifier = Modifier.padding(end = 2.dp),
+        )
     }
 }
 
@@ -288,9 +299,9 @@ internal fun <T> ListToolbar(
         Row(
             modifier = Modifier
                 .weight(1f)
-                .clip(RoundedCornerShape(10.dp))
-                .background(PlayerColors.Surface)
-                .padding(horizontal = 12.dp, vertical = 9.dp),
+                .clip(RoundedCornerShape(if (com.artemiy.player.ui.theme.discUi) 18.dp else 10.dp))
+                .background(if (com.artemiy.player.ui.theme.discUi) com.artemiy.player.ui.theme.Disc.tileFill else PlayerColors.Surface)
+                .padding(horizontal = if (com.artemiy.player.ui.theme.discUi) 16.dp else 12.dp, vertical = if (com.artemiy.player.ui.theme.discUi) 15.dp else 9.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(imageVector = AppIcons.Search, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(16.dp))
@@ -337,3 +348,36 @@ internal fun <T> ListToolbar(
         }
     }
 }
+
+/** "Диск": the Library's sections as low rounded chips under a section page's heading; the chosen one is filled. */
+@Composable
+internal fun LibraryTabChips(tabs: List<LibraryTab>, current: LibraryTab?, onPick: (LibraryTab) -> Unit) {
+    androidx.compose.foundation.layout.Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .androidx_hscroll()
+            .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        tabs.forEach { tab ->
+            val on = tab == current
+            Text(
+                text = stringResource(tab.labelRes),
+                color = if (on) PlayerColors.Background else PlayerColors.TextPrimary,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                modifier = Modifier
+                    .height(38.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(if (on) PlayerColors.TextPrimary else com.artemiy.player.ui.theme.Disc.tileFill)
+                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onPick(tab) }
+                    .padding(horizontal = 16.dp)
+                    .wrapContentHeight(Alignment.CenterVertically),
+            )
+        }
+    }
+}
+
+@Composable
+private fun Modifier.androidx_hscroll(): Modifier = this.horizontalScroll(rememberScrollState())

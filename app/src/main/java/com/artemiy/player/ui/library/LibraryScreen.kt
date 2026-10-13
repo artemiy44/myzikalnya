@@ -143,8 +143,19 @@ fun LibraryScreen(
     val detailScroll = remember { mutableMapOf<String, androidx.compose.foundation.lazy.LazyListState>() }
     if (backStack.size <= 1) detailScroll.clear()
     // The same for how far each page's header has folded (the page is taken apart while another is on top).
-    val headerFolds = remember { mutableMapOf<LibraryRoute, androidx.compose.runtime.MutableState<Float>>() }
-    headerFolds.keys.retainAll(backStack.toSet())
+    // How far each page's header has folded. Saved, like the pages' scroll positions are: leaving the tab
+    // takes the screen apart, and a header that forgot its fold would come back big over a scrolled list.
+    val headerFolds = androidx.compose.runtime.saveable.rememberSaveable(
+        saver = androidx.compose.runtime.saveable.Saver<androidx.compose.runtime.snapshots.SnapshotStateMap<String, Float>, List<Any>>(
+            save = { map -> map.entries.flatMap { listOf(it.key, it.value) } },
+            restore = { list ->
+                androidx.compose.runtime.mutableStateMapOf<String, Float>().also { map ->
+                    list.chunked(2).forEach { (k, v) -> map[k as String] = v as Float }
+                }
+            },
+        ),
+    ) { androidx.compose.runtime.mutableStateMapOf<String, Float>() }
+    headerFolds.keys.retainAll(backStack.map { it.toString() }.toSet())
     // Hoisted so scroll position survives navigating into a detail screen and back.
     val artistsListState = rememberLazyListState()
     val artistsGridState = rememberLazyGridState()
@@ -860,9 +871,47 @@ fun LibraryScreen(
                 pageContent()
             } else {
                 com.artemiy.player.ui.components.CollapsingHeader(
-                    foldState = headerFolds.getOrPut(route) { androidx.compose.runtime.mutableStateOf(0f) },
+                    foldState = remember(route) {
+                        val key = route.toString()
+                        object : androidx.compose.runtime.MutableState<Float> {
+                            override var value: Float
+                                get() = headerFolds[key] ?: 0f
+                                set(v) { headerFolds[key] = v }
+                            override fun component1() = value
+                            override fun component2(): (Float) -> Unit = { value = it }
+                        }
+                    },
                     title = pageTitle,
-                    bigHeader = { LibraryHeader(title = pageTitle, showBack = route != LibraryRoute.Home, onBack = goBack, trailing = pageTrailing) },
+                    bigHeader = {
+                        Column {
+                            LibraryHeader(title = pageTitle, showBack = route != LibraryRoute.Home, onBack = goBack, trailing = pageTrailing, discSub = if (route == LibraryRoute.Home) stringResource(R.string.disc_sub_library) else null)
+                            val sectionTab = when (route) {
+                                LibraryRoute.Playlists -> LibraryTab.PLAYLISTS
+                                LibraryRoute.Artists -> LibraryTab.ARTISTS
+                                LibraryRoute.Albums -> LibraryTab.ALBUMS
+                                LibraryRoute.Songs -> LibraryTab.TRACKS
+                                LibraryRoute.Years -> LibraryTab.YEARS
+                                LibraryRoute.Genres -> LibraryTab.GENRES
+                                LibraryRoute.Folders -> LibraryTab.FOLDERS
+                                else -> null
+                            }
+                            if (sectionTab != null && com.artemiy.player.ui.theme.discUi) LibraryTabChips(
+                                tabs = settingsVm.libraryTabs.filter { it.shown }.map { it.tab },
+                                current = sectionTab,
+                                onPick = { tab ->
+                                    if (tab != sectionTab) backStack[backStack.lastIndex] = when (tab) {
+                                        LibraryTab.PLAYLISTS -> LibraryRoute.Playlists
+                                        LibraryTab.ARTISTS -> LibraryRoute.Artists
+                                        LibraryTab.ALBUMS -> LibraryRoute.Albums
+                                        LibraryTab.TRACKS -> LibraryRoute.Songs
+                                        LibraryTab.YEARS -> LibraryRoute.Years
+                                        LibraryTab.GENRES -> LibraryRoute.Genres
+                                        LibraryTab.FOLDERS -> LibraryRoute.Folders
+                                    }
+                                },
+                            )
+                        }
+                    },
                     onBack = if (route != LibraryRoute.Home) goBack else null,
                     trailing = pageTrailing,
                     content = pageContent,

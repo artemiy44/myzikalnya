@@ -43,12 +43,15 @@
     <string name="backup_save">Save backup file</string>
     <string name="backup_save_sub">Playlists, listening stats and settings in one file</string>
     <string name="backup_saved">Backup saved</string>
+    <string name="bg_group_neutral">Neutral</string>
+    <string name="bg_group_tinted">Tinted</string>
     <string name="bg_live">Live blur</string>
     <string name="bg_live_sub">The blurred cover gently «breathes» — soft movement and zoom.</string>
     <string name="bg_none">No blur</string>
     <string name="bg_none_sub">The app\'s usual background, no cover.</string>
     <string name="bg_static">Static blur</string>
     <string name="bg_static_sub">The cover is blurred but stays still.</string>
+    <string name="bg_wallpaper">Wallpaper</string>
     <string name="bye_1">All set!</string>
     <string name="bye_2">Mixes and weekly recaps need about nine days to learn the taste.</string>
     <string name="bye_3">Everything else is in the settings — behind this button on Home.</string>
@@ -75,6 +78,13 @@
     <string name="close">Close</string>
     <string name="create">Create</string>
     <string name="create_playlist">Create playlist</string>
+    <string name="dark_amoled">AMOLED</string>
+    <string name="dark_coffee">Coffee</string>
+    <string name="dark_forest">Forest</string>
+    <string name="dark_gnome">GNOME</string>
+    <string name="dark_material">Material</string>
+    <string name="dark_midnight">Midnight</string>
+    <string name="dark_plum">Plum</string>
     <string name="daypart_afternoon">in the afternoon</string>
     <string name="daypart_evening">in the evening</string>
     <string name="daypart_morning">in the morning</string>
@@ -92,6 +102,9 @@
     <string name="dial_look_card">Card</string>
     <string name="dial_look_full">Full screen</string>
     <string name="disc_n">Disc %1$s</string>
+    <string name="disc_sub_home">Tonight</string>
+    <string name="disc_sub_library">Yours</string>
+    <string name="disc_sub_search">Anything</string>
     <string name="drag">Drag</string>
     <string name="endless_play">Endless play</string>
     <string name="fade_long">Long</string>
@@ -140,6 +153,8 @@
     <string name="lang_plain_chip">Plain</string>
     <string name="library_tabs_hint">Drag by the handle to reorder. The switch shows or hides a section.</string>
     <string name="light_concrete">Concrete</string>
+    <string name="light_mist">Mist</string>
+    <string name="light_paper">Paper</string>
     <string name="light_soft">Between</string>
     <string name="light_white">White</string>
     <string name="lyrics">Lyrics</string>
@@ -253,6 +268,7 @@
     <string name="save">Save</string>
     <string name="save_to_my_playlists">Save to my playlists</string>
     <string name="saved_to_playlists">Saved to playlists</string>
+    <string name="screen_corners_default">Default</string>
     <string name="search_albums">Search albums</string>
     <string name="search_artists">Search artists</string>
     <string name="search_hint">Title, artist, a line from a song</string>
@@ -335,6 +351,8 @@
     <string name="set_scan_all">Nothing picked — everything the system considers music is scanned (ringtones and notification sounds sometimes sneak in). With folders picked, only those are scanned.</string>
     <string name="set_scan_folders">Folders to scan</string>
     <string name="set_scan_picked">Only the picked folders and everything in them (subfolders included) are scanned.</string>
+    <string name="set_screen_corners">Screen corners</string>
+    <string name="set_screen_corners_desc">This phone doesn\'t tell the app how round its screen is. Set it so the card and the buttons of the Dial player follow the corners.</string>
     <string name="set_show_welcome">Show the welcome again</string>
     <string name="set_split_now">Currently split into several artists</string>
     <string name="set_start_tab">Open on start</string>
@@ -408,6 +426,8 @@
     </plurals>
     <string name="ui_style_classic">Classic</string>
     <string name="ui_style_classic_note">Calm and flat — the familiar look.</string>
+    <string name="ui_style_disc">Dial</string>
+    <string name="ui_style_disc_note">Heavy two-tone headings, rounded-square tiles, matte panels and a single accent — in the spirit of the Dial player.</string>
     <string name="ui_style_expressive">Expressive</string>
     <string name="ui_style_expressive_note">Bold headers, floating bars, rounded cards and playful shapes.</string>
     <string name="unit_hours_approx">≈ %1$.1f h</string>

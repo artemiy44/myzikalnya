@@ -84,7 +84,17 @@ val NowPlayingPalette = PlayerPalette(
 )
 
 /** The three dark backgrounds, darkest first. */
-enum class DarkVariant(val label: String) { AMOLED("AMOLED"), MATERIAL("Material"), GNOME("GNOME") }
+/** Which shelf of backgrounds a variant sits on in Settings: the neutral ones, the ones with a tint, or the one made from the wallpaper. */
+enum class BackgroundGroup { NEUTRAL, TINTED, WALLPAPER }
+
+enum class DarkVariant(@androidx.annotation.StringRes val labelRes: Int, val group: BackgroundGroup = BackgroundGroup.NEUTRAL) {
+    AMOLED(R.string.dark_amoled), MATERIAL(R.string.dark_material), GNOME(R.string.dark_gnome),
+    MIDNIGHT(R.string.dark_midnight, BackgroundGroup.TINTED), COFFEE(R.string.dark_coffee, BackgroundGroup.TINTED),
+    FOREST(R.string.dark_forest, BackgroundGroup.TINTED), PLUM(R.string.dark_plum, BackgroundGroup.TINTED),
+    WALLPAPER(R.string.bg_wallpaper, BackgroundGroup.WALLPAPER),
+}
+
+val DarkVariant.label: String @Composable get() = androidx.compose.ui.res.stringResource(labelRes)
 
 /** Pure black — pixels off on AMOLED screens; surfaces just barely lifted off it. */
 private val AmoledDark = PlayerPalette(
@@ -137,8 +147,10 @@ private val GnomeDark = PlayerPalette(
 enum class ThemeMode { SYSTEM, DARK, LIGHT }
 
 /** The three light backgrounds: plain white, "concrete but lighter", and the tone between. */
-enum class LightVariant(@androidx.annotation.StringRes val labelRes: Int) {
+enum class LightVariant(@androidx.annotation.StringRes val labelRes: Int, val group: BackgroundGroup = BackgroundGroup.NEUTRAL) {
     WHITE(R.string.light_white), SOFT(R.string.light_soft), CONCRETE(R.string.light_concrete),
+    PAPER(R.string.light_paper, BackgroundGroup.TINTED), MIST(R.string.light_mist, BackgroundGroup.TINTED),
+    WALLPAPER(R.string.bg_wallpaper, BackgroundGroup.WALLPAPER),
 }
 
 val LightVariant.label: String @Composable get() = androidx.compose.ui.res.stringResource(labelRes)
@@ -148,6 +160,14 @@ fun lightPalette(variant: LightVariant): PlayerPalette {
         LightVariant.WHITE -> listOf(Color(0xFFFFFFFF), Color(0xFFF0F0F2), Color(0xFFF5F5F7), Color(0xFFE2E2E4))
         LightVariant.SOFT -> listOf(Color(0xFFF2F2F1), Color(0xFFFFFFFF), Color(0xFFE8E8E7), Color(0xFFDADAD8))
         LightVariant.CONCRETE -> listOf(Color(0xFFE3E3E0), Color(0xFFF3F3F1), Color(0xFFD8D8D5), Color(0xFFCBCBC7))
+        // Warm paper and a cool mist: the same set of steps, with a faint tint.
+        LightVariant.PAPER -> listOf(Color(0xFFF4EFE6), Color(0xFFFFFCF6), Color(0xFFEAE4D8), Color(0xFFDCD5C6))
+        LightVariant.MIST -> listOf(Color(0xFFE9EFF3), Color(0xFFF6F9FB), Color(0xFFDDE5EB), Color(0xFFCCD6DE))
+        // Made from the wallpaper: a very pale wash of its main colour.
+        LightVariant.WALLPAPER -> {
+            val bg = wallpaperTint(lightness = 0.95f, chroma = 0.014f) ?: Color(0xFFF2F2F1)
+            listOf(bg, lerp(bg, Color.White, 0.75f), lerp(bg, Color.Black, 0.04f), lerp(bg, Color.Black, 0.10f))
+        }
     }
     val text = Color(0xFF2E2E33)
     return PlayerPalette(
@@ -275,10 +295,43 @@ private fun inSrgbGamut(lightness: Float, a: Float, b: Float): Boolean {
     return r in -eps..1f + eps && g in -eps..1f + eps && bl in -eps..1f + eps
 }
 
+/** A dark background with a tint: the steps above it (cards, menus, hairlines) are the same few percent of white on any of them. */
+private fun tintedDark(background: Color) = GnomeDark.copy(
+    background = background,
+    surface = lerp(background, Color.White, 0.08f),
+    surfaceDim = lerp(background, Color.White, 0.045f),
+    border = lerp(background, Color.White, 0.13f),
+    menu = lerp(background, Color.White, 0.10f),
+)
+
+private val MidnightDark = tintedDark(Color(0xFF0E1522))
+private val CoffeeDark = tintedDark(Color(0xFF1B1613))
+private val ForestDark = tintedDark(Color(0xFF101A14))
+private val PlumDark = tintedDark(Color(0xFF1A1322))
+
+/**
+ * The wallpaper's main colour (the system's accent) turned down to a background's lightness and a
+ * whisper of colour, or null when the phone doesn't hand the colours over (Android before 12).
+ */
+private fun wallpaperTint(lightness: Float, chroma: Float): Color? {
+    val source = WallpaperAccents.colors.getOrNull(1) ?: return null
+    val lab = source.convert(ColorSpaces.Oklab)
+    val a = lab.green
+    val b = lab.blue
+    val length = kotlin.math.sqrt(a * a + b * b)
+    if (length < 1e-4f) return Color(lightness, 0f, 0f, 1f, ColorSpaces.Oklab).convert(ColorSpaces.Srgb)
+    return Color(lightness, a / length * chroma, b / length * chroma, 1f, ColorSpaces.Oklab).convert(ColorSpaces.Srgb)
+}
+
 fun darkPalette(variant: DarkVariant): PlayerPalette = when (variant) {
     DarkVariant.AMOLED -> AmoledDark
     DarkVariant.MATERIAL -> MaterialDark
     DarkVariant.GNOME -> GnomeDark
+    DarkVariant.MIDNIGHT -> MidnightDark
+    DarkVariant.COFFEE -> CoffeeDark
+    DarkVariant.FOREST -> ForestDark
+    DarkVariant.PLUM -> PlumDark
+    DarkVariant.WALLPAPER -> wallpaperTint(lightness = 0.17f, chroma = 0.03f)?.let { tintedDark(it) } ?: GnomeDark
 }
 
 fun appPalette(

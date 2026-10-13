@@ -39,12 +39,15 @@
     <string name="backup_save">保存备份文件</string>
     <string name="backup_save_sub">播放列表、统计和设置合为一个文件</string>
     <string name="backup_saved">备份已保存</string>
+    <string name="bg_group_neutral">中性</string>
+    <string name="bg_group_tinted">带色调</string>
     <string name="bg_live">动态模糊</string>
     <string name="bg_live_sub">模糊的封面轻轻“呼吸”——平滑的移动和缩放。</string>
     <string name="bg_none">无模糊</string>
     <string name="bg_none_sub">应用的普通背景，不显示封面。</string>
     <string name="bg_static">静态模糊</string>
     <string name="bg_static_sub">封面被模糊，但保持静止。</string>
+    <string name="bg_wallpaper">壁纸</string>
     <string name="bye_1">一切就绪！</string>
     <string name="bye_2">混音和每周回顾大约需要九天来了解口味。</string>
     <string name="bye_3">其他一切都在设置里——就在首页的这个按钮后面。</string>
@@ -71,6 +74,13 @@
     <string name="close">关闭</string>
     <string name="create">创建</string>
     <string name="create_playlist">创建歌单</string>
+    <string name="dark_amoled">AMOLED</string>
+    <string name="dark_coffee">咖啡</string>
+    <string name="dark_forest">森林</string>
+    <string name="dark_gnome">GNOME</string>
+    <string name="dark_material">Material</string>
+    <string name="dark_midnight">午夜</string>
+    <string name="dark_plum">李子</string>
     <string name="daypart_afternoon">下午</string>
     <string name="daypart_evening">傍晚</string>
     <string name="daypart_morning">早上</string>
@@ -88,6 +98,9 @@
     <string name="dial_look_card">卡片</string>
     <string name="dial_look_full">全屏</string>
     <string name="disc_n">碟 %1$s</string>
+    <string name="disc_sub_home">今晚</string>
+    <string name="disc_sub_library">你的</string>
+    <string name="disc_sub_search">任何</string>
     <string name="drag">拖动</string>
     <string name="endless_play">无尽播放</string>
     <string name="fade_long">长</string>
@@ -134,6 +147,8 @@
     <string name="lang_expressive_hint">内容相同，只是更生动、更友好</string>
     <string name="library_tabs_hint">拖动手柄可重新排序。开关用于显示或隐藏某个部分。</string>
     <string name="light_concrete">混凝土</string>
+    <string name="light_mist">薄雾</string>
+    <string name="light_paper">纸张</string>
     <string name="light_soft">中间色</string>
     <string name="light_white">白色</string>
     <string name="lyrics">歌词</string>
@@ -239,6 +254,7 @@
     <string name="save">保存</string>
     <string name="save_to_my_playlists">保存到我的歌单</string>
     <string name="saved_to_playlists">已保存到歌单</string>
+    <string name="screen_corners_default">默认</string>
     <string name="search_albums">搜索专辑</string>
     <string name="search_artists">搜索艺人</string>
     <string name="search_hint">标题、艺人、一句歌词</string>
@@ -321,6 +337,8 @@
     <string name="set_scan_all">未选择——会扫描系统认为是音乐的一切（有时会混入铃声和通知音）。标记文件夹后，只会扫描这些文件夹。</string>
     <string name="set_scan_folders">要扫描的文件夹</string>
     <string name="set_scan_picked">只扫描所选文件夹及其中的全部内容（包括子文件夹）。</string>
+    <string name="set_screen_corners">屏幕圆角</string>
+    <string name="set_screen_corners_desc">这部手机没有告诉应用屏幕有多圆。请设置它，让唱盘播放器的卡片和按钮贴合屏幕圆角。</string>
     <string name="set_show_welcome">再次显示欢迎页</string>
     <string name="set_split_now">目前被拆分为多位艺人的</string>
     <string name="set_start_tab">启动时打开</string>
@@ -378,6 +396,8 @@
     <string name="tracks">曲目</string>
     <string name="ui_style_classic">经典</string>
     <string name="ui_style_classic_note">平静扁平——熟悉的样子。</string>
+    <string name="ui_style_disc">转盘</string>
+    <string name="ui_style_disc_note">粗体双色标题、圆角方块、哑光面板和唯一的强调色，延续转盘播放器的风格。</string>
     <string name="ui_style_expressive">表现力</string>
     <string name="ui_style_expressive_note">大标题、悬浮栏、圆角卡片和俏皮的形状。</string>
     <string name="unit_hours_approx">≈ %1$.1f 小时</string>

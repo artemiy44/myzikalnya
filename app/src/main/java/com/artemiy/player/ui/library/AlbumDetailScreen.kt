@@ -105,6 +105,7 @@ fun AlbumDetailScreen(
             washDrain = minOf(songs.size * 64, 360).dp,
             onBack = onBack,
             barShown = barShown,
+            discStats = listOf(pluralStringResource(R.plurals.songs_count, songs.size, songs.size)) + listOfNotNull(songs.firstOrNull()?.year?.takeIf { it > 0 }?.toString()),
             art = {
                 // Single cover, not a collage — this is one album, unlike the artist page which
                 // has to represent several.
@@ -113,17 +114,17 @@ fun AlbumDetailScreen(
         ) {
             Text(
                 text = album.ifBlank { stringResource(R.string.no_album) },
-                color = Color.White,
-                fontSize = 26.sp,
+                color = com.artemiy.player.ui.components.heroText,
+                fontSize = com.artemiy.player.ui.components.heroTitleSize(26.sp),
                 style = TextStyle(shadow = HeroTextShadow).inAppFont(),
                 fontWeight = FontWeight.ExtraBold,
-                textAlign = TextAlign.Center,
+                textAlign = com.artemiy.player.ui.components.heroTextAlign,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
                 text = "$artist · " + pluralStringResource(R.plurals.songs_count, songs.size, songs.size),
-                color = Color.White.copy(alpha = 0.85f),
+                color = com.artemiy.player.ui.components.heroSubText,
                 fontSize = 13.sp,
                 style = TextStyle(shadow = HeroTextShadow).inAppFont(),
                 modifier = Modifier.padding(top = 4.dp),
@@ -170,12 +171,12 @@ fun AlbumDetailScreen(
                         // The track's number instead of the same cover on every row — it's the album's
                         // page, the cover is right there at the top.
                         Text(
-                            text = song.trackNumber?.toString() ?: "–",
-                            color = PlayerColors.TextSecondary,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.SemiBold,
+                            text = song.trackNumber?.let { if (com.artemiy.player.ui.theme.discUi) "%02d".format(it) else it.toString() } ?: "–",
+                            color = if (com.artemiy.player.ui.theme.discUi) PlayerColors.TextTertiary else PlayerColors.TextSecondary,
+                            fontSize = if (com.artemiy.player.ui.theme.discUi) 24.sp else 15.sp,
+                            fontWeight = if (com.artemiy.player.ui.theme.discUi) FontWeight.ExtraBold else FontWeight.SemiBold,
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.width(30.dp),
+                            modifier = Modifier.width(if (com.artemiy.player.ui.theme.discUi) 40.dp else 30.dp),
                         )
                         Column(modifier = Modifier.weight(1f).padding(start = 10.dp).heightIn(min = 44.dp), verticalArrangement = Arrangement.Center) {
                             Text(text = song.title, color = PlayerColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)

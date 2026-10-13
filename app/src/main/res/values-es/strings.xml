@@ -39,12 +39,15 @@
     <string name="backup_save">Guardar archivo de copia</string>
     <string name="backup_save_sub">Listas, estadísticas y ajustes en un solo archivo</string>
     <string name="backup_saved">Copia guardada</string>
+    <string name="bg_group_neutral">Neutros</string>
+    <string name="bg_group_tinted">Con tono</string>
     <string name="bg_live">Desenfoque vivo</string>
     <string name="bg_live_sub">La portada desenfocada «respira» suavemente: movimiento y zoom fluidos.</string>
     <string name="bg_none">Sin desenfoque</string>
     <string name="bg_none_sub">El fondo normal de la aplicación, sin portada.</string>
     <string name="bg_static">Desenfoque estático</string>
     <string name="bg_static_sub">La portada está desenfocada, pero quieta.</string>
+    <string name="bg_wallpaper">Fondo</string>
     <string name="bye_1">¡Todo listo!</string>
     <string name="bye_2">Las mezclas y los resúmenes semanales necesitan unos nueve días para conocer el gusto.</string>
     <string name="bye_3">Todo lo demás está en los ajustes, tras este botón de Inicio.</string>
@@ -71,6 +74,13 @@
     <string name="close">Cerrar</string>
     <string name="create">Crear</string>
     <string name="create_playlist">Crear lista</string>
+    <string name="dark_amoled">AMOLED</string>
+    <string name="dark_coffee">Café</string>
+    <string name="dark_forest">Bosque</string>
+    <string name="dark_gnome">GNOME</string>
+    <string name="dark_material">Material</string>
+    <string name="dark_midnight">Medianoche</string>
+    <string name="dark_plum">Ciruela</string>
     <string name="daypart_afternoon">por la tarde</string>
     <string name="daypart_evening">al anochecer</string>
     <string name="daypart_morning">por la mañana</string>
@@ -88,6 +98,9 @@
     <string name="dial_look_card">Tarjeta</string>
     <string name="dial_look_full">Pantalla completa</string>
     <string name="disc_n">Disco %1$s</string>
+    <string name="disc_sub_home">Hoy</string>
+    <string name="disc_sub_library">Tuya</string>
+    <string name="disc_sub_search">Todo</string>
     <string name="drag">Arrastrar</string>
     <string name="endless_play">Reproducción sin fin</string>
     <string name="fade_long">Larga</string>
@@ -134,6 +147,8 @@
     <string name="lang_expressive_hint">Lo mismo, pero más vivo y cercano</string>
     <string name="library_tabs_hint">Arrastra del asa para reordenar. El interruptor muestra u oculta una sección.</string>
     <string name="light_concrete">Hormigón</string>
+    <string name="light_mist">Bruma</string>
+    <string name="light_paper">Papel</string>
     <string name="light_soft">Intermedio</string>
     <string name="light_white">Blanco</string>
     <string name="lyrics">Letra</string>
@@ -239,6 +254,7 @@
     <string name="save">Guardar</string>
     <string name="save_to_my_playlists">Guardar en mis listas</string>
     <string name="saved_to_playlists">Guardado en las listas</string>
+    <string name="screen_corners_default">Normal</string>
     <string name="search_albums">Buscar álbumes</string>
     <string name="search_artists">Buscar artistas</string>
     <string name="search_hint">Título, artista, un verso de una canción</string>
@@ -321,6 +337,8 @@
     <string name="set_scan_all">Nada elegido: se escanea todo lo que el sistema considera música (a veces se cuelan tonos y notificaciones). Con carpetas marcadas, solo se escanean esas.</string>
     <string name="set_scan_folders">Carpetas que escanear</string>
     <string name="set_scan_picked">Solo se escanean las carpetas elegidas y todo lo que contienen (subcarpetas incluidas).</string>
+    <string name="set_screen_corners">Esquinas de pantalla</string>
+    <string name="set_screen_corners_desc">Este teléfono no le dice a la app cuán redondeada es su pantalla. Ajústalo para que la tarjeta y los botones del reproductor Disco sigan las esquinas.</string>
     <string name="set_show_welcome">Mostrar la bienvenida otra vez</string>
     <string name="set_split_now">Ahora se dividen en varios artistas</string>
     <string name="set_start_tab">Abrir al iniciar</string>
@@ -378,6 +396,8 @@
     <string name="tracks">Pistas</string>
     <string name="ui_style_classic">Clásico</string>
     <string name="ui_style_classic_note">Tranquilo y plano: el aspecto de siempre.</string>
+    <string name="ui_style_disc">Disco</string>
+    <string name="ui_style_disc_note">Títulos gruesos en dos tonos, baldosas redondeadas, paneles mates y un único acento, en el espíritu del reproductor Disco.</string>
     <string name="ui_style_expressive">Expresivo</string>
     <string name="ui_style_expressive_note">Títulos grandes, barras flotantes, tarjetas redondeadas y formas divertidas.</string>
     <string name="unit_hours_approx">≈ %1$.1f h</string>

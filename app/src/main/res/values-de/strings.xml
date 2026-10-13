@@ -39,12 +39,15 @@
     <string name="backup_save">Sicherungsdatei speichern</string>
     <string name="backup_save_sub">Playlists, Statistik und Einstellungen in einer Datei</string>
     <string name="backup_saved">Sicherung gespeichert</string>
+    <string name="bg_group_neutral">Neutral</string>
+    <string name="bg_group_tinted">Getönt</string>
     <string name="bg_live">Lebendige Unschärfe</string>
     <string name="bg_live_sub">Das unscharfe Cover „atmet“ sanft — weiche Bewegung und Zoom.</string>
     <string name="bg_none">Ohne Unschärfe</string>
     <string name="bg_none_sub">Der normale App-Hintergrund, ohne Cover.</string>
     <string name="bg_static">Statische Unschärfe</string>
     <string name="bg_static_sub">Das Cover ist unscharf, bleibt aber still.</string>
+    <string name="bg_wallpaper">Hintergrund</string>
     <string name="bye_1">Alles fertig!</string>
     <string name="bye_2">Mixe und Wochenrückblicke brauchen etwa neun Tage, um den Geschmack kennenzulernen.</string>
     <string name="bye_3">Alles andere steht in den Einstellungen — hinter diesem Knopf auf der Startseite.</string>
@@ -71,6 +74,13 @@
     <string name="close">Schließen</string>
     <string name="create">Erstellen</string>
     <string name="create_playlist">Playlist erstellen</string>
+    <string name="dark_amoled">AMOLED</string>
+    <string name="dark_coffee">Kaffee</string>
+    <string name="dark_forest">Wald</string>
+    <string name="dark_gnome">GNOME</string>
+    <string name="dark_material">Material</string>
+    <string name="dark_midnight">Mitternacht</string>
+    <string name="dark_plum">Pflaume</string>
     <string name="daypart_afternoon">nachmittags</string>
     <string name="daypart_evening">abends</string>
     <string name="daypart_morning">morgens</string>
@@ -88,6 +98,9 @@
     <string name="dial_look_card">Karte</string>
     <string name="dial_look_full">Vollbild</string>
     <string name="disc_n">CD %1$s</string>
+    <string name="disc_sub_home">Heute</string>
+    <string name="disc_sub_library">Deine</string>
+    <string name="disc_sub_search">Alles</string>
     <string name="drag">Ziehen</string>
     <string name="endless_play">Endloswiedergabe</string>
     <string name="fade_long">Lang</string>
@@ -134,6 +147,8 @@
     <string name="lang_expressive_hint">Dasselbe, nur lebendiger und freundlicher</string>
     <string name="library_tabs_hint">Am Griff ziehen, um die Reihenfolge zu ändern. Der Schalter zeigt oder verbirgt einen Bereich.</string>
     <string name="light_concrete">Beton</string>
+    <string name="light_mist">Dunst</string>
+    <string name="light_paper">Papier</string>
     <string name="light_soft">Dazwischen</string>
     <string name="light_white">Weiß</string>
     <string name="lyrics">Songtext</string>
@@ -239,6 +254,7 @@
     <string name="save">Speichern</string>
     <string name="save_to_my_playlists">In meinen Playlists speichern</string>
     <string name="saved_to_playlists">In den Playlists gespeichert</string>
+    <string name="screen_corners_default">Standard</string>
     <string name="search_albums">Alben durchsuchen</string>
     <string name="search_artists">Künstler durchsuchen</string>
     <string name="search_hint">Titel, Künstler, eine Zeile aus einem Song</string>
@@ -321,6 +337,8 @@
     <string name="set_scan_all">Nichts gewählt — gescannt wird alles, was das System für Musik hält (manchmal rutschen Klingeltöne und Benachrichtigungen hinein). Mit markierten Ordnern werden nur diese gescannt.</string>
     <string name="set_scan_folders">Zu scannende Ordner</string>
     <string name="set_scan_picked">Gescannt werden nur die gewählten Ordner und alles darin (einschließlich Unterordnern).</string>
+    <string name="set_screen_corners">Bildschirmecken</string>
+    <string name="set_screen_corners_desc">Dieses Handy sagt der App nicht, wie rund sein Bildschirm ist. Stell es ein, damit Karte und Tasten des Scheibe-Players den Ecken folgen.</string>
     <string name="set_show_welcome">Begrüßung erneut zeigen</string>
     <string name="set_split_now">Derzeit in mehrere Künstler aufgeteilt</string>
     <string name="set_start_tab">Beim Start öffnen</string>
@@ -378,6 +396,8 @@
     <string name="tracks">Titel</string>
     <string name="ui_style_classic">Klassisch</string>
     <string name="ui_style_classic_note">Ruhig und flach — das gewohnte Aussehen.</string>
+    <string name="ui_style_disc">Scheibe</string>
+    <string name="ui_style_disc_note">Fette zweifarbige Überschriften, abgerundete Kacheln, matte Flächen und ein einziger Akzent – im Geist des Scheibe-Players.</string>
     <string name="ui_style_expressive">Expressiv</string>
     <string name="ui_style_expressive_note">Große Überschriften, schwebende Leisten, runde Karten und verspielte Formen.</string>
     <string name="unit_hours_approx">≈ %1$.1f Std.</string>

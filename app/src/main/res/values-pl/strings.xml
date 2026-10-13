@@ -39,12 +39,15 @@
     <string name="backup_save">Zapisz plik kopii</string>
     <string name="backup_save_sub">Playlisty, statystyki i ustawienia w jednym pliku</string>
     <string name="backup_saved">Kopia zapisana</string>
+    <string name="bg_group_neutral">Neutralne</string>
+    <string name="bg_group_tinted">Z odcieniem</string>
     <string name="bg_live">Żywe rozmycie</string>
     <string name="bg_live_sub">Rozmyta okładka łagodnie „oddycha” — płynny ruch i skala.</string>
     <string name="bg_none">Bez rozmycia</string>
     <string name="bg_none_sub">Zwykłe tło aplikacji, bez okładki.</string>
     <string name="bg_static">Statyczne rozmycie</string>
     <string name="bg_static_sub">Okładka jest rozmyta, ale nieruchoma.</string>
+    <string name="bg_wallpaper">Tapeta</string>
     <string name="bye_1">Gotowe!</string>
     <string name="bye_2">Miksy i podsumowania tygodnia potrzebują około dziewięciu dni, żeby poznać gust.</string>
     <string name="bye_3">Wszystko inne jest w ustawieniach — pod tym przyciskiem na ekranie głównym.</string>
@@ -71,6 +74,13 @@
     <string name="close">Zamknij</string>
     <string name="create">Utwórz</string>
     <string name="create_playlist">Utwórz playlistę</string>
+    <string name="dark_amoled">AMOLED</string>
+    <string name="dark_coffee">Kawa</string>
+    <string name="dark_forest">Las</string>
+    <string name="dark_gnome">GNOME</string>
+    <string name="dark_material">Material</string>
+    <string name="dark_midnight">Północ</string>
+    <string name="dark_plum">Śliwka</string>
     <string name="daypart_afternoon">po południu</string>
     <string name="daypart_evening">wieczorem</string>
     <string name="daypart_morning">rano</string>
@@ -88,6 +98,9 @@
     <string name="dial_look_card">Karta</string>
     <string name="dial_look_full">Pełny ekran</string>
     <string name="disc_n">Płyta %1$s</string>
+    <string name="disc_sub_home">Dziś</string>
+    <string name="disc_sub_library">Twoja</string>
+    <string name="disc_sub_search">Wszystko</string>
     <string name="drag">Przeciągnij</string>
     <string name="endless_play">Odtwarzanie bez końca</string>
     <string name="fade_long">Długie</string>
@@ -134,6 +147,8 @@
     <string name="lang_expressive_hint">To samo, tylko żywiej i przyjaźniej</string>
     <string name="library_tabs_hint">Przeciągnij za uchwyt, aby zmienić kolejność. Przełącznik pokazuje lub ukrywa sekcję.</string>
     <string name="light_concrete">Beton</string>
+    <string name="light_mist">Mgiełka</string>
+    <string name="light_paper">Papier</string>
     <string name="light_soft">Pośredni</string>
     <string name="light_white">Biały</string>
     <string name="lyrics">Tekst piosenki</string>
@@ -239,6 +254,7 @@
     <string name="save">Zapisz</string>
     <string name="save_to_my_playlists">Zapisz w moich playlistach</string>
     <string name="saved_to_playlists">Zapisano w playlistach</string>
+    <string name="screen_corners_default">Domyślne</string>
     <string name="search_albums">Szukaj albumów</string>
     <string name="search_artists">Szukaj wykonawców</string>
     <string name="search_hint">Tytuł, wykonawca, wers z piosenki</string>
@@ -321,6 +337,8 @@
     <string name="set_scan_all">Nic nie wybrano — skanowane jest wszystko, co system uważa za muzykę (czasem trafiają tam dzwonki i powiadomienia). Po zaznaczeniu folderów skanowane będą tylko one.</string>
     <string name="set_scan_folders">Które foldery skanować</string>
     <string name="set_scan_picked">Skanowane są tylko wybrane foldery i wszystko, co w nich jest (łącznie z podfolderami).</string>
+    <string name="set_screen_corners">Zaokrąglenie ekranu</string>
+    <string name="set_screen_corners_desc">Ten telefon nie mówi aplikacji, jak bardzo jest zaokrąglony jego ekran. Ustaw, by karta i przyciski odtwarzacza Dysk szły równo z rogami.</string>
     <string name="set_show_welcome">Pokaż powitanie ponownie</string>
     <string name="set_split_now">Obecnie dzielone na kilku wykonawców</string>
     <string name="set_start_tab">Otwieraj przy starcie</string>
@@ -378,6 +396,8 @@
     <string name="tracks">Utwory</string>
     <string name="ui_style_classic">Klasyczny</string>
     <string name="ui_style_classic_note">Spokojny i płaski — znajomy wygląd.</string>
+    <string name="ui_style_disc">Tarcza</string>
+    <string name="ui_style_disc_note">Grube dwukolorowe nagłówki, zaokrąglone kafelki, matowe panele i jeden akcent, w duchu odtwarzacza Tarcza.</string>
     <string name="ui_style_expressive">Ekspresyjny</string>
     <string name="ui_style_expressive_note">Duże nagłówki, pływające paski, zaokrąglone karty i zabawne kształty.</string>
     <string name="unit_hours_approx">≈ %1$.1f godz.</string>

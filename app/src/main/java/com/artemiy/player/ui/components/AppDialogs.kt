@@ -279,7 +279,8 @@ fun AppMenuItem(text: String, icon: ImageVector? = null, selected: Boolean = fal
         trailingIcon = if (selected) {
             { Icon(AppIcons.Check, contentDescription = null, tint = PlayerColors.AccentStandalone, modifier = Modifier.size(18.dp)) }
         } else null,
-        colors = MenuDefaults.itemColors(textColor = color, leadingIconColor = color),
+        // Only the words go red: the icon stays as it is, so the item is noticeable without shouting.
+        colors = MenuDefaults.itemColors(textColor = color, leadingIconColor = PlayerColors.TextPrimary),
         contentPadding = PaddingValues(horizontal = 18.dp),
         onClick = onClick,
     )

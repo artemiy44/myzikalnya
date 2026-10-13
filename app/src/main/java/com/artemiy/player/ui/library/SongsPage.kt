@@ -218,7 +218,7 @@ internal fun SongList(
     LazyColumn(modifier = Modifier.fillMaxWidth().then(if (heroWash != null) Modifier.drawHeroDrain(heroWash, state, heroHeight = COLLAGE_HERO_HEIGHT) else Modifier), state = state, contentPadding = PaddingValues(bottom = LocalBarsInset.current)) {
         if (header != null) item(key = "header") { header() }
         itemsIndexed(songs, key = { _, song -> song.id }) { index, song ->
-            val expressive = com.artemiy.player.ui.theme.expressiveUi
+            val expressive = com.artemiy.player.ui.theme.expressiveUi || com.artemiy.player.ui.theme.discUi
             // The side margins sit outside the swiped part, so the swipe strips start at the row's own
             // edge (the card in the expressive look, the press highlight in the classic one).
             Box(

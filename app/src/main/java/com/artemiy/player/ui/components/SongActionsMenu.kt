@@ -185,6 +185,16 @@ private fun SongActionsMenuItems(
             icon = AppIcons.Info,
             onClick = { onDismiss(); showInfo = true },
         )
+        // Asks first, then the system asks too (the same as the swipe to the left on the Tracks list).
+        val delete = LocalSongSwipeActions.current?.delete
+        if (delete != null) {
+            AppMenuItem(
+                text = stringResource(R.string.delete),
+                icon = AppIcons.Delete,
+                destructive = true,
+                onClick = { onDismiss(); delete(song) },
+            )
+        }
     }
 
     if (showInfo) {

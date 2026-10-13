@@ -39,12 +39,15 @@
     <string name="backup_save">백업 파일 저장</string>
     <string name="backup_save_sub">재생목록, 통계, 설정을 한 파일에</string>
     <string name="backup_saved">백업을 저장했습니다</string>
+    <string name="bg_group_neutral">기본</string>
+    <string name="bg_group_tinted">색조</string>
     <string name="bg_live">라이브 블러</string>
     <string name="bg_live_sub">흐릿한 앨범 커버가 부드럽게 «숨 쉽니다» — 매끄러운 움직임과 확대.</string>
     <string name="bg_none">블러 없음</string>
     <string name="bg_none_sub">커버 없이 앱의 기본 배경.</string>
     <string name="bg_static">정지 블러</string>
     <string name="bg_static_sub">커버는 흐릿하지만 움직이지 않습니다.</string>
+    <string name="bg_wallpaper">배경화면</string>
     <string name="bye_1">준비 완료!</string>
     <string name="bye_2">믹스와 주간 요약은 취향을 파악하는 데 약 9일이 걸립니다.</string>
     <string name="bye_3">나머지는 모두 설정에 있습니다 — 홈의 이 버튼 뒤에요.</string>
@@ -71,6 +74,13 @@
     <string name="close">닫기</string>
     <string name="create">만들기</string>
     <string name="create_playlist">플레이리스트 만들기</string>
+    <string name="dark_amoled">AMOLED</string>
+    <string name="dark_coffee">커피</string>
+    <string name="dark_forest">포레스트</string>
+    <string name="dark_gnome">GNOME</string>
+    <string name="dark_material">Material</string>
+    <string name="dark_midnight">미드나이트</string>
+    <string name="dark_plum">플럼</string>
     <string name="daypart_afternoon">오후에</string>
     <string name="daypart_evening">저녁에</string>
     <string name="daypart_morning">아침에</string>
@@ -88,6 +98,9 @@
     <string name="dial_look_card">카드</string>
     <string name="dial_look_full">전체 화면</string>
     <string name="disc_n">디스크 %1$s</string>
+    <string name="disc_sub_home">오늘 밤</string>
+    <string name="disc_sub_library">나의</string>
+    <string name="disc_sub_search">무엇이든</string>
     <string name="drag">끌기</string>
     <string name="endless_play">무한 재생</string>
     <string name="fade_long">길게</string>
@@ -134,6 +147,8 @@
     <string name="lang_expressive_hint">같은 내용을 더 생기 있고 친근하게</string>
     <string name="library_tabs_hint">핸들을 끌어 순서를 바꿔요. 스위치로 섹션을 표시하거나 숨겨요.</string>
     <string name="light_concrete">콘크리트</string>
+    <string name="light_mist">미스트</string>
+    <string name="light_paper">페이퍼</string>
     <string name="light_soft">중간</string>
     <string name="light_white">흰색</string>
     <string name="lyrics">가사</string>
@@ -239,6 +254,7 @@
     <string name="save">저장</string>
     <string name="save_to_my_playlists">내 플레이리스트에 저장</string>
     <string name="saved_to_playlists">플레이리스트에 저장했어요</string>
+    <string name="screen_corners_default">기본</string>
     <string name="search_albums">앨범 검색</string>
     <string name="search_artists">아티스트 검색</string>
     <string name="search_hint">제목, 아티스트, 가사 한 줄</string>
@@ -321,6 +337,8 @@
     <string name="set_scan_all">선택한 폴더 없음 — 시스템이 음악으로 여기는 모든 것을 스캔합니다(벨소리나 알림음이 섞이기도 합니다). 폴더를 표시하면 그 폴더만 스캔합니다.</string>
     <string name="set_scan_folders">스캔할 폴더</string>
     <string name="set_scan_picked">선택한 폴더와 그 안의 모든 것(하위 폴더 포함)만 스캔합니다.</string>
+    <string name="set_screen_corners">화면 모서리</string>
+    <string name="set_screen_corners_desc">이 휴대폰은 화면이 얼마나 둥근지 앱에 알려 주지 않습니다. 디스크 플레이어의 카드와 버튼이 모서리를 따르도록 설정하세요.</string>
     <string name="set_show_welcome">환영 화면 다시 보기</string>
     <string name="set_split_now">현재 여러 아티스트로 나뉜 항목</string>
     <string name="set_start_tab">시작할 때 열 탭</string>
@@ -378,6 +396,8 @@
     <string name="tracks">곡</string>
     <string name="ui_style_classic">클래식</string>
     <string name="ui_style_classic_note">차분하고 평평한 익숙한 모습.</string>
+    <string name="ui_style_disc">다이얼</string>
+    <string name="ui_style_disc_note">굵은 투톤 제목, 둥근 타일, 매트한 패널, 하나뿐인 강조색. 다이얼 플레이어의 분위기입니다.</string>
     <string name="ui_style_expressive">익스프레시브</string>
     <string name="ui_style_expressive_note">큰 제목, 떠 있는 바, 둥근 카드와 재미있는 모양.</string>
     <string name="unit_hours_approx">약 %1$.1f시간</string>

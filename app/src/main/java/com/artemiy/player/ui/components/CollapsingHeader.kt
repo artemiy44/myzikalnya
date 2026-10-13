@@ -272,12 +272,6 @@ fun BoxScope.HeroBar(shown: Boolean, title: String, onBack: () -> Unit) {
             )
         }
         Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(PlayerColors.Border))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(FADE_HEIGHT)
-                .background(Brush.verticalGradient(listOf(PlayerColors.Background, Color.Transparent))),
-        )
     }
 }
 

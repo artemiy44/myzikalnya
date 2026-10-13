@@ -164,6 +164,14 @@
   "en": "Backup saved",
   "ru": "Копия сохранена"
  },
+ "bg_group_neutral": {
+  "en": "Neutral",
+  "ru": "Нейтральные"
+ },
+ "bg_group_tinted": {
+  "en": "Tinted",
+  "ru": "С оттенком"
+ },
  "bg_live": {
   "en": "Live blur",
   "ru": "Живой блюр"
@@ -187,6 +195,10 @@
  "bg_static_sub": {
   "en": "The cover is blurred but stays still.",
   "ru": "Обложка размыта, но неподвижна."
+ },
+ "bg_wallpaper": {
+  "en": "Wallpaper",
+  "ru": "Обои"
  },
  "bye_1": {
   "en": "All set!",
@@ -272,6 +284,10 @@
   "en": "Pause",
   "ru": "Пауза"
  },
+ "cd_plate_seek": {
+  "en": "Seek",
+  "ru": "Перемотка"
+ },
  "cd_play": {
   "en": "Play",
   "ru": "Играть"
@@ -295,6 +311,34 @@
  "create_playlist": {
   "en": "Create playlist",
   "ru": "Создать плейлист"
+ },
+ "dark_amoled": {
+  "en": "AMOLED",
+  "ru": "AMOLED"
+ },
+ "dark_coffee": {
+  "en": "Coffee",
+  "ru": "Кофе"
+ },
+ "dark_forest": {
+  "en": "Forest",
+  "ru": "Лес"
+ },
+ "dark_gnome": {
+  "en": "GNOME",
+  "ru": "GNOME"
+ },
+ "dark_material": {
+  "en": "Material",
+  "ru": "Material"
+ },
+ "dark_midnight": {
+  "en": "Midnight",
+  "ru": "Полночь"
+ },
+ "dark_plum": {
+  "en": "Plum",
+  "ru": "Слива"
  },
  "daypart_afternoon": {
   "en": "in the afternoon",
@@ -354,9 +398,29 @@
   "en": "USB headphones",
   "ru": "USB-наушники"
  },
+ "dial_look_card": {
+  "en": "Card",
+  "ru": "Карточка"
+ },
+ "dial_look_full": {
+  "en": "Full screen",
+  "ru": "На весь экран"
+ },
  "disc_n": {
   "en": "Disc %1$s",
   "ru": "Диск %1$s"
+ },
+ "disc_sub_home": {
+  "en": "Tonight",
+  "ru": "Сегодня"
+ },
+ "disc_sub_library": {
+  "en": "Yours",
+  "ru": "Твоя"
+ },
+ "disc_sub_search": {
+  "en": "Anything",
+  "ru": "Всё"
  },
  "drag": {
   "en": "Drag",
@@ -559,6 +623,14 @@
  "light_concrete": {
   "en": "Concrete",
   "ru": "Бетон"
+ },
+ "light_mist": {
+  "en": "Mist",
+  "ru": "Дымка"
+ },
+ "light_paper": {
+  "en": "Paper",
+  "ru": "Бумага"
  },
  "light_soft": {
   "en": "Between",
@@ -831,6 +903,10 @@
   "en": "Calm, in the spirit of Apple Music: cover, lyrics and queue all in one place.",
   "ru": "Спокойный, в духе Apple Music: обложка, текст и очередь в одном месте."
  },
+ "onb_player_dial_hint": {
+  "en": "Distinct, in the spirit of a pocket gadget: big type, square buttons and a plate you turn to wind the song.",
+  "ru": "Особенный, в духе карманного гаджета: крупный шрифт, квадратные кнопки и пластинка, которую можно крутить для перемотки."
+ },
  "onb_player_expressive_hint": {
   "en": "Bold, in the spirit of Material: big buttons, a wavy bar and the queue at the bottom.",
   "ru": "Смелый, в духе Material: крупные кнопки, волнистая полоса и очередь снизу."
@@ -866,6 +942,10 @@
  "player_classic": {
   "en": "Classic",
   "ru": "Классический"
+ },
+ "player_dial": {
+  "en": "Dial",
+  "ru": "Диск"
  },
  "player_expressive": {
   "en": "Expressive",
@@ -1059,6 +1139,10 @@
   "ru": "Сохранено в плейлисты",
   "ru_x": "Сохранено — теперь живёт в плейлистах"
  },
+ "screen_corners_default": {
+  "en": "Default",
+  "ru": "Обычное"
+ },
  "search_albums": {
   "en": "Search albums",
   "ru": "Поиск по альбомам"
@@ -1160,6 +1244,18 @@
  "set_dark_bg": {
   "en": "Dark theme background",
   "ru": "Фон тёмной темы"
+ },
+ "set_dial_card_desc": {
+  "en": "The background (the blur you picked; with no blur, the album's colour and its genre picture) sits in a card up top; the rest stays in the app's own colours.",
+  "ru": "Фон (выбранный блюр, а без блюра — цвет альбома и картинка жанра) лежит в карточке сверху, а всё остальное — в цветах приложения."
+ },
+ "set_dial_full_desc": {
+  "en": "The background fills the whole screen; with no blur, just the app's background colour, the accent only on the play button.",
+  "ru": "Фон заполняет весь экран; без блюра — просто фон приложения, акцент только на кнопке плей."
+ },
+ "set_dial_look": {
+  "en": "Look",
+  "ru": "Вид"
  },
  "set_dont_split": {
   "en": "Don't split",
@@ -1334,6 +1430,10 @@
   "en": "Rounded cover, volume slider; lyrics and queue open in place of the cover",
   "ru": "Скруглённая обложка, громкость; текст и очередь открываются на месте обложки"
  },
+ "set_player_dial_desc": {
+  "en": "The title big up top; below, a grid of square buttons: a plate that spins with the song (turn it with a finger to wind), the queue (hold it for the lyrics), back, next and play.",
+  "ru": "Название крупно сверху; внизу сетка квадратных кнопок: пластинка, которая крутится вместе с песней (покрути пальцем — перемотка), очередь (зажми — текст песни), назад, вперёд и пауза."
+ },
  "set_player_expressive_desc": {
   "en": "Big rounded cover, wavy bar, chunky buttons, queue in a pull-up sheet",
   "ru": "Большая скруглённая обложка, волнистая полоса, крупные кнопки, очередь в выдвижной шторке"
@@ -1373,6 +1473,14 @@
  "set_scan_picked": {
   "en": "Only the picked folders and everything in them (subfolders included) are scanned.",
   "ru": "Сканируются только выбранные папки и всё, что лежит в них (включая подпапки)."
+ },
+ "set_screen_corners": {
+  "en": "Screen corners",
+  "ru": "Скругление экрана"
+ },
+ "set_screen_corners_desc": {
+  "en": "This phone doesn't tell the app how round its screen is. Set it so the card and the buttons of the Dial player follow the corners.",
+  "ru": "Этот телефон не сообщает приложению, насколько скруглён его экран. Задай, чтобы карточка и кнопки плеера «Диск» шли вровень с углами."
  },
  "set_show_welcome": {
   "en": "Show the welcome again",
@@ -1654,6 +1762,14 @@
   "en": "Calm and flat — the familiar look.",
   "ru": "Спокойный и плоский — привычный вид."
  },
+ "ui_style_disc": {
+  "en": "Dial",
+  "ru": "Диск"
+ },
+ "ui_style_disc_note": {
+  "en": "Heavy two-tone headings, rounded-square tiles, matte panels and a single accent — in the spirit of the Dial player.",
+  "ru": "Жирные двухцветные заголовки, скруглённые плитки, матовые панели и один акцент — в духе плеера «Диск»."
+ },
  "ui_style_expressive": {
   "en": "Expressive",
   "ru": "Экспрессивный"
@@ -1767,41 +1883,5 @@
  "years": {
   "en": "Years",
   "ru": "Годы"
- },
- "player_dial": {
-  "en": "Dial",
-  "ru": "Диск"
- },
- "set_player_dial_desc": {
-  "en": "The title big up top; below, a grid of square buttons: a plate that spins with the song (turn it with a finger to wind), the queue (hold it for the lyrics), back, next and play.",
-  "ru": "Название крупно сверху; внизу сетка квадратных кнопок: пластинка, которая крутится вместе с песней (покрути пальцем — перемотка), очередь (зажми — текст песни), назад, вперёд и пауза."
- },
- "set_dial_look": {
-  "en": "Look",
-  "ru": "Вид"
- },
- "dial_look_card": {
-  "en": "Card",
-  "ru": "Карточка"
- },
- "dial_look_full": {
-  "en": "Full screen",
-  "ru": "На весь экран"
- },
- "set_dial_card_desc": {
-  "en": "The background (the blur you picked; with no blur, the album's colour and its genre picture) sits in a card up top; the rest stays in the app's own colours.",
-  "ru": "Фон (выбранный блюр, а без блюра — цвет альбома и картинка жанра) лежит в карточке сверху, а всё остальное — в цветах приложения."
- },
- "set_dial_full_desc": {
-  "en": "The background fills the whole screen; with no blur, just the app's background colour, the accent only on the play button.",
-  "ru": "Фон заполняет весь экран; без блюра — просто фон приложения, акцент только на кнопке плей."
- },
- "onb_player_dial_hint": {
-  "en": "Distinct, in the spirit of a pocket gadget: big type, square buttons and a plate you turn to wind the song.",
-  "ru": "Особенный, в духе карманного гаджета: крупный шрифт, квадратные кнопки и пластинка, которую можно крутить для перемотки."
- },
- "cd_plate_seek": {
-  "en": "Seek",
-  "ru": "Перемотка"
  }
 }

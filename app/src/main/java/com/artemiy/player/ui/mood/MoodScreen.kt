@@ -256,6 +256,29 @@ fun MoodScreen(onPlayMood: (Mood) -> Unit, genresFor: (Mood) -> List<String>) {
 
         }
 
+        // "Диск": the mood's number as big digits in a corner, "02" in full and "/05" in the second tone.
+        if (com.artemiy.player.ui.theme.discUi) Row(
+            modifier = Modifier.align(Alignment.TopStart).padding(start = 20.dp, top = 20.dp),
+            verticalAlignment = Alignment.Bottom,
+        ) {
+            Text(
+                text = "%02d".format(pager.currentPage + 1),
+                color = PlayerColors.TextPrimary,
+                fontSize = 56.sp,
+                lineHeight = 52.sp,
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = (-1.5).sp,
+            )
+            Text(
+                text = "/%02d".format(MOOD_DISPLAY_ORDER.size),
+                color = PlayerColors.TextTertiary,
+                fontSize = 24.sp,
+                lineHeight = 30.sp,
+                fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier.padding(start = 4.dp, bottom = 4.dp),
+            )
+        }
+
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -279,9 +302,9 @@ fun MoodScreen(onPlayMood: (Mood) -> Unit, genresFor: (Mood) -> List<String>) {
                             fontSize = 12.sp,
                             maxLines = 1,
                             modifier = Modifier
-                                .clip(CircleShape)
-                                .background(PlayerColors.Surface)
-                                .padding(horizontal = 12.dp, vertical = 5.dp),
+                                .clip(if (com.artemiy.player.ui.theme.discUi) RoundedCornerShape(12.dp) else CircleShape)
+                                .background(if (com.artemiy.player.ui.theme.discUi) com.artemiy.player.ui.theme.Disc.tileFill else PlayerColors.Surface)
+                                .padding(horizontal = 12.dp, vertical = if (com.artemiy.player.ui.theme.discUi) 7.dp else 5.dp),
                         )
                     }
                 }
@@ -427,6 +450,24 @@ private fun DrawScope.morphedLoop(
 @Composable
 private fun MoodPlayButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     val interaction = remember { MutableInteractionSource() }
+    if (com.artemiy.player.ui.theme.discUi) {
+        // A wide accent tile, like the pages' "Слушать".
+        Row(
+            modifier = modifier
+                .width(220.dp)
+                .height(60.dp)
+                .pressScale(interaction, pressedScale = 0.95f)
+                .clip(RoundedCornerShape(20.dp))
+                .background(PlayerColors.Accent)
+                .clickable(interactionSource = interaction, indication = null, onClick = onClick),
+            horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(imageVector = AppIcons.Play, contentDescription = null, tint = PlayerColors.OnAccent, modifier = Modifier.size(20.dp))
+            Text(text = stringResource(R.string.action_listen), color = PlayerColors.OnAccent, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+        }
+        return
+    }
     if (com.artemiy.player.ui.theme.expressiveUi) {
         // Expressive: like the pages' button group — a big play symbol that swells under the
         // finger on a bouncy spring, its round ends tightening.

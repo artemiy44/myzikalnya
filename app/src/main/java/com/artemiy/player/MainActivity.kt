@@ -9,6 +9,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -87,6 +88,7 @@ import com.artemiy.player.playback.SourceArt
 import com.artemiy.player.playback.SourcePlace
 import com.artemiy.player.ui.components.AppTab
 import com.artemiy.player.ui.components.MiniPlayer
+import com.artemiy.player.ui.components.DiscMiniPlayer
 import com.artemiy.player.ui.components.ArtistChoiceDialog
 import com.artemiy.player.data.ArtistNames
 import com.artemiy.player.data.artists
@@ -153,6 +155,9 @@ class MainActivity : ComponentActivity() {
             CompositionLocalProvider(
                 LocalIconSet provides settings.iconSet,
                 com.artemiy.player.ui.theme.LocalUiStyle provides settings.uiStyle,
+                com.artemiy.player.ui.theme.LocalScreenCornerSetting provides remember(settings.screenCornerDp) {
+                    com.artemiy.player.ui.theme.ScreenCornerSetting(settings.screenCornerDp) { settings.updateScreenCornerDp(it) }
+                },
                 com.artemiy.player.ui.nowplaying.LocalLrcGapDots provides settings.lrcGapDots,
                 com.artemiy.player.ui.components.LocalHeroBleed provides (settings.heroStyle == com.artemiy.player.data.HeroStyle.VIVID),
             ) {
@@ -449,6 +454,8 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 true
             }
             if (gone) {
+                // The song that was playing goes: on to the next one, rather than stumbling on a missing file.
+                if (playback.currentSong?.id == song.id) playback.skipNext()
                 rescanTrigger++
                 android.widget.Toast.makeText(context, R.string.song_deleted, android.widget.Toast.LENGTH_SHORT).show()
             } else {
@@ -465,6 +472,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 deleteLauncher.launch(androidx.activity.result.IntentSenderRequest.Builder(request.intentSender).build())
             } else if (resolver.delete(song.uri, null, null) > 0) {
                 deleting = null
+                if (playback.currentSong?.id == song.id) playback.skipNext()
                 rescanTrigger++
                 android.widget.Toast.makeText(context, R.string.song_deleted, android.widget.Toast.LENGTH_SHORT).show()
             } else {
@@ -510,14 +518,53 @@ private fun PlayerApp(settings: SettingsViewModel) {
         },
         containerColor = androidx.compose.ui.graphics.Color.Transparent,
         bottomBar = {
-            Column {
-                if (!com.artemiy.player.ui.theme.expressiveUi) Box(
+            val discBars = com.artemiy.player.ui.theme.discUi
+            val discMini = discBars && settings.playerStyle == PlayerStyle.DIAL
+            val miniDrag = Modifier.draggable(
+                orientation = Orientation.Vertical,
+                enabled = playback.currentSong != null,
+                state = rememberDraggableState { delta ->
+                    showNowPlaying = true
+                    scope.launch {
+                        nowPlayingExpand.snapTo((nowPlayingExpand.value - delta / expandTravelPx).coerceIn(0f, 1f))
+                    }
+                },
+                onDragStopped = { velocity ->
+                    val open = velocity < -800f || (velocity <= 800f && nowPlayingExpand.value > 0.35f)
+                    val speed = -velocity / expandTravelPx
+                    if (open) openNowPlaying(speed) else closeNowPlaying(velocity = speed)
+                },
+            )
+            Column(
+                modifier = Modifier
+                    // Solid to the touch all over, the gaps round the floating bars included: a tap
+                    // beside a tab is no tap on the page that runs on under it.
+                    .pointerInput(Unit) { detectTapGestures { } }
+                    .then(if (discBars) Modifier.background(
+                    // No solid block behind the tiles: the page fades softly out under them.
+                    androidx.compose.ui.graphics.Brush.verticalGradient(
+                        0f to androidx.compose.ui.graphics.Color.Transparent,
+                        1f to PlayerColors.Background.copy(alpha = 0.85f),
+                    ),
+                ) else Modifier),
+            ) {
+                if (!com.artemiy.player.ui.theme.expressiveUi && !discBars) Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(1.dp)
                         .background(PlayerColors.Border),
                 )
-                MiniPlayer(
+                if (discMini) DiscMiniPlayer(
+                    title = playback.currentSong?.title ?: stringResource(R.string.nothing_playing),
+                    artist = playback.currentSong?.artist ?: stringResource(R.string.no_track_chosen),
+                    isPlaying = playback.isPlaying,
+                    onOpen = { if (playback.currentSong != null) openNowPlaying() },
+                    onTogglePlayPause = { playback.togglePlayPause() },
+                    onSkipNext = { playback.skipNext() },
+                    anchors = miniAnchors,
+                    textScrolls = !showNowPlaying,
+                    modifier = miniDrag,
+                ) else MiniPlayer(
                     title = playback.currentSong?.title ?: stringResource(R.string.nothing_playing),
                     artist = playback.currentSong?.artist ?: stringResource(R.string.no_track_chosen),
                     albumArtUri = playback.currentSong?.uri,
@@ -531,22 +578,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                     textScrolls = !showNowPlaying,
                     progress = { if (playback.durationMs > 0) playback.positionMs.toFloat() / playback.durationMs else 0f },
                     progressShown = !showNowPlaying,
-                    // Drag it up to pull the classic player open with the finger.
-                    modifier = Modifier.draggable(
-                        orientation = Orientation.Vertical,
-                        enabled = playback.currentSong != null,
-                        state = rememberDraggableState { delta ->
-                            showNowPlaying = true
-                            scope.launch {
-                                nowPlayingExpand.snapTo((nowPlayingExpand.value - delta / expandTravelPx).coerceIn(0f, 1f))
-                            }
-                        },
-                        onDragStopped = { velocity ->
-                            val open = velocity < -800f || (velocity <= 800f && nowPlayingExpand.value > 0.35f)
-                            val speed = -velocity / expandTravelPx
-                            if (open) openNowPlaying(speed) else closeNowPlaying(velocity = speed)
-                        },
-                    ),
+                    modifier = miniDrag,
                 )
                 PlayerBottomBar(selected = selectedTab, onSelect = { tab ->
                     if (tab != selectedTab) {
@@ -562,7 +594,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
     ) { innerPadding ->
         // Expressive: the tab pages run on under the floating mini player and tab bar (nothing
         // behind those), padding their scrolling ends instead; classic keeps them above the bars.
-        val floatingBars = com.artemiy.player.ui.theme.expressiveUi
+        val floatingBars = com.artemiy.player.ui.theme.expressiveUi || com.artemiy.player.ui.theme.discUi
         CompositionLocalProvider(
             com.artemiy.player.ui.theme.LocalBarsInset provides if (floatingBars) innerPadding.calculateBottomPadding() else 0.dp,
         ) {

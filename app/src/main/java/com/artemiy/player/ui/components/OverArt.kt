@@ -19,6 +19,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.DisposableEffect
@@ -30,6 +33,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.layer.drawLayer
@@ -169,7 +173,7 @@ private fun averageLuminance(bitmap: Bitmap, fromY: Float, toY: Float): Float {
  */
 @Composable
 fun Modifier.heroPanel(roundTop: Boolean = false, roundBottom: Boolean = false): Modifier {
-    if (!LocalHeroBleed.current) return this
+    if (!LocalHeroBleed.current || com.artemiy.player.ui.theme.discUi) return this
     val shape = androidx.compose.foundation.shape.RoundedCornerShape(
         topStart = if (roundTop) 26.dp else 0.dp, topEnd = if (roundTop) 26.dp else 0.dp,
         bottomStart = if (roundBottom) 26.dp else 0.dp, bottomEnd = if (roundBottom) 26.dp else 0.dp,
@@ -323,8 +327,16 @@ fun HeroOverArt(
     washKey: String? = null,
     /** A lazy-list page keeps the draining wash itself (see [drawHeroDrain]); the header only reports it. */
     washOut: HeroWashState? = null,
+    /** "Диск" look: the picture is round (an artist) rather than a rounded square. */
+    roundArt: Boolean = false,
+    /** "Диск" look: the counts shown as big digits beside the picture ("94 songs", "7 albums"). */
+    discStats: List<String> = emptyList(),
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    if (com.artemiy.player.ui.theme.discUi) {
+        DiscHero(onBack, art, roundArt, discStats, content)
+        return
+    }
     val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val density = LocalDensity.current
     var contentHeightPx by remember { mutableIntStateOf(0) }
@@ -466,5 +478,93 @@ fun HeroOverArt(
             horizontalAlignment = Alignment.CenterHorizontally,
             content = content,
         )
+    }
+}
+
+/** The text colour for a page header's title: white on the picture, the page's own in the disc look. */
+val heroText: Color
+    @Composable get() = if (com.artemiy.player.ui.theme.discUi) PlayerColors.TextPrimary else Color.White
+
+/** A header title's size: the disc look makes it big and heavy. */
+@Composable
+fun heroTitleSize(normal: androidx.compose.ui.unit.TextUnit): androidx.compose.ui.unit.TextUnit =
+    if (com.artemiy.player.ui.theme.discUi) 40.sp else normal
+
+val heroSubText: Color
+    @Composable get() = if (com.artemiy.player.ui.theme.discUi) PlayerColors.TextSecondary else Color.White.copy(alpha = 0.85f)
+
+val heroTextAlign: androidx.compose.ui.text.style.TextAlign
+    @Composable get() = if (com.artemiy.player.ui.theme.discUi) androidx.compose.ui.text.style.TextAlign.Start else androidx.compose.ui.text.style.TextAlign.Center
+
+/**
+ * The "Диск" page header: a back tile, the picture as a rounded square (round for an artist) with
+ * the counts as big digits beside it, then the title and the three button tiles.
+ */
+@Composable
+private fun DiscHero(
+    onBack: () -> Unit,
+    art: @Composable BoxScope.() -> Unit,
+    roundArt: Boolean,
+    stats: List<String>,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 20.dp)) {
+        Box(
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .size(44.dp)
+                .clip(androidx.compose.foundation.shape.CircleShape)
+                .background(com.artemiy.player.ui.theme.Disc.tileFill)
+                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onBack() },
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(AppIcons.Back, contentDescription = stringResource(R.string.cd_back), tint = PlayerColors.TextPrimary, modifier = Modifier.size(22.dp))
+        }
+        androidx.compose.foundation.layout.Row(
+            modifier = Modifier.padding(top = 14.dp),
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.Bottom,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(172.dp)
+                    .clip(if (roundArt) androidx.compose.foundation.shape.CircleShape else androidx.compose.foundation.shape.RoundedCornerShape(30.dp)),
+                content = art,
+            )
+            Column(
+                modifier = Modifier.weight(1f).padding(bottom = 10.dp),
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp),
+            ) {
+                stats.take(2).forEachIndexed { i, text ->
+                    val number = text.trim().takeWhile { it.isDigit() }
+                    val label = text.trim().removePrefix(number).trim()
+                    val size = when {
+                        number.length <= 2 -> 56
+                        number.length == 3 -> 48
+                        else -> 40
+                    }
+                    androidx.compose.foundation.layout.Row(verticalAlignment = Alignment.Bottom) {
+                        androidx.compose.material3.Text(
+                            text = number.ifEmpty { text },
+                            color = if (i == 0) PlayerColors.TextPrimary else PlayerColors.TextTertiary,
+                            fontSize = size.sp,
+                            lineHeight = (size - 4).sp,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold,
+                            letterSpacing = (-1.5).sp,
+                            maxLines = 1,
+                        )
+                        if (number.isNotEmpty() && label.isNotEmpty()) androidx.compose.material3.Text(
+                            text = label,
+                            color = PlayerColors.TextSecondary,
+                            fontSize = 14.sp,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                            maxLines = 1,
+                            modifier = Modifier.padding(start = 6.dp, bottom = 4.dp),
+                        )
+                    }
+                }
+            }
+        }
+        Column(modifier = Modifier.padding(top = 14.dp).fillMaxWidth(), content = content)
     }
 }

@@ -39,12 +39,15 @@
     <string name="backup_save">Yedek dosyasını kaydet</string>
     <string name="backup_save_sub">Çalma listeleri, istatistikler ve ayarlar tek dosyada</string>
     <string name="backup_saved">Yedek kaydedildi</string>
+    <string name="bg_group_neutral">Nötr</string>
+    <string name="bg_group_tinted">Tonlu</string>
     <string name="bg_live">Canlı bulanıklık</string>
     <string name="bg_live_sub">Bulanık kapak usulca «nefes alır» — yumuşak hareket ve yakınlaşma.</string>
     <string name="bg_none">Bulanıklık yok</string>
     <string name="bg_none_sub">Uygulamanın olağan arka planı, kapak olmadan.</string>
     <string name="bg_static">Sabit bulanıklık</string>
     <string name="bg_static_sub">Kapak bulanık ama hareketsiz.</string>
+    <string name="bg_wallpaper">Duvar kâğıdı</string>
     <string name="bye_1">Her şey hazır!</string>
     <string name="bye_2">Miksler ve haftalık özetler zevki anlamak için yaklaşık dokuz güne ihtiyaç duyar.</string>
     <string name="bye_3">Geri kalan her şey ayarlarda — Ana sayfadaki bu düğmenin arkasında.</string>
@@ -71,6 +74,13 @@
     <string name="close">Kapat</string>
     <string name="create">Oluştur</string>
     <string name="create_playlist">Çalma listesi oluştur</string>
+    <string name="dark_amoled">AMOLED</string>
+    <string name="dark_coffee">Kahve</string>
+    <string name="dark_forest">Orman</string>
+    <string name="dark_gnome">GNOME</string>
+    <string name="dark_material">Material</string>
+    <string name="dark_midnight">Gece yarısı</string>
+    <string name="dark_plum">Erik</string>
     <string name="daypart_afternoon">öğleden sonra</string>
     <string name="daypart_evening">akşam</string>
     <string name="daypart_morning">sabah</string>
@@ -88,6 +98,9 @@
     <string name="dial_look_card">Kart</string>
     <string name="dial_look_full">Tam ekran</string>
     <string name="disc_n">Disk %1$s</string>
+    <string name="disc_sub_home">Bu akşam</string>
+    <string name="disc_sub_library">Senin</string>
+    <string name="disc_sub_search">Her şey</string>
     <string name="drag">Sürükle</string>
     <string name="endless_play">Sonsuz çalma</string>
     <string name="fade_long">Uzun</string>
@@ -134,6 +147,8 @@
     <string name="lang_expressive_hint">Aynısı, sadece daha canlı ve samimi</string>
     <string name="library_tabs_hint">Sıralamak için tutamaçtan sürükleyin. Anahtar bir bölümü gösterir veya gizler.</string>
     <string name="light_concrete">Beton</string>
+    <string name="light_mist">Sis</string>
+    <string name="light_paper">Kâğıt</string>
     <string name="light_soft">Ara ton</string>
     <string name="light_white">Beyaz</string>
     <string name="lyrics">Şarkı sözleri</string>
@@ -239,6 +254,7 @@
     <string name="save">Kaydet</string>
     <string name="save_to_my_playlists">Çalma listelerime kaydet</string>
     <string name="saved_to_playlists">Çalma listelerine kaydedildi</string>
+    <string name="screen_corners_default">Varsayılan</string>
     <string name="search_albums">Albümlerde ara</string>
     <string name="search_artists">Sanatçılarda ara</string>
     <string name="search_hint">Ad, sanatçı, şarkıdan bir satır</string>
@@ -321,6 +337,8 @@
     <string name="set_scan_all">Hiçbir şey seçilmedi — sistemin müzik saydığı her şey taranır (bazen zil sesleri ve bildirimler de karışır). Klasörler işaretlenirse yalnızca onlar taranır.</string>
     <string name="set_scan_folders">Taranacak klasörler</string>
     <string name="set_scan_picked">Yalnızca seçilen klasörler ve içlerindeki her şey (alt klasörler dahil) taranır.</string>
+    <string name="set_screen_corners">Ekran köşeleri</string>
+    <string name="set_screen_corners_desc">Bu telefon uygulamaya ekranının ne kadar yuvarlak olduğunu söylemiyor. Disk oynatıcının kartı ve düğmeleri köşeleri izlesin diye ayarla.</string>
     <string name="set_show_welcome">Karşılamayı yeniden göster</string>
     <string name="set_split_now">Şu an birkaç sanatçıya bölünenler</string>
     <string name="set_start_tab">Açılışta göster</string>
@@ -378,6 +396,8 @@
     <string name="tracks">Parçalar</string>
     <string name="ui_style_classic">Klasik</string>
     <string name="ui_style_classic_note">Sakin ve düz — alışık olduğun görünüm.</string>
+    <string name="ui_style_disc">Kadran</string>
+    <string name="ui_style_disc_note">Kalın iki tonlu başlıklar, yuvarlatılmış kutucuklar, mat paneller ve tek bir vurgu: Kadran oynatıcısının ruhunda.</string>
     <string name="ui_style_expressive">Etkileyici</string>
     <string name="ui_style_expressive_note">Büyük başlıklar, yüzen çubuklar, yuvarlak kartlar ve eğlenceli şekiller.</string>
     <string name="unit_hours_approx">≈ %1$.1f sa</string>

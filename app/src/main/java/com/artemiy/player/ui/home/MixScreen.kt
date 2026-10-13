@@ -84,7 +84,7 @@ fun MixCard(mix: Mix, onClick: () -> Unit, modifier: Modifier = Modifier) {
         modifier = modifier
             .width(200.dp)
             .height(250.dp)
-            .clip(RoundedCornerShape(if (com.artemiy.player.ui.theme.expressiveUi) 26.dp else 18.dp))
+            .clip(RoundedCornerShape(if (com.artemiy.player.ui.theme.expressiveUi) 26.dp else if (com.artemiy.player.ui.theme.discUi) com.artemiy.player.ui.theme.Disc.tileCorner else 18.dp))
             .background(mixBrush(mix.colorIndex))
             .drawBehind { drawMixMotif(mix.motif, textMeasurer) }
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress, onClick = onClick)
@@ -173,6 +173,7 @@ fun MixScreen(
                 com.artemiy.player.ui.components.heroWashFor(lerp(lerp(base, Color.White, 0.12f), lerp(base, Color.Black, 0.35f), 0.8f))
             },
             barShown = barShown,
+            discStats = listOf(pluralStringResource(R.plurals.songs_count, mix.songs.size, mix.songs.size)),
             art = {
                 val textMeasurer = rememberTextMeasurer()
                 // The card's picture, big, drifting slowly.
@@ -196,17 +197,17 @@ fun MixScreen(
         ) {
             Text(
                 text = mix.title,
-                color = Color.White,
-                fontSize = 30.sp,
+                color = com.artemiy.player.ui.components.heroText,
+                fontSize = com.artemiy.player.ui.components.heroTitleSize(30.sp),
                 fontWeight = FontWeight.ExtraBold,
-                textAlign = TextAlign.Center,
+                textAlign = com.artemiy.player.ui.components.heroTextAlign,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 style = TextStyle(shadow = HeroTextShadow).inAppFont(),
             )
             Text(
                 text = pluralStringResource(R.plurals.songs_count, mix.songs.size, mix.songs.size) + " · " + stringResource(R.string.mix_updates_daily),
-                color = Color.White.copy(alpha = 0.85f),
+                color = com.artemiy.player.ui.components.heroSubText,
                 fontSize = 13.sp,
                 modifier = Modifier.padding(top = 4.dp),
                 style = TextStyle(shadow = HeroTextShadow).inAppFont(),

@@ -3,6 +3,7 @@ package com.artemiy.player.ui.settings
 import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
@@ -58,6 +59,7 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         private set
     var playerStyle by mutableStateOf(PlayerStyle.CLASSIC)
     var dialCard by mutableStateOf(true)
+    var screenCornerDp by mutableIntStateOf(0)
         private set
 
     var nowPlayingBackgroundMode by mutableStateOf(NowPlayingBackgroundMode.LIVE_BLUR)
@@ -158,6 +160,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             repository.dialCard.collect { dialCard = it }
+        }
+        viewModelScope.launch {
+            repository.screenCornerDp.collect { screenCornerDp = it }
         }
         viewModelScope.launch {
             repository.heroStyle.collect { heroStyle = it }
@@ -293,6 +298,11 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     fun updateHeroStyle(style: HeroStyle) {
         heroStyle = style
         viewModelScope.launch { repository.setHeroStyle(style) }
+    }
+
+    fun updateScreenCornerDp(dp: Int) {
+        screenCornerDp = dp
+        viewModelScope.launch { repository.setScreenCornerDp(dp) }
     }
 
     fun updateDialCard(card: Boolean) {

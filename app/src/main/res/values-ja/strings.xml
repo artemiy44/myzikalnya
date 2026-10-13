@@ -39,12 +39,15 @@
     <string name="backup_save">バックアップファイルを保存</string>
     <string name="backup_save_sub">プレイリスト、統計、設定を1つのファイルに</string>
     <string name="backup_saved">バックアップを保存しました</string>
+    <string name="bg_group_neutral">ニュートラル</string>
+    <string name="bg_group_tinted">色付き</string>
     <string name="bg_live">ライブぼかし</string>
     <string name="bg_live_sub">ぼかしたジャケットがゆっくり「呼吸」します — なめらかな動きとズーム。</string>
     <string name="bg_none">ぼかしなし</string>
     <string name="bg_none_sub">アプリの通常の背景（ジャケットなし）。</string>
     <string name="bg_static">静止ぼかし</string>
     <string name="bg_static_sub">ジャケットはぼかしますが、動きません。</string>
+    <string name="bg_wallpaper">壁紙</string>
     <string name="bye_1">準備完了！</string>
     <string name="bye_2">ミックスと週間まとめは、好みをつかむまでに約 9 日かかります。</string>
     <string name="bye_3">そのほかの設定はすべて、ホームのこのボタンの中にあります。</string>
@@ -71,6 +74,13 @@
     <string name="close">閉じる</string>
     <string name="create">作成</string>
     <string name="create_playlist">プレイリストを作成</string>
+    <string name="dark_amoled">AMOLED</string>
+    <string name="dark_coffee">コーヒー</string>
+    <string name="dark_forest">フォレスト</string>
+    <string name="dark_gnome">GNOME</string>
+    <string name="dark_material">Material</string>
+    <string name="dark_midnight">ミッドナイト</string>
+    <string name="dark_plum">プラム</string>
     <string name="daypart_afternoon">午後</string>
     <string name="daypart_evening">夕方</string>
     <string name="daypart_morning">朝</string>
@@ -88,6 +98,9 @@
     <string name="dial_look_card">カード</string>
     <string name="dial_look_full">全画面</string>
     <string name="disc_n">ディスク %1$s</string>
+    <string name="disc_sub_home">今夜</string>
+    <string name="disc_sub_library">あなたの</string>
+    <string name="disc_sub_search">なんでも</string>
     <string name="drag">ドラッグ</string>
     <string name="endless_play">エンドレス再生</string>
     <string name="fade_long">長め</string>
@@ -134,6 +147,8 @@
     <string name="lang_expressive_hint">同じ内容を、もっと生き生きと親しみやすく</string>
     <string name="library_tabs_hint">ハンドルをドラッグして並べ替えます。スイッチでセクションを表示／非表示にできます。</string>
     <string name="light_concrete">コンクリート</string>
+    <string name="light_mist">ミスト</string>
+    <string name="light_paper">ペーパー</string>
     <string name="light_soft">中間</string>
     <string name="light_white">ホワイト</string>
     <string name="lyrics">歌詞</string>
@@ -239,6 +254,7 @@
     <string name="save">保存</string>
     <string name="save_to_my_playlists">マイプレイリストに保存</string>
     <string name="saved_to_playlists">プレイリストに保存しました</string>
+    <string name="screen_corners_default">標準</string>
     <string name="search_albums">アルバムを検索</string>
     <string name="search_artists">アーティストを検索</string>
     <string name="search_hint">曲名、アーティスト、歌詞の一節</string>
@@ -321,6 +337,8 @@
     <string name="set_scan_all">何も選ばれていません — システムが音楽とみなすものをすべてスキャンします（着信音や通知音が混ざることもあります）。フォルダを選ぶと、そのフォルダだけをスキャンします。</string>
     <string name="set_scan_folders">スキャンするフォルダ</string>
     <string name="set_scan_picked">選んだフォルダとその中身（サブフォルダを含む）だけをスキャンします。</string>
+    <string name="set_screen_corners">画面の角丸</string>
+    <string name="set_screen_corners_desc">この端末は画面の角の丸みをアプリに伝えません。ディスクプレーヤーのカードとボタンが角に沿うよう設定してください。</string>
     <string name="set_show_welcome">ようこそ画面をもう一度表示</string>
     <string name="set_split_now">現在、複数のアーティストに分かれているもの</string>
     <string name="set_start_tab">起動時に開くタブ</string>
@@ -378,6 +396,8 @@
     <string name="tracks">曲</string>
     <string name="ui_style_classic">クラシック</string>
     <string name="ui_style_classic_note">落ち着いたフラットな、いつもの見た目。</string>
+    <string name="ui_style_disc">ダイヤル</string>
+    <string name="ui_style_disc_note">太い2トーンの見出し、角丸のタイル、マットなパネル、アクセントは1つだけ。ダイヤルプレーヤーの雰囲気で。</string>
     <string name="ui_style_expressive">エクスプレッシブ</string>
     <string name="ui_style_expressive_note">大きな見出し、浮かぶバー、丸いカード、遊び心のある形。</string>
     <string name="unit_hours_approx">約 %1$.1f 時間</string>

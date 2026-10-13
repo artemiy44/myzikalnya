@@ -39,12 +39,15 @@
     <string name="backup_save">Salvar arquivo de backup</string>
     <string name="backup_save_sub">Playlists, estatísticas e configurações em um só arquivo</string>
     <string name="backup_saved">Backup salvo</string>
+    <string name="bg_group_neutral">Neutros</string>
+    <string name="bg_group_tinted">Com tom</string>
     <string name="bg_live">Desfoque vivo</string>
     <string name="bg_live_sub">A capa desfocada «respira» suavemente — movimento e zoom fluidos.</string>
     <string name="bg_none">Sem desfoque</string>
     <string name="bg_none_sub">O fundo normal do app, sem capa.</string>
     <string name="bg_static">Desfoque estático</string>
     <string name="bg_static_sub">A capa fica desfocada, mas parada.</string>
+    <string name="bg_wallpaper">Papel de parede</string>
     <string name="bye_1">Tudo pronto!</string>
     <string name="bye_2">Os mixes e os resumos da semana precisam de uns nove dias para conhecer o gosto.</string>
     <string name="bye_3">Todo o resto está nas configurações — atrás deste botão no Início.</string>
@@ -71,6 +74,13 @@
     <string name="close">Fechar</string>
     <string name="create">Criar</string>
     <string name="create_playlist">Criar playlist</string>
+    <string name="dark_amoled">AMOLED</string>
+    <string name="dark_coffee">Café</string>
+    <string name="dark_forest">Floresta</string>
+    <string name="dark_gnome">GNOME</string>
+    <string name="dark_material">Material</string>
+    <string name="dark_midnight">Meia-noite</string>
+    <string name="dark_plum">Ameixa</string>
     <string name="daypart_afternoon">à tarde</string>
     <string name="daypart_evening">no começo da noite</string>
     <string name="daypart_morning">de manhã</string>
@@ -88,6 +98,9 @@
     <string name="dial_look_card">Cartão</string>
     <string name="dial_look_full">Tela cheia</string>
     <string name="disc_n">Disco %1$s</string>
+    <string name="disc_sub_home">Hoje</string>
+    <string name="disc_sub_library">Sua</string>
+    <string name="disc_sub_search">Tudo</string>
     <string name="drag">Arrastar</string>
     <string name="endless_play">Reprodução sem fim</string>
     <string name="fade_long">Longa</string>
@@ -134,6 +147,8 @@
     <string name="lang_expressive_hint">O mesmo, só que mais animado e amigável</string>
     <string name="library_tabs_hint">Arraste pela alça para reordenar. O interruptor mostra ou oculta uma seção.</string>
     <string name="light_concrete">Concreto</string>
+    <string name="light_mist">Névoa</string>
+    <string name="light_paper">Papel</string>
     <string name="light_soft">Intermediário</string>
     <string name="light_white">Branco</string>
     <string name="lyrics">Letra</string>
@@ -239,6 +254,7 @@
     <string name="save">Salvar</string>
     <string name="save_to_my_playlists">Salvar nas minhas playlists</string>
     <string name="saved_to_playlists">Salvo nas playlists</string>
+    <string name="screen_corners_default">Padrão</string>
     <string name="search_albums">Buscar álbuns</string>
     <string name="search_artists">Buscar artistas</string>
     <string name="search_hint">Título, artista, um verso da música</string>
@@ -321,6 +337,8 @@
     <string name="set_scan_all">Nada escolhido — é escaneado tudo o que o sistema considera música (às vezes entram toques e notificações). Com pastas marcadas, só elas são escaneadas.</string>
     <string name="set_scan_folders">Pastas para escanear</string>
     <string name="set_scan_picked">Só as pastas escolhidas e tudo dentro delas (inclusive subpastas) são escaneados.</string>
+    <string name="set_screen_corners">Cantos da tela</string>
+    <string name="set_screen_corners_desc">Este telefone não informa ao app o quanto a tela é arredondada. Ajuste para que o cartão e os botões do player Disco acompanhem os cantos.</string>
     <string name="set_show_welcome">Mostrar as boas-vindas de novo</string>
     <string name="set_split_now">Hoje separados em vários artistas</string>
     <string name="set_start_tab">Abrir ao iniciar</string>
@@ -378,6 +396,8 @@
     <string name="tracks">Faixas</string>
     <string name="ui_style_classic">Clássico</string>
     <string name="ui_style_classic_note">Calmo e plano — o visual de sempre.</string>
+    <string name="ui_style_disc">Disco</string>
+    <string name="ui_style_disc_note">Títulos grossos em dois tons, blocos arredondados, painéis foscos e um único destaque, no espírito do player Disco.</string>
     <string name="ui_style_expressive">Expressivo</string>
     <string name="ui_style_expressive_note">Títulos grandes, barras flutuantes, cartões arredondados e formas divertidas.</string>
     <string name="unit_hours_approx">≈ %1$.1f h</string>

@@ -113,7 +113,7 @@ internal fun ArtistsList(groups: List<ArtistGroup>, state: LazyListState, onArti
     LazyColumn(modifier = Modifier.fillMaxWidth(), state = state, contentPadding = PaddingValues(bottom = LocalBarsInset.current)) {
         itemsIndexed(groups, key = { _, group -> group.name }) { index, group ->
             val coverUri = remember(group) { group.songs.minByOrNull { it.album.lowercase() }?.uri }
-            val expressive = com.artemiy.player.ui.theme.expressiveUi
+            val expressive = com.artemiy.player.ui.theme.expressiveUi || com.artemiy.player.ui.theme.discUi
             val interaction = remember { MutableInteractionSource() }
             Row(
                 modifier = Modifier

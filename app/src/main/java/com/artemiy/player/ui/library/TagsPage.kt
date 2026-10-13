@@ -136,7 +136,7 @@ internal fun TagGrid(
     name: @Composable (TagGroup) -> String,
     mark: @Composable androidx.compose.foundation.layout.BoxScope.(TagGroup) -> Unit,
 ) {
-    val expressive = com.artemiy.player.ui.theme.expressiveUi
+    val expressive = com.artemiy.player.ui.theme.expressiveUi || com.artemiy.player.ui.theme.discUi
     Box(modifier = Modifier.fillMaxSize()) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),

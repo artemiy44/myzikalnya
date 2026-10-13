@@ -127,7 +127,10 @@ fun SearchScreen(
       com.artemiy.player.ui.components.CollapsingHeader(
         title = stringResource(R.string.tab_search),
         bigHeader = {
-            Text(
+            if (com.artemiy.player.ui.theme.discUi) com.artemiy.player.ui.components.DiscPageTitle(
+                stringResource(R.string.tab_search), stringResource(R.string.disc_sub_search),
+                modifier = Modifier.padding(20.dp, 20.dp, 20.dp, 12.dp),
+            ) else Text(
                 text = stringResource(R.string.tab_search),
                 color = PlayerColors.TextPrimary,
                 style = com.artemiy.player.ui.theme.pageTitleStyle,
@@ -141,9 +144,9 @@ fun SearchScreen(
                 .fadesWithHeader()
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
-                .clip(if (com.artemiy.player.ui.theme.expressiveUi) RoundedCornerShape(percent = 50) else RoundedCornerShape(12.dp))
-                .background(PlayerColors.Surface)
-                .padding(horizontal = if (com.artemiy.player.ui.theme.expressiveUi) 18.dp else 14.dp, vertical = if (com.artemiy.player.ui.theme.expressiveUi) 14.dp else 11.dp),
+                .clip(if (com.artemiy.player.ui.theme.expressiveUi) RoundedCornerShape(percent = 50) else if (com.artemiy.player.ui.theme.discUi) RoundedCornerShape(18.dp) else RoundedCornerShape(12.dp))
+                .background(if (com.artemiy.player.ui.theme.discUi) com.artemiy.player.ui.theme.Disc.tileFill else PlayerColors.Surface)
+                .padding(horizontal = if (com.artemiy.player.ui.theme.expressiveUi || com.artemiy.player.ui.theme.discUi) 18.dp else 14.dp, vertical = if (com.artemiy.player.ui.theme.expressiveUi) 14.dp else if (com.artemiy.player.ui.theme.discUi) 15.dp else 11.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
