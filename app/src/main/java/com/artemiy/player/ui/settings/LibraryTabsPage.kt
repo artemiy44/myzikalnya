@@ -113,8 +113,8 @@ internal fun LibraryTabsContent(tabs: List<TabSetting>, onChange: (List<TabSetti
                             onChange(order)
                         },
                         colors = SwitchDefaults.colors(
-                            checkedThumbColor = PlayerColors.OnAccent,
-                            checkedTrackColor = PlayerColors.Accent,
+                            checkedThumbColor = PlayerColors.OnAccent2,
+                            checkedTrackColor = PlayerColors.Accent2,
                             uncheckedThumbColor = PlayerColors.TextSecondary,
                             uncheckedTrackColor = PlayerColors.SurfaceDim,
                             uncheckedBorderColor = PlayerColors.Border,

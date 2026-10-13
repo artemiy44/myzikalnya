@@ -15,6 +15,8 @@ import androidx.activity.compose.BackHandler
 import com.artemiy.player.ui.components.AnimatedBackStack
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -184,7 +186,27 @@ fun SettingsScreen(
                 title = stringResource(page.titleRes),
                 onBack = goBack,
                 bigHeader = {
-            Row(
+            if (com.artemiy.player.ui.theme.discUi) Column(modifier = Modifier.fillMaxWidth().padding(20.dp, 12.dp, 20.dp, 8.dp)) {
+                // The back button as a round tile above the heading, like the other pages.
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(com.artemiy.player.ui.theme.Disc.tileFill)
+                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                            page.parent?.let { route = it } ?: onBack()
+                        },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(AppIcons.Back, contentDescription = stringResource(R.string.cd_back), tint = PlayerColors.TextPrimary, modifier = Modifier.size(22.dp))
+                }
+                Text(
+                    text = stringResource(page.titleRes),
+                    color = PlayerColors.TextPrimary,
+                    style = com.artemiy.player.ui.theme.pageTitleStyle,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+            } else Row(
                 modifier = Modifier.fillMaxWidth().padding(20.dp, 20.dp, 20.dp, 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -300,6 +322,35 @@ fun SettingsScreen(
 
 @Composable
 private fun SettingsCategories(onOpen: (SettingsRoute) -> Unit) {
+    if (com.artemiy.player.ui.theme.discUi) {
+        // "Диск": every section is its own tile — a small square for the icon, the name, what's in it, a chevron.
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState()).barsInset()
+                .padding(horizontal = 12.dp)
+                .navigationBarsPadding(),
+        ) {
+            Spacer(modifier = Modifier.height(12.dp))
+            val tiles = listOf(
+                Triple(AppIcons.General, R.string.set_general to R.string.set_general_sub, SettingsRoute.General),
+                Triple(AppIcons.TextSize, R.string.set_appearance to R.string.set_appearance_sub, SettingsRoute.Appearance),
+                Triple(AppIcons.Library, R.string.set_library to R.string.set_library_sub, SettingsRoute.Library),
+                Triple(AppIcons.Equalizer, R.string.set_playback to R.string.set_playback_sub, SettingsRoute.Playback),
+                Triple(AppIcons.MoodSettings, R.string.tab_mood to R.string.set_mood_sub, SettingsRoute.Mood),
+                Triple(AppIcons.Player, R.string.onb_player to R.string.set_player_sub, SettingsRoute.Player),
+                null,
+                Triple(AppIcons.Download, R.string.set_backup to R.string.set_backup_sub, SettingsRoute.Backup),
+                Triple(AppIcons.Language, R.string.set_language to R.string.set_language_sub, SettingsRoute.Language),
+                Triple(AppIcons.Info, R.string.set_about to R.string.set_about_sub, SettingsRoute.About),
+            )
+            tiles.forEach { tile ->
+                if (tile == null) Spacer(modifier = Modifier.height(14.dp))
+                else DiscSettingsTile(tile.first, stringResource(tile.second.first), stringResource(tile.second.second)) { onOpen(tile.third) }
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+        }
+        return
+    }
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState()).barsInset()
@@ -367,6 +418,7 @@ private fun ColorsContent(
                     stringResource(when (g) {
                         com.artemiy.player.ui.theme.BackgroundGroup.NEUTRAL -> R.string.bg_group_neutral
                         com.artemiy.player.ui.theme.BackgroundGroup.TINTED -> R.string.bg_group_tinted
+                        com.artemiy.player.ui.theme.BackgroundGroup.SCHEMES -> R.string.bg_group_schemes
                         com.artemiy.player.ui.theme.BackgroundGroup.WALLPAPER -> R.string.accent_wallpaper
                     }),
                     g == group,
@@ -414,17 +466,57 @@ private fun ColorsContent(
             verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
         ) {
             // Monochrome: the app's own text color, no hue at all (the default).
-            ColorSwatch(
+            if (family != AccentFamily.SETS) ColorSwatch(
                 color = LocalPlayerPalette.current.textPrimary,
                 selected = accent == null,
                 onClick = { onAccentChange(null) },
             )
-            accentColors(family).forEachIndexed { index, color ->
+            if (family != AccentFamily.SETS) accentColors(family).forEachIndexed { index, color ->
                 ColorSwatch(
                     color = color,
                     selected = accent == AccentChoice(family, index),
                     onClick = { onAccentChange(AccentChoice(family, index)) },
                 )
+            }
+        }
+        // The sets: tiles, two to a row; a tap on a tile takes all three of its colours (the first is the accent as ever,
+        // the second goes to switches and chosen chips, the third to sliders).
+        if (family == AccentFamily.SETS) {
+            Column(
+                modifier = Modifier.padding(top = 4.dp),
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp),
+            ) {
+                accentColors(family).chunked(3).withIndex().chunked(2).forEach { pair ->
+                    Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp)) {
+                        pair.forEach { (setIndex, colors) ->
+                            val chosen = accent?.family == AccentFamily.SETS && accent.index / 3 == setIndex
+                            Row(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(22.dp))
+                                    .background(PlayerColors.TextPrimary.copy(alpha = 0.06f))
+                                    .border(if (chosen) 2.dp else 0.dp, if (chosen) PlayerColors.TextPrimary else Color.Transparent, RoundedCornerShape(22.dp))
+                                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                                        onAccentChange(AccentChoice(family, setIndex * 3))
+                                    }
+                                    .padding(10.dp),
+                                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+                            ) {
+                                colors.forEach { color ->
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .aspectRatio(1f)
+                                            .clip(CircleShape)
+                                            .background(color)
+                                            .border(1.dp, PlayerColors.Border, CircleShape),
+                                    )
+                                }
+                            }
+                        }
+                        if (pair.size == 1) Box(modifier = Modifier.weight(1f))
+                    }
+                }
             }
         }
         Text(
@@ -1145,8 +1237,8 @@ private fun SettingsSwitchRow(
             checked = checked,
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = PlayerColors.OnAccent,
-                checkedTrackColor = PlayerColors.Accent,
+                checkedThumbColor = PlayerColors.OnAccent2,
+                checkedTrackColor = PlayerColors.Accent2,
                 uncheckedThumbColor = PlayerColors.TextSecondary,
                 uncheckedTrackColor = PlayerColors.SurfaceDim,
                 uncheckedBorderColor = PlayerColors.Border,
@@ -1469,13 +1561,13 @@ private fun InfinitePlayModeChip(label: String, selected: Boolean, onClick: () -
     val press = remember { MutableInteractionSource() }
     Text(
         text = label,
-        color = if (selected) PlayerColors.OnAccent else PlayerColors.TextPrimary,
+        color = if (selected) PlayerColors.OnAccent2 else PlayerColors.TextPrimary,
         fontSize = 12.sp,
         fontWeight = FontWeight.SemiBold,
         modifier = Modifier
             .pressScale(press, 0.92f)
             .clip(RoundedCornerShape(if (com.artemiy.player.ui.theme.discUi) 14.dp else 10.dp))
-            .background(if (selected) PlayerColors.Accent else PlayerColors.SurfaceDim)
+            .background(if (selected) PlayerColors.Accent2 else PlayerColors.SurfaceDim)
             .clickable(interactionSource = press, indication = null, onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 7.dp),
     )
@@ -1747,4 +1839,32 @@ private fun MinDurationSetting(seconds: Int, onChange: (Int) -> Unit) {
         onValueChangeFinished = { if (shown != seconds) onChange(shown) },
         modifier = Modifier.padding(top = 12.dp, bottom = 6.dp),
     )
+}
+
+/** One section of Settings in the "Диск" look. */
+@Composable
+private fun DiscSettingsTile(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .padding(bottom = 6.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(com.artemiy.player.ui.theme.Disc.tileFill)
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onClick() }
+            .padding(start = 10.dp, end = 14.dp, top = 10.dp, bottom = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
+    ) {
+        Box(
+            modifier = Modifier.size(42.dp).clip(RoundedCornerShape(14.dp)).background(com.artemiy.player.ui.components.tonalAccent),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(icon, contentDescription = null, tint = PlayerColors.TextPrimary, modifier = Modifier.size(20.dp))
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = title, color = PlayerColors.TextPrimary, fontSize = 16.sp, lineHeight = 20.sp, fontWeight = FontWeight.ExtraBold)
+            Text(text = subtitle, color = PlayerColors.TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
+        }
+        Icon(AppIcons.ChevronRight, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(18.dp))
+    }
 }

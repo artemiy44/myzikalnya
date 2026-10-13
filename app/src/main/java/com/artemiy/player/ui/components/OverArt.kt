@@ -568,3 +568,42 @@ private fun DiscHero(
         Column(modifier = Modifier.padding(top = 14.dp).fillMaxWidth(), content = content)
     }
 }
+
+private val LINK_WORDS = setOf(
+    "the", "a", "an", "of", "in", "on", "at", "to", "and", "or", "for", "with", "by", "from", "&", "vs", "feat", "ft",
+    "и", "в", "во", "на", "с", "со", "к", "ко", "по", "за", "от", "из", "до", "у", "о", "об", "не", "а", "но", "для", "без", "под", "над", "при", "про",
+    "der", "die", "das", "ein", "eine", "und", "von", "mit", "zu", "im",
+    "le", "la", "les", "un", "une", "de", "du", "des", "et", "el", "los", "las", "una", "y", "en", "il", "lo", "di", "e",
+)
+
+/** The disc look's heading text: a short link word (the, of, и, в…) is tied to the word after it, so a line never ends on one — "Bring Me / The Horizon". */
+@Composable
+fun heroTitleText(text: String): String {
+    if (!com.artemiy.player.ui.theme.discUi) return text
+    return androidx.compose.runtime.remember(text) {
+        val words = text.split(' ')
+        buildString {
+            words.forEachIndexed { i, w ->
+                append(w)
+                if (i < words.lastIndex) append(if (w.trim('(', '[', '.', ',', ':').lowercase() in LINK_WORDS) '\u00A0' else ' ')
+            }
+        }
+    }
+}
+
+/** The shadow a header's text wears over a picture: none in the disc look, where it sits on the page itself. */
+val heroShadow: Shadow? @Composable get() = if (com.artemiy.player.ui.theme.discUi) null else HeroTextShadow
+
+/** A header title's lines: the disc look has room for three. */
+val heroTitleLines: Int @Composable get() = if (com.artemiy.player.ui.theme.discUi) 3 else 2
+
+/** The disc look's heading line breaks: balanced, so the lines come out about as long as each other. */
+@Composable
+fun heroTitleStyle(base: androidx.compose.ui.text.TextStyle): androidx.compose.ui.text.TextStyle =
+    if (com.artemiy.player.ui.theme.discUi) base.merge(
+        androidx.compose.ui.text.TextStyle(
+            lineBreak = androidx.compose.ui.text.style.LineBreak.Heading,
+            letterSpacing = (-1).sp,
+            lineHeight = 42.sp,
+        ),
+    ) else base

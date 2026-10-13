@@ -10,6 +10,7 @@
     <string name="about_welcome_sub">L’accueil et la première configuration</string>
     <string name="accent_alternative">Alternatif</string>
     <string name="accent_pastel">Pastel</string>
+    <string name="accent_sets">Séries</string>
     <string name="accent_stock">GNOME d’origine</string>
     <string name="accent_wallpaper">Du fond d\'écran</string>
     <string name="action_listen">Écouter</string>
@@ -40,6 +41,7 @@
     <string name="backup_save_sub">Playlists, statistiques et réglages dans un seul fichier</string>
     <string name="backup_saved">Sauvegarde enregistrée</string>
     <string name="bg_group_neutral">Neutres</string>
+    <string name="bg_group_schemes">Schémas</string>
     <string name="bg_group_tinted">Teintés</string>
     <string name="bg_live">Flou vivant</string>
     <string name="bg_live_sub">La pochette floutée « respire » doucement — mouvement et zoom fluides.</string>
@@ -76,11 +78,17 @@
     <string name="create_playlist">Créer une playlist</string>
     <string name="dark_amoled">AMOLED</string>
     <string name="dark_coffee">Café</string>
+    <string name="dark_dusk">Crépuscule</string>
+    <string name="dark_ember">Braise</string>
+    <string name="dark_fjord">Fjord</string>
     <string name="dark_forest">Forêt</string>
     <string name="dark_gnome">GNOME</string>
+    <string name="dark_indigo">Indigo</string>
+    <string name="dark_ink">Encre</string>
     <string name="dark_material">Material</string>
     <string name="dark_midnight">Minuit</string>
     <string name="dark_plum">Prune</string>
+    <string name="dark_rosewood">Palissandre</string>
     <string name="daypart_afternoon">l’après-midi</string>
     <string name="daypart_evening">le soir</string>
     <string name="daypart_morning">le matin</string>
@@ -147,8 +155,13 @@
     <string name="lang_expressive_hint">La même chose, en plus vivant et chaleureux</string>
     <string name="library_tabs_hint">Faites glisser par la poignée pour réorganiser. L’interrupteur affiche ou masque une section.</string>
     <string name="light_concrete">Béton</string>
+    <string name="light_cream">Crème</string>
+    <string name="light_dawn">Aube</string>
+    <string name="light_lilac">Lilas</string>
     <string name="light_mist">Brume</string>
     <string name="light_paper">Papier</string>
+    <string name="light_sage">Sauge</string>
+    <string name="light_snow">Neige</string>
     <string name="light_soft">Intermédiaire</string>
     <string name="light_white">Blanc</string>
     <string name="lyrics">Paroles</string>

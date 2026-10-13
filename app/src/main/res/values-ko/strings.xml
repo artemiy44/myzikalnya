@@ -10,6 +10,7 @@
     <string name="about_welcome_sub">인사와 첫 설정</string>
     <string name="accent_alternative">얼터너티브</string>
     <string name="accent_pastel">파스텔</string>
+    <string name="accent_sets">세트</string>
     <string name="accent_stock">GNOME 기본</string>
     <string name="accent_wallpaper">배경화면에서</string>
     <string name="action_listen">재생</string>
@@ -40,6 +41,7 @@
     <string name="backup_save_sub">재생목록, 통계, 설정을 한 파일에</string>
     <string name="backup_saved">백업을 저장했습니다</string>
     <string name="bg_group_neutral">기본</string>
+    <string name="bg_group_schemes">스킴</string>
     <string name="bg_group_tinted">색조</string>
     <string name="bg_live">라이브 블러</string>
     <string name="bg_live_sub">흐릿한 앨범 커버가 부드럽게 «숨 쉽니다» — 매끄러운 움직임과 확대.</string>
@@ -76,11 +78,17 @@
     <string name="create_playlist">플레이리스트 만들기</string>
     <string name="dark_amoled">AMOLED</string>
     <string name="dark_coffee">커피</string>
+    <string name="dark_dusk">황혼</string>
+    <string name="dark_ember">불씨</string>
+    <string name="dark_fjord">피오르</string>
     <string name="dark_forest">포레스트</string>
     <string name="dark_gnome">GNOME</string>
+    <string name="dark_indigo">인디고</string>
+    <string name="dark_ink">잉크</string>
     <string name="dark_material">Material</string>
     <string name="dark_midnight">미드나이트</string>
     <string name="dark_plum">플럼</string>
+    <string name="dark_rosewood">로즈우드</string>
     <string name="daypart_afternoon">오후에</string>
     <string name="daypart_evening">저녁에</string>
     <string name="daypart_morning">아침에</string>
@@ -147,8 +155,13 @@
     <string name="lang_expressive_hint">같은 내용을 더 생기 있고 친근하게</string>
     <string name="library_tabs_hint">핸들을 끌어 순서를 바꿔요. 스위치로 섹션을 표시하거나 숨겨요.</string>
     <string name="light_concrete">콘크리트</string>
+    <string name="light_cream">크림</string>
+    <string name="light_dawn">새벽</string>
+    <string name="light_lilac">라일락</string>
     <string name="light_mist">미스트</string>
     <string name="light_paper">페이퍼</string>
+    <string name="light_sage">세이지</string>
+    <string name="light_snow">눈</string>
     <string name="light_soft">중간</string>
     <string name="light_white">흰색</string>
     <string name="lyrics">가사</string>

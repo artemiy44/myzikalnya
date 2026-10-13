@@ -10,6 +10,7 @@
     <string name="about_welcome_sub">The greeting and first setup</string>
     <string name="accent_alternative">Alternative</string>
     <string name="accent_pastel">Pastel</string>
+    <string name="accent_sets">Sets</string>
     <string name="accent_stock">GNOME stock</string>
     <string name="accent_wallpaper">From wallpaper</string>
     <string name="action_listen">Play</string>
@@ -44,6 +45,7 @@
     <string name="backup_save_sub">Playlists, listening stats and settings in one file</string>
     <string name="backup_saved">Backup saved</string>
     <string name="bg_group_neutral">Neutral</string>
+    <string name="bg_group_schemes">Schemes</string>
     <string name="bg_group_tinted">Tinted</string>
     <string name="bg_live">Live blur</string>
     <string name="bg_live_sub">The blurred cover gently «breathes» — soft movement and zoom.</string>
@@ -80,11 +82,17 @@
     <string name="create_playlist">Create playlist</string>
     <string name="dark_amoled">AMOLED</string>
     <string name="dark_coffee">Coffee</string>
+    <string name="dark_dusk">Dusk</string>
+    <string name="dark_ember">Ember</string>
+    <string name="dark_fjord">Fjord</string>
     <string name="dark_forest">Forest</string>
     <string name="dark_gnome">GNOME</string>
+    <string name="dark_indigo">Indigo</string>
+    <string name="dark_ink">Ink</string>
     <string name="dark_material">Material</string>
     <string name="dark_midnight">Midnight</string>
     <string name="dark_plum">Plum</string>
+    <string name="dark_rosewood">Rosewood</string>
     <string name="daypart_afternoon">in the afternoon</string>
     <string name="daypart_evening">in the evening</string>
     <string name="daypart_morning">in the morning</string>
@@ -153,8 +161,13 @@
     <string name="lang_plain_chip">Plain</string>
     <string name="library_tabs_hint">Drag by the handle to reorder. The switch shows or hides a section.</string>
     <string name="light_concrete">Concrete</string>
+    <string name="light_cream">Cream</string>
+    <string name="light_dawn">Dawn</string>
+    <string name="light_lilac">Lilac</string>
     <string name="light_mist">Mist</string>
     <string name="light_paper">Paper</string>
+    <string name="light_sage">Sage</string>
+    <string name="light_snow">Snow</string>
     <string name="light_soft">Between</string>
     <string name="light_white">White</string>
     <string name="lyrics">Lyrics</string>

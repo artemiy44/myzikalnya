@@ -10,6 +10,7 @@
     <string name="about_welcome_sub">欢迎语和初始设置</string>
     <string name="accent_alternative">另类</string>
     <string name="accent_pastel">柔和</string>
+    <string name="accent_sets">套装</string>
     <string name="accent_stock">GNOME 默认</string>
     <string name="accent_wallpaper">来自壁纸</string>
     <string name="action_listen">播放</string>
@@ -40,6 +41,7 @@
     <string name="backup_save_sub">播放列表、统计和设置合为一个文件</string>
     <string name="backup_saved">备份已保存</string>
     <string name="bg_group_neutral">中性</string>
+    <string name="bg_group_schemes">方案</string>
     <string name="bg_group_tinted">带色调</string>
     <string name="bg_live">动态模糊</string>
     <string name="bg_live_sub">模糊的封面轻轻“呼吸”——平滑的移动和缩放。</string>
@@ -76,11 +78,17 @@
     <string name="create_playlist">创建歌单</string>
     <string name="dark_amoled">AMOLED</string>
     <string name="dark_coffee">咖啡</string>
+    <string name="dark_dusk">黄昏</string>
+    <string name="dark_ember">余烬</string>
+    <string name="dark_fjord">峡湾</string>
     <string name="dark_forest">森林</string>
     <string name="dark_gnome">GNOME</string>
+    <string name="dark_indigo">靛蓝</string>
+    <string name="dark_ink">墨</string>
     <string name="dark_material">Material</string>
     <string name="dark_midnight">午夜</string>
     <string name="dark_plum">李子</string>
+    <string name="dark_rosewood">紫檀</string>
     <string name="daypart_afternoon">下午</string>
     <string name="daypart_evening">傍晚</string>
     <string name="daypart_morning">早上</string>
@@ -147,8 +155,13 @@
     <string name="lang_expressive_hint">内容相同，只是更生动、更友好</string>
     <string name="library_tabs_hint">拖动手柄可重新排序。开关用于显示或隐藏某个部分。</string>
     <string name="light_concrete">混凝土</string>
+    <string name="light_cream">奶油</string>
+    <string name="light_dawn">黎明</string>
+    <string name="light_lilac">丁香</string>
     <string name="light_mist">薄雾</string>
     <string name="light_paper">纸张</string>
+    <string name="light_sage">鼠尾草</string>
+    <string name="light_snow">雪</string>
     <string name="light_soft">中间色</string>
     <string name="light_white">白色</string>
     <string name="lyrics">歌词</string>

@@ -244,8 +244,8 @@ private fun RowScope.HeroGroupButton(
         modifier = Modifier
             .weight(weight)
             .fillMaxHeight()
-            .clip(RoundedCornerShape(topStart = start, bottomStart = start, topEnd = end, bottomEnd = end))
-            .background(fill)
+            // Drawn as a shape, not clipped to one (unequal corners make a path clip, which old Adreno GPUs flicker on).
+            .background(fill, RoundedCornerShape(topStart = start, bottomStart = start, topEnd = end, bottomEnd = end))
             .clickable(interactionSource = interaction, indication = null, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {

@@ -5,6 +5,8 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.LocalTextStyle
@@ -101,3 +103,12 @@ object Disc {
         @Composable @ReadOnlyComposable
         get() = PlayerColors.TextPrimary.copy(alpha = 0.45f)
 }
+
+/** The "Диск" row look for a list item: a rounded tile with a small gap under it. A no-op in the other styles. */
+@Composable
+fun Modifier.discRowTile(): Modifier =
+    if (LocalUiStyle.current == UiStyle.DISC) {
+        this.padding(bottom = 6.dp)
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(Disc.tileCorner))
+            .background(Disc.tileFill)
+    } else this

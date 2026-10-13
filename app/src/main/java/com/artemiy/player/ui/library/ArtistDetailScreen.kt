@@ -148,20 +148,20 @@ fun ArtistDetailScreen(
             },
         ) {
             Text(
-                text = title,
+                text = com.artemiy.player.ui.components.heroTitleText(title),
                 color = com.artemiy.player.ui.components.heroText,
                 fontSize = com.artemiy.player.ui.components.heroTitleSize(30.sp),
-                style = TextStyle(shadow = HeroTextShadow).inAppFont(),
+                style = com.artemiy.player.ui.components.heroTitleStyle(TextStyle(shadow = com.artemiy.player.ui.components.heroShadow).inAppFont()),
                 fontWeight = FontWeight.ExtraBold,
                 textAlign = com.artemiy.player.ui.components.heroTextAlign,
-                maxLines = 2,
+                maxLines = com.artemiy.player.ui.components.heroTitleLines,
                 overflow = TextOverflow.Ellipsis,
             )
-            Text(
+            if (!com.artemiy.player.ui.theme.discUi) Text(
                 text = pluralStringResource(R.plurals.songs_count, songs.size, songs.size) + " · " + pluralStringResource(R.plurals.albums_count, albums.size, albums.size),
                 color = com.artemiy.player.ui.components.heroSubText,
                 fontSize = 13.sp,
-                style = TextStyle(shadow = HeroTextShadow).inAppFont(),
+                style = TextStyle(shadow = com.artemiy.player.ui.components.heroShadow).inAppFont(),
                 modifier = Modifier.padding(top = 4.dp),
             )
             Box(modifier = Modifier.padding(top = 18.dp)) {

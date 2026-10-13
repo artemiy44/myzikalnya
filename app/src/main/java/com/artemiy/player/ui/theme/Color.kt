@@ -36,6 +36,11 @@ data class PlayerPalette(
     /** The accent for marks that aren't reading text — tab icons, the logo, the scroller thumb: on a
      * light theme it keeps pastel accents pastel instead of darkening them to what text needs. */
     val accentMark: Color = accentStandalone,
+    /** An accent set's second colour: the "on" and selected states (switches, chosen chips). Same as [accent] when the accent is a single colour. */
+    val accent2: Color = accent,
+    val onAccent2: Color = onAccent,
+    /** An accent set's third colour: sliders and the scroller. Same as [accent] for a single colour. */
+    val accent3: Color = accent,
 )
 
 val LocalPlayerPalette = staticCompositionLocalOf { NowPlayingPalette }
@@ -59,6 +64,9 @@ object PlayerColors {
     val TextTertiary: Color @Composable @ReadOnlyComposable get() = LocalPlayerPalette.current.textTertiary
     val Accent: Color @Composable @ReadOnlyComposable get() = LocalPlayerPalette.current.accent
     val OnAccent: Color @Composable @ReadOnlyComposable get() = LocalPlayerPalette.current.onAccent
+    val Accent2: Color @Composable @ReadOnlyComposable get() = LocalPlayerPalette.current.accent2
+    val OnAccent2: Color @Composable @ReadOnlyComposable get() = LocalPlayerPalette.current.onAccent2
+    val Accent3: Color @Composable @ReadOnlyComposable get() = LocalPlayerPalette.current.accent3
     val AccentMark: Color @Composable @ReadOnlyComposable get() = LocalPlayerPalette.current.accentMark
     val AccentStandalone: Color @Composable @ReadOnlyComposable get() = LocalPlayerPalette.current.accentStandalone
 }
@@ -85,12 +93,16 @@ val NowPlayingPalette = PlayerPalette(
 
 /** The three dark backgrounds, darkest first. */
 /** Which shelf of backgrounds a variant sits on in Settings: the neutral ones, the ones with a tint, or the one made from the wallpaper. */
-enum class BackgroundGroup { NEUTRAL, TINTED, WALLPAPER }
+enum class BackgroundGroup { NEUTRAL, TINTED, SCHEMES, WALLPAPER }
 
 enum class DarkVariant(@androidx.annotation.StringRes val labelRes: Int, val group: BackgroundGroup = BackgroundGroup.NEUTRAL) {
     AMOLED(R.string.dark_amoled), MATERIAL(R.string.dark_material), GNOME(R.string.dark_gnome),
     MIDNIGHT(R.string.dark_midnight, BackgroundGroup.TINTED), COFFEE(R.string.dark_coffee, BackgroundGroup.TINTED),
     FOREST(R.string.dark_forest, BackgroundGroup.TINTED), PLUM(R.string.dark_plum, BackgroundGroup.TINTED),
+    // The well-loved editor colour schemes, in spirit: a dusky violet, a cold fjord, glowing embers, rosewood, indigo, ink.
+    DUSK(R.string.dark_dusk, BackgroundGroup.SCHEMES), FJORD(R.string.dark_fjord, BackgroundGroup.SCHEMES),
+    EMBER(R.string.dark_ember, BackgroundGroup.SCHEMES), ROSEWOOD(R.string.dark_rosewood, BackgroundGroup.SCHEMES),
+    INDIGO(R.string.dark_indigo, BackgroundGroup.SCHEMES), INK(R.string.dark_ink, BackgroundGroup.SCHEMES),
     WALLPAPER(R.string.bg_wallpaper, BackgroundGroup.WALLPAPER),
 }
 
@@ -150,6 +162,9 @@ enum class ThemeMode { SYSTEM, DARK, LIGHT }
 enum class LightVariant(@androidx.annotation.StringRes val labelRes: Int, val group: BackgroundGroup = BackgroundGroup.NEUTRAL) {
     WHITE(R.string.light_white), SOFT(R.string.light_soft), CONCRETE(R.string.light_concrete),
     PAPER(R.string.light_paper, BackgroundGroup.TINTED), MIST(R.string.light_mist, BackgroundGroup.TINTED),
+    SNOW(R.string.light_snow, BackgroundGroup.SCHEMES), CREAM(R.string.light_cream, BackgroundGroup.SCHEMES),
+    DAWN(R.string.light_dawn, BackgroundGroup.SCHEMES), SAGE(R.string.light_sage, BackgroundGroup.SCHEMES),
+    LILAC(R.string.light_lilac, BackgroundGroup.SCHEMES),
     WALLPAPER(R.string.bg_wallpaper, BackgroundGroup.WALLPAPER),
 }
 
@@ -163,6 +178,11 @@ fun lightPalette(variant: LightVariant): PlayerPalette {
         // Warm paper and a cool mist: the same set of steps, with a faint tint.
         LightVariant.PAPER -> listOf(Color(0xFFF4EFE6), Color(0xFFFFFCF6), Color(0xFFEAE4D8), Color(0xFFDCD5C6))
         LightVariant.MIST -> listOf(Color(0xFFE9EFF3), Color(0xFFF6F9FB), Color(0xFFDDE5EB), Color(0xFFCCD6DE))
+        LightVariant.SNOW -> listOf(Color(0xFFECEFF4), Color(0xFFF8FAFC), Color(0xFFE0E5EC), Color(0xFFCFD6E0))
+        LightVariant.CREAM -> listOf(Color(0xFFF5EED3), Color(0xFFFFFBEA), Color(0xFFEAE2C2), Color(0xFFDBD2AE))
+        LightVariant.DAWN -> listOf(Color(0xFFFAF1E8), Color(0xFFFFFAF4), Color(0xFFEFE3D5), Color(0xFFE2D3C2))
+        LightVariant.SAGE -> listOf(Color(0xFFE7EDE4), Color(0xFFF5F9F3), Color(0xFFDAE3D6), Color(0xFFC8D4C3))
+        LightVariant.LILAC -> listOf(Color(0xFFEEEAF6), Color(0xFFFAF8FD), Color(0xFFE2DCEF), Color(0xFFD1C9E2))
         // Made from the wallpaper: a very pale wash of its main colour.
         LightVariant.WALLPAPER -> {
             val bg = wallpaperTint(lightness = 0.95f, chroma = 0.014f) ?: Color(0xFFF2F2F1)
@@ -190,6 +210,8 @@ enum class AccentFamily(@androidx.annotation.StringRes val labelRes: Int) {
     STOCK(R.string.accent_stock), PASTEL(R.string.accent_pastel), ALTERNATIVE(R.string.accent_alternative),
     /** Android 12+: the accent colours the system made from the wallpaper (Material You). */
     WALLPAPER(R.string.accent_wallpaper),
+    /** Five ready sets of three accents each (every three swatches are one set). */
+    SETS(R.string.accent_sets),
 }
 
 /** The system's wallpaper colours, nine tones from its three accent families; read again when the app comes back to the front. */
@@ -239,7 +261,21 @@ private val ALTERNATIVE_ACCENTS = listOf(
     Color(0xFF7A8F78), // sage
 )
 
+/** Six sets of three accents (every three colours are one set): haze (grey, soft blue, butter), candy, sunset, forest, ocean, scarlet. */
+private val SET_ACCENTS = listOf(
+    Color(0xFF8E9AA6), Color(0xFF8DB4EC), Color(0xFFF2C94C),
+    Color(0xFFFF8FB1), Color(0xFF6FD3B0), Color(0xFFB39BFF),
+    Color(0xFFFF7A59), Color(0xFFFFB547), Color(0xFF9B5DE5),
+    Color(0xFF7BA05B), Color(0xFF3FA796), Color(0xFFD9B26F),
+    Color(0xFF3A6EA5), Color(0xFF38BDF8), Color(0xFF7DD3C0),
+    Color(0xFFE63946), Color(0xFFF1A7A1), Color(0xFF457B9D),
+)
+
+/** How many accent sets there are. */
+val ACCENT_SET_COUNT: Int get() = SET_ACCENTS.size / 3
+
 fun accentColors(family: AccentFamily): List<Color> = when (family) {
+    AccentFamily.SETS -> SET_ACCENTS
     AccentFamily.STOCK -> GNOME_ACCENTS
     AccentFamily.PASTEL -> GNOME_ACCENTS.map { lerp(it, Color.White, 0.45f) }
     AccentFamily.ALTERNATIVE -> ALTERNATIVE_ACCENTS
@@ -249,9 +285,15 @@ fun accentColors(family: AccentFamily): List<Color> = when (family) {
 
 /** A chosen accent: a family + position in it, or null for monochrome (the default). */
 data class AccentChoice(val family: AccentFamily, val index: Int) {
-    fun color(): Color = accentColors(family)[index.coerceIn(0, 8)]
+    fun color(): Color = accentColors(family).let { it[index.coerceIn(0, it.lastIndex)] }
 
     fun toKey() = "${family.name}:$index"
+
+    /** The three colours of the chosen set, when the accent is one of the sets (null for a single colour). */
+    fun set(): List<Color>? = if (family == AccentFamily.SETS) accentColors(family).let { c ->
+        val start = (index.coerceIn(0, c.lastIndex) / 3) * 3
+        c.subList(start, start + 3)
+    } else null
 
     companion object {
         fun fromKey(key: String?): AccentChoice? {
@@ -308,6 +350,12 @@ private val MidnightDark = tintedDark(Color(0xFF0E1522))
 private val CoffeeDark = tintedDark(Color(0xFF1B1613))
 private val ForestDark = tintedDark(Color(0xFF101A14))
 private val PlumDark = tintedDark(Color(0xFF1A1322))
+private val DuskDark = tintedDark(Color(0xFF1E1E2E))
+private val FjordDark = tintedDark(Color(0xFF242933))
+private val EmberDark = tintedDark(Color(0xFF282320))
+private val RosewoodDark = tintedDark(Color(0xFF1F1824))
+private val IndigoDark = tintedDark(Color(0xFF1A1B26))
+private val InkDark = tintedDark(Color(0xFF282A36))
 
 /**
  * The wallpaper's main colour (the system's accent) turned down to a background's lightness and a
@@ -331,6 +379,12 @@ fun darkPalette(variant: DarkVariant): PlayerPalette = when (variant) {
     DarkVariant.COFFEE -> CoffeeDark
     DarkVariant.FOREST -> ForestDark
     DarkVariant.PLUM -> PlumDark
+    DarkVariant.DUSK -> DuskDark
+    DarkVariant.FJORD -> FjordDark
+    DarkVariant.EMBER -> EmberDark
+    DarkVariant.ROSEWOOD -> RosewoodDark
+    DarkVariant.INDIGO -> IndigoDark
+    DarkVariant.INK -> InkDark
     DarkVariant.WALLPAPER -> wallpaperTint(lightness = 0.17f, chroma = 0.03f)?.let { tintedDark(it) } ?: GnomeDark
 }
 
@@ -348,10 +402,19 @@ fun appPalette(
     }
     val base = if (light) lightPalette(lightVariant) else darkPalette(darkVariant)
     val color = accent?.color() ?: return base
+    fun on(c: Color) = if (c.luminance() > 0.45f) Color(0xFF1B1B1F) else Color.White
+    val set = accent.set()
+    // A set of three: the first is the accent as ever; the second and third go to the places that have an accent
+    // of their own to give (switches and chosen chips; sliders and the scroller).
+    val second = set?.get(1) ?: color
+    val third = set?.get(2) ?: color
     return base.copy(
         accent = color,
-        onAccent = if (color.luminance() > 0.45f) Color(0xFF1B1B1F) else Color.White,
+        onAccent = on(color),
         accentStandalone = standaloneAccent(color, onLight = light),
         accentMark = standaloneAccent(color, onLight = light, lightCap = 0.8f),
+        accent2 = second,
+        onAccent2 = on(second),
+        accent3 = third,
     )
 }

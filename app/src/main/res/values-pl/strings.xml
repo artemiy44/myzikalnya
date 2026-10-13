@@ -10,6 +10,7 @@
     <string name="about_welcome_sub">Powitanie i pierwsza konfiguracja</string>
     <string name="accent_alternative">Alternatywny</string>
     <string name="accent_pastel">Pastelowy</string>
+    <string name="accent_sets">Zestawy</string>
     <string name="accent_stock">Standard GNOME</string>
     <string name="accent_wallpaper">Z tapety</string>
     <string name="action_listen">Słuchaj</string>
@@ -40,6 +41,7 @@
     <string name="backup_save_sub">Playlisty, statystyki i ustawienia w jednym pliku</string>
     <string name="backup_saved">Kopia zapisana</string>
     <string name="bg_group_neutral">Neutralne</string>
+    <string name="bg_group_schemes">Schematy</string>
     <string name="bg_group_tinted">Z odcieniem</string>
     <string name="bg_live">Żywe rozmycie</string>
     <string name="bg_live_sub">Rozmyta okładka łagodnie „oddycha” — płynny ruch i skala.</string>
@@ -76,11 +78,17 @@
     <string name="create_playlist">Utwórz playlistę</string>
     <string name="dark_amoled">AMOLED</string>
     <string name="dark_coffee">Kawa</string>
+    <string name="dark_dusk">Zmierzch</string>
+    <string name="dark_ember">Żar</string>
+    <string name="dark_fjord">Fiord</string>
     <string name="dark_forest">Las</string>
     <string name="dark_gnome">GNOME</string>
+    <string name="dark_indigo">Indygo</string>
+    <string name="dark_ink">Atrament</string>
     <string name="dark_material">Material</string>
     <string name="dark_midnight">Północ</string>
     <string name="dark_plum">Śliwka</string>
+    <string name="dark_rosewood">Palisander</string>
     <string name="daypart_afternoon">po południu</string>
     <string name="daypart_evening">wieczorem</string>
     <string name="daypart_morning">rano</string>
@@ -147,8 +155,13 @@
     <string name="lang_expressive_hint">To samo, tylko żywiej i przyjaźniej</string>
     <string name="library_tabs_hint">Przeciągnij za uchwyt, aby zmienić kolejność. Przełącznik pokazuje lub ukrywa sekcję.</string>
     <string name="light_concrete">Beton</string>
+    <string name="light_cream">Krem</string>
+    <string name="light_dawn">Świt</string>
+    <string name="light_lilac">Bez</string>
     <string name="light_mist">Mgiełka</string>
     <string name="light_paper">Papier</string>
+    <string name="light_sage">Szałwia</string>
+    <string name="light_snow">Śnieg</string>
     <string name="light_soft">Pośredni</string>
     <string name="light_white">Biały</string>
     <string name="lyrics">Tekst piosenki</string>

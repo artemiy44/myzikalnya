@@ -10,6 +10,7 @@
     <string name="about_welcome_sub">Приветствие и первая настройка</string>
     <string name="accent_alternative">Альтернатива</string>
     <string name="accent_pastel">Пастель</string>
+    <string name="accent_sets">Наборы</string>
     <string name="accent_stock">Сток GNOME</string>
     <string name="accent_wallpaper">По обоям</string>
     <string name="action_listen">Слушать</string>
@@ -46,6 +47,7 @@
     <string name="backup_save_sub">Плейлисты, статистика и настройки в одном файле</string>
     <string name="backup_saved">Копия сохранена</string>
     <string name="bg_group_neutral">Нейтральные</string>
+    <string name="bg_group_schemes">Схемы</string>
     <string name="bg_group_tinted">С оттенком</string>
     <string name="bg_live">Живой блюр</string>
     <string name="bg_live_sub">Размытая обложка мягко «дышит» — плавное движение и масштаб.</string>
@@ -82,11 +84,17 @@
     <string name="create_playlist">Создать плейлист</string>
     <string name="dark_amoled">AMOLED</string>
     <string name="dark_coffee">Кофе</string>
+    <string name="dark_dusk">Сумерки</string>
+    <string name="dark_ember">Угли</string>
+    <string name="dark_fjord">Фьорд</string>
     <string name="dark_forest">Лес</string>
     <string name="dark_gnome">GNOME</string>
+    <string name="dark_indigo">Индиго</string>
+    <string name="dark_ink">Чернила</string>
     <string name="dark_material">Material</string>
     <string name="dark_midnight">Полночь</string>
     <string name="dark_plum">Слива</string>
+    <string name="dark_rosewood">Палисандр</string>
     <string name="daypart_afternoon">днём</string>
     <string name="daypart_evening">вечером</string>
     <string name="daypart_morning">утром</string>
@@ -155,8 +163,13 @@
     <string name="lang_plain_chip">Обычный</string>
     <string name="library_tabs_hint">Тяните за ручку, чтобы переставить. Переключатель показывает или прячет раздел.</string>
     <string name="light_concrete">Бетон</string>
+    <string name="light_cream">Сливки</string>
+    <string name="light_dawn">Рассвет</string>
+    <string name="light_lilac">Сирень</string>
     <string name="light_mist">Дымка</string>
     <string name="light_paper">Бумага</string>
+    <string name="light_sage">Шалфей</string>
+    <string name="light_snow">Снег</string>
     <string name="light_soft">Между</string>
     <string name="light_white">Белый</string>
     <string name="lyrics">Текст песни</string>

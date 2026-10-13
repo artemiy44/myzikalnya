@@ -35,6 +35,10 @@
   "en": "Pastel",
   "ru": "Пастель"
  },
+ "accent_sets": {
+  "en": "Sets",
+  "ru": "Наборы"
+ },
  "accent_stock": {
   "en": "GNOME stock",
   "ru": "Сток GNOME"
@@ -167,6 +171,10 @@
  "bg_group_neutral": {
   "en": "Neutral",
   "ru": "Нейтральные"
+ },
+ "bg_group_schemes": {
+  "en": "Schemes",
+  "ru": "Схемы"
  },
  "bg_group_tinted": {
   "en": "Tinted",
@@ -320,6 +328,18 @@
   "en": "Coffee",
   "ru": "Кофе"
  },
+ "dark_dusk": {
+  "en": "Dusk",
+  "ru": "Сумерки"
+ },
+ "dark_ember": {
+  "en": "Ember",
+  "ru": "Угли"
+ },
+ "dark_fjord": {
+  "en": "Fjord",
+  "ru": "Фьорд"
+ },
  "dark_forest": {
   "en": "Forest",
   "ru": "Лес"
@@ -327,6 +347,14 @@
  "dark_gnome": {
   "en": "GNOME",
   "ru": "GNOME"
+ },
+ "dark_indigo": {
+  "en": "Indigo",
+  "ru": "Индиго"
+ },
+ "dark_ink": {
+  "en": "Ink",
+  "ru": "Чернила"
  },
  "dark_material": {
   "en": "Material",
@@ -339,6 +367,10 @@
  "dark_plum": {
   "en": "Plum",
   "ru": "Слива"
+ },
+ "dark_rosewood": {
+  "en": "Rosewood",
+  "ru": "Палисандр"
  },
  "daypart_afternoon": {
   "en": "in the afternoon",
@@ -624,6 +656,18 @@
   "en": "Concrete",
   "ru": "Бетон"
  },
+ "light_cream": {
+  "en": "Cream",
+  "ru": "Сливки"
+ },
+ "light_dawn": {
+  "en": "Dawn",
+  "ru": "Рассвет"
+ },
+ "light_lilac": {
+  "en": "Lilac",
+  "ru": "Сирень"
+ },
  "light_mist": {
   "en": "Mist",
   "ru": "Дымка"
@@ -631,6 +675,14 @@
  "light_paper": {
   "en": "Paper",
   "ru": "Бумага"
+ },
+ "light_sage": {
+  "en": "Sage",
+  "ru": "Шалфей"
+ },
+ "light_snow": {
+  "en": "Snow",
+  "ru": "Снег"
  },
  "light_soft": {
   "en": "Between",

@@ -276,8 +276,8 @@ internal fun ShareLyricsDialog(song: Song, lyrics: ParsedLyrics, startIndex: Int
                                 checked = withTranslation,
                                 onCheckedChange = { withTranslation = it },
                                 colors = SwitchDefaults.colors(
-                                    checkedThumbColor = PlayerColors.OnAccent,
-                                    checkedTrackColor = PlayerColors.Accent,
+                                    checkedThumbColor = PlayerColors.OnAccent2,
+                                    checkedTrackColor = PlayerColors.Accent2,
                                     uncheckedThumbColor = PlayerColors.TextSecondary,
                                     uncheckedTrackColor = PlayerColors.SurfaceDim,
                                     uncheckedBorderColor = PlayerColors.Border,

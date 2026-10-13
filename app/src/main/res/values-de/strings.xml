@@ -10,6 +10,7 @@
     <string name="about_welcome_sub">Die Begrüßung und die Ersteinrichtung</string>
     <string name="accent_alternative">Alternativ</string>
     <string name="accent_pastel">Pastell</string>
+    <string name="accent_sets">Sets</string>
     <string name="accent_stock">GNOME-Standard</string>
     <string name="accent_wallpaper">Vom Hintergrund</string>
     <string name="action_listen">Anhören</string>
@@ -40,6 +41,7 @@
     <string name="backup_save_sub">Playlists, Statistik und Einstellungen in einer Datei</string>
     <string name="backup_saved">Sicherung gespeichert</string>
     <string name="bg_group_neutral">Neutral</string>
+    <string name="bg_group_schemes">Schemata</string>
     <string name="bg_group_tinted">Getönt</string>
     <string name="bg_live">Lebendige Unschärfe</string>
     <string name="bg_live_sub">Das unscharfe Cover „atmet“ sanft — weiche Bewegung und Zoom.</string>
@@ -76,11 +78,17 @@
     <string name="create_playlist">Playlist erstellen</string>
     <string name="dark_amoled">AMOLED</string>
     <string name="dark_coffee">Kaffee</string>
+    <string name="dark_dusk">Dämmerung</string>
+    <string name="dark_ember">Glut</string>
+    <string name="dark_fjord">Fjord</string>
     <string name="dark_forest">Wald</string>
     <string name="dark_gnome">GNOME</string>
+    <string name="dark_indigo">Indigo</string>
+    <string name="dark_ink">Tinte</string>
     <string name="dark_material">Material</string>
     <string name="dark_midnight">Mitternacht</string>
     <string name="dark_plum">Pflaume</string>
+    <string name="dark_rosewood">Palisander</string>
     <string name="daypart_afternoon">nachmittags</string>
     <string name="daypart_evening">abends</string>
     <string name="daypart_morning">morgens</string>
@@ -147,8 +155,13 @@
     <string name="lang_expressive_hint">Dasselbe, nur lebendiger und freundlicher</string>
     <string name="library_tabs_hint">Am Griff ziehen, um die Reihenfolge zu ändern. Der Schalter zeigt oder verbirgt einen Bereich.</string>
     <string name="light_concrete">Beton</string>
+    <string name="light_cream">Creme</string>
+    <string name="light_dawn">Morgenrot</string>
+    <string name="light_lilac">Flieder</string>
     <string name="light_mist">Dunst</string>
     <string name="light_paper">Papier</string>
+    <string name="light_sage">Salbei</string>
+    <string name="light_snow">Schnee</string>
     <string name="light_soft">Dazwischen</string>
     <string name="light_white">Weiß</string>
     <string name="lyrics">Songtext</string>

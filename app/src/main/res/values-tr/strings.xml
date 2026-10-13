@@ -10,6 +10,7 @@
     <string name="about_welcome_sub">Karşılama ve ilk kurulum</string>
     <string name="accent_alternative">Alternatif</string>
     <string name="accent_pastel">Pastel</string>
+    <string name="accent_sets">Setler</string>
     <string name="accent_stock">GNOME varsayılanı</string>
     <string name="accent_wallpaper">Duvar kağıdından</string>
     <string name="action_listen">Dinle</string>
@@ -40,6 +41,7 @@
     <string name="backup_save_sub">Çalma listeleri, istatistikler ve ayarlar tek dosyada</string>
     <string name="backup_saved">Yedek kaydedildi</string>
     <string name="bg_group_neutral">Nötr</string>
+    <string name="bg_group_schemes">Şemalar</string>
     <string name="bg_group_tinted">Tonlu</string>
     <string name="bg_live">Canlı bulanıklık</string>
     <string name="bg_live_sub">Bulanık kapak usulca «nefes alır» — yumuşak hareket ve yakınlaşma.</string>
@@ -76,11 +78,17 @@
     <string name="create_playlist">Çalma listesi oluştur</string>
     <string name="dark_amoled">AMOLED</string>
     <string name="dark_coffee">Kahve</string>
+    <string name="dark_dusk">Alacakaranlık</string>
+    <string name="dark_ember">Köz</string>
+    <string name="dark_fjord">Fiyort</string>
     <string name="dark_forest">Orman</string>
     <string name="dark_gnome">GNOME</string>
+    <string name="dark_indigo">Çivit</string>
+    <string name="dark_ink">Mürekkep</string>
     <string name="dark_material">Material</string>
     <string name="dark_midnight">Gece yarısı</string>
     <string name="dark_plum">Erik</string>
+    <string name="dark_rosewood">Gülağacı</string>
     <string name="daypart_afternoon">öğleden sonra</string>
     <string name="daypart_evening">akşam</string>
     <string name="daypart_morning">sabah</string>
@@ -147,8 +155,13 @@
     <string name="lang_expressive_hint">Aynısı, sadece daha canlı ve samimi</string>
     <string name="library_tabs_hint">Sıralamak için tutamaçtan sürükleyin. Anahtar bir bölümü gösterir veya gizler.</string>
     <string name="light_concrete">Beton</string>
+    <string name="light_cream">Krem</string>
+    <string name="light_dawn">Şafak</string>
+    <string name="light_lilac">Eflatun</string>
     <string name="light_mist">Sis</string>
     <string name="light_paper">Kâğıt</string>
+    <string name="light_sage">Adaçayı</string>
+    <string name="light_snow">Kar</string>
     <string name="light_soft">Ara ton</string>
     <string name="light_white">Beyaz</string>
     <string name="lyrics">Şarkı sözleri</string>

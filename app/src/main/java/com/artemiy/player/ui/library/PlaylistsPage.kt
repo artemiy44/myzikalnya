@@ -138,20 +138,20 @@ internal fun PlaylistHero(
         art = { ArtistGenreArt(name, songs) },
     ) {
         Text(
-            text = name,
+            text = com.artemiy.player.ui.components.heroTitleText(name),
             color = com.artemiy.player.ui.components.heroText,
             fontSize = com.artemiy.player.ui.components.heroTitleSize(30.sp),
             fontWeight = FontWeight.ExtraBold,
             textAlign = com.artemiy.player.ui.components.heroTextAlign,
-            maxLines = 2,
+            maxLines = com.artemiy.player.ui.components.heroTitleLines,
             overflow = TextOverflow.Ellipsis,
-            style = TextStyle(shadow = HeroTextShadow).inAppFont(),
+            style = com.artemiy.player.ui.components.heroTitleStyle(TextStyle(shadow = com.artemiy.player.ui.components.heroShadow).inAppFont()),
         )
-        Text(
+        if (!com.artemiy.player.ui.theme.discUi) Text(
             text = pluralStringResource(R.plurals.songs_count, songCount, songCount),
             color = com.artemiy.player.ui.components.heroSubText,
             fontSize = 13.sp,
-            style = TextStyle(shadow = HeroTextShadow).inAppFont(),
+            style = TextStyle(shadow = com.artemiy.player.ui.components.heroShadow).inAppFont(),
             modifier = Modifier.padding(top = 4.dp),
         )
         Box(modifier = Modifier.padding(top = 18.dp)) {

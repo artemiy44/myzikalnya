@@ -10,6 +10,7 @@
     <string name="about_welcome_sub">Привітання й перше налаштування</string>
     <string name="accent_alternative">Альтернатива</string>
     <string name="accent_pastel">Пастель</string>
+    <string name="accent_sets">Набори</string>
     <string name="accent_stock">Стандарт GNOME</string>
     <string name="accent_wallpaper">З шпалер</string>
     <string name="action_listen">Слухати</string>
@@ -40,6 +41,7 @@
     <string name="backup_save_sub">Плейлисти, статистика й налаштування в одному файлі</string>
     <string name="backup_saved">Копію збережено</string>
     <string name="bg_group_neutral">Нейтральні</string>
+    <string name="bg_group_schemes">Схеми</string>
     <string name="bg_group_tinted">З відтінком</string>
     <string name="bg_live">Живий блюр</string>
     <string name="bg_live_sub">Розмита обкладинка м’яко «дихає» — плавний рух і масштаб.</string>
@@ -76,11 +78,17 @@
     <string name="create_playlist">Створити плейлист</string>
     <string name="dark_amoled">AMOLED</string>
     <string name="dark_coffee">Кава</string>
+    <string name="dark_dusk">Сутінки</string>
+    <string name="dark_ember">Жар</string>
+    <string name="dark_fjord">Фʼорд</string>
     <string name="dark_forest">Ліс</string>
     <string name="dark_gnome">GNOME</string>
+    <string name="dark_indigo">Індиго</string>
+    <string name="dark_ink">Чорнило</string>
     <string name="dark_material">Material</string>
     <string name="dark_midnight">Північ</string>
     <string name="dark_plum">Слива</string>
+    <string name="dark_rosewood">Палісандр</string>
     <string name="daypart_afternoon">удень</string>
     <string name="daypart_evening">увечері</string>
     <string name="daypart_morning">уранці</string>
@@ -147,8 +155,13 @@
     <string name="lang_expressive_hint">Те саме, тільки жвавіше й дружніше</string>
     <string name="library_tabs_hint">Тягніть за ручку, щоб переставити. Перемикач показує або ховає розділ.</string>
     <string name="light_concrete">Бетон</string>
+    <string name="light_cream">Вершки</string>
+    <string name="light_dawn">Світанок</string>
+    <string name="light_lilac">Бузок</string>
     <string name="light_mist">Серпанок</string>
     <string name="light_paper">Папір</string>
+    <string name="light_sage">Шавлія</string>
+    <string name="light_snow">Сніг</string>
     <string name="light_soft">Між</string>
     <string name="light_white">Білий</string>
     <string name="lyrics">Текст пісні</string>

@@ -10,6 +10,7 @@
     <string name="about_welcome_sub">Il saluto e la prima configurazione</string>
     <string name="accent_alternative">Alternativo</string>
     <string name="accent_pastel">Pastello</string>
+    <string name="accent_sets">Set</string>
     <string name="accent_stock">GNOME standard</string>
     <string name="accent_wallpaper">Dallo sfondo</string>
     <string name="action_listen">Ascolta</string>
@@ -40,6 +41,7 @@
     <string name="backup_save_sub">Playlist, statistiche e impostazioni in un solo file</string>
     <string name="backup_saved">Backup salvato</string>
     <string name="bg_group_neutral">Neutri</string>
+    <string name="bg_group_schemes">Schemi</string>
     <string name="bg_group_tinted">Colorati</string>
     <string name="bg_live">Sfocatura viva</string>
     <string name="bg_live_sub">La copertina sfocata «respira» dolcemente — movimento e zoom morbidi.</string>
@@ -76,11 +78,17 @@
     <string name="create_playlist">Crea playlist</string>
     <string name="dark_amoled">AMOLED</string>
     <string name="dark_coffee">Caffè</string>
+    <string name="dark_dusk">Crepuscolo</string>
+    <string name="dark_ember">Brace</string>
+    <string name="dark_fjord">Fiordo</string>
     <string name="dark_forest">Foresta</string>
     <string name="dark_gnome">GNOME</string>
+    <string name="dark_indigo">Indaco</string>
+    <string name="dark_ink">Inchiostro</string>
     <string name="dark_material">Material</string>
     <string name="dark_midnight">Mezzanotte</string>
     <string name="dark_plum">Prugna</string>
+    <string name="dark_rosewood">Palissandro</string>
     <string name="daypart_afternoon">di pomeriggio</string>
     <string name="daypart_evening">di sera</string>
     <string name="daypart_morning">di mattina</string>
@@ -147,8 +155,13 @@
     <string name="lang_expressive_hint">Lo stesso, ma più vivace e amichevole</string>
     <string name="library_tabs_hint">Trascina dalla maniglia per riordinare. L’interruttore mostra o nasconde una sezione.</string>
     <string name="light_concrete">Cemento</string>
+    <string name="light_cream">Crema</string>
+    <string name="light_dawn">Alba</string>
+    <string name="light_lilac">Lilla</string>
     <string name="light_mist">Foschia</string>
     <string name="light_paper">Carta</string>
+    <string name="light_sage">Salvia</string>
+    <string name="light_snow">Neve</string>
     <string name="light_soft">Intermedio</string>
     <string name="light_white">Bianco</string>
     <string name="lyrics">Testo</string>

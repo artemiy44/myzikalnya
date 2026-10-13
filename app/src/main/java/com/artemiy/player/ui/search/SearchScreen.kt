@@ -1,6 +1,7 @@
 package com.artemiy.player.ui.search
 
 import com.artemiy.player.ui.components.fadesWithHeader
+import com.artemiy.player.ui.theme.discRowTile
 import com.artemiy.player.R
 import androidx.compose.ui.res.stringResource
 import com.artemiy.player.ui.icons.AppIcons
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Icon
@@ -144,22 +146,23 @@ fun SearchScreen(
                 .fadesWithHeader()
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
-                .clip(if (com.artemiy.player.ui.theme.expressiveUi) RoundedCornerShape(percent = 50) else if (com.artemiy.player.ui.theme.discUi) RoundedCornerShape(18.dp) else RoundedCornerShape(12.dp))
+                .clip(if (com.artemiy.player.ui.theme.expressiveUi) RoundedCornerShape(percent = 50) else if (com.artemiy.player.ui.theme.discUi) RoundedCornerShape(20.dp) else RoundedCornerShape(12.dp))
                 .background(if (com.artemiy.player.ui.theme.discUi) com.artemiy.player.ui.theme.Disc.tileFill else PlayerColors.Surface)
-                .padding(horizontal = if (com.artemiy.player.ui.theme.expressiveUi || com.artemiy.player.ui.theme.discUi) 18.dp else 14.dp, vertical = if (com.artemiy.player.ui.theme.expressiveUi) 14.dp else if (com.artemiy.player.ui.theme.discUi) 15.dp else 11.dp),
+                .then(if (com.artemiy.player.ui.theme.discUi) Modifier.heightIn(min = 56.dp) else Modifier)
+                .padding(horizontal = if (com.artemiy.player.ui.theme.expressiveUi || com.artemiy.player.ui.theme.discUi) 18.dp else 14.dp, vertical = if (com.artemiy.player.ui.theme.expressiveUi) 14.dp else if (com.artemiy.player.ui.theme.discUi) 8.dp else 11.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 imageVector = AppIcons.Search,
                 contentDescription = null,
                 tint = PlayerColors.TextSecondary,
-                modifier = Modifier.size(18.dp),
+                modifier = Modifier.size(if (com.artemiy.player.ui.theme.discUi) 22.dp else 18.dp),
             )
             com.artemiy.player.ui.components.HintTextField(
                 value = query,
                 onValueChange = { query = it },
                 hint = stringResource(R.string.search_hint),
-                fontSize = 15.sp,
+                fontSize = if (com.artemiy.player.ui.theme.discUi) 17.sp else 15.sp,
                 modifier = Modifier.weight(1f).padding(horizontal = 10.dp),
             )
             if (query.isNotEmpty()) {
@@ -167,8 +170,12 @@ fun SearchScreen(
                     imageVector = AppIcons.Close,
                     contentDescription = stringResource(R.string.clear),
                     tint = PlayerColors.TextSecondary,
-                    modifier = Modifier
-                        .size(18.dp)
+                    modifier = (if (com.artemiy.player.ui.theme.discUi) Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(com.artemiy.player.ui.theme.Disc.tileFill)
+                        .padding(11.dp)
+                    else Modifier.size(18.dp))
                         .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) {
                             query = ""
                         },
@@ -221,6 +228,7 @@ fun SearchScreen(
                             Box(modifier = Modifier.padding(horizontal = 12.dp)) {
                                 Row(
                                     modifier = Modifier
+                                        .discRowTile()
                                         .fillMaxWidth()
                                         .clip(RoundedCornerShape(12.dp))
                                         .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onGoToArtistNamed(name) }
@@ -247,6 +255,7 @@ fun SearchScreen(
                             Box(modifier = Modifier.padding(horizontal = 12.dp)) {
                                 Row(
                                     modifier = Modifier
+                                        .discRowTile()
                                         .fillMaxWidth()
                                         .clip(RoundedCornerShape(12.dp))
                                         .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onGoToAlbum(first) }
@@ -269,6 +278,7 @@ fun SearchScreen(
                         com.artemiy.player.ui.components.SwipeSongRow(song) {
                             Row(
                                 modifier = Modifier
+                                    .discRowTile()
                                     .fillMaxWidth()
                                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) {
                                         onSongClick(song, results)
@@ -314,8 +324,8 @@ fun SearchScreen(
                             Text(
                                 text = stringResource(R.string.in_lyrics),
                                 color = PlayerColors.TextPrimary,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
+                                fontSize = if (com.artemiy.player.ui.theme.discUi) 24.sp else 15.sp,
+                                fontWeight = if (com.artemiy.player.ui.theme.discUi) FontWeight.ExtraBold else FontWeight.Bold,
                                 modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = if (order.first() == SearchSection.Lyrics) 0.dp else 18.dp, bottom = 4.dp),
                             )
                         }
@@ -324,6 +334,7 @@ Box(modifier = Modifier.padding(horizontal = 12.dp)) {
                             com.artemiy.player.ui.components.SwipeSongRow(hit.song) {
                                 Row(
                                     modifier = Modifier
+                                        .discRowTile()
                                         .fillMaxWidth()
                                         .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) {
                                             onSongClick(hit.song, lyricHits.map { it.song })
@@ -414,8 +425,8 @@ private fun SectionTitle(text: String, first: Boolean) {
     Text(
         text = text,
         color = PlayerColors.TextPrimary,
-        fontSize = 15.sp,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = if (first) 0.dp else 18.dp, bottom = 4.dp),
+        fontSize = if (com.artemiy.player.ui.theme.discUi) 24.sp else 15.sp,
+        fontWeight = if (com.artemiy.player.ui.theme.discUi) FontWeight.ExtraBold else FontWeight.Bold,
+        modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = if (first) 0.dp else if (com.artemiy.player.ui.theme.discUi) 22.dp else 18.dp, bottom = if (com.artemiy.player.ui.theme.discUi) 8.dp else 4.dp),
     )
 }
