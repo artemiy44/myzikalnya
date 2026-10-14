@@ -4,6 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
@@ -28,6 +33,7 @@ fun Modifier.groupedCard(index: Int, count: Int, inner: Dp = 12.dp): Modifier =
 fun Modifier.groupedCard(first: Boolean, last: Boolean, inner: Dp = 12.dp): Modifier {
     if (com.artemiy.player.ui.theme.discUi) {
         return this
+            .discPressSqueeze()
             .padding(bottom = if (last) 0.dp else 6.dp)
             .clip(RoundedCornerShape(com.artemiy.player.ui.theme.Disc.tileCorner))
             .background(com.artemiy.player.ui.theme.Disc.tileFill)
@@ -97,3 +103,32 @@ fun Modifier.staggeredEntrance(index: Int, entrance: Entrance): Modifier {
 private const val ENTRANCE_ROWS = 14
 private const val ENTRANCE_WINDOW_MS = 500L
 private const val ENTRANCE_STEP_MS = 30L
+
+/**
+ * A tile that gives a little under the finger — it sinks a hair while pressed and springs back — like the Dial's
+ * buttons do. It only watches the touch (never takes it), and lets go the moment the finger starts scrolling.
+ */
+@Composable
+fun Modifier.discPressSqueeze(): Modifier {
+    var pressed by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    val scale by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (pressed) 0.975f else 1f,
+        animationSpec = androidx.compose.animation.core.spring(dampingRatio = 0.6f, stiffness = 500f),
+        label = "tileSqueeze",
+    )
+    return this
+        .graphicsLayer { scaleX = scale; scaleY = scale }
+        .pointerInput(Unit) {
+            awaitEachGesture {
+                val down = awaitFirstDown(requireUnconsumed = false, pass = androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                pressed = true
+                val slop = viewConfiguration.touchSlop
+                while (true) {
+                    val event = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                    val change = event.changes.firstOrNull { it.id == down.id }
+                    if (change == null || !change.pressed || (change.position - down.position).getDistance() > slop) break
+                }
+                pressed = false
+            }
+        }
+}

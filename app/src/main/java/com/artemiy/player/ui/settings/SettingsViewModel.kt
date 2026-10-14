@@ -60,6 +60,7 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     var playerStyle by mutableStateOf(PlayerStyle.CLASSIC)
     var dialCard by mutableStateOf(true)
     var screenCornerDp by mutableIntStateOf(0)
+    var lyricFonts by mutableStateOf(com.artemiy.player.ui.theme.LyricFontChoice())
         private set
 
     var nowPlayingBackgroundMode by mutableStateOf(NowPlayingBackgroundMode.LIVE_BLUR)
@@ -163,6 +164,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             repository.screenCornerDp.collect { screenCornerDp = it }
+        }
+        viewModelScope.launch {
+            repository.lyricFonts.collect { lyricFonts = it }
         }
         viewModelScope.launch {
             repository.heroStyle.collect { heroStyle = it }
@@ -298,6 +302,11 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     fun updateHeroStyle(style: HeroStyle) {
         heroStyle = style
         viewModelScope.launch { repository.setHeroStyle(style) }
+    }
+
+    fun updateLyricFonts(choice: com.artemiy.player.ui.theme.LyricFontChoice) {
+        lyricFonts = choice
+        viewModelScope.launch { repository.setLyricFonts(choice) }
     }
 
     fun updateScreenCornerDp(dp: Int) {

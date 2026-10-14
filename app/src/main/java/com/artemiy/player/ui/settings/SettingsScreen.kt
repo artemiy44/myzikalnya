@@ -15,6 +15,10 @@ import androidx.activity.compose.BackHandler
 import com.artemiy.player.ui.components.AnimatedBackStack
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import com.artemiy.player.ui.components.discPressSqueeze
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.shape.CircleShape
@@ -30,6 +34,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -302,6 +307,7 @@ fun SettingsScreen(
                     onAppFontChange = onAppFontChange,
                     uiStyle = uiStyle,
                     onUiStyleChange = onUiStyleChange,
+                    nowPlayingBackgroundMode = nowPlayingBackgroundMode,
                 )
                 SettingsRoute.NowPlayingBackground -> NowPlayingBackgroundContent(
                     mode = nowPlayingBackgroundMode,
@@ -622,6 +628,7 @@ private fun KeptArtistsContent(
     onRemove: (String) -> Unit,
 ) {
     var input by remember { mutableStateOf("") }
+    var search by remember { mutableStateOf("") }
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState()).barsInset()
@@ -634,6 +641,27 @@ private fun KeptArtistsContent(
             color = PlayerColors.TextSecondary,
             fontSize = 12.sp,
         )
+        Spacer(modifier = Modifier.height(12.dp))
+        // Find a name in the two lists below (they can get long).
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(if (com.artemiy.player.ui.theme.discUi) 18.dp else 12.dp))
+                .background(if (com.artemiy.player.ui.theme.discUi) com.artemiy.player.ui.theme.Disc.tileFill else PlayerColors.Surface)
+                .padding(horizontal = 14.dp, vertical = 11.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(AppIcons.Search, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(18.dp))
+            Box(modifier = Modifier.weight(1f).padding(start = 10.dp)) {
+                com.artemiy.player.ui.components.HintTextField(
+                    value = search,
+                    onValueChange = { search = it },
+                    hint = stringResource(R.string.set_search_names),
+                    fontSize = 14.sp,
+                    cursorColor = PlayerColors.Accent,
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(12.dp))
         SettingsCard {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -667,9 +695,9 @@ private fun KeptArtistsContent(
                         },
                 )
             }
-            kept.sorted().forEach { name ->
+            kept.sorted().filter { search.isBlank() || it.contains(search.trim(), ignoreCase = true) }.forEach { name ->
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp).heightIn(min = 44.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(text = name, color = PlayerColors.TextPrimary, fontSize = 14.sp, modifier = Modifier.weight(1f))
@@ -684,13 +712,15 @@ private fun KeptArtistsContent(
                 }
             }
         }
-        val suggestions = splitLines.filter { line -> kept.none { it.equals(line, ignoreCase = true) } }
+        val suggestions = splitLines
+            .filter { line -> kept.none { it.equals(line, ignoreCase = true) } }
+            .filter { search.isBlank() || it.contains(search.trim(), ignoreCase = true) }
         if (suggestions.isNotEmpty()) {
             SectionTitle(stringResource(R.string.set_split_now))
             SettingsCard {
                 suggestions.forEachIndexed { index, line ->
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = if (index == 0) 0.dp else 12.dp),
+                        modifier = Modifier.fillMaxWidth().padding(top = if (index == 0) 0.dp else 8.dp).heightIn(min = 44.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(text = line, color = PlayerColors.TextPrimary, fontSize = 14.sp, modifier = Modifier.weight(1f))
@@ -768,7 +798,10 @@ private fun SettingsSectionContent(
     onAppFontChange: (com.artemiy.player.ui.theme.AppFont) -> Unit,
     uiStyle: com.artemiy.player.ui.theme.UiStyle = com.artemiy.player.ui.theme.UiStyle.CLASSIC,
     onUiStyleChange: (com.artemiy.player.ui.theme.UiStyle) -> Unit = {},
+    nowPlayingBackgroundMode: NowPlayingBackgroundMode = NowPlayingBackgroundMode.LIVE_BLUR,
 ) {
+        var appearanceTab by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(0) }
+        var playerTab by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(0) }
         Column(
             modifier = Modifier
                 .verticalScroll(rememberScrollState()).barsInset()
@@ -777,123 +810,145 @@ private fun SettingsSectionContent(
         ) {
 
             Spacer(modifier = Modifier.height(12.dp))
+            if (section == SettingsRoute.Appearance) SettingsTabRow(
+                listOf(R.string.set_tab_theme, R.string.set_ui_style, R.string.set_tab_icons_font), appearanceTab,
+            ) { appearanceTab = it }
+            if (section == SettingsRoute.Player) SettingsTabRow(
+                listOf(R.string.set_player_style, R.string.set_tab_lyrics), playerTab,
+            ) { playerTab = it }
             if (section == SettingsRoute.Appearance) {
-                SettingsCard {
-                    SettingsLabel(stringResource(R.string.onb_theme))
-                    Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
-                        InfinitePlayModeChip(stringResource(R.string.theme_system), themeMode == ThemeMode.SYSTEM) { onThemeModeChange(ThemeMode.SYSTEM) }
-                        InfinitePlayModeChip(stringResource(R.string.theme_dark), themeMode == ThemeMode.DARK) { onThemeModeChange(ThemeMode.DARK) }
-                        InfinitePlayModeChip(stringResource(R.string.theme_light), themeMode == ThemeMode.LIGHT) { onThemeModeChange(ThemeMode.LIGHT) }
+                // Switching the part: the old one leaves quickly, the new one comes in a beat later (like the bottom tabs).
+                androidx.compose.animation.AnimatedContent(
+                    targetState = appearanceTab,
+                    transitionSpec = { settingsTabFade() },
+                    label = "appearanceTab",
+                ) { shownTab ->
+                Column {
+                when (shownTab) {
+                    0 -> {
+                        SettingsCard {
+                            SettingsLabel(stringResource(R.string.onb_theme))
+                            Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                                InfinitePlayModeChip(stringResource(R.string.theme_system), themeMode == ThemeMode.SYSTEM) { onThemeModeChange(ThemeMode.SYSTEM) }
+                                InfinitePlayModeChip(stringResource(R.string.theme_dark), themeMode == ThemeMode.DARK) { onThemeModeChange(ThemeMode.DARK) }
+                                InfinitePlayModeChip(stringResource(R.string.theme_light), themeMode == ThemeMode.LIGHT) { onThemeModeChange(ThemeMode.LIGHT) }
+                            }
+                            CategoryDivider()
+                            SettingsRow(
+                                icon = AppIcons.Palette,
+                                title = stringResource(R.string.set_colors),
+                                subtitle = stringResource(R.string.set_colors_sub),
+                                onClick = onOpenColors,
+                                showChevron = true,
+                            )
+                        }
                     }
-                    CategoryDivider()
-                    SettingsRow(
-                        icon = AppIcons.Palette,
-                        title = stringResource(R.string.set_colors),
-                        subtitle = stringResource(R.string.set_colors_sub),
-                        onClick = onOpenColors,
-                        showChevron = true,
-                    )
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-                SettingsCard {
-                    SettingsLabel(stringResource(R.string.set_ui_style))
-                    Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
-                        com.artemiy.player.ui.theme.UiStyle.entries.forEach { style ->
-                            InfinitePlayModeChip(
-                                stringResource(
-                                    when (style) {
-                                        com.artemiy.player.ui.theme.UiStyle.CLASSIC -> R.string.ui_style_classic
-                                        com.artemiy.player.ui.theme.UiStyle.EXPRESSIVE -> R.string.ui_style_expressive
-                                        com.artemiy.player.ui.theme.UiStyle.DISC -> R.string.ui_style_disc
+                    1 -> {
+                        SettingsCard {
+                            SettingsLabel(stringResource(R.string.set_ui_style))
+                            Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                                com.artemiy.player.ui.theme.UiStyle.entries.forEach { style ->
+                                    InfinitePlayModeChip(
+                                        stringResource(
+                                            when (style) {
+                                                com.artemiy.player.ui.theme.UiStyle.CLASSIC -> R.string.ui_style_classic
+                                                com.artemiy.player.ui.theme.UiStyle.EXPRESSIVE -> R.string.ui_style_expressive
+                                                com.artemiy.player.ui.theme.UiStyle.DISC -> R.string.ui_style_disc
+                                            },
+                                        ),
+                                        style == uiStyle,
+                                    ) { onUiStyleChange(style) }
+                                }
+                            }
+                            Text(
+                                text = stringResource(
+                                    when (uiStyle) {
+                                        com.artemiy.player.ui.theme.UiStyle.CLASSIC -> R.string.ui_style_classic_note
+                                        com.artemiy.player.ui.theme.UiStyle.EXPRESSIVE -> R.string.ui_style_expressive_note
+                                        com.artemiy.player.ui.theme.UiStyle.DISC -> R.string.ui_style_disc_note
                                     },
                                 ),
-                                style == uiStyle,
-                            ) { onUiStyleChange(style) }
+                                color = PlayerColors.TextSecondary,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(top = 10.dp),
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                        androidx.compose.animation.Crossfade(targetState = uiStyle, animationSpec = androidx.compose.animation.core.tween(220), label = "uiStylePreview") { com.artemiy.player.ui.settings.UiStylePreview(it) }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        SettingsCard {
+                            SettingsLabel(stringResource(R.string.set_hero_style))
+                            Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                                com.artemiy.player.data.HeroStyle.entries.forEach { style ->
+                                    InfinitePlayModeChip(
+                                        stringResource(if (style == com.artemiy.player.data.HeroStyle.CLASSIC) R.string.hero_classic else R.string.hero_vivid),
+                                        style == heroStyle,
+                                    ) { onHeroStyleChange(style) }
+                                }
+                            }
+                            Text(
+                                text = stringResource(if (heroStyle == com.artemiy.player.data.HeroStyle.CLASSIC) R.string.set_hero_classic_desc else R.string.set_hero_vivid_desc),
+                                color = PlayerColors.TextSecondary,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(top = 10.dp),
+                            )
                         }
                     }
-                    Text(
-                        text = stringResource(
-                            when (uiStyle) {
-                                com.artemiy.player.ui.theme.UiStyle.CLASSIC -> R.string.ui_style_classic_note
-                                com.artemiy.player.ui.theme.UiStyle.EXPRESSIVE -> R.string.ui_style_expressive_note
-                                com.artemiy.player.ui.theme.UiStyle.DISC -> R.string.ui_style_disc_note
-                            },
-                        ),
-                        color = PlayerColors.TextSecondary,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(top = 10.dp),
-                    )
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-                SettingsCard {
-                    SettingsLabel(stringResource(R.string.set_icons))
-                    Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
-                        IconSet.entries.forEach { set ->
-                            InfinitePlayModeChip(set.label, set == iconSet) { onIconSetChange(set) }
+                    else -> {
+                        SettingsCard {
+                            SettingsLabel(stringResource(R.string.set_icons))
+                            Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                                IconSet.entries.forEach { set ->
+                                    InfinitePlayModeChip(set.label, set == iconSet) { onIconSetChange(set) }
+                                }
+                            }
+                            Text(
+                                text = stringResource(if (iconSet == IconSet.LUCIDE) R.string.set_icons_lucide else R.string.set_icons_tabler),
+                                color = PlayerColors.TextSecondary,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(top = 10.dp),
+                            )
                         }
-                    }
-                    Text(
-                        text = stringResource(if (iconSet == IconSet.LUCIDE) R.string.set_icons_lucide else R.string.set_icons_tabler),
-                        color = PlayerColors.TextSecondary,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(top = 10.dp),
-                    )
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-                SettingsCard {
-                    SettingsLabel(stringResource(R.string.set_font))
-                    FontChoices(selected = appFont, onSelect = onAppFontChange)
-                    Text(
-                        text = stringResource(R.string.font_note),
-                        color = PlayerColors.TextSecondary,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(top = 10.dp),
-                    )
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-            if (section == SettingsRoute.Appearance) SettingsCard {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = AppIcons.TextSize, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(20.dp))
-                    Text(
-                        text = stringResource(R.string.set_text_size),
-                        color = PlayerColors.TextPrimary,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(start = 10.dp).weight(1f),
-                    )
-                    Text(
-                        text = "${(fontScale * 100).toInt()}%",
-                        color = PlayerColors.TextSecondary,
-                        fontSize = 13.sp,
-                    )
-                }
-                MinimalSlider(
-                    value = fontScale,
-                    onValueChange = onFontScaleChange,
-                    valueRange = SettingsRepository.MIN_FONT_SCALE..SettingsRepository.MAX_FONT_SCALE,
-                    modifier = Modifier.padding(top = 14.dp),
-                )
-            }
-
-            if (section == SettingsRoute.Appearance) {
-                Spacer(modifier = Modifier.height(12.dp))
-                SettingsCard {
-                    SettingsLabel(stringResource(R.string.set_hero_style))
-                    Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
-                        com.artemiy.player.data.HeroStyle.entries.forEach { style ->
-                            InfinitePlayModeChip(
-                                stringResource(if (style == com.artemiy.player.data.HeroStyle.CLASSIC) R.string.hero_classic else R.string.hero_vivid),
-                                style == heroStyle,
-                            ) { onHeroStyleChange(style) }
+                        Spacer(modifier = Modifier.height(10.dp))
+                        com.artemiy.player.ui.settings.IconSetPreview()
+                        Spacer(modifier = Modifier.height(12.dp))
+                        SettingsCard {
+                            SettingsLabel(stringResource(R.string.set_font))
+                            FontChoices(selected = appFont, onSelect = onAppFontChange)
+                            Text(
+                                text = stringResource(R.string.font_note),
+                                color = PlayerColors.TextSecondary,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(top = 10.dp),
+                            )
                         }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        SettingsCard {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(imageVector = AppIcons.TextSize, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(20.dp))
+                            Text(
+                                text = stringResource(R.string.set_text_size),
+                                color = PlayerColors.TextPrimary,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(start = 10.dp).weight(1f),
+                            )
+                            Text(
+                                text = "${(fontScale * 100).toInt()}%",
+                                color = PlayerColors.TextSecondary,
+                                fontSize = 13.sp,
+                            )
+                        }
+                        MinimalSlider(
+                            value = fontScale,
+                            onValueChange = onFontScaleChange,
+                            valueRange = SettingsRepository.MIN_FONT_SCALE..SettingsRepository.MAX_FONT_SCALE,
+                            modifier = Modifier.padding(top = 14.dp),
+                        )
                     }
-                    Text(
-                        text = stringResource(if (heroStyle == com.artemiy.player.data.HeroStyle.CLASSIC) R.string.set_hero_classic_desc else R.string.set_hero_vivid_desc),
-                        color = PlayerColors.TextSecondary,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(top = 10.dp),
-                    )
+                    }
+                }
+                }
                 }
             }
 
@@ -1045,102 +1100,120 @@ private fun SettingsSectionContent(
             }
 
             if (section == SettingsRoute.Player) {
-                SettingsCard {
-                    SettingsLabel(stringResource(R.string.set_player_style))
-                    Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
-                        PlayerStyle.entries.forEach { style ->
-                            InfinitePlayModeChip(
-                                stringResource(when (style) { PlayerStyle.CLASSIC -> R.string.player_classic; PlayerStyle.EXPRESSIVE -> R.string.player_expressive; PlayerStyle.DIAL -> R.string.player_dial }),
-                                style == playerStyle,
-                            ) { onPlayerStyleChange(style) }
-                        }
-                    }
-                    Text(
-                        text = stringResource(when (playerStyle) { PlayerStyle.CLASSIC -> R.string.set_player_classic_desc; PlayerStyle.EXPRESSIVE -> R.string.set_player_expressive_desc; PlayerStyle.DIAL -> R.string.set_player_dial_desc }),
-                        color = PlayerColors.TextSecondary,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(top = 10.dp),
-                    )
-                    if (playerStyle == PlayerStyle.DIAL) {
-                        SettingsLabel(stringResource(R.string.set_dial_look), top = 14.dp)
+                androidx.compose.animation.AnimatedContent(
+                    targetState = playerTab,
+                    transitionSpec = { settingsTabFade() },
+                    label = "playerTab",
+                ) { shownPlayerTab ->
+                Column {
+                if (shownPlayerTab == 0) {
+                    SettingsCard {
+                        SettingsLabel(stringResource(R.string.set_player_style))
                         Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
-                            InfinitePlayModeChip(stringResource(R.string.dial_look_card), dialCard) { onDialCardChange(true) }
-                            InfinitePlayModeChip(stringResource(R.string.dial_look_full), !dialCard) { onDialCardChange(false) }
+                            PlayerStyle.entries.forEach { style ->
+                                InfinitePlayModeChip(
+                                    stringResource(when (style) { PlayerStyle.CLASSIC -> R.string.player_classic; PlayerStyle.EXPRESSIVE -> R.string.player_expressive; PlayerStyle.DIAL -> R.string.player_dial }),
+                                    style == playerStyle,
+                                ) { onPlayerStyleChange(style) }
+                            }
                         }
                         Text(
-                            text = stringResource(if (dialCard) R.string.set_dial_card_desc else R.string.set_dial_full_desc),
+                            text = stringResource(when (playerStyle) { PlayerStyle.CLASSIC -> R.string.set_player_classic_desc; PlayerStyle.EXPRESSIVE -> R.string.set_player_expressive_desc; PlayerStyle.DIAL -> R.string.set_player_dial_desc }),
                             color = PlayerColors.TextSecondary,
                             fontSize = 12.sp,
                             modifier = Modifier.padding(top = 10.dp),
                         )
-                        // A phone that tells its screen's corners is followed on its own; one that doesn't gets this.
-                        if (com.artemiy.player.ui.theme.systemScreenCornerDp() == null) {
-                            val corner = com.artemiy.player.ui.theme.LocalScreenCornerSetting.current
-                            Row(modifier = Modifier.padding(top = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = stringResource(R.string.set_screen_corners),
-                                    color = PlayerColors.TextPrimary,
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    modifier = Modifier.weight(1f),
-                                )
-                                Text(
-                                    text = if (corner.manualDp == 0) stringResource(R.string.screen_corners_default) else "${corner.manualDp} dp",
-                                    color = PlayerColors.TextSecondary,
-                                    fontSize = 13.sp,
-                                )
+                        if (playerStyle == PlayerStyle.DIAL) {
+                            SettingsLabel(stringResource(R.string.set_dial_look), top = 14.dp)
+                            Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                                InfinitePlayModeChip(stringResource(R.string.dial_look_card), dialCard) { onDialCardChange(true) }
+                                InfinitePlayModeChip(stringResource(R.string.dial_look_full), !dialCard) { onDialCardChange(false) }
                             }
-                            MinimalSlider(
-                                value = corner.manualDp.toFloat(),
-                                onValueChange = { corner.onChange(it.toInt()) },
-                                valueRange = 0f..60f,
-                                modifier = Modifier.padding(top = 14.dp),
-                            )
                             Text(
-                                text = stringResource(R.string.set_screen_corners_desc),
+                                text = stringResource(if (dialCard) R.string.set_dial_card_desc else R.string.set_dial_full_desc),
                                 color = PlayerColors.TextSecondary,
                                 fontSize = 12.sp,
                                 modifier = Modifier.padding(top = 10.dp),
                             )
+                            // A phone that tells its screen's corners is followed on its own; one that doesn't gets this.
+                            if (com.artemiy.player.ui.theme.systemScreenCornerDp() == null) {
+                                val corner = com.artemiy.player.ui.theme.LocalScreenCornerSetting.current
+                                Row(modifier = Modifier.padding(top = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = stringResource(R.string.set_screen_corners),
+                                        color = PlayerColors.TextPrimary,
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                    Text(
+                                        text = if (corner.manualDp == 0) stringResource(R.string.screen_corners_default) else "${corner.manualDp} dp",
+                                        color = PlayerColors.TextSecondary,
+                                        fontSize = 13.sp,
+                                    )
+                                }
+                                MinimalSlider(
+                                    value = corner.manualDp.toFloat(),
+                                    onValueChange = { corner.onChange(it.toInt()) },
+                                    valueRange = 0f..60f,
+                                    modifier = Modifier.padding(top = 14.dp),
+                                )
+                                Text(
+                                    text = stringResource(R.string.set_screen_corners_desc),
+                                    color = PlayerColors.TextSecondary,
+                                    fontSize = 12.sp,
+                                    modifier = Modifier.padding(top = 10.dp),
+                                )
+                            }
                         }
                     }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    androidx.compose.animation.Crossfade(targetState = Triple(playerStyle, dialCard, nowPlayingBackgroundMode), animationSpec = androidx.compose.animation.core.tween(220), label = "playerStylePreview") { (st, card, bg) -> PlayerStylePreview(st, card, bg) }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingsCard {
+                    SettingsRow(
+                        icon = AppIcons.Background,
+                        title = stringResource(R.string.set_player_background),
+                        subtitle = stringResource(R.string.set_bg_sub),
+                        onClick = onOpenNowPlayingBackground,
+                        showChevron = true,
+                    )
+                    }
+                } else {
+                    SettingsCard { LyricsFilesRow() }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingsCard { LyricFontsPicker() }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SettingsCard {
+                    SettingsSwitchRow(
+                        icon = AppIcons.Tap,
+                        title = stringResource(R.string.set_tap_plays),
+                        subtitle = stringResource(R.string.set_tap_plays_sub),
+                        checked = lyricsTapPlays,
+                        onCheckedChange = onLyricsTapPlaysChange,
+                        modifier = Modifier.padding(top = 16.dp),
+                    )
+                    SettingsSwitchRow(
+                        icon = AppIcons.Lyrics,
+                        title = stringResource(R.string.set_lrc_dots),
+                        subtitle = stringResource(R.string.set_lrc_dots_sub),
+                        checked = lrcGapDots,
+                        onCheckedChange = onLrcGapDotsChange,
+                        modifier = Modifier.padding(top = 16.dp),
+                    )
+                    SettingsSwitchRow(
+                        icon = AppIcons.Equalizer,
+                        title = stringResource(R.string.set_quality_badge),
+                        subtitle = stringResource(R.string.set_quality_badge_sub),
+                        checked = extras.qualityBadge,
+                        onCheckedChange = extras.onQualityBadgeChange,
+                        modifier = Modifier.padding(top = 16.dp),
+                    )
+                    }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
+                }
+                }
             }
-            if (section == SettingsRoute.Player) SettingsCard {
-                SettingsRow(
-                    icon = AppIcons.Background,
-                    title = stringResource(R.string.set_player_background),
-                    subtitle = stringResource(R.string.set_bg_sub),
-                    onClick = onOpenNowPlayingBackground,
-                    showChevron = true,
-                )
-                SettingsSwitchRow(
-                    icon = AppIcons.Tap,
-                    title = stringResource(R.string.set_tap_plays),
-                    subtitle = stringResource(R.string.set_tap_plays_sub),
-                    checked = lyricsTapPlays,
-                    onCheckedChange = onLyricsTapPlaysChange,
-                    modifier = Modifier.padding(top = 16.dp),
-                )
-                SettingsSwitchRow(
-                    icon = AppIcons.Lyrics,
-                    title = stringResource(R.string.set_lrc_dots),
-                    subtitle = stringResource(R.string.set_lrc_dots_sub),
-                    checked = lrcGapDots,
-                    onCheckedChange = onLrcGapDotsChange,
-                    modifier = Modifier.padding(top = 16.dp),
-                )
-                SettingsSwitchRow(
-                    icon = AppIcons.Equalizer,
-                    title = stringResource(R.string.set_quality_badge),
-                    subtitle = stringResource(R.string.set_quality_badge_sub),
-                    checked = extras.qualityBadge,
-                    onCheckedChange = extras.onQualityBadgeChange,
-                    modifier = Modifier.padding(top = 16.dp),
-                )
-            }
-
 
             Spacer(modifier = Modifier.height(20.dp))
         }
@@ -1254,7 +1327,7 @@ private enum class ComponentKind { FONT, ICONS, LIBRARY }
 private class ThirdPartyComponent(val name: String, val authors: String, val license: String, val files: List<String>) {
     /** Fonts come with their OFL text, icon sets are named as such; the rest is code. */
     val kind: ComponentKind = when {
-        files.any { it.endsWith("-ofl.txt") } -> ComponentKind.FONT
+        files.any { it.endsWith("-ofl.txt") || it.endsWith("-ipa.txt") } -> ComponentKind.FONT
         "Icons" in name || name == "SVG Spinners" -> ComponentKind.ICONS
         else -> ComponentKind.LIBRARY
     }
@@ -1262,6 +1335,7 @@ private class ThirdPartyComponent(val name: String, val authors: String, val lic
     /** The license, short enough for the end of a row. */
     val shortLicense: String = when {
         license.startsWith("SIL") -> "OFL"
+        license.startsWith("IPA") -> "IPA"
         license.startsWith("Apache") -> "Apache 2.0"
         else -> license
     }
@@ -1345,6 +1419,60 @@ private val THIRD_PARTY = listOf(
         authors = "The Golos Text Project Authors (Paratype)",
         license = "SIL Open Font License 1.1",
         files = listOf("golos-text-ofl.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Zen Kaku Gothic New (cut down)",
+        authors = "The Zen Kaku Gothic Project Authors",
+        license = "SIL Open Font License 1.1",
+        files = listOf("zenkaku-ofl.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Murecho (cut down)",
+        authors = "The Murecho Project Authors",
+        license = "SIL Open Font License 1.1",
+        files = listOf("murecho-ofl.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Dela Gothic One (cut down)",
+        authors = "The Dela Gothic Project Authors",
+        license = "SIL Open Font License 1.1",
+        files = listOf("dela-gothic-one-ofl.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Jua (cut down)",
+        authors = "The Jua Project Authors",
+        license = "SIL Open Font License 1.1",
+        files = listOf("jua-ofl.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Do Hyeon (cut down)",
+        authors = "The Do Hyeon Project Authors",
+        license = "SIL Open Font License 1.1",
+        files = listOf("do-hyeon-ofl.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Black Han Sans (cut down)",
+        authors = "The Black Han Sans Project Authors",
+        license = "SIL Open Font License 1.1",
+        files = listOf("black-han-sans-ofl.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "LXGW WenKai TC (cut down)",
+        authors = "The LXGW WenKai Project Authors",
+        license = "SIL Open Font License 1.1",
+        files = listOf("lxgw-wenkai-tc-ofl.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "Smiley Sans (cut down, renamed Lumine CJK Slant)",
+        authors = "atelierAnchor",
+        license = "SIL Open Font License 1.1",
+        files = listOf("smiley-sans-ofl.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "LXGW Neo XiHei (cut down, renamed Lumine CJK Sans)",
+        authors = "LXGW; based on IPAex Gothic by the Information-technology Promotion Agency, Japan",
+        license = "IPA Font License 1.0",
+        files = listOf("lxgw-neo-xihei-ipa.txt"),
     ),
     ThirdPartyComponent(
         name = "Rubik",
@@ -1846,6 +1974,7 @@ private fun MinDurationSetting(seconds: Int, onChange: (Int) -> Unit) {
 private fun DiscSettingsTile(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
+            .discPressSqueeze()
             .padding(bottom = 6.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
@@ -1868,3 +1997,139 @@ private fun DiscSettingsTile(icon: androidx.compose.ui.graphics.vector.ImageVect
         Icon(AppIcons.ChevronRight, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(18.dp))
     }
 }
+
+/**
+ * The fonts for Japanese, Korean and Chinese in the lyrics: for each a row of choices (the phone's own
+ * first), with a line under it set in the one picked, so it is seen before it is chosen.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun LyricFontsPicker() {
+    val setting = com.artemiy.player.ui.theme.LocalLyricFontSetting.current
+    val choice = setting.choice
+    val system = stringResource(R.string.font_system)
+    SettingsLabel(stringResource(R.string.set_lyric_fonts))
+    Text(
+        text = stringResource(R.string.set_lyric_fonts_desc),
+        color = PlayerColors.TextSecondary,
+        fontSize = 12.sp,
+        modifier = Modifier.padding(bottom = 4.dp),
+    )
+    if (!com.artemiy.player.ui.theme.LyricFonts.systemHasBoldCjk) {
+        Text(
+            text = stringResource(R.string.lyric_font_no_bold),
+            color = PlayerColors.AccentStandalone,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+    }
+    @Composable
+    fun Group(
+        title: String,
+        options: List<com.artemiy.player.ui.theme.LyricFontOption>,
+        selected: Int,
+        sample: String,
+        onPick: (Int) -> Unit,
+    ) {
+        Text(
+            text = title,
+            color = PlayerColors.TextSecondary,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(top = 14.dp, bottom = 8.dp),
+        )
+        FlowRow(
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+        ) {
+            options.forEachIndexed { index, option ->
+                InfinitePlayModeChip(option.name ?: system, index == selected) { onPick(index) }
+            }
+        }
+        // The line in the font picked.
+        val family = options.getOrNull(selected)?.family
+        Text(
+            text = sample,
+            color = PlayerColors.TextPrimary,
+            fontSize = 22.sp,
+            lineHeight = 30.sp,
+            fontWeight = FontWeight.ExtraBold,
+            style = if (family != null) TextStyle(fontFamily = family) else TextStyle.Default,
+            modifier = Modifier.padding(top = 10.dp),
+        )
+    }
+    Group(stringResource(R.string.lang_japanese), com.artemiy.player.ui.theme.LyricFonts.ja, choice.ja, "夜明けの街を歩く") { setting.onChange(choice.copy(ja = it)) }
+    Group(stringResource(R.string.lang_korean), com.artemiy.player.ui.theme.LyricFonts.ko, choice.ko, "새벽의 거리를 걸으며") { setting.onChange(choice.copy(ko = it)) }
+    Group(stringResource(R.string.lang_chinese), com.artemiy.player.ui.theme.LyricFonts.zh, choice.zh, "在黎明的街道上漫步") { setting.onChange(choice.copy(zh = it)) }
+    // Smiley Sans has only the simplified characters: the rest come from the font behind it (or the phone's own).
+    if (choice.zh == com.artemiy.player.ui.theme.LyricFonts.ZH_SMILEY) {
+        Group(stringResource(R.string.lyric_font_backup), com.artemiy.player.ui.theme.LyricFonts.zhBackup, choice.zhBackup, "輕聲呼喚著你的名字") {
+            setting.onChange(choice.copy(zhBackup = it))
+        }
+        Text(
+            text = stringResource(R.string.lyric_font_backup_desc),
+            color = PlayerColors.TextSecondary,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+    }
+}
+
+/** The little tabs at the top of a Settings page with several parts (Appearance, Player): chips, the chosen one filled. */
+@Composable
+private fun SettingsTabRow(labels: List<Int>, selected: Int, onSelect: (Int) -> Unit) {
+    Row(
+        modifier = Modifier
+            .padding(bottom = 12.dp)
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+    ) {
+        labels.forEachIndexed { i, res ->
+            InfinitePlayModeChip(stringResource(res), i == selected) { onSelect(i) }
+        }
+    }
+}
+
+/**
+ * Reading .lrc / .elrc files lying next to the songs (when a song has no lyrics written into it): it needs the
+ * phone's "all files access", which only the system's own screen can give. This row shows if it's on and opens that screen.
+ */
+@Composable
+private fun LyricsFilesRow() {
+    val context = LocalContext.current
+    var granted by remember { mutableStateOf(com.artemiy.player.lyrics.LyricsExtractor.canReadSidecars(context)) }
+    // Back from the system screen: look again.
+    val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(owner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) granted = com.artemiy.player.lyrics.LyricsExtractor.canReadSidecars(context)
+        }
+        owner.lifecycle.addObserver(observer)
+        onDispose { owner.lifecycle.removeObserver(observer) }
+    }
+    SettingsRow(
+        icon = AppIcons.Lyrics,
+        title = stringResource(R.string.set_lyrics_files),
+        subtitle = stringResource(if (granted) R.string.set_lyrics_files_on else R.string.set_lyrics_files_off),
+        onClick = {
+            if (android.os.Build.VERSION.SDK_INT >= 30) {
+                runCatching {
+                    context.startActivity(
+                        android.content.Intent(
+                            android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                            android.net.Uri.parse("package:${context.packageName}"),
+                        ),
+                    )
+                }
+            }
+        },
+        showChevron = true,
+    )
+}
+
+/** The fade-through between the parts of a Settings page (the one the bottom tabs use): the old part leaves in a blink, the new one settles in a beat later from a little smaller. */
+private fun settingsTabFade(): androidx.compose.animation.ContentTransform =
+    (androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(220, delayMillis = 70)) +
+        androidx.compose.animation.scaleIn(androidx.compose.animation.core.tween(220, delayMillis = 70), initialScale = 0.96f))
+        .togetherWith(androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(90)))

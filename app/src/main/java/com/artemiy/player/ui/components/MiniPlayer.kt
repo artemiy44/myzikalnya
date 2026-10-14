@@ -84,7 +84,7 @@ fun MiniPlayer(
     Row(
         modifier = modifier
             .then(if (expressive) Modifier.padding(horizontal = 10.dp).padding(top = 8.dp) else Modifier)
-            .onGloballyPositioned { anchors?.bar = it.boundsInRoot() }
+            .onGloballyPositioned { anchors?.let { a -> a.bar = a.keep(a.bar, it.boundsInRoot()) } }
             .fillMaxWidth()
             .then(if (expressive) Modifier.clip(RoundedCornerShape(MINI_CARD_CORNER)) else Modifier)
             .background(cardColor)
@@ -100,7 +100,7 @@ fun MiniPlayer(
             uri = albumArtUri,
             modifier = Modifier
                 .size(52.dp)
-                .onGloballyPositioned { anchors?.art = it.boundsInRoot() }
+                .onGloballyPositioned { anchors?.let { a -> a.art = a.keep(a.art, it.boundsInRoot()) } }
                 .graphicsLayer { alpha = if (artVisible) 1f else 0f }
                 .clip(RoundedCornerShape(MINI_ART_CORNER)),
         )
@@ -110,9 +110,9 @@ fun MiniPlayer(
                 .weight(1f)
                 .padding(start = 12.dp),
         ) {
-          Column(modifier = Modifier.onGloballyPositioned { anchors?.text = it.boundsInRoot() }) {
+          Column(modifier = Modifier.onGloballyPositioned { anchors?.let { a -> a.text = a.keep(a.text, it.boundsInRoot()) } }) {
             Text(
-                text = title,
+                text = com.artemiy.player.ui.theme.lyricAnnotated(title),
                 color = PlayerColors.TextPrimary,
                 fontSize = 13.sp,
                 // Lines spaced like the big player's title at mini size (24sp × 13/20), so the
@@ -125,7 +125,7 @@ fun MiniPlayer(
                 modifier = Modifier.marquee(textScrolls),
             )
             Text(
-                text = artist,
+                text = com.artemiy.player.ui.theme.lyricAnnotated(artist),
                 color = PlayerColors.TextSecondary,
                 fontSize = 11.sp,
                 lineHeight = MINI_TEXT_LINE_HEIGHT,
@@ -154,7 +154,7 @@ fun MiniPlayer(
             tint = PlayerColors.TextPrimary,
             modifier = Modifier
                 .size(28.dp)
-                .onGloballyPositioned { anchors?.play = it.boundsInRoot() }
+                .onGloballyPositioned { anchors?.let { a -> a.play = a.keep(a.play, it.boundsInRoot()) } }
                 .pressScale(playInteraction)
                 .clickable(interactionSource = playInteraction, indication = null) { onTogglePlayPause() },
         )
@@ -166,7 +166,7 @@ fun MiniPlayer(
             modifier = Modifier
                 .padding(start = 18.dp)
                 .size(24.dp)
-                .onGloballyPositioned { anchors?.next = it.boundsInRoot() }
+                .onGloballyPositioned { anchors?.let { a -> a.next = a.keep(a.next, it.boundsInRoot()) } }
                 .pressScale(nextInteraction)
                 .clickable(interactionSource = nextInteraction, indication = null) { onSkipNext() },
         )
@@ -175,11 +175,23 @@ fun MiniPlayer(
 
 /** Where the mini player's pieces are on screen (root coordinates). */
 class MiniPlayerAnchors {
+    // Only real, finite places are kept: the bar sliding away shrinks to nothing on its way, and a zero-sized
+    // spot to fly out of made the player open from nowhere (and crash on its corners).
+    private fun Rect?.usable(): Rect? = this?.takeIf { it.width > 1f && it.height > 1f && it.left.isFinite() && it.top.isFinite() }
+
     var bar by mutableStateOf<Rect?>(null)
     var art by mutableStateOf<Rect?>(null)
     var text by mutableStateOf<Rect?>(null)
     var play by mutableStateOf<Rect?>(null)
     var next by mutableStateOf<Rect?>(null)
+
+    /** Forgets where everything was — the mini player is gone, so there is nothing to open out of. */
+    fun clear() {
+        bar = null; art = null; text = null; play = null; next = null
+    }
+
+    /** Sets a place only if it is a real one. */
+    fun keep(current: Rect?, found: Rect?): Rect? = found.usable() ?: current
 
     /** The bar's own colour — the players open out of it in this colour. */
     var color by mutableStateOf<androidx.compose.ui.graphics.Color?>(null)

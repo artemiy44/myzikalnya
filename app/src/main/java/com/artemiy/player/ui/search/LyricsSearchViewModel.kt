@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 private const val TAG = "LyricsSearch"
 
 /** A song whose lyrics contain the query, plus the line it was found in. */
-data class LyricsHit(val song: Song, val line: String)
+data class LyricsHit(val song: Song, val line: String, val marks: List<IntRange> = emptyList())
 
 class LyricsSearchViewModel(app: Application) : AndroidViewModel(app) {
 
@@ -61,7 +61,11 @@ class LyricsSearchViewModel(app: Application) : AndroidViewModel(app) {
                     null
                 }
                 val text = lyrics?.let(::plainText).orEmpty()
-                dao.put(IndexedLyrics(song.id, signatureOf(song), text, normalizeForSearch(text)))
+                // The same lines in Latin letters, so a song in Japanese, Korean... is found by typing it as it sounds.
+                val roman = if (text.isEmpty()) "" else kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                    runCatching { com.artemiy.player.lyrics.LyricsRomanizer.romanizedLines(text.lines()).joinToString("\n") }.getOrDefault("")
+                }
+                dao.put(IndexedLyrics(song.id, signatureOf(song), text, normalizeForSearch(text), roman, normalizeForSearch(com.artemiy.player.data.stripMarks(roman))))
                 if ((i + 1) % 200 == 0) Log.d(TAG, "Indexed ${i + 1} of ${stale.size}")
             }
             indexProgress = null
@@ -72,16 +76,29 @@ class LyricsSearchViewModel(app: Application) : AndroidViewModel(app) {
     suspend fun search(query: String, songs: List<Song>): List<LyricsHit> {
         val needle = normalizeForSearch(query.trim())
         if (!com.artemiy.player.data.lyricsQueryLongEnough(needle)) return emptyList()
-        val escaped = needle.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        fun escape(text: String) = text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        val escaped = escape(needle)
+        val romanNeedle = com.artemiy.player.data.stripMarks(needle)
         val byId = songs.associateBy { it.id }
-        return dao.search(escaped, limit = 100).mapNotNull { match ->
+        return dao.search(escaped, escape(romanNeedle), limit = 100).mapNotNull { match ->
             val song = byId[match.songId] ?: return@mapNotNull null
-            val line = match.text.lineSequence().firstOrNull { normalizeForSearch(it).contains(needle) } ?: return@mapNotNull null
-            LyricsHit(song, line.trim())
+            val textLines = match.text.lines()
+            val found = textLines.firstOrNull { normalizeForSearch(it).contains(needle) }
+            if (found != null) return@mapNotNull LyricsHit(song, found.trim())
+            // Not in the words as written: found by how it sounds — the line it belongs to, with the characters that sound like it.
+            val index = match.roman.lines().indexOfFirst { normalizeForSearch(com.artemiy.player.data.stripMarks(it)).contains(romanNeedle) }
+            if (index < 0) return@mapNotNull null
+            val line = textLines.getOrNull(index) ?: return@mapNotNull null
+            val marks = runCatching {
+                com.artemiy.player.lyrics.LyricsRomanizer.soundsLike(textLines, index, romanNeedle)
+            }.getOrDefault(emptyList())
+            val lead = line.length - line.trimStart().length
+            LyricsHit(song, line.trim(), marks.map { (it.first - lead).coerceAtLeast(0)..(it.last - lead).coerceAtLeast(0) })
         }
     }
 
-    private fun signatureOf(song: Song) = "${song.modifiedAtS}:${song.sizeBytes}"
+    // Lyrics files beside the songs count once the app may read them: the index is read again when that changes.
+    private fun signatureOf(song: Song) = "${song.modifiedAtS}:${song.sizeBytes}:r2:" + (if (com.artemiy.player.lyrics.LyricsExtractor.canReadSidecars(getApplication())) "s" else "")
 
     /** The lyrics as plain lines — main lines plus translations, the other singer's part and
      * background vocals, since any of them is something a person might search for. */

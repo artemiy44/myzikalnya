@@ -155,6 +155,9 @@ class MainActivity : ComponentActivity() {
             CompositionLocalProvider(
                 LocalIconSet provides settings.iconSet,
                 com.artemiy.player.ui.theme.LocalUiStyle provides settings.uiStyle,
+                com.artemiy.player.ui.theme.LocalLyricFontSetting provides remember(settings.lyricFonts) {
+                    com.artemiy.player.ui.theme.LyricFontSetting(settings.lyricFonts) { settings.updateLyricFonts(it) }
+                },
                 com.artemiy.player.ui.theme.LocalScreenCornerSetting provides remember(settings.screenCornerDp) {
                     com.artemiy.player.ui.theme.ScreenCornerSetting(settings.screenCornerDp) { settings.updateScreenCornerDp(it) }
                 },
@@ -519,22 +522,56 @@ private fun PlayerApp(settings: SettingsViewModel) {
         containerColor = androidx.compose.ui.graphics.Color.Transparent,
         bottomBar = {
             val discBars = com.artemiy.player.ui.theme.discUi
-            val discMini = discBars && settings.playerStyle == PlayerStyle.DIAL
+            // The "Диск" interface has its own mini player whatever the big player's style is (the plate tile and all) — never the classic one.
+            val discMini = discBars
+            // Swiped down (while the big player is shut): the mini player is closed for good — playback stops
+            // and it goes away; the next song played brings it back. [miniPull] is how far the finger has
+            // pulled it so far, so it follows the finger and fades.
+            var miniGone by remember { mutableStateOf(false) }
+            val miniPull = remember { androidx.compose.animation.core.Animatable(0f) }
+            var pulling by remember { mutableStateOf(false) }
+            val pullGive = with(androidx.compose.ui.platform.LocalDensity.current) { 56.dp.toPx() }
+            LaunchedEffect(playback.currentSong?.id) {
+                if (playback.currentSong != null && miniGone) {
+                    miniGone = false
+                    miniPull.snapTo(0f)
+                }
+            }
             val miniDrag = Modifier.draggable(
                 orientation = Orientation.Vertical,
                 enabled = playback.currentSong != null,
+                onDragStarted = { pulling = false },
                 state = rememberDraggableState { delta ->
-                    showNowPlaying = true
-                    scope.launch {
-                        nowPlayingExpand.snapTo((nowPlayingExpand.value - delta / expandTravelPx).coerceIn(0f, 1f))
+                    // Down from rest: the pull-away, not the player.
+                    if ((delta > 0f && nowPlayingExpand.value <= 0.001f && !showNowPlaying) || pulling) {
+                        pulling = true
+                        scope.launch { miniPull.snapTo((miniPull.value + delta).coerceAtLeast(0f)) }
+                    } else {
+                        showNowPlaying = true
+                        scope.launch {
+                            nowPlayingExpand.snapTo((nowPlayingExpand.value - delta / expandTravelPx).coerceIn(0f, 1f))
+                        }
                     }
                 },
                 onDragStopped = { velocity ->
-                    val open = velocity < -800f || (velocity <= 800f && nowPlayingExpand.value > 0.35f)
-                    val speed = -velocity / expandTravelPx
-                    if (open) openNowPlaying(speed) else closeNowPlaying(velocity = speed)
+                    if (pulling) {
+                        pulling = false
+                        if (miniPull.value > pullGive || velocity > 1200f) {
+                            miniGone = true
+                            playback.dismissPlayer()
+                        } else {
+                            scope.launch { miniPull.animateTo(0f, androidx.compose.animation.core.spring(dampingRatio = 0.7f, stiffness = 400f)) }
+                        }
+                    } else {
+                        val open = velocity < -800f || (velocity <= 800f && nowPlayingExpand.value > 0.35f)
+                        val speed = -velocity / expandTravelPx
+                        if (open) openNowPlaying(speed) else closeNowPlaying(velocity = speed)
+                    }
                 },
-            )
+            ).graphicsLayer {
+                translationY = miniPull.value * 0.7f
+                alpha = (1f - miniPull.value / (pullGive * 3f)).coerceIn(0.3f, 1f)
+            }
             Column(
                 modifier = Modifier
                     // Solid to the touch all over, the gaps round the floating bars included: a tap
@@ -554,9 +591,39 @@ private fun PlayerApp(settings: SettingsViewModel) {
                         .height(1.dp)
                         .background(PlayerColors.Border),
                 )
+                // It leaves — and comes back — in the way of the style: the Dial and Expressive ones sink and dissolve
+                // (a touch smaller as they go), the Classic one, standing right on the bar, just slides down.
+                val softLeave = com.artemiy.player.ui.theme.expressiveUi || discBars
+                // (Where the mini player last stood is kept while it is away — a song started then flies out of
+                // the very place it comes back to; only real places are ever kept, see MiniPlayerAnchors.)
+                // The last song stays on the mini player while it leaves (the song is already gone by then).
+                var lastSong by remember { mutableStateOf<com.artemiy.player.data.Song?>(null) }
+                if (playback.currentSong != null) lastSong = playback.currentSong
+                val miniSong = playback.currentSong ?: lastSong
+                androidx.compose.animation.AnimatedVisibility(
+                    // Only with something to play: no empty "nothing is playing" bar any more.
+                    visible = playback.currentSong != null && !miniGone,
+                    modifier = if (!softLeave) Modifier.background(PlayerColors.SurfaceDim) else Modifier,
+                    enter = if (softLeave) {
+                        androidx.compose.animation.slideInVertically(tween(300)) { it / 2 } +
+                            androidx.compose.animation.expandVertically(tween(300)) +
+                            androidx.compose.animation.fadeIn(tween(260)) +
+                            androidx.compose.animation.scaleIn(tween(300), initialScale = 0.94f)
+                    } else {
+                        androidx.compose.animation.slideInVertically(tween(260)) { it } + androidx.compose.animation.expandVertically(tween(260)) + androidx.compose.animation.fadeIn(tween(200))
+                    },
+                    exit = if (softLeave) {
+                        androidx.compose.animation.slideOutVertically(tween(260)) { it / 2 } +
+                            androidx.compose.animation.shrinkVertically(tween(300, delayMillis = 60)) +
+                            androidx.compose.animation.fadeOut(tween(220)) +
+                            androidx.compose.animation.scaleOut(tween(260), targetScale = 0.94f)
+                    } else {
+                        androidx.compose.animation.slideOutVertically(tween(240)) { it } + androidx.compose.animation.shrinkVertically(tween(260)) + androidx.compose.animation.fadeOut(tween(200))
+                    },
+                ) {
                 if (discMini) DiscMiniPlayer(
-                    title = playback.currentSong?.title ?: stringResource(R.string.nothing_playing),
-                    artist = playback.currentSong?.artist ?: stringResource(R.string.no_track_chosen),
+                    title = miniSong?.title ?: stringResource(R.string.nothing_playing),
+                    artist = miniSong?.artist ?: stringResource(R.string.no_track_chosen),
                     isPlaying = playback.isPlaying,
                     onOpen = { if (playback.currentSong != null) openNowPlaying() },
                     onTogglePlayPause = { playback.togglePlayPause() },
@@ -565,9 +632,9 @@ private fun PlayerApp(settings: SettingsViewModel) {
                     textScrolls = !showNowPlaying,
                     modifier = miniDrag,
                 ) else MiniPlayer(
-                    title = playback.currentSong?.title ?: stringResource(R.string.nothing_playing),
-                    artist = playback.currentSong?.artist ?: stringResource(R.string.no_track_chosen),
-                    albumArtUri = playback.currentSong?.uri,
+                    title = miniSong?.title ?: stringResource(R.string.nothing_playing),
+                    artist = miniSong?.artist ?: stringResource(R.string.no_track_chosen),
+                    albumArtUri = miniSong?.uri,
                     isPlaying = playback.isPlaying,
                     onOpen = { if (playback.currentSong != null) openNowPlaying() },
                     onTogglePlayPause = { playback.togglePlayPause() },
@@ -580,6 +647,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                     progressShown = !showNowPlaying,
                     modifier = miniDrag,
                 )
+                }
                 PlayerBottomBar(selected = selectedTab, onSelect = { tab ->
                     if (tab != selectedTab) {
                         selectedTab = tab

@@ -103,6 +103,9 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.style.TextAlign
 import com.artemiy.player.ui.components.songLongPressTrigger
 import com.artemiy.player.ui.settings.SettingsViewModel
@@ -351,11 +354,31 @@ internal fun <T> ListToolbar(
 
 /** "Диск": the Library's sections as low rounded chips under a section page's heading; the chosen one is filled. */
 @Composable
-internal fun LibraryTabChips(tabs: List<LibraryTab>, current: LibraryTab?, onPick: (LibraryTab) -> Unit) {
+internal fun LibraryTabChips(
+    tabs: List<LibraryTab>,
+    current: LibraryTab?,
+    scroll: androidx.compose.foundation.ScrollState,
+    onPick: (LibraryTab) -> Unit,
+) {
+    var viewportPx by remember { mutableStateOf(0) }
+    var chosenLeft by remember { mutableStateOf(-1) }
+    var chosenRight by remember { mutableStateOf(-1) }
+    val gutter = with(androidx.compose.ui.platform.LocalDensity.current) { 20.dp.roundToPx() }
+    // The chosen chip is brought into view (only as far as it takes), the way a tab bar does.
+    androidx.compose.runtime.LaunchedEffect(current, chosenLeft, chosenRight, viewportPx) {
+        if (chosenLeft < 0 || viewportPx == 0) return@LaunchedEffect
+        val visibleStart = scroll.value
+        val visibleEnd = scroll.value + viewportPx
+        when {
+            chosenLeft - gutter < visibleStart -> scroll.animateScrollTo((chosenLeft - gutter).coerceAtLeast(0))
+            chosenRight + gutter > visibleEnd -> scroll.animateScrollTo(chosenRight + gutter - viewportPx)
+        }
+    }
     androidx.compose.foundation.layout.Row(
         modifier = Modifier
             .fillMaxWidth()
-            .androidx_hscroll()
+            .onSizeChanged { viewportPx = it.width }
+            .horizontalScroll(scroll)
             .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -368,6 +391,7 @@ internal fun LibraryTabChips(tabs: List<LibraryTab>, current: LibraryTab?, onPic
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 modifier = Modifier
+                    .onGloballyPositioned { if (on) { chosenLeft = it.positionInParent().x.toInt(); chosenRight = chosenLeft + it.size.width } }
                     .height(38.dp)
                     .clip(RoundedCornerShape(14.dp))
                     .background(if (on) PlayerColors.TextPrimary else com.artemiy.player.ui.theme.Disc.tileFill)
@@ -379,5 +403,3 @@ internal fun LibraryTabChips(tabs: List<LibraryTab>, current: LibraryTab?, onPic
     }
 }
 
-@Composable
-private fun Modifier.androidx_hscroll(): Modifier = this.horizontalScroll(rememberScrollState())

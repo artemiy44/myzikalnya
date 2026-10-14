@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.paddingFrom
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -367,6 +368,7 @@ internal fun LyricsView(
                                 positionMs = linePositionMs,
                                 active = active,
                                 alignEnd = line.voice == LyricVoice.V2,
+                                playing = isPlaying,
                             )
                         } else SungLine(
                             line = line,
@@ -580,7 +582,7 @@ internal fun BackgroundVocals(
 @Composable
 internal fun UnsyncedLine(text: String) {
     Text(
-        text = text,
+        text = com.artemiy.player.ui.theme.lyricAnnotated(text),
         color = PlayerColors.TextPrimary,
         fontSize = 16.sp,
         fontWeight = FontWeight.SemiBold,
@@ -613,6 +615,19 @@ internal fun UnsyncedRubyLine(segments: List<RubySegment>) {
     }
 }
 
+/**
+ * With the hieroglyph fonts on, words in different fonts have different heights above their baseline (Jua's
+ * letters are shorter than Inter's), and a reading sits on top of its word — so some readings crept down onto
+ * their word. Every word gets the same room above its baseline (the tallest of the fonts), whatever font it is in.
+ * Off with the phone's own font, where the lines have always been as they are.
+ */
+@Composable
+internal fun Modifier.sameHeightAboveBaseline(fontSizeSp: Float): Modifier {
+    if (com.artemiy.player.ui.theme.LocalLyricFontSetting.current.choice.isDefault) return this
+    val room = with(androidx.compose.ui.platform.LocalDensity.current) { (fontSizeSp * 1.17f).sp.toDp() }
+    return this.paddingFrom(androidx.compose.ui.layout.FirstBaseline, before = room)
+}
+
 /** Size of a reading printed above its word, relative to the lyric's own font size. */
 internal const val READING_SCALE = 0.42f
 
@@ -642,6 +657,7 @@ internal fun RubyLine(
     glow: Boolean = false,
 ) {
     val color = if (glow) PlayerColors.TextPrimary.copy(alpha = LYRIC_GLOW_ALPHA) else PlayerColors.TextPrimary
+    val rubyHint = remember(segments) { segments.joinToString("") { it.text } }
     BalancedFlow(
         words = remember(segments) { segments.map { it.text } },
         alignEnd = alignEnd,
@@ -661,7 +677,7 @@ internal fun RubyLine(
                     .padding(end = if (segment.reading != null && !segment.text.last().isWhitespace()) 4.dp else 0.dp),
             ) {
                 ReadingText(segment.reading, fontSize, glow)
-                Text(text = text, color = color, fontSize = fontSize.sp, lineHeight = fontSize.sp * 1.2f, fontWeight = FontWeight.ExtraBold)
+                Text(text = com.artemiy.player.ui.theme.lyricAnnotated(text, rubyHint), color = color, fontSize = fontSize.sp, lineHeight = fontSize.sp * 1.2f, fontWeight = FontWeight.ExtraBold, modifier = Modifier.sameHeightAboveBaseline(fontSize))
             }
         }
     }
@@ -681,7 +697,7 @@ internal fun SecondaryLyricLine(
         WordSyncedLine(line, positionMs, alpha, fontSize, null, alignEnd, 8.dp, 8.dp)
     } else {
         Text(
-            text = line.text,
+            text = com.artemiy.player.ui.theme.lyricAnnotated(line.text),
             color = LocalAdaptiveSecondaryColor.current,
             fontSize = fontSize,
             fontWeight = FontWeight.SemiBold,
@@ -727,7 +743,7 @@ internal fun PlainLyricLine(
     val words = remember(text) { if (text.trim().contains(' ')) WORD_UNIT.findAll(text.trim()).map { it.value }.toList() else null }
     if (words == null) {
         Text(
-            text = text,
+            text = com.artemiy.player.ui.theme.lyricAnnotated(text),
             color = color,
             fontSize = fontSize.sp,
             lineHeight = fontSize.sp * 1.3f,
@@ -742,7 +758,7 @@ internal fun PlainLyricLine(
         words.forEachIndexed { i, word ->
             Text(
                 // The last word's trailing space would leave a gap against the right edge.
-                text = if (i == words.lastIndex) word.trimEnd() else word,
+                text = com.artemiy.player.ui.theme.lyricAnnotated(if (i == words.lastIndex) word.trimEnd() else word, text),
                 color = color,
                 fontSize = fontSize.sp,
                 lineHeight = fontSize.sp * 1.3f,
@@ -854,6 +870,7 @@ internal fun WordSyncedLine(
             // The last word's trailing space would leave a gap against the right edge of a v2 line.
             val text = if (index == words.lastIndex) word.text.trimEnd() else word.text
             val reading = readings?.getOrNull(index)
+            val fontText = com.artemiy.player.ui.theme.lyricAnnotated(text, line.text)
             Column(
                 modifier = Modifier
                     // Latin and Japanese glyphs sit at different heights in the same font; lining
@@ -869,8 +886,8 @@ internal fun WordSyncedLine(
                     sungStyle.copy(color = PlayerColors.TextPrimary.copy(alpha = LYRIC_GLOW_ALPHA + (1f - LYRIC_GLOW_ALPHA) * swell))
                 } else sungStyle
                 when {
-                    index < currentIndex -> Text(text = text, style = lingerStyle)
-                    index > currentIndex -> Text(text = text, style = unsungStyle)
+                    index < currentIndex -> Text(text = fontText, style = lingerStyle, modifier = if (readings != null) Modifier.sameHeightAboveBaseline(fontSize.value) else Modifier)
+                    index > currentIndex -> Text(text = fontText, style = unsungStyle, modifier = if (readings != null) Modifier.sameHeightAboveBaseline(fontSize.value) else Modifier)
                     else -> {
                         val wordEndMs = endOf(index)
                         val progress = if (wordEndMs > word.timeMs) {
@@ -881,13 +898,13 @@ internal fun WordSyncedLine(
                         // the bright copy on top, hard-clipped to exactly `progress` of that word's
                         // own measured width, is a much more direct and reliably-correct reveal.
                         Box {
-                            Text(text = text, style = unsungStyle)
+                            Text(text = fontText, style = unsungStyle, modifier = if (readings != null) Modifier.sameHeightAboveBaseline(fontSize.value) else Modifier)
                             // The sung copy, revealed up to `progress` with a soft edge rather than a
                             // hard cut; the reveal runs a little past the word so it ends fully lit.
                             Text(
-                                text = text,
+                                text = fontText,
                                 style = lingerStyle,
-                                modifier = Modifier
+                                modifier = (if (readings != null) Modifier.sameHeightAboveBaseline(fontSize.value) else Modifier)
                                     .graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
                                     .drawWithContent {
                                         drawContent()
@@ -920,7 +937,7 @@ internal fun WordSyncedLine(
  * before the singing starts again they fold away, letting the lines close back up.
  */
 @Composable
-internal fun InstrumentalDots(startMs: Long, endMs: Long, positionMs: Long, active: Boolean, alignEnd: Boolean) {
+internal fun InstrumentalDots(startMs: Long, endMs: Long, positionMs: Long, active: Boolean, alignEnd: Boolean, playing: Boolean = true) {
     val span = (endMs - startMs).coerceAtLeast(1L).toFloat()
     val progress = ((positionMs - startMs) / span).coerceIn(0f, 1f)
     val origin = androidx.compose.ui.graphics.TransformOrigin(if (alignEnd) 1f else 0f, 0.5f)
@@ -937,12 +954,18 @@ internal fun InstrumentalDots(startMs: Long, endMs: Long, positionMs: Long, acti
         val color = PlayerColors.TextPrimary
         // A slow, small sway, forward and back, each dot a beat behind the one before it — like a
         // wave rolling along the three. Only while the dots are on screen.
-        val sway = androidx.compose.animation.core.rememberInfiniteTransition(label = "dotsSway").animateFloat(
-            initialValue = 0f,
-            targetValue = (2 * Math.PI).toFloat(),
-            animationSpec = androidx.compose.animation.core.infiniteRepeatable(tween(2600, easing = LinearEasing)),
-            label = "dotsSwayPhase",
-        )
+        // Stands still while the song is paused: the phase only moves on frames drawn during playback.
+        val swayPhase = remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
+        LaunchedEffect(playing) {
+            if (!playing) return@LaunchedEffect
+            var last = androidx.compose.runtime.withFrameNanos { it }
+            while (true) {
+                val now = androidx.compose.runtime.withFrameNanos { it }
+                swayPhase.floatValue = (swayPhase.floatValue + (now - last) / 1_000_000_000f * (2 * Math.PI).toFloat() / 2.6f) % (2 * Math.PI).toFloat()
+                last = now
+            }
+        }
+        val sway = swayPhase
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
             horizontalArrangement = if (alignEnd) Arrangement.End else Arrangement.Start,
@@ -955,7 +978,7 @@ internal fun InstrumentalDots(startMs: Long, endMs: Long, positionMs: Long, acti
                     modifier = Modifier
                         .padding(end = if (i < 2) 12.dp else 0.dp)
                         .size(14.dp)
-                        .graphicsLayer { translationX = kotlin.math.sin(sway.value - i * 0.9f) * 3.dp.toPx() },
+                        .graphicsLayer { translationX = kotlin.math.sin(sway.floatValue - i * 0.9f) * 3.dp.toPx() },
                     contentAlignment = Alignment.Center,
                 ) {
                     // The halo: a bit bigger than the dot and blurred a bit less than text's glow —

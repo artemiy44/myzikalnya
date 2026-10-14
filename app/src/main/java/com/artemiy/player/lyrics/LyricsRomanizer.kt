@@ -49,6 +49,55 @@ object LyricsRomanizer {
         }
     }
 
+    /**
+     * Each of [lines] as Latin letters, for searching lyrics by how they sound: the same number of
+     * lines, an empty one where a line needs no romanization (it is Latin or Cyrillic already). The
+     * parts of a line that are already Latin stay as they are.
+     */
+    fun romanizedLines(lines: List<String>): List<String> {
+        if (lines.none { needsRomanization(it) }) return emptyList()
+        val japaneseSong = lines.any { hasKana(it) }
+        return lines.map { line ->
+            val segments = rubyFor(line, japaneseSong) ?: return@map ""
+            segments.joinToString(" ") { (it.reading ?: it.text).trim() }.replace(Regex("\\s+"), " ").trim()
+        }
+    }
+
+    /**
+     * Which characters of [lines]\[lineIndex] sound like [needle] (already lower-case, no tone marks): the pieces
+     * of the line whose romanization takes part in the match, as ranges of the line's own characters. Empty
+     * when the match isn't there or the line can't be cut up reliably.
+     */
+    fun soundsLike(lines: List<String>, lineIndex: Int, needle: String): List<IntRange> {
+        val line = lines.getOrNull(lineIndex) ?: return emptyList()
+        if (needle.isBlank() || !needsRomanization(line)) return emptyList()
+        val japaneseSong = lines.any { hasKana(it) }
+        val segments = rubyFor(line, japaneseSong) ?: return emptyList()
+        // The segments must put the line back together exactly, or the places in them mean nothing.
+        if (segments.joinToString("") { it.text } != line) return emptyList()
+        fun plain(text: String) = java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD).replace(Regex("\\p{Mn}+"), "").lowercase()
+        // The readings in a row, each remembered with where it starts and ends in that row.
+        val row = StringBuilder()
+        val spans = ArrayList<Triple<Int, Int, Int>>() // reading start, reading end, segment index
+        segments.forEachIndexed { i, segment ->
+            val reading = plain((segment.reading ?: segment.text).trim())
+            if (row.isNotEmpty()) row.append(' ')
+            spans.add(Triple(row.length, row.length + reading.length, i))
+            row.append(reading)
+        }
+        val start = row.indexOf(needle)
+        if (start < 0) return emptyList()
+        val end = start + needle.length
+        val hit = spans.filter { (s, e, _) -> s < end && e > start }.map { it.third }.toSet()
+        // Back to the line's own characters.
+        val offsets = IntArray(segments.size + 1)
+        segments.forEachIndexed { i, segment -> offsets[i + 1] = offsets[i] + segment.text.length }
+        return hit.sorted().map { i ->
+            val seg = segments[i].text
+            offsets[i] until (offsets[i] + seg.trimEnd().length).coerceAtLeast(offsets[i] + 1)
+        }
+    }
+
     private enum class Language { JAPANESE, KOREAN, CHINESE, OTHER }
 
     private fun languageOf(text: String, japaneseSong: Boolean): Language = when {

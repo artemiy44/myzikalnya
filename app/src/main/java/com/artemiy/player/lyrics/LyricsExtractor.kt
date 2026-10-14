@@ -68,8 +68,40 @@ object LyricsExtractor {
         }
 
         // Prefer word-level synced lyrics, then any synced, then plain unsynced text.
-        synced.maxByOrNull { it.lines.count { line -> line.words != null } }
+        val embedded = synced.maxByOrNull { it.lines.count { line -> line.words != null } }
             ?: unsyncedFallback?.let { ParsedLyrics.Unsynced(it) }
+        if (embedded != null) return@withContext embedded
+        // Nothing inside the file: look for a .elrc / .lrc with the song's name next to it (what a lyrics
+        // downloader leaves). Always second to the lyrics written into the file.
+        val sidecarText = sidecarText(context, uri) ?: return@withContext null
+        val sidecarSynced = mutableListOf<ParsedLyrics.Synced>()
+        var sidecarPlain: String? = null
+        addText(sidecarText, sidecarSynced, onUnsynced = { sidecarPlain = it })
+        sidecarSynced.firstOrNull() ?: sidecarPlain?.let { ParsedLyrics.Unsynced(it) }
+    }
+
+    /** Whether the app may read files other than media ones (the .lrc next to a song): all-files access on Android 11+, the usual storage permission before. */
+    fun canReadSidecars(context: Context): Boolean =
+        if (android.os.Build.VERSION.SDK_INT >= 30) android.os.Environment.isExternalStorageManager()
+        else androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_EXTERNAL_STORAGE) ==
+            android.content.pm.PackageManager.PERMISSION_GRANTED
+
+    /** The text of the `.elrc` (else `.lrc`) file beside the song, or null when there is none or it can't be read. */
+    private fun sidecarText(context: Context, uri: Uri): String? {
+        if (!canReadSidecars(context)) return null
+        val path = runCatching {
+            context.contentResolver.query(uri, arrayOf(android.provider.MediaStore.Audio.Media.DATA), null, null, null)?.use {
+                if (it.moveToFirst()) it.getString(0) else null
+            }
+        }.getOrNull() ?: return null
+        val base = path.substringBeforeLast('.', path)
+        for (ext in listOf("elrc", "lrc", "ELRC", "LRC")) {
+            val file = java.io.File("$base.$ext")
+            if (!file.isFile || !file.canRead()) continue
+            val text = runCatching { file.readText(Charsets.UTF_8).trimStart('\uFEFF') }.getOrNull()
+            if (!text.isNullOrBlank()) return text
+        }
+        return null
     }
 
     private fun addText(raw: String, synced: MutableList<ParsedLyrics.Synced>, onUnsynced: (String) -> Unit) {

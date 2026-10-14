@@ -194,9 +194,12 @@ fun LibraryScreen(
     // Classic look: an album / artist / playlist page grows out of the cover that was tapped (list or
     // grid, whatever the sort), and shrinks back into it; see ExpandAnchors.
     val classicUi = !com.artemiy.player.ui.theme.expressiveUi
+    // The chips of the Disc look sit on every section page: one scroll position for all of them, so switching section doesn't send the row back to its start.
+    val chipScroll = androidx.compose.foundation.rememberScrollState()
     AnimatedBackStack(
         stack = backStack,
         onBack = { backStack.removeAt(backStack.lastIndex) },
+        animateSwap = { a, b -> a.isSection() && b.isSection() },
         expandFrom = { r ->
             if (!classicUi) null else when (r) {
                 is LibraryRoute.AlbumDetail -> com.artemiy.player.ui.components.LibraryAnchors.sourceFor("album:${albumKey(r.album, r.artist)}")
@@ -898,6 +901,7 @@ fun LibraryScreen(
                             if (sectionTab != null && com.artemiy.player.ui.theme.discUi) LibraryTabChips(
                                 tabs = settingsVm.libraryTabs.filter { it.shown }.map { it.tab },
                                 current = sectionTab,
+                                scroll = chipScroll,
                                 onPick = { tab ->
                                     if (tab != sectionTab) backStack[backStack.lastIndex] = when (tab) {
                                         LibraryTab.PLAYLISTS -> LibraryRoute.Playlists
@@ -961,4 +965,11 @@ fun LibraryScreen(
             },
         )
     }
+}
+
+/** The Library's own list pages (Artists, Albums...) — the ones the chips switch between. */
+private fun LibraryRoute.isSection(): Boolean = when (this) {
+    LibraryRoute.Playlists, LibraryRoute.Artists, LibraryRoute.Albums, LibraryRoute.Songs,
+    LibraryRoute.Years, LibraryRoute.Genres, LibraryRoute.Folders -> true
+    else -> false
 }

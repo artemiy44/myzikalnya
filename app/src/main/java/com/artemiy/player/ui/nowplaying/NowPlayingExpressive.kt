@@ -1941,15 +1941,17 @@ private fun DialFitText(
     val measurer = androidx.compose.ui.text.rememberTextMeasurer()
     val baseStyle = androidx.compose.material3.LocalTextStyle.current
     val heading = androidx.compose.ui.text.TextStyle(lineBreak = androidx.compose.ui.text.style.LineBreak.Heading)
+    // The hieroglyphs in the font picked for the lyrics (the phone's own may have no bold ones).
+    val shown = com.artemiy.player.ui.theme.lyricAnnotated(text)
     BoxWithConstraints(modifier = modifier) {
         val widthPx = constraints.maxWidth
         val density = LocalDensity.current
-        val fitSp = remember(text, widthPx, maxLines, baseStyle, density.fontScale) {
+        val fitSp = remember(shown, widthPx, maxLines, baseStyle, density.fontScale) {
             var size = 36f
             var found: Float? = null
             while (size >= 28f) {
                 val result = measurer.measure(
-                    text = text,
+                    text = shown,
                     style = baseStyle.merge(heading).merge(androidx.compose.ui.text.TextStyle(fontSize = size.sp, lineHeight = (size * 1.11f).sp, fontWeight = FontWeight.ExtraBold)),
                     overflow = TextOverflow.Clip,
                     maxLines = maxLines,
@@ -1963,7 +1965,7 @@ private fun DialFitText(
         val runsAsMarquee = fitSp == null && marqueeWhenTooLong
         val sp = fitSp ?: if (marqueeWhenTooLong) 32f else 28f
         Text(
-            text = text,
+            text = shown,
             color = color,
             style = baseStyle.merge(heading),
             fontSize = sp.sp,

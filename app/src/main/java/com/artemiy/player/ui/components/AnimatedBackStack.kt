@@ -58,6 +58,8 @@ fun <T : Any> AnimatedBackStack(
     /** Pages that open as a card growing out of the tapped item and shrink back into it on the way
      * out; null = the ordinary slide. */
     expandFrom: (T) -> ExpandSource? = { null },
+    /** Same depth, different pages (a page swapped for its sibling, like the Library's section chips): true = a soft cross-fade instead of a plain cut. */
+    animateSwap: (from: T, to: T) -> Boolean = { _, _ -> false },
     content: @Composable (T) -> Unit,
 ) {
     val current = stack.last()
@@ -153,7 +155,16 @@ fun <T : Any> AnimatedBackStack(
             val layer = to.toFloat()
             // Same depth: the page was swapped in place (e.g. a renamed playlist) — no movement.
             if (from == to) {
-                ContentTransform(EnterTransition.None, ExitTransition.None, targetContentZIndex = layer)
+                if (animateSwap(initialState, targetState)) {
+                    // The same fade-through the bottom tabs use: the old page leaves quickly, the new one comes in a beat later, settling from slightly smaller.
+                    ContentTransform(
+                        targetContentEnter = fadeIn(tween(220, delayMillis = 70)) + androidx.compose.animation.scaleIn(tween(220, delayMillis = 70), initialScale = 0.96f),
+                        initialContentExit = fadeOut(tween(90)),
+                        targetContentZIndex = layer,
+                    )
+                } else {
+                    ContentTransform(EnterTransition.None, ExitTransition.None, targetContentZIndex = layer)
+                }
             } else if (kotlin.math.abs(to - from) == 1 && expandOf(if (to > from) targetState else initialState) != null) {
                 // A card growing into its page (or back): the page animates itself, below.
                 ContentTransform(EnterTransition.None, ExitTransition.None, targetContentZIndex = layer)

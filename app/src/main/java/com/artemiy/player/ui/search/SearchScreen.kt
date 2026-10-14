@@ -360,7 +360,7 @@ Box(modifier = Modifier.padding(horizontal = 12.dp)) {
                                             overflow = TextOverflow.Ellipsis,
                                         )
                                         Text(
-                                            text = highlightMatch(hit.line, query.trim(), PlayerColors.TextPrimary),
+                                            text = highlightMatch(hit.line, query.trim(), PlayerColors.TextPrimary, hit.marks),
                                             color = PlayerColors.TextSecondary,
                                             fontSize = 12.sp,
                                             maxLines = 2,
@@ -393,11 +393,19 @@ Box(modifier = Modifier.padding(horizontal = 12.dp)) {
 }
 
 /** The lyric line with the searched-for part in bright bold. */
-private fun highlightMatch(line: String, query: String, highlight: Color): AnnotatedString = buildAnnotatedString {
+private fun highlightMatch(line: String, query: String, highlight: Color, soundMarks: List<IntRange> = emptyList()): AnnotatedString = buildAnnotatedString {
     append(line)
+    val style = SpanStyle(color = highlight, fontWeight = FontWeight.SemiBold)
     val start = normalizeForSearch(line).indexOf(normalizeForSearch(query))
     if (start >= 0 && start + query.length <= line.length) {
-        addStyle(SpanStyle(color = highlight, fontWeight = FontWeight.SemiBold), start, start + query.length)
+        addStyle(style, start, start + query.length)
+    } else {
+        // Found by how it sounds: the characters that read like the query.
+        soundMarks.forEach { range ->
+            val from = range.first.coerceIn(0, line.length)
+            val to = (range.last + 1).coerceIn(from, line.length)
+            if (to > from) addStyle(style, from, to)
+        }
     }
 }
 

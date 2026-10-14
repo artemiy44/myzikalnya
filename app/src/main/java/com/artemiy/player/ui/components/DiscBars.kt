@@ -71,7 +71,7 @@ fun DiscMiniPlayer(
     Row(
         modifier = modifier
             .padding(horizontal = 12.dp)
-            .onGloballyPositioned { anchors?.bar = it.boundsInRoot() }
+            .onGloballyPositioned { anchors?.let { a -> a.bar = a.keep(a.bar, it.boundsInRoot()) } }
             .fillMaxWidth()
             .height(64.dp)
             .clip(RoundedCornerShape(MINI_CARD_CORNER))
@@ -89,7 +89,7 @@ fun DiscMiniPlayer(
         }
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = title,
+                text = com.artemiy.player.ui.theme.lyricAnnotated(title),
                 color = PlayerColors.TextPrimary,
                 fontSize = 15.sp,
                 lineHeight = 19.sp,
@@ -98,7 +98,7 @@ fun DiscMiniPlayer(
                 modifier = Modifier.marquee(textScrolls),
             )
             Text(
-                text = artist,
+                text = com.artemiy.player.ui.theme.lyricAnnotated(artist),
                 color = PlayerColors.TextSecondary,
                 fontSize = 13.sp,
                 lineHeight = 17.sp,

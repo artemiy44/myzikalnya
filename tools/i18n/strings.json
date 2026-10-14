@@ -628,6 +628,10 @@
   "en": "Year",
   "ru": "Год выпуска"
  },
+ "lang_chinese": {
+  "en": "Chinese",
+  "ru": "Китайский"
+ },
  "lang_choose": {
   "en": "Choose a language",
   "ru": "Выбор языка"
@@ -643,6 +647,14 @@
  "lang_expressive_hint": {
   "en": "The same, just livelier and friendlier",
   "ru": "То же самое, только живее и дружелюбнее"
+ },
+ "lang_japanese": {
+  "en": "Japanese",
+  "ru": "Японский"
+ },
+ "lang_korean": {
+  "en": "Korean",
+  "ru": "Корейский"
  },
  "lang_plain_chip": {
   "en": "Plain",
@@ -691,6 +703,18 @@
  "light_white": {
   "en": "White",
   "ru": "Белый"
+ },
+ "lyric_font_backup": {
+  "en": "Backup font (Chinese)",
+  "ru": "Запасной шрифт (китайский)"
+ },
+ "lyric_font_backup_desc": {
+  "en": "Smiley Sans has only simplified characters; the ones it lacks (traditional) come from this font, or from the phone's own if none is chosen.",
+  "ru": "В Smiley Sans только упрощённые знаки; те, которых в нём нет (традиционные), берутся из этого шрифта, а если он не выбран — из шрифта телефона."
+ },
+ "lyric_font_no_bold": {
+  "en": "Your phone's own font has no bold Japanese, Korean or Chinese characters, so titles there look thin. Picking one of ours fixes it.",
+  "ru": "В шрифте вашего телефона нет жирных японских, корейских и китайских знаков, поэтому названия там выглядят тонкими. Выбор одного из наших это исправит."
  },
  "lyrics": {
   "en": "Lyrics",
@@ -1438,6 +1462,26 @@
   "en": "Plain LRC doesn't know how long a line is sung, so a long-held line can get dots too. Dots before the first line always stay.",
   "ru": "Обычный LRC не знает, сколько длится строка, поэтому точки могут появиться и на долгой строке. Точки перед первой строкой остаются всегда."
  },
+ "set_lyric_fonts": {
+  "en": "Fonts for hieroglyphs in lyrics",
+  "ru": "Шрифты для иероглифов в тексте песни"
+ },
+ "set_lyric_fonts_desc": {
+  "en": "Japanese, Korean and Chinese in the lyrics can be set in a font of their own. The first one is your phone's own font; anything a font lacks is filled in by the phone.",
+  "ru": "Японский, корейский и китайский в тексте песни можно набрать своим шрифтом. Первый вариант — шрифт самого телефона; чего нет в шрифте, добавит телефон."
+ },
+ "set_lyrics_files": {
+  "en": "Lyrics files next to songs",
+  "ru": "Файлы текста рядом с песнями"
+ },
+ "set_lyrics_files_off": {
+  "en": "Off: needs \"All files access\" — tap to allow it. Lyrics inside the song always come first",
+  "ru": "Выключено: нужен «Доступ ко всем файлам» — нажми, чтобы разрешить. Текст внутри песни всегда в приоритете"
+ },
+ "set_lyrics_files_on": {
+  "en": "On: a .lrc or .elrc with the song's name is read when the song has no lyrics inside it",
+  "ru": "Включено: .lrc или .elrc с именем песни читается, если в самой песне текста нет"
+ },
  "set_min_length": {
   "en": "Skip files shorter than",
   "ru": "Не показывать файлы короче"
@@ -1534,6 +1578,10 @@
   "en": "This phone doesn't tell the app how round its screen is. Set it so the card and the buttons of the Dial player follow the corners.",
   "ru": "Этот телефон не сообщает приложению, насколько скруглён его экран. Задай, чтобы карточка и кнопки плеера «Диск» шли вровень с углами."
  },
+ "set_search_names": {
+  "en": "Search the names",
+  "ru": "Поиск по именам"
+ },
  "set_show_welcome": {
   "en": "Show the welcome again",
   "ru": "Показать приветствие снова"
@@ -1545,6 +1593,18 @@
  "set_start_tab": {
   "en": "Open on start",
   "ru": "Открывать при запуске"
+ },
+ "set_tab_icons_font": {
+  "en": "Icons & font",
+  "ru": "Значки и шрифт"
+ },
+ "set_tab_lyrics": {
+  "en": "Lyrics",
+  "ru": "Текст песни"
+ },
+ "set_tab_theme": {
+  "en": "Theme",
+  "ru": "Тема"
  },
  "set_tap_plays": {
   "en": "Tapping a lyric line starts the music",

@@ -45,6 +45,10 @@ class SettingsRepository(private val context: Context) {
         val NOTIF_REPEAT_KEY = androidx.datastore.preferences.core.booleanPreferencesKey("notification_repeat_button")
         val NOW_PLAYING_BACKGROUND_MODE_KEY = stringPreferencesKey("now_playing_background_mode")
         val PLAYER_STYLE_KEY = stringPreferencesKey("player_style")
+        val LYRIC_FONT_JA_KEY = androidx.datastore.preferences.core.intPreferencesKey("lyric_font_ja")
+        val LYRIC_FONT_KO_KEY = androidx.datastore.preferences.core.intPreferencesKey("lyric_font_ko")
+        val LYRIC_FONT_ZH_KEY = androidx.datastore.preferences.core.intPreferencesKey("lyric_font_zh")
+        val LYRIC_FONT_ZH_BACKUP_KEY = androidx.datastore.preferences.core.intPreferencesKey("lyric_font_zh_backup")
         val SCREEN_CORNER_KEY = androidx.datastore.preferences.core.intPreferencesKey("screen_corner_dp")
         val DIAL_CARD_KEY = androidx.datastore.preferences.core.booleanPreferencesKey("dial_card")
         val LIVE_BLUR_INTENSITY_KEY = stringPreferencesKey("live_blur_intensity")
@@ -198,6 +202,25 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setDialCard(card: Boolean) {
         context.settingsDataStore.edit { prefs -> prefs[DIAL_CARD_KEY] = card }
+    }
+
+    /** The fonts the lyrics' hieroglyphs are set in (0 = the phone's own). */
+    val lyricFonts: Flow<com.artemiy.player.ui.theme.LyricFontChoice> = context.settingsDataStore.data.map { prefs ->
+        com.artemiy.player.ui.theme.LyricFontChoice(
+            ja = prefs[LYRIC_FONT_JA_KEY] ?: 0,
+            ko = prefs[LYRIC_FONT_KO_KEY] ?: 0,
+            zh = prefs[LYRIC_FONT_ZH_KEY] ?: 0,
+            zhBackup = prefs[LYRIC_FONT_ZH_BACKUP_KEY] ?: 0,
+        )
+    }
+
+    suspend fun setLyricFonts(choice: com.artemiy.player.ui.theme.LyricFontChoice) {
+        context.settingsDataStore.edit { prefs ->
+            prefs[LYRIC_FONT_JA_KEY] = choice.ja
+            prefs[LYRIC_FONT_KO_KEY] = choice.ko
+            prefs[LYRIC_FONT_ZH_KEY] = choice.zh
+            prefs[LYRIC_FONT_ZH_BACKUP_KEY] = choice.zhBackup
+        }
     }
 
     /** How round the screen's corners are, in dp, for a phone that doesn't say (0 = not set). */

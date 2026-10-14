@@ -27,11 +27,15 @@ data class IndexedLyrics(
     val text: String,
     /** [text] run through [normalizeForSearch] — what queries are actually matched against. */
     val searchable: String,
+    /** Each line of [text] in Latin letters (an empty line where it needed none), so lyrics can be found by how they sound; empty when no line needed it. */
+    val roman: String = "",
+    /** [roman] run through [normalizeForSearch]. */
+    val romanSearchable: String = "",
 )
 
 data class IndexedSignature(val songId: Long, val signature: String)
 
-data class LyricsMatch(val songId: Long, val text: String)
+data class LyricsMatch(val songId: Long, val text: String, val roman: String)
 
 /**
  * Whether a lyrics search is worth running yet: three letters in most languages (one or two
@@ -48,6 +52,10 @@ private fun Char.isCjk(): Boolean = when (Character.UnicodeScript.of(code)) {
     Character.UnicodeScript.HANGUL -> true
     else -> false
 }
+
+/** [text] without accents and tone marks (nǐ hǎo → ni hao), what a romanized line is searched as: nobody types the tone marks. */
+fun stripMarks(text: String): String =
+    java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD).replace(Regex("\\p{Mn}+"), "")
 
 /** Case-insensitive for every alphabet (SQLite's own LIKE only folds ASCII), "ё" = "е", and
  * curly apostrophes = straight ones. Keeps the string length unchanged for the characters it
@@ -67,13 +75,13 @@ interface LyricsIndexDao {
     suspend fun delete(songIds: List<Long>)
 
     /** [pattern] must already be normalized and have `%`, `_` and `\` escaped with `\`. */
-    @Query("SELECT songId, text FROM indexed_lyrics WHERE searchable LIKE '%' || :pattern || '%' ESCAPE '\\' LIMIT :limit")
-    suspend fun search(pattern: String, limit: Int): List<LyricsMatch>
+    @Query("SELECT songId, text, roman FROM indexed_lyrics WHERE searchable LIKE '%' || :pattern || '%' ESCAPE '\\' OR romanSearchable LIKE '%' || :romanPattern || '%' ESCAPE '\\' LIMIT :limit")
+    suspend fun search(pattern: String, romanPattern: String, limit: Int): List<LyricsMatch>
 }
 
 /** Separate from [AppDatabase] on purpose: this is a rebuildable cache, so a schema change can
  * just wipe it — while the main database holds playlists and play history that must survive. */
-@Database(entities = [IndexedLyrics::class], version = 1, exportSchema = false)
+@Database(entities = [IndexedLyrics::class], version = 2, exportSchema = false)
 abstract class LyricsIndexDatabase : RoomDatabase() {
     abstract fun dao(): LyricsIndexDao
 

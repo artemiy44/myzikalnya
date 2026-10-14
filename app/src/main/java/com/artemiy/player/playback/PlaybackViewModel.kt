@@ -227,7 +227,8 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
                     positionMs = 0L
                     val id = mediaItem?.mediaId?.toLongOrNull()
                     currentSong = id?.let { songsById[it] } ?: mediaItem?.toSongOrNull()
-                    if (manualQueueIds.firstOrNull() == id) manualQueueIds.removeAt(0)
+                    // (No song at all — the player was just emptied — has no id: nothing to take off the list.)
+                    if (id != null && manualQueueIds.firstOrNull() == id) manualQueueIds.removeAt(0)
                     refreshDerivedQueues()
                     Log.d(TAG, "Transition (reason=$reason) -> ${currentSong?.title}")
                     loadLyricsFor(currentSong)
@@ -409,6 +410,25 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
         refreshDerivedQueues()
         loadLyricsFor(currentSong)
         sendModes()
+    }
+
+    /**
+     * Closes the player for good (the mini player swiped away): playback stops, the queue and the
+     * song are forgotten, the system's media notification goes. The next song played brings it all back.
+     */
+    fun dismissPlayer() {
+        val c = controller ?: return
+        c.stop()
+        c.clearMediaItems()
+        manualQueueIds.clear()
+        playingFrom = null
+        currentSong = null
+        positionMs = 0
+        durationMs = 0
+        // What the app would put back at its next start is forgotten too (the modes — shuffle, repeat — stay).
+        saved.edit().remove("ids").remove("index").remove("position").remove("manual").remove("fromName").remove("fromCount").remove("fromArt").apply()
+        loadLyricsFor(null)
+        refreshDerivedQueues()
     }
 
     fun togglePlayPause() {
