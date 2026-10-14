@@ -63,6 +63,8 @@ fun DiscMiniPlayer(
     anchors: MiniPlayerAnchors? = null,
     /** Off while the big player is open — so the title starts scrolling afresh once it's closed. */
     textScrolls: Boolean = true,
+    /** The hieroglyph fonts of the lyrics on the title (only when the big player sets its own title in them too, or the font would jump as it opens). */
+    cjkFonts: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     // A solid colour (the player opens out of it): the text colour's tint laid over the page.
@@ -89,7 +91,7 @@ fun DiscMiniPlayer(
         }
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = com.artemiy.player.ui.theme.lyricAnnotated(title),
+                text = if (cjkFonts) com.artemiy.player.ui.theme.lyricAnnotated(title) else androidx.compose.ui.text.AnnotatedString(title),
                 color = PlayerColors.TextPrimary,
                 fontSize = 15.sp,
                 lineHeight = 19.sp,
@@ -98,7 +100,7 @@ fun DiscMiniPlayer(
                 modifier = Modifier.marquee(textScrolls),
             )
             Text(
-                text = com.artemiy.player.ui.theme.lyricAnnotated(artist),
+                text = if (cjkFonts) com.artemiy.player.ui.theme.lyricAnnotated(artist) else androidx.compose.ui.text.AnnotatedString(artist),
                 color = PlayerColors.TextSecondary,
                 fontSize = 13.sp,
                 lineHeight = 17.sp,

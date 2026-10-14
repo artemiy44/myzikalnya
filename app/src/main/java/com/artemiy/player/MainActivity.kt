@@ -630,6 +630,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
                     onSkipNext = { playback.skipNext() },
                     anchors = miniAnchors,
                     textScrolls = !showNowPlaying,
+                    cjkFonts = settings.playerStyle == PlayerStyle.DIAL,
                     modifier = miniDrag,
                 ) else MiniPlayer(
                     title = miniSong?.title ?: stringResource(R.string.nothing_playing),

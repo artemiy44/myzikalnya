@@ -112,7 +112,7 @@ fun MiniPlayer(
         ) {
           Column(modifier = Modifier.onGloballyPositioned { anchors?.let { a -> a.text = a.keep(a.text, it.boundsInRoot()) } }) {
             Text(
-                text = com.artemiy.player.ui.theme.lyricAnnotated(title),
+                text = title,
                 color = PlayerColors.TextPrimary,
                 fontSize = 13.sp,
                 // Lines spaced like the big player's title at mini size (24sp × 13/20), so the
@@ -125,7 +125,7 @@ fun MiniPlayer(
                 modifier = Modifier.marquee(textScrolls),
             )
             Text(
-                text = com.artemiy.player.ui.theme.lyricAnnotated(artist),
+                text = artist,
                 color = PlayerColors.TextSecondary,
                 fontSize = 11.sp,
                 lineHeight = MINI_TEXT_LINE_HEIGHT,
