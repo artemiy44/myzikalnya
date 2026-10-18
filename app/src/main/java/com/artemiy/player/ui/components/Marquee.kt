@@ -3,6 +3,7 @@ package com.artemiy.player.ui.components
 import androidx.compose.foundation.MarqueeSpacing
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -25,8 +26,18 @@ private class MarqueeWidth { var content = 0 }
  * it back on starts over from the beginning).
  */
 @Composable
-fun Modifier.marquee(enabled: Boolean = true): Modifier {
+fun Modifier.marquee(
+    enabled: Boolean = true,
+    /** The soft fade of the right edge comes in gently when [enabled] turns on (after the player closes into the mini player,
+     * the title's edge fades in instead of appearing with a snap), and is gone while it is off. */
+    softFade: Boolean = false,
+): Modifier {
     val width = remember { MarqueeWidth() }
+    val fadeAmount by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (!softFade || enabled) 1f else 0f,
+        animationSpec = androidx.compose.animation.core.tween(if (enabled) 380 else 0, delayMillis = if (enabled) 120 else 0),
+        label = "marqueeFade",
+    )
     return this
         .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
         .drawWithContent {
@@ -38,7 +49,8 @@ fun Modifier.marquee(enabled: Boolean = true): Modifier {
                     brush = Brush.horizontalGradient(
                         0f to Color.Black,
                         (1f - fade / size.width).coerceIn(0f, 1f) to Color.Black,
-                        1f to Color.Transparent,
+                        // Fully faded at the end only as far as the fade has come in.
+                        1f to Color.Black.copy(alpha = 1f - fadeAmount),
                     ),
                     blendMode = BlendMode.DstIn,
                 )

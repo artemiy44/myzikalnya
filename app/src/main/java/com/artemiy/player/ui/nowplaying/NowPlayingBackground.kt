@@ -253,6 +253,8 @@ internal fun NowPlayingSurface(
      * mini player bar, screen coordinates) to the whole screen as [openProgress] goes 0 → 1,
      * starting out in [openTint] (the bar's own color). */
     openFrom: Rect? = null,
+    /** The corner of the sheet where it starts: the mini player bar's own. */
+    openCorner: androidx.compose.ui.unit.Dp = SHEET_CORNER,
     openProgress: () -> Float = { 1f },
     openTint: Color = Color.Transparent,
     /** The "Диск" card: the background gets the mixes' matte, even colour (see [matteColor]). */
@@ -312,7 +314,7 @@ internal fun NowPlayingSurface(
                             val bottom = from.bottom + (size.height - from.bottom) * p
                             val left = from.left * (1f - p)
                             val right = from.right + (size.width - from.right) * p
-                            val corner = SHEET_CORNER.toPx() * (1f - p).coerceAtMost(1f)
+                            val corner = openCorner.toPx() * (1f - p).coerceAtMost(1f)
                             clip = true
                             shape = GenericShape { _, _ ->
                                 addRoundRect(RoundRect(Rect(left, top, right, bottom), CornerRadius(corner)))

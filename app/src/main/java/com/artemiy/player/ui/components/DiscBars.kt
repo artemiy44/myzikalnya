@@ -65,11 +65,29 @@ fun DiscMiniPlayer(
     textScrolls: Boolean = true,
     /** The hieroglyph fonts of the lyrics on the title (only when the big player sets its own title in them too, or the font would jump as it opens). */
     cjkFonts: Boolean = true,
+    /** The song's cover, shown instead of the plate when the big player isn't the Dial one (its cover and buttons fly out of the mini player's). */
+    albumArtUri: android.net.Uri? = null,
+    showCover: Boolean = false,
+    /** Hidden while the big player has its own cover in the same place. */
+    artVisible: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     // A solid colour (the player opens out of it): the text colour's tint laid over the page.
     val panel = lerp(PlayerColors.Background, PlayerColors.TextPrimary, 0.10f)
-    SideEffect { anchors?.color = panel }
+    val playTileColor = PlayerColors.Accent
+    val nextTileColor = Disc.tileFill
+    val playIconColor = PlayerColors.OnAccent
+    SideEffect {
+        anchors?.color = panel
+        // With the classic or expressive big player the buttons fly out of the mini player: tell it what the tiles look like.
+        anchors?.playTile = if (showCover) playTileColor else null
+        anchors?.nextTile = if (showCover) nextTileColor else null
+        anchors?.playIcon = if (showCover) playIconColor else null
+        anchors?.textScale = if (showCover) 15f / 13f else 1f
+        anchors?.glyphShare = if (showCover) 22f / 46f else 1f
+        anchors?.artCorner = if (showCover) Disc.smallCorner else null
+        anchors?.barCorner = MINI_CARD_CORNER
+    }
     Row(
         modifier = modifier
             .padding(horizontal = 12.dp)
@@ -83,18 +101,27 @@ fun DiscMiniPlayer(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Box(
+        if (showCover) {
+            AlbumArt(
+                uri = albumArtUri,
+                modifier = Modifier
+                    .size(46.dp)
+                    .onGloballyPositioned { anchors?.let { a -> a.art = a.keep(a.art, it.boundsInRoot()) } }
+                    .graphicsLayer { alpha = if (artVisible) 1f else 0f }
+                    .clip(RoundedCornerShape(Disc.smallCorner)),
+            )
+        } else Box(
             modifier = Modifier.size(46.dp).clip(RoundedCornerShape(Disc.smallCorner)).background(Disc.tileFill),
             contentAlignment = Alignment.Center,
         ) {
             SpinningPlate(isPlaying = isPlaying, size = 32.dp)
         }
-        Column(modifier = Modifier.weight(1f)) {
+        Column(modifier = Modifier.weight(1f).onGloballyPositioned { anchors?.let { a -> a.text = a.keep(a.text, it.boundsInRoot()) } }) {
             Text(
                 text = if (cjkFonts) com.artemiy.player.ui.theme.lyricAnnotated(title) else androidx.compose.ui.text.AnnotatedString(title),
                 color = PlayerColors.TextPrimary,
                 fontSize = 15.sp,
-                lineHeight = 19.sp,
+                lineHeight = 18.sp,
                 fontWeight = FontWeight.ExtraBold,
                 maxLines = 1,
                 modifier = Modifier.marquee(textScrolls),
@@ -103,7 +130,7 @@ fun DiscMiniPlayer(
                 text = if (cjkFonts) com.artemiy.player.ui.theme.lyricAnnotated(artist) else androidx.compose.ui.text.AnnotatedString(artist),
                 color = PlayerColors.TextSecondary,
                 fontSize = 13.sp,
-                lineHeight = 17.sp,
+                lineHeight = 18.sp,
                 maxLines = 1,
                 modifier = Modifier.marquee(textScrolls),
             )
@@ -112,6 +139,7 @@ fun DiscMiniPlayer(
         Box(
             modifier = Modifier
                 .size(46.dp)
+                .onGloballyPositioned { anchors?.let { a -> a.play = a.keep(a.play, it.boundsInRoot()) } }
                 .pressScale(playInteraction, pressedScale = 0.92f)
                 .clip(RoundedCornerShape(Disc.smallCorner))
                 .background(PlayerColors.Accent)
@@ -124,6 +152,7 @@ fun DiscMiniPlayer(
         Box(
             modifier = Modifier
                 .size(46.dp)
+                .onGloballyPositioned { anchors?.let { a -> a.next = a.keep(a.next, it.boundsInRoot()) } }
                 .pressScale(nextInteraction, pressedScale = 0.92f)
                 .clip(RoundedCornerShape(Disc.smallCorner))
                 .background(Disc.tileFill)

@@ -48,6 +48,8 @@ import com.artemiy.player.data.NowPlayingBackgroundMode
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.drawBehind
+import com.artemiy.player.ui.components.marquee
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.util.lerp
@@ -287,7 +289,7 @@ fun NowPlayingScreen(
     // Play/next when the panel was hidden: out of nothing over the first quarter of closing.
     val growFromNothing = { if (closingFromHidden) ((1f - expand()) / 0.25f).coerceIn(0f, 1f) else 1f }
     var finalArtBounds by remember { mutableStateOf<Rect?>(null) }
-    val miniCornerPx = with(LocalDensity.current) { MINI_ART_CORNER.toPx() }
+    val miniCornerPx = with(LocalDensity.current) { (mini?.artCorner ?: MINI_ART_CORNER).toPx() }
     val artCornerPx = with(LocalDensity.current) { 16.dp.toPx() }
     // The sheet starts as the mini player bar itself (in its own color) and grows to the full screen.
     // The mini player's own colors are read here, before the player's palette takes over.
@@ -295,6 +297,14 @@ fun NowPlayingScreen(
     val miniTitleColor = PlayerColors.TextPrimary
     val miniArtistColor = PlayerColors.TextSecondary
     val miniIconColor = PlayerColors.TextPrimary
+    // The "Диск" mini player's buttons are tiles (read now, in the mini player's own colours).
+    val miniPlayTile = mini?.playTile
+    val miniNextTile = mini?.nextTile
+    val miniPlayIcon = mini?.playIcon
+    val miniTextScale = mini?.textScale ?: 1f
+    // Glyph inside the flying button: starts the size it has in the mini player's tile, grows to the full size on the way.
+    val miniGlyphShare = mini?.glyphShare ?: 1f
+    val glyphNow = { e: Float -> androidx.compose.ui.util.lerp(miniGlyphShare, 1f, FLIGHT_EASING.transform(e)) }
     var titleTarget by remember { mutableStateOf<Rect?>(null) }
     // A lyric line held down: the share card opens from it.
     var shareFrom by remember { mutableStateOf<Int?>(null) }
@@ -343,6 +353,7 @@ fun NowPlayingScreen(
         mode = nowPlayingBackgroundMode,
         intensity = liveBlurIntensity,
         openFrom = mini?.bar,
+        openCorner = mini?.barCorner ?: 18.dp,
         openProgress = expand,
         openTint = miniColor,
     ) {
@@ -618,7 +629,7 @@ fun NowPlayingScreen(
                                 mini?.text,
                                 expand,
                                 fromCenter = false,
-                                startScale = 13f / 17f,
+                                startScale = 13f / 17f * miniTextScale,
                                 fadeInUntil = TEXT_HANDOFF,
                                 onTarget = { titleTarget = it },
                             ),
@@ -706,7 +717,7 @@ fun NowPlayingScreen(
                                 mini?.text,
                                 expand,
                                 fromCenter = false,
-                                startScale = MINI_TITLE_SCALE,
+                                startScale = MINI_TITLE_SCALE * miniTextScale,
                                 fadeInUntil = TEXT_HANDOFF,
                                 onTarget = { titleTarget = it },
                             ),
@@ -760,12 +771,20 @@ fun NowPlayingScreen(
                             alpha = grow
                             scaleX = grow
                             scaleY = grow
-                        },
+                        }.drawMiniTile(miniPlayTile, expand),
                         nextModifier = Modifier.flyFrom(mini?.next, expand, fromCenter = true).graphicsLayer {
                             val grow = growFromNothing()
                             alpha = grow
                             scaleX = grow
                             scaleY = grow
+                        }.drawMiniTile(miniNextTile, expand),
+                        playGlyph = { glyphNow(expand()) },
+                        nextGlyph = { glyphNow(expand()) },
+                        playIconTint = miniPlayIcon?.let { from ->
+                            {
+                                val t = (expand() / TEXT_HANDOFF).coerceIn(0f, 1f)
+                                androidx.compose.ui.graphics.lerp(from, playerIconColor, t)
+                            }
                         },
                         // In the mini player's colors at first (dark on a light theme), turning
                         // into the player's own as they fly up — and back when closing.
@@ -843,7 +862,7 @@ fun NowPlayingScreen(
         // change how its text looks.
         val miniText = mini?.text?.takeIf { playerActive }
         // How much bigger the text it hands over to is: the Art view's title, or the header's.
-        val handoffScale = if (centerMode == CenterMode.Art) 20f / 13f else 17f / 13f
+        val handoffScale = (if (centerMode == CenterMode.Art) 20f / 13f else 17f / 13f) / miniTextScale
         if (miniText != null) {
             Column(
                 modifier = Modifier
@@ -866,19 +885,24 @@ fun NowPlayingScreen(
                 Text(
                     text = song?.title ?: stringResource(R.string.nothing_playing),
                     color = miniTitleColor,
-                    fontSize = 13.sp,
-                    lineHeight = 15.6.sp,
+                    // (The size of the mini player's own title: the Disc one's is bigger than the classic one's.)
+                    fontSize = (13f * miniTextScale).sp,
+                    lineHeight = (15.6f * miniTextScale).sp,
                     fontWeight = FontWeight.ExtraBold,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    // Cut off the way the mini player's own text is (a soft fade of the edge, not "…"), so the hand-over doesn't show.
+                    overflow = TextOverflow.Clip,
+                    modifier = Modifier.marquee(false),
                 )
                 Text(
                     text = song?.artist ?: "",
                     color = miniArtistColor,
-                    fontSize = 11.sp,
-                    lineHeight = 15.6.sp,
+                    fontSize = (11f * miniTextScale).sp,
+                    lineHeight = (15.6f * miniTextScale).sp,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    // Cut off the way the mini player's own text is (a soft fade of the edge, not "…"), so the hand-over doesn't show.
+                    overflow = TextOverflow.Clip,
+                    modifier = Modifier.marquee(false),
                 )
             }
         }
@@ -927,3 +951,24 @@ private const val MINI_TITLE_SCALE = 13f / 20f
 
 /** How far into the opening the mini player's text has handed over to the player's own. */
 private const val TEXT_HANDOFF = 0.15f
+
+/**
+ * A tile under a flying button, the colour of the mini player's own tile: it starts as exactly that tile (the
+ * flying copy begins the size of the tile) and lets go over the first part of the flight, leaving the bare icon.
+ */
+private fun Modifier.drawMiniTile(color: androidx.compose.ui.graphics.Color?, progress: () -> Float): Modifier =
+    if (color == null) this else this.drawBehind {
+        val keep = (1f - progress() / TILE_HANDOFF).coerceIn(0f, 1f)
+        if (keep > 0f) {
+            val side = size.minDimension
+            drawRoundRect(
+                color = color.copy(alpha = color.alpha * keep),
+                size = androidx.compose.ui.geometry.Size(side, side),
+                topLeft = androidx.compose.ui.geometry.Offset((size.width - side) / 2f, (size.height - side) / 2f),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(side * 0.304f),
+            )
+        }
+    }
+
+/** How far into the opening the mini player's tiles are gone. */
+private const val TILE_HANDOFF = 0.3f

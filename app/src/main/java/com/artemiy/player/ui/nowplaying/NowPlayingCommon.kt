@@ -95,6 +95,8 @@ internal fun Modifier.fadeInList(
     absoluteIndex: Int,
     topPx: () -> Int,
     bottomPx: () -> Int,
+    /** How long the fade at the bottom runs (the top one is always [FADE_SPAN]). */
+    bottomSpan: androidx.compose.ui.unit.Dp = FADE_SPAN,
 ): Modifier = this.graphicsLayer {
     val info = state.layoutInfo
     val itemInfo = info.visibleItemsInfo.firstOrNull { it.index == absoluteIndex } ?: return@graphicsLayer
@@ -103,7 +105,7 @@ internal fun Modifier.fadeInList(
     val bottomEdge = info.viewportEndOffset - bottomPx().toFloat()
     val center = itemInfo.offset + itemInfo.size / 2f
     val topAlpha = ((center - topEdge) / span).coerceIn(0f, 1f)
-    val bottomAlpha = ((bottomEdge - center) / span).coerceIn(0f, 1f)
+    val bottomAlpha = ((bottomEdge - center) / bottomSpan.toPx().coerceAtLeast(1f)).coerceIn(0f, 1f)
     alpha = minOf(topAlpha, bottomAlpha)
 }
 

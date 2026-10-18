@@ -631,6 +631,9 @@ private fun PlayerApp(settings: SettingsViewModel) {
                     anchors = miniAnchors,
                     textScrolls = !showNowPlaying,
                     cjkFonts = settings.playerStyle == PlayerStyle.DIAL,
+                    albumArtUri = miniSong?.uri,
+                    showCover = settings.playerStyle != PlayerStyle.DIAL,
+                    artVisible = !(showNowPlaying && classicPlayer),
                     modifier = miniDrag,
                 ) else MiniPlayer(
                     title = miniSong?.title ?: stringResource(R.string.nothing_playing),

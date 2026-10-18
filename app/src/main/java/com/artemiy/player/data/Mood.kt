@@ -64,7 +64,9 @@ fun songsForMood(allSongs: List<Song>, mood: Mood, folderWhitelist: Set<String> 
 /** The most common genres among [songs] (first genre of each tag, e.g. "Rock" of "Rock/Pop"),
  * spelled the way they appear most often in the tags. */
 fun topGenres(songs: List<Song>, count: Int = 3): List<String> =
-    songs.mapNotNull { song -> song.genre?.split('/', ';', ',')?.firstOrNull()?.trim()?.takeIf { it.isNotEmpty() } }
+    // (A tag that lists several genres with some other separator — "|", "~", a null character — is cut up too,
+    // or the whole list would come out as one long "genre".)
+    songs.mapNotNull { song -> song.genre?.split('/', ';', ',', '|', '~', '\u0000', '\n')?.firstOrNull()?.trim()?.takeIf { it.isNotEmpty() } }
         .groupBy { it.lowercase() }
         .entries
         .sortedByDescending { it.value.size }

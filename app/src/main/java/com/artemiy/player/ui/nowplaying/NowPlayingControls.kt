@@ -16,6 +16,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -473,6 +475,11 @@ internal fun TransportControls(
     nextModifier: Modifier = Modifier,
     /** Color of play and next — the classic player blends it from the mini player's while opening. */
     iconTint: () -> Color = { Color.Unspecified },
+    /** Play's own colour when it differs from next's (the Disc mini player's accent tile has its icon in the on-accent colour). */
+    playIconTint: (() -> Color)? = null,
+    /** How big play's and next's glyph is, as a share of the button (the Disc mini player's tile holds a smaller glyph than a bare icon; 1 = the whole button). */
+    playGlyph: () -> Float = { 1f },
+    nextGlyph: () -> Float = { 1f },
     /** Air on each side of the play button. */
     playGap: androidx.compose.ui.unit.Dp = 46.dp,
 ) {
@@ -494,26 +501,36 @@ internal fun TransportControls(
                 .clickable(interactionSource = skipPreviousInteraction, indication = null) { onSkipPrevious() },
         )
         val playInteraction = remember { MutableInteractionSource() }
-        PlayPauseIcon(
-            isPlaying = isPlaying,
-            tint = tint,
+        Box(
             modifier = Modifier
                 .padding(horizontal = playGap)
                 .size(58.dp)
                 .then(playModifier)
                 .pressScale(playInteraction)
                 .clickable(interactionSource = playInteraction, indication = null) { onTogglePlayPause() },
-        )
+            contentAlignment = Alignment.Center,
+        ) {
+            PlayPauseIcon(
+                isPlaying = isPlaying,
+                tint = playIconTint?.invoke()?.takeOrElse { tint } ?: tint,
+                modifier = Modifier.fillMaxSize().graphicsLayer { playGlyph().let { scaleX = it; scaleY = it } },
+            )
+        }
         val skipNextInteraction = remember { MutableInteractionSource() }
-        Icon(
-            imageVector = AppIcons.SkipNext,
-            contentDescription = stringResource(R.string.cd_next_track),
-            tint = tint,
+        Box(
             modifier = Modifier
                 .size(40.dp)
                 .then(nextModifier)
                 .pressScale(skipNextInteraction)
                 .clickable(interactionSource = skipNextInteraction, indication = null) { onSkipNext() },
-        )
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = AppIcons.SkipNext,
+                contentDescription = stringResource(R.string.cd_next_track),
+                tint = tint,
+                modifier = Modifier.fillMaxSize().graphicsLayer { nextGlyph().let { scaleX = it; scaleY = it } },
+            )
+        }
     }
 }

@@ -96,6 +96,7 @@ internal fun LyricsView(
     showRomanization: Boolean,
     contentPadding: PaddingValues = PaddingValues(top = 16.dp, bottom = 220.dp),
     loading: Boolean = false,
+    bottomFadeSpan: androidx.compose.ui.unit.Dp = FADE_SPAN,
 ) {
     // The controller only reports a fresh position every ~100ms, which is far too coarse for a
     // per-word karaoke sweep — it'd visibly step instead of glide. Interpolate every frame
@@ -204,7 +205,7 @@ internal fun LyricsView(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .fadeInList(listState, index, topFadePx, bottomFadePx)
+                            .fadeInList(listState, index, topFadePx, bottomFadePx, bottomFadeSpan)
                             .combinedClickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null,
@@ -343,7 +344,7 @@ internal fun LyricsView(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .fadeInList(listState, index, topFadePx, bottomFadePx)
+                            .fadeInList(listState, index, topFadePx, bottomFadePx, bottomFadeSpan)
                             .combinedClickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null,
@@ -944,13 +945,19 @@ internal fun InstrumentalDots(startMs: Long, endMs: Long, positionMs: Long, acti
     androidx.compose.animation.AnimatedVisibility(
         visible = active && positionMs < endMs - DOTS_FOLD_EARLY_MS,
         // No clipping while opening/closing — it would cut the dots' glow off.
+        // (No built-in fades here: they draw the dots into a layer cut off at the dots' bounds, which cut the glow off
+        // as they left. The fade is done below with a layer that doesn't clip.)
         enter = androidx.compose.animation.expandVertically(tween(380), clip = false) +
-            androidx.compose.animation.fadeIn(tween(320, delayMillis = 80)) +
             androidx.compose.animation.scaleIn(tween(380), initialScale = 0.5f, transformOrigin = origin),
         exit = androidx.compose.animation.scaleOut(tween(260), targetScale = 0f, transformOrigin = origin) +
-            androidx.compose.animation.fadeOut(tween(220)) +
             androidx.compose.animation.shrinkVertically(tween(320, delayMillis = 120), clip = false),
     ) {
+        val appear by transition.animateFloat(
+            transitionSpec = {
+                if (targetState == androidx.compose.animation.EnterExitState.Visible) tween(320, delayMillis = 80) else tween(220)
+            },
+            label = "dotsAppear",
+        ) { state -> if (state == androidx.compose.animation.EnterExitState.Visible) 1f else 0f }
         val color = PlayerColors.TextPrimary
         // A slow, small sway, forward and back, each dot a beat behind the one before it — like a
         // wave rolling along the three. Only while the dots are on screen.
@@ -967,7 +974,13 @@ internal fun InstrumentalDots(startMs: Long, endMs: Long, positionMs: Long, acti
         }
         val sway = swayPhase
         Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .graphicsLayer {
+                    alpha = appear
+                    compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.ModulateAlpha
+                }
+                .padding(vertical = 16.dp),
             horizontalArrangement = if (alignEnd) Arrangement.End else Arrangement.Start,
         ) {
             repeat(3) { i ->

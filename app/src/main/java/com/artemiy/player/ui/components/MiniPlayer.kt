@@ -74,7 +74,13 @@ fun MiniPlayer(
         tween(600),
         label = "miniCard",
     )
-    androidx.compose.runtime.SideEffect { anchors?.color = cardColor }
+    androidx.compose.runtime.SideEffect {
+        anchors?.color = cardColor
+        anchors?.playTile = null; anchors?.nextTile = null; anchors?.playIcon = null
+        anchors?.textScale = 1f; anchors?.glyphShare = 1f
+        anchors?.artCorner = null
+        anchors?.barCorner = if (expressive) MINI_CARD_CORNER else null
+    }
     val lineColor = PlayerColors.TextPrimary
     val lineAlpha by androidx.compose.animation.core.animateFloatAsState(
         if (progressShown) 1f else 0f,
@@ -195,6 +201,25 @@ class MiniPlayerAnchors {
 
     /** The bar's own colour — the players open out of it in this colour. */
     var color by mutableStateOf<androidx.compose.ui.graphics.Color?>(null)
+
+    /**
+     * Only the "Диск" mini player has its play and next buttons as filled tiles: their colours (null = bare
+     * icons, as everywhere else). The classic player's flying buttons draw the same tiles under them at first,
+     * and let them go as they fly, so the tile doesn't vanish the moment the player starts to open.
+     */
+    var playTile by mutableStateOf<androidx.compose.ui.graphics.Color?>(null)
+    var nextTile by mutableStateOf<androidx.compose.ui.graphics.Color?>(null)
+    var playIcon by mutableStateOf<androidx.compose.ui.graphics.Color?>(null)
+
+    /** How much bigger this mini player's title is than the classic mini player's (13sp) — the big title starts from that size. */
+    var textScale by mutableStateOf(1f)
+
+    /** How big the glyph (play / next) sits inside its tile, as a share of the tile; 1 = the glyph is the whole button (bare icons). */
+    var glyphShare by mutableStateOf(1f)
+
+    /** The corner of this mini player's own cover and of its bar (null = the classic mini player's): the classic player's cover and sheet start from them. */
+    var artCorner by mutableStateOf<androidx.compose.ui.unit.Dp?>(null)
+    var barCorner by mutableStateOf<androidx.compose.ui.unit.Dp?>(null)
 }
 
 private val MINI_TEXT_LINE_HEIGHT = 15.6.sp

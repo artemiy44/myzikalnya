@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -292,8 +293,10 @@ fun MoodScreen(onPlayMood: (Mood) -> Unit, genresFor: (Mood) -> List<String>) {
             // The library's own most common genres in this mood's mix — what's actually going to play.
             Crossfade(targetState = MOOD_DISPLAY_ORDER[pager.settledPage], label = "moodGenres") { mood ->
                 Row(
-                    modifier = Modifier.padding(bottom = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    // The same full width for every mood's row, centred: what comes in and what goes out
+                    // share one middle, so the pills don't slide sideways while they cross-fade.
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
                 ) {
                     genresFor(mood).forEach { genre ->
                         Text(
@@ -301,7 +304,9 @@ fun MoodScreen(onPlayMood: (Mood) -> Unit, genresFor: (Mood) -> List<String>) {
                             color = PlayerColors.TextSecondary,
                             fontSize = 12.sp,
                             maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                             modifier = Modifier
+                                .widthIn(max = 120.dp)
                                 .clip(if (com.artemiy.player.ui.theme.discUi) RoundedCornerShape(12.dp) else CircleShape)
                                 .background(if (com.artemiy.player.ui.theme.discUi) com.artemiy.player.ui.theme.Disc.tileFill else PlayerColors.Surface)
                                 .padding(horizontal = 12.dp, vertical = if (com.artemiy.player.ui.theme.discUi) 7.dp else 5.dp),

@@ -1272,7 +1272,9 @@ private fun DialContent(
                 if (lyricsShown) {
                     if (LocalNowPlayingActive.current) com.artemiy.player.ui.components.KeepScreenOn()
                     val topPx = with(density) { (contentTop + 36.dp).roundToPx() }
-                    Box(modifier = Modifier.fillMaxSize().padding(bottom = if (card) CARD_TIME_ROOM else aboveGrid)) {
+                    // The lyrics run on behind the timecode, with no extra mask: the usual per-line fade, but it ends at the very
+                    // bottom edge (card bottom / the tiles), so it plays out under the digits instead of stopping short above them.
+                    Box(modifier = Modifier.fillMaxSize().padding(bottom = if (card) 0.dp else aboveGrid - timeRow - tileGap)) {
                         LyricsView(
                             lyrics = lyrics,
                             positionMs = positionMs,
@@ -1289,6 +1291,7 @@ private fun DialContent(
                             showRomanization = lyricsRomanization,
                             loading = lyricsLoading,
                             contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = contentTop + 36.dp + FADE_SPAN, bottom = FADE_SPAN),
+                            bottomFadeSpan = FADE_SPAN * 1.6f,
                         )
                     }
                 } else {
@@ -1561,6 +1564,7 @@ private fun dialTime(ms: Long): String {
 
 /** Room kept at the card's bottom for the timecode. */
 private val CARD_TIME_ROOM = 76.dp
+
 
 /**
  * The card of the "Диск" look: rounded, holding the background the player is set to — the blur —

@@ -63,6 +63,17 @@ class PlaybackService : MediaSessionService() {
 
         player = ExoPlayer.Builder(this, PlayerRenderersFactory(this))
             .setMediaSourceFactory(DefaultMediaSourceFactory(this, extractorsFactory))
+            // This is music: the system can tell (a notification ducks it, a call pauses it and it picks up again
+            // afterwards), and unplugging the headphones / losing the Bluetooth speaker pauses instead of
+            // carrying on out of the phone's own speaker.
+            .setAudioAttributes(
+                androidx.media3.common.AudioAttributes.Builder()
+                    .setUsage(androidx.media3.common.C.USAGE_MEDIA)
+                    .setContentType(androidx.media3.common.C.AUDIO_CONTENT_TYPE_MUSIC)
+                    .build(),
+                true,
+            )
+            .setHandleAudioBecomingNoisy(true)
             .build()
         player.addListener(ErrorRecovery())
         widgets = com.artemiy.player.widget.WidgetUpdater(this, player)
