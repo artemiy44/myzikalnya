@@ -773,7 +773,7 @@ private fun androidx.compose.foundation.layout.RowScope.ExpressiveButton(
             // Drawn as a shape rather than clipped to one: a clip with unequal corners (these side buttons)
             // is a path clip, which some older GPUs (the Adreno 3xx of old phones) draw flickering or not at all.
             .background(fill, RoundedCornerShape(topStart = start, bottomStart = start, topEnd = end, bottomEnd = end))
-            .clickable(interactionSource = interaction, indication = null, onClick = onClick),
+            .clickable(interactionSource = interaction, indication = null, onClick = buttonTicked(onClick)),
         contentAlignment = Alignment.Center,
     ) {
         content()
@@ -906,7 +906,7 @@ private fun QueueSheet(
                     modifier = Modifier
                         .padding(start = 6.dp)
                         .size(24.dp)
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onLyricsClick() },
+                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = buttonTicked(onLyricsClick)),
                 )
                 val output = rememberOutputDevice(active = LocalNowPlayingActive.current)
                 Icon(
@@ -925,7 +925,7 @@ private fun QueueSheet(
                     modifier = Modifier
                         .padding(start = 18.dp)
                         .size(24.dp)
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onDeviceClick() },
+                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = buttonTicked(onDeviceClick)),
                 )
             }
         }
@@ -1735,7 +1735,7 @@ private fun DialQueueModes(
                         ),
                     )
                     .background(fill)
-                    .clickable(interactionSource = interaction, indication = null, onClick = onClick),
+                    .clickable(interactionSource = interaction, indication = null, onClick = buttonTicked(onClick)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(iconAndLabel.first, contentDescription = iconAndLabel.second, tint = tint, modifier = Modifier.size(22.dp))
@@ -1776,7 +1776,7 @@ private fun DialTile(
         modifier = modifier
             .pressScale(interaction, pressedScale = 0.94f)
             .background(plate, shape)
-            .combinedClickable(interactionSource = interaction, indication = null, onClick = onClick, onLongClick = onLongClick),
+            .combinedClickable(interactionSource = interaction, indication = null, onClick = buttonTicked(onClick), onLongClick = onLongClick),
         contentAlignment = Alignment.Center,
     ) {
         content()
@@ -1813,6 +1813,9 @@ private fun DialPlate(
     val onSeekNow by rememberUpdatedState(onSeek)
     val onWindingNow by rememberUpdatedState(onWinding)
     val context = LocalContext.current
+    val scrubScope = androidx.compose.runtime.rememberCoroutineScope()
+    // Never leave the song sped up or slowed if the plate goes away mid-wind.
+    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { com.artemiy.player.playback.ScrubSound.set?.invoke(1f) } }
 
     // Frame by frame: the speed eases toward its goal (full when playing, none when paused), so the
     // disc takes a moment to get going and keeps turning a moment after the pause. Idle when still.
@@ -1851,6 +1854,21 @@ private fun DialPlate(
                 var target = 0f
                 var tickCarry = 0f
                 var lastSeekAt = 0L
+                var lastMoveAt = 0L
+                var velocity = 0f
+                var rate = 1f
+                // Eases the pitch back to normal once the finger lets go.
+                fun easeBack() {
+                    scrubScope.launch {
+                        var r = rate
+                        while (kotlin.math.abs(r - 1f) > 0.02f) {
+                            r += (1f - r) * 0.25f
+                            com.artemiy.player.playback.ScrubSound.set?.invoke(r)
+                            kotlinx.coroutines.delay(30)
+                        }
+                        com.artemiy.player.playback.ScrubSound.set?.invoke(1f)
+                    }
+                }
                 fun touchAngle(o: Offset) = Math.toDegrees(kotlin.math.atan2((o.y - size.height / 2f).toDouble(), (o.x - size.width / 2f).toDouble())).toFloat()
                 // While the song's length is still unknown (a moment after a skip, a file that won't
                 // open) the plate just keeps turning and leaves the song be.
@@ -1864,10 +1882,14 @@ private fun DialPlate(
                             lastTouch = touchAngle(o)
                             target = positionNow.toFloat()
                             tickCarry = 0f
+                            lastMoveAt = System.currentTimeMillis()
+                            velocity = 0f
+                            rate = 1f
                         }
                     },
                     onDragEnd = {
                         if (!blocked) {
+                            easeBack()
                             onSeekNow(target.toLong())
                             dragging = false
                             onWindingNow(false)
@@ -1875,7 +1897,7 @@ private fun DialPlate(
                     },
                     onDragCancel = {
                         dragging = false
-                        if (!blocked) onWindingNow(false)
+                        if (!blocked) { easeBack(); onWindingNow(false) }
                     },
                 ) { change, _ ->
                     change.consume()
@@ -1886,6 +1908,13 @@ private fun DialPlate(
                     if (d < -180f) d += 360f
                     lastTouch = a
                     angle = (angle + d) % 360f
+                    // How fast the plate is being turned (deg/s, signed), smoothed; the sound follows it.
+                    val moveAt = System.currentTimeMillis()
+                    val dtMs = (moveAt - lastMoveAt).coerceAtLeast(1L)
+                    lastMoveAt = moveAt
+                    velocity += (d / dtMs * 1000f - velocity) * 0.3f
+                    rate = (1f + velocity / 360f).coerceIn(0.75f, 1.5f)
+                    com.artemiy.player.playback.ScrubSound.set?.invoke(rate)
                     target = (target + d / 360f * DIAL_SECONDS_PER_TURN * 1000f).coerceIn(0f, durationNow.toFloat().coerceAtLeast(0f))
                     // Winds the song as it goes (a few times a second), not only when let go.
                     val nowMs = System.currentTimeMillis()
@@ -1996,14 +2025,4 @@ private fun DialFitText(
  * "haptic feedback" call doesn't buzz for a drag this fast on some phones. It still follows the
  * system's "touch feedback" switch.
  */
-private fun plateTick(context: android.content.Context) {
-    val touchFeedbackOn = android.provider.Settings.System.getInt(context.contentResolver, android.provider.Settings.System.HAPTIC_FEEDBACK_ENABLED, 1) == 1
-    if (!touchFeedbackOn) return
-    val vibrator = context.getSystemService(android.os.Vibrator::class.java) ?: return
-    if (!vibrator.hasVibrator()) return
-    when {
-        android.os.Build.VERSION.SDK_INT >= 29 -> vibrator.vibrate(android.os.VibrationEffect.createPredefined(android.os.VibrationEffect.EFFECT_TICK))
-        android.os.Build.VERSION.SDK_INT >= 26 -> vibrator.vibrate(android.os.VibrationEffect.createOneShot(8, 90))
-        else -> @Suppress("DEPRECATION") vibrator.vibrate(8)
-    }
-}
+private fun plateTick(context: android.content.Context) = buttonTick(context)

@@ -172,7 +172,7 @@ internal fun RomanizationToggle(enabled: Boolean, onToggle: () -> Unit) {
         modifier = Modifier
             .padding(start = 12.dp)
             .size(36.dp)
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onToggle),
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = buttonTicked(onToggle)),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
@@ -266,13 +266,13 @@ internal fun BottomQuickActionsRow(
             tint = if (lyricsActive) PlayerColors.TextPrimary else LocalAdaptiveSecondaryColor.current,
             modifier = Modifier
                 .size(24.dp)
-                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onLyricsClick() },
+                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = buttonTicked(onLyricsClick)),
         )
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .width(120.dp)
-                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onDeviceClick() },
+                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = buttonTicked(onDeviceClick)),
         ) {
             val output = rememberOutputDevice(active = LocalNowPlayingActive.current)
             Icon(
@@ -301,7 +301,7 @@ internal fun BottomQuickActionsRow(
             )
         }
         Box(
-            modifier = Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onQueueClick() },
+            modifier = Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = buttonTicked(onQueueClick)),
         ) {
             Icon(
                 imageVector = AppIcons.Queue,
@@ -498,7 +498,7 @@ internal fun TransportControls(
                 .size(40.dp)
                 .then(prevModifier)
                 .pressScale(skipPreviousInteraction)
-                .clickable(interactionSource = skipPreviousInteraction, indication = null) { onSkipPrevious() },
+                .clickable(interactionSource = skipPreviousInteraction, indication = null, onClick = buttonTicked(onSkipPrevious)),
         )
         val playInteraction = remember { MutableInteractionSource() }
         Box(
@@ -507,7 +507,7 @@ internal fun TransportControls(
                 .size(58.dp)
                 .then(playModifier)
                 .pressScale(playInteraction)
-                .clickable(interactionSource = playInteraction, indication = null) { onTogglePlayPause() },
+                .clickable(interactionSource = playInteraction, indication = null, onClick = buttonTicked(onTogglePlayPause)),
             contentAlignment = Alignment.Center,
         ) {
             PlayPauseIcon(
@@ -522,7 +522,7 @@ internal fun TransportControls(
                 .size(40.dp)
                 .then(nextModifier)
                 .pressScale(skipNextInteraction)
-                .clickable(interactionSource = skipNextInteraction, indication = null) { onSkipNext() },
+                .clickable(interactionSource = skipNextInteraction, indication = null, onClick = buttonTicked(onSkipNext)),
             contentAlignment = Alignment.Center,
         ) {
             Icon(

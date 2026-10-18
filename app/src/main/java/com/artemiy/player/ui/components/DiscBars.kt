@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.artemiy.player.R
+import com.artemiy.player.ui.nowplaying.buttonTicked
 import com.artemiy.player.ui.icons.AppIcons
 import com.artemiy.player.ui.theme.Disc
 import com.artemiy.player.ui.theme.PlayerColors
@@ -143,7 +144,7 @@ fun DiscMiniPlayer(
                 .pressScale(playInteraction, pressedScale = 0.92f)
                 .clip(RoundedCornerShape(Disc.smallCorner))
                 .background(PlayerColors.Accent)
-                .clickable(interactionSource = playInteraction, indication = null) { onTogglePlayPause() },
+                .clickable(interactionSource = playInteraction, indication = null, onClick = buttonTicked(onTogglePlayPause)),
             contentAlignment = Alignment.Center,
         ) {
             PlayPauseIcon(isPlaying = isPlaying, tint = PlayerColors.OnAccent, modifier = Modifier.size(22.dp))
@@ -156,7 +157,7 @@ fun DiscMiniPlayer(
                 .pressScale(nextInteraction, pressedScale = 0.92f)
                 .clip(RoundedCornerShape(Disc.smallCorner))
                 .background(Disc.tileFill)
-                .clickable(interactionSource = nextInteraction, indication = null) { onSkipNext() },
+                .clickable(interactionSource = nextInteraction, indication = null, onClick = buttonTicked(onSkipNext)),
             contentAlignment = Alignment.Center,
         ) {
             Icon(

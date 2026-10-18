@@ -155,3 +155,24 @@ internal fun Modifier.flyFrom(
             }
         }
 }
+
+/** One short tick from the vibration motor for a button press. It goes to the motor directly: the usual "haptic feedback" call is too easily swallowed. It follows the system's "touch feedback" switch. */
+internal fun buttonTick(context: android.content.Context) {
+    val touchFeedbackOn = android.provider.Settings.System.getInt(context.contentResolver, android.provider.Settings.System.HAPTIC_FEEDBACK_ENABLED, 1) == 1
+    if (!touchFeedbackOn) return
+    val vibrator = context.getSystemService(android.os.Vibrator::class.java) ?: return
+    if (!vibrator.hasVibrator()) return
+    when {
+        android.os.Build.VERSION.SDK_INT >= 29 -> vibrator.vibrate(android.os.VibrationEffect.createPredefined(android.os.VibrationEffect.EFFECT_TICK))
+        android.os.Build.VERSION.SDK_INT >= 26 -> vibrator.vibrate(android.os.VibrationEffect.createOneShot(8, 90))
+        else -> @Suppress("DEPRECATION") vibrator.vibrate(8)
+    }
+}
+
+/** [onClick] with a short vibration tick in front of it, for the player's buttons. */
+@androidx.compose.runtime.Composable
+internal fun buttonTicked(onClick: () -> Unit): () -> Unit {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val latest = androidx.compose.runtime.rememberUpdatedState(onClick)
+    return androidx.compose.runtime.remember(context) { { buttonTick(context); latest.value() } }
+}

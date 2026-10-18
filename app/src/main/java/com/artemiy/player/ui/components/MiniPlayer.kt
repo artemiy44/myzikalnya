@@ -1,6 +1,7 @@
 package com.artemiy.player.ui.components
 
 import com.artemiy.player.R
+import com.artemiy.player.ui.nowplaying.buttonTicked
 import androidx.compose.ui.res.stringResource
 import com.artemiy.player.ui.icons.AppIcons
 import android.net.Uri
@@ -151,7 +152,7 @@ fun MiniPlayer(
                     .padding(end = 18.dp)
                     .size(24.dp)
                     .pressScale(prevInteraction)
-                    .clickable(interactionSource = prevInteraction, indication = null) { onSkipPrevious() },
+                    .clickable(interactionSource = prevInteraction, indication = null, onClick = buttonTicked(onSkipPrevious)),
             )
         }
         val playInteraction = remember { MutableInteractionSource() }
@@ -162,7 +163,7 @@ fun MiniPlayer(
                 .size(28.dp)
                 .onGloballyPositioned { anchors?.let { a -> a.play = a.keep(a.play, it.boundsInRoot()) } }
                 .pressScale(playInteraction)
-                .clickable(interactionSource = playInteraction, indication = null) { onTogglePlayPause() },
+                .clickable(interactionSource = playInteraction, indication = null, onClick = buttonTicked(onTogglePlayPause)),
         )
         val nextInteraction = remember { MutableInteractionSource() }
         Icon(
@@ -174,7 +175,7 @@ fun MiniPlayer(
                 .size(24.dp)
                 .onGloballyPositioned { anchors?.let { a -> a.next = a.keep(a.next, it.boundsInRoot()) } }
                 .pressScale(nextInteraction)
-                .clickable(interactionSource = nextInteraction, indication = null) { onSkipNext() },
+                .clickable(interactionSource = nextInteraction, indication = null, onClick = buttonTicked(onSkipNext)),
         )
     }
 }

@@ -332,7 +332,7 @@ internal fun AddSongsToQueueRow(onClick: () -> Unit, modifier: Modifier = Modifi
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = buttonTicked(onClick))
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -514,7 +514,7 @@ internal fun QueueToggleButton(
             .pressScale(interaction, pressedScale = 0.92f)
             .clip(RoundedCornerShape(14.dp))
             .background(background)
-            .clickable(interactionSource = interaction, indication = null, onClick = onClick),
+            .clickable(interactionSource = interaction, indication = null, onClick = buttonTicked(onClick)),
         contentAlignment = Alignment.Center,
     ) {
         Icon(

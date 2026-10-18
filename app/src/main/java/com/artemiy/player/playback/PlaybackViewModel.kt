@@ -14,6 +14,7 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -169,6 +170,7 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
         future.addListener({
             val c = future.get()
             controller = c
+            ScrubSound.set = ::scrubRate
             isPlaying = c.isPlaying
             shuffleEnabled = c.shuffleModeEnabled
             syncRepeat(c.repeatMode)
@@ -454,6 +456,13 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
     fun seekTo(ms: Long) {
         controller?.seekTo(ms)
         positionMs = ms
+    }
+
+    /** The disc being wound by hand: speed and pitch move together, like a record sped up or slowed down. 1 = normal. */
+    fun scrubRate(rate: Float) {
+        val c = controller ?: return
+        val r = rate.coerceIn(0.5f, 2f)
+        if (c.playbackParameters.speed != r) c.playbackParameters = PlaybackParameters(r, r)
     }
 
     /** The "continue playing" order from right before the most recent shuffle, so turning
@@ -800,3 +809,8 @@ private const val RESTART_INSTEAD_OF_PREVIOUS_MS = 3_000L
 
 /** Long enough for the launch and the first screen to settle before the dictionary loads. */
 private const val ROMANIZER_WARM_UP_DELAY_MS = 4_000L
+
+/** How the Dial's plate reaches the player while a finger winds it (the plate sits too many layers above the view model to pass it down). */
+object ScrubSound {
+    var set: ((Float) -> Unit)? = null
+}
