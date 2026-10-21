@@ -134,6 +134,7 @@
     <string name="hero_classic">Classic</string>
     <string name="hero_vivid">Vivid</string>
     <string name="hide_romanization">Hide romanization</string>
+    <string name="history_cleared">Cleared</string>
     <string name="home_quick_picks">Quick picks</string>
     <string name="home_recently_added">Recently added</string>
     <string name="in_lyrics">In lyrics</string>
@@ -177,6 +178,7 @@
     <string name="lyric_font_backup_desc">Smiley Sans has only simplified characters; the ones it lacks (traditional) come from this font, or from the phone\'s own if none is chosen.</string>
     <string name="lyric_font_no_bold">Your phone\'s own font has no bold Japanese, Korean or Chinese characters, so titles there look thin. Picking one of ours fixes it.</string>
     <string name="lyrics">Lyrics</string>
+    <string name="lyrics_controls_hint">Tap here to bring the controls back</string>
     <string name="lyrics_indexing">Lyrics are still being collected (%1$d of %2$d) — not everything can be found by lyrics yet</string>
     <string name="lyrics_not_found">No lyrics found for this track</string>
     <string name="m3u_saved">Playlist saved</string>
@@ -215,10 +217,11 @@
     <string name="no_genre">No genre</string>
     <string name="no_playlists">No playlists yet — the first one is made with the «+» at the top</string>
     <string name="no_track_chosen">No track chosen</string>
-    <string name="no_tracks_found">No tracks found</string>
+    <string name="no_tracks_found">Nothing found</string>
     <string name="no_year">No year</string>
     <string name="nothing_found">Nothing found</string>
     <string name="nothing_playing">Nothing playing</string>
+    <string name="often_played">Often played</string>
     <string name="onb_allow">Allow</string>
     <string name="onb_folders_text">Music folders can be picked here — then ringtones, voice notes and other sounds stay out of the library. With nothing picked, everything is found.</string>
     <string name="onb_folders_title">Where the music lives</string>
@@ -259,6 +262,7 @@
         <item quantity="other">plays</item>
     </plurals>
     <string name="queue">Queue</string>
+    <string name="queue_history_title">Played before</string>
     <string name="quick_picks_empty">Frequently played tracks will show up here</string>
     <string name="recap_busiest_day">Most musical day</string>
     <string name="recap_busiest_part">Most music</string>
@@ -296,6 +300,7 @@
     <string name="search_start_typing">Search for a track, artist, album or a line from a song</string>
     <string name="search_title_artist_album">Title, artist, album</string>
     <string name="search_tracks">Search tracks</string>
+    <string name="search_tracks_hint">Search these tracks</string>
     <string name="set_about">About</string>
     <string name="set_about_sub">Version, licenses, the welcome screens</string>
     <string name="set_accent">Accent colour</string>
@@ -310,9 +315,13 @@
     <string name="set_bg_mode">Background mode</string>
     <string name="set_bg_mode_desc">How the player\'s background looks — the same behind the cover, lyrics and queue.</string>
     <string name="set_bg_sub">Live blur, static blur or no blur</string>
+    <string name="set_clear_history">Clear the played list</string>
+    <string name="set_clear_history_sub">The songs shown above the queue. Mixes and the recap stay as they are</string>
     <string name="set_colors">Colors &amp; accent</string>
     <string name="set_colors_sub">Backgrounds of the light and dark themes, accent colour</string>
     <string name="set_dark_bg">Dark theme background</string>
+    <string name="set_debug">Debug</string>
+    <string name="set_debug_sub">Tools for testing, only in test builds</string>
     <string name="set_dial_card_desc">The background (the blur you picked; with no blur, the album\'s colour and its genre picture) sits in a card up top; the rest stays in the app\'s own colours.</string>
     <string name="set_dial_full_desc">The background fills the whole screen; with no blur, just the app\'s background colour, the accent only on the play button.</string>
     <string name="set_dial_look">Look</string>
@@ -329,6 +338,8 @@
     <string name="set_font">Font</string>
     <string name="set_general">General</string>
     <string name="set_general_sub">Start tab, splitting artists</string>
+    <string name="set_glass_sliders">Soft bars</string>
+    <string name="set_glass_sliders_sub">Classic player: thick, slightly see-through seek and volume bars that swell under your finger</string>
     <string name="set_hero_classic_desc">The picture fades into the page background</string>
     <string name="set_hero_style">Picture pages</string>
     <string name="set_hero_vivid_desc">The picture\'s colour flows on down the page, then settles into the background</string>
@@ -416,7 +427,10 @@
     <string name="sort_by_file">File name</string>
     <string name="sort_by_name">Alphabetical</string>
     <string name="sort_by_title">By title</string>
+    <string name="sort_default">As it is</string>
+    <string name="sort_longest">Longest</string>
     <string name="sort_mode">Sorting: %1$s</string>
+    <string name="sort_most_played">Most played</string>
     <string name="sort_recent">Recently added</string>
     <string name="sort_recent_library">Recently added to the library</string>
     <string name="sort_release_date">By release date</string>
@@ -459,6 +473,7 @@
     <string name="ui_style_expressive">Expressive</string>
     <string name="ui_style_expressive_note">Bold headers, floating bars, rounded cards and playful shapes.</string>
     <string name="unit_hours_approx">≈ %1$.1f h</string>
+    <string name="unit_hours_min">%1$d h %2$d min</string>
     <string name="unit_kb">%1$d KB</string>
     <string name="unit_kbps">%1$d kbps</string>
     <string name="unit_khz">%1$.1f kHz</string>

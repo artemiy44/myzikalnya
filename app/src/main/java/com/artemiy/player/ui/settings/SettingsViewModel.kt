@@ -107,6 +107,7 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     var fadeMode by mutableStateOf(com.artemiy.player.data.FadeMode.OFF)
         private set
     var qualityBadge by mutableStateOf(false)
+    var glassSliders by mutableStateOf(false)
         private set
     /** How the songs inside folders are ordered — one choice for every folder, remembered. */
     private val sortNames = androidx.compose.runtime.mutableStateMapOf<String, String>()
@@ -217,6 +218,7 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch { repository.fadeMode.collect { fadeMode = it } }
         viewModelScope.launch { repository.qualityBadge.collect { qualityBadge = it } }
+        viewModelScope.launch { repository.glassSliders.collect { glassSliders = it } }
         viewModelScope.launch {
             repository.folderSort.collect { name -> folderSort = com.artemiy.player.ui.library.FolderSort.entries.firstOrNull { it.name == name } ?: com.artemiy.player.ui.library.FolderSort.RECENT }
         }
@@ -377,6 +379,11 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     fun updateFadeMode(mode: com.artemiy.player.data.FadeMode) {
         fadeMode = mode
         viewModelScope.launch { repository.setFadeMode(mode) }
+    }
+
+    fun updateGlassSliders(on: Boolean) {
+        glassSliders = on
+        viewModelScope.launch { repository.setGlassSliders(on) }
     }
 
     fun updateQualityBadge(on: Boolean) {

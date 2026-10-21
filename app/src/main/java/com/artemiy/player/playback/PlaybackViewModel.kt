@@ -21,6 +21,8 @@ import androidx.media3.session.SessionToken
 import com.artemiy.player.data.AppDatabase
 import com.artemiy.player.data.InfinitePlayMode
 import com.artemiy.player.data.PlayHistoryEntity
+import com.artemiy.player.data.QUEUE_HISTORY_MIN_MS
+import com.artemiy.player.data.QueueHistoryEntity
 import com.artemiy.player.data.SettingsRepository
 import com.artemiy.player.data.SkipEventEntity
 import com.artemiy.player.data.Song
@@ -43,12 +45,19 @@ private const val SKIP_WINDOW_MS = 30_000L
 class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
 
     private val playHistoryDao = AppDatabase.get(app).playHistoryDao()
+    private val queueHistoryDao = AppDatabase.get(app).queueHistoryDao()
+    /** Ids of the songs heard for a while, the latest first (the table, as it is). */
+    private var historyIds: List<Long> = emptyList()
     private val settingsRepository = SettingsRepository(app)
     private var infinitePlayMode = InfinitePlayMode.RANDOM
     private var notificationRepeatButton = false
 
     private var controller: MediaController? = null
     private var songsById: Map<Long, Song> = emptyMap()
+        set(value) {
+            field = value
+            refreshQueueHistory()
+        }
     private var pendingQueue: List<Song>? = null
     private var pendingStartIndex: Int = 0
     /** Song IDs inserted via [addToQueue], in play order, not yet reached — the "Queue" section.
@@ -81,6 +90,10 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Upcoming songs explicitly queued via "Играть следующим", in order. */
     var manualQueue by mutableStateOf<List<Song>>(emptyList())
+        private set
+
+    /** What was heard before, in the order it played (the latest last) — shown above the queue. */
+    var queueHistory by mutableStateOf<List<Song>>(emptyList())
         private set
 
     /** The rest of whatever was originally playing, continuing after the manual queue. */
@@ -147,6 +160,12 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     init {
+        viewModelScope.launch {
+            queueHistoryDao.latest().collect { ids ->
+                historyIds = ids
+                refreshQueueHistory()
+            }
+        }
         val sessionToken = SessionToken(app, ComponentName(app, PlaybackService::class.java))
         val future = MediaController.Builder(app, sessionToken)
             // The shuffle / endless buttons in the system media player end up here.
@@ -224,6 +243,12 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
                     val previous = currentSong
                     if (previous != null && reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK && positionMs in 1..SKIP_WINDOW_MS) {
                         logSkip(previous.id)
+                    }
+                    // Heard for a while (or to the end): it goes on the list above the queue.
+                    if (previous != null && (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO ||
+                            (reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK && positionMs >= QUEUE_HISTORY_MIN_MS))
+                    ) {
+                        logHeard(previous.id)
                     }
                     durationMs = 0L
                     positionMs = 0L
@@ -610,6 +635,23 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
         refreshDerivedQueues()
     }
 
+    /** A song from the history plays now, in place of the current one (which goes into the history); the queue stays as it is. */
+    fun playFromHistory(song: Song) {
+        val c = controller ?: return
+        val at = c.currentMediaItemIndex + 1
+        c.addMediaItem(at, toMediaItem(song))
+        c.seekTo(at, 0L)
+        c.play()
+    }
+
+    fun clearQueueHistory() {
+        viewModelScope.launch { queueHistoryDao.clear() }
+    }
+
+    private fun refreshQueueHistory() {
+        queueHistory = historyIds.mapNotNull { songsById[it] }.reversed()
+    }
+
     fun playFromQueue(song: Song) {
         val c = controller ?: return
         val index = (0 until c.mediaItemCount).firstOrNull { c.getMediaItemAt(it).mediaId == song.id.toString() } ?: return
@@ -769,6 +811,13 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
     private fun logSkip(songId: Long) {
         viewModelScope.launch {
             playHistoryDao.insertSkip(SkipEventEntity(songId = songId, skippedAt = System.currentTimeMillis()))
+        }
+    }
+
+    private fun logHeard(songId: Long) {
+        viewModelScope.launch {
+            queueHistoryDao.insert(QueueHistoryEntity(songId = songId, playedAt = System.currentTimeMillis()))
+            queueHistoryDao.trim()
         }
     }
 

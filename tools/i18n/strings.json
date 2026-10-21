@@ -548,6 +548,10 @@
   "en": "Hide romanization",
   "ru": "Скрыть романизацию"
  },
+ "history_cleared": {
+  "en": "Cleared",
+  "ru": "Очищено"
+ },
  "home_quick_picks": {
   "en": "Quick picks",
   "ru": "Quick picks"
@@ -719,6 +723,10 @@
  "lyrics": {
   "en": "Lyrics",
   "ru": "Текст песни"
+ },
+ "lyrics_controls_hint": {
+  "en": "Tap here to bring the controls back",
+  "ru": "Нажми здесь, чтобы вернуть кнопки"
  },
  "lyrics_indexing": {
   "en": "Lyrics are still being collected (%1$d of %2$d) — not everything can be found by lyrics yet",
@@ -894,10 +902,8 @@
   "ru_x": "Самое время что-нибудь включить"
  },
  "no_tracks_found": {
-  "en": "No tracks found",
-  "en_x": "Not a single track about",
-  "ru": "Треки не найдены",
-  "ru_x": "Ни одного трека"
+  "en": "Nothing found",
+  "ru": "Ничего не найдено"
  },
  "no_year": {
   "en": "No year",
@@ -914,6 +920,10 @@
   "en_x": "Nothing on at the moment",
   "ru": "Ничего не играет",
   "ru_x": "Тишина…"
+ },
+ "often_played": {
+  "en": "Often played",
+  "ru": "Часто слушаешь"
  },
  "onb_allow": {
   "en": "Allow",
@@ -1060,10 +1070,10 @@
   },
   "plural": true,
   "ru": {
-   "few": "%d прослушивания",
-   "many": "%d прослушиваний",
-   "one": "%d прослушивание",
-   "other": "%d прослушивания"
+   "few": "%d раза",
+   "many": "%d раз",
+   "one": "%d раз",
+   "other": "%d раза"
   }
  },
  "plays_word": {
@@ -1082,6 +1092,10 @@
  "queue": {
   "en": "Queue",
   "ru": "Очередь"
+ },
+ "queue_history_title": {
+  "en": "Played before",
+  "ru": "Играло раньше"
  },
  "quick_picks_empty": {
   "en": "Frequently played tracks will show up here",
@@ -1253,6 +1267,10 @@
   "en": "Search tracks",
   "ru": "Поиск по трекам"
  },
+ "search_tracks_hint": {
+  "en": "Search these tracks",
+  "ru": "Искать в этих треках"
+ },
  "set_about": {
   "en": "About",
   "ru": "О приложении"
@@ -1309,6 +1327,14 @@
   "en": "Live blur, static blur or no blur",
   "ru": "Живой блюр, статичный блюр или без блюра"
  },
+ "set_clear_history": {
+  "en": "Clear the played list",
+  "ru": "Очистить список сыгранного"
+ },
+ "set_clear_history_sub": {
+  "en": "The songs shown above the queue. Mixes and the recap stay as they are",
+  "ru": "Песни над очередью. Миксы и итоги недели не затрагиваются"
+ },
  "set_colors": {
   "en": "Colors & accent",
   "ru": "Цвета и акцент"
@@ -1320,6 +1346,14 @@
  "set_dark_bg": {
   "en": "Dark theme background",
   "ru": "Фон тёмной темы"
+ },
+ "set_debug": {
+  "en": "Debug",
+  "ru": "Отладка"
+ },
+ "set_debug_sub": {
+  "en": "Tools for testing, only in test builds",
+  "ru": "Инструменты для проверки, только в тестовых сборках"
  },
  "set_dial_card_desc": {
   "en": "The background (the blur you picked; with no blur, the album's colour and its genre picture) sits in a card up top; the rest stays in the app's own colours.",
@@ -1384,6 +1418,14 @@
  "set_general_sub": {
   "en": "Start tab, splitting artists",
   "ru": "Вкладка при запуске, деление исполнителей"
+ },
+ "set_glass_sliders": {
+  "en": "Soft bars",
+  "ru": "Мягкие полоски"
+ },
+ "set_glass_sliders_sub": {
+  "en": "Classic player: thick, slightly see-through seek and volume bars that swell under your finger",
+  "ru": "Классический плеер: толстые, чуть прозрачные полоски времени и громкости, которые растут под пальцем"
  },
  "set_hero_classic_desc": {
   "en": "The picture fades into the page background",
@@ -1728,9 +1770,21 @@
   "en": "By title",
   "ru": "По названию"
  },
+ "sort_default": {
+  "en": "As it is",
+  "ru": "Как есть"
+ },
+ "sort_longest": {
+  "en": "Longest",
+  "ru": "Самые длинные"
+ },
  "sort_mode": {
   "en": "Sorting: %1$s",
   "ru": "Сортировка: %1$s"
+ },
+ "sort_most_played": {
+  "en": "Most played",
+  "ru": "Больше слушал"
  },
  "sort_recent": {
   "en": "Recently added",
@@ -1895,6 +1949,10 @@
  "unit_hours_approx": {
   "en": "≈ %1$.1f h",
   "ru": "≈ %1$.1f ч"
+ },
+ "unit_hours_min": {
+  "en": "%1$d h %2$d min",
+  "ru": "%1$d ч %2$d мин"
  },
  "unit_kb": {
   "en": "%1$d KB",

@@ -24,6 +24,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -105,6 +107,37 @@ fun ArtistDetailScreen(
 ) {
     val entrance = rememberEntrance()
     val queuedFlash = rememberCheckFlash()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    // How often each song was played: for "Often played" and the sort.
+    val playCounts by androidx.compose.runtime.produceState<Map<Long, Int>>(emptyMap(), songs) {
+        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            com.artemiy.player.data.AppDatabase.get(context).playHistoryDao().playCounts().associate { it.songId to it.playCount }
+        }
+    }
+    var sortName by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(TrackSort.DEFAULT.name) }
+    var query by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
+    var searching by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+    var sortMenuOpen by remember { mutableStateOf(false) }
+    val sort = TrackSort.valueOf(sortName)
+    val shown = remember(songs, sort, query, playCounts) {
+        val q = query.trim().lowercase()
+        val found = if (q.isEmpty()) songs else songs.filter { it.title.lowercase().contains(q) || it.artist.lowercase().contains(q) || it.album.lowercase().contains(q) }
+        when (sort) {
+            TrackSort.DEFAULT -> found
+            TrackSort.TITLE -> found.sortedBy { it.title.lowercase() }
+            TrackSort.MOST_PLAYED -> found.sortedWith(compareByDescending<Song> { playCounts[it.id] ?: 0 }.thenBy { it.title.lowercase() })
+            TrackSort.NEWEST -> found.sortedByDescending { it.dateAddedMs }
+            TrackSort.LONGEST -> found.sortedByDescending { it.durationMs }
+        }
+    }
+    // A short page has nothing to "often play": the block is for an artist with several songs, two or more of them heard twice or more.
+    val topPlayed = remember(songs, playCounts) {
+        if (songs.size <= 3) emptyList() else {
+            val heard = songs.filter { (playCounts[it.id] ?: 0) >= 2 }
+            if (heard.size >= 2) heard.sortedByDescending { playCounts[it.id] ?: 0 }.take(5) else emptyList()
+        }
+    }
+    val totalMs = remember(songs) { songs.sumOf { it.durationMs } }
     var showAddToQueueDialog by remember { mutableStateOf(false) }
     // A lazy list: only the rows on screen are built (and their covers loaded) — a page of hundreds
     // of songs ("no genre") built all at once heated the phone up.
@@ -131,7 +164,7 @@ fun ArtistDetailScreen(
             height = COLLAGE_HERO_HEIGHT,
             barShown = barShown,
             roundArt = true,
-            discStats = listOf(pluralStringResource(R.plurals.songs_count, songs.size, songs.size), pluralStringResource(R.plurals.albums_count, albums.size, albums.size)),
+            discStats = listOf(pluralStringResource(R.plurals.songs_count, songs.size, songs.size), pluralStringResource(R.plurals.albums_count, albums.size, albums.size), totalTimeLabel(totalMs)),
             art = {
                 ArtistGenreArt(artist, songs, genrePictures)
                 if (bigMark != null) {
@@ -158,7 +191,7 @@ fun ArtistDetailScreen(
                 overflow = TextOverflow.Ellipsis,
             )
             if (!com.artemiy.player.ui.theme.discUi) Text(
-                text = pluralStringResource(R.plurals.songs_count, songs.size, songs.size) + " · " + pluralStringResource(R.plurals.albums_count, albums.size, albums.size),
+                text = pluralStringResource(R.plurals.songs_count, songs.size, songs.size) + " · " + pluralStringResource(R.plurals.albums_count, albums.size, albums.size) + " · " + totalTimeLabel(totalMs),
                 color = com.artemiy.player.ui.components.heroSubText,
                 fontSize = 13.sp,
                 style = TextStyle(shadow = com.artemiy.player.ui.components.heroShadow).inAppFont(),
@@ -191,9 +224,50 @@ fun ArtistDetailScreen(
 
       }
 
+        if (topPlayed.isNotEmpty()) {
+            item(key = "topTitle") {
+                Row(
+                    modifier = Modifier.fillMaxWidth().heroPanel(roundTop = true).padding(horizontal = 20.dp).padding(top = 20.dp, bottom = 10.dp),
+                    verticalAlignment = Alignment.Bottom,
+                ) {
+                    Text(text = stringResource(R.string.often_played), color = PlayerColors.TextPrimary, style = com.artemiy.player.ui.theme.sectionTitleStyle)
+                    val totalPlays = topPlayed.sumOf { playCounts[it.id] ?: 0 }
+                    Text(
+                        text = pluralStringResource(R.plurals.plays_count, totalPlays, totalPlays),
+                        color = PlayerColors.TextSecondary,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(start = 10.dp, bottom = 3.dp),
+                    )
+                }
+            }
+            item(key = "topRow") {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heroPanel()
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = 20.dp)
+                        .padding(bottom = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    topPlayed.forEach { song ->
+                        Column(
+                            modifier = Modifier
+                                .width(124.dp)
+                                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { onSongClick(song, topPlayed) },
+                        ) {
+                            AlbumArt(uri = song.uri, modifier = Modifier.size(124.dp).clip(RoundedCornerShape(if (com.artemiy.player.ui.theme.expressiveUi) 22.dp else 10.dp)))
+                            Text(text = song.title, color = PlayerColors.TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.dp))
+                            val count = playCounts[song.id] ?: 0
+                            Text(text = pluralStringResource(R.plurals.plays_count, count, count), color = PlayerColors.TextSecondary, fontSize = 11.sp, maxLines = 1)
+                        }
+                    }
+                }
+            }
+        }
         if (albums.isNotEmpty()) {
             item(key = "albumsTitle") {
-                Text(text = stringResource(R.string.albums), color = PlayerColors.TextPrimary, style = com.artemiy.player.ui.theme.sectionTitleStyle, modifier = Modifier.fillMaxWidth().heroPanel(roundTop = true).padding(horizontal = 20.dp).padding(top = 20.dp, bottom = 10.dp))
+                Text(text = stringResource(R.string.albums), color = PlayerColors.TextPrimary, style = com.artemiy.player.ui.theme.sectionTitleStyle, modifier = Modifier.fillMaxWidth().heroPanel(roundTop = topPlayed.isEmpty()).padding(horizontal = 20.dp).padding(top = 20.dp, bottom = 10.dp))
             }
             items(albumRows.size, key = { "albums$it" }) { rowIndex ->
                 val rowAlbums = albumRows[rowIndex]
@@ -242,29 +316,98 @@ fun ArtistDetailScreen(
         }
 
         item(key = "tracksTitle") {
-            Text(
-                text = stringResource(R.string.tracks),
-                color = PlayerColors.TextPrimary,
-                style = com.artemiy.player.ui.theme.sectionTitleStyle,
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heroPanel(roundTop = albums.isEmpty())
+                    .heroPanel(roundTop = albums.isEmpty() && topPlayed.isEmpty())
                     .padding(horizontal = com.artemiy.player.ui.components.pageGutter)
                     .padding(top = 20.dp, bottom = 10.dp, start = if (com.artemiy.player.ui.theme.expressiveUi) 8.dp else 0.dp),
-            )
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = stringResource(R.string.tracks),
+                        color = PlayerColors.TextPrimary,
+                        style = com.artemiy.player.ui.theme.sectionTitleStyle,
+                        modifier = Modifier.weight(1f),
+                    )
+                    // Only worth having once there is something to search through.
+                    if (songs.size > 4) {
+                        Icon(
+                            imageVector = AppIcons.Search,
+                            contentDescription = stringResource(R.string.search_tracks_hint),
+                            tint = if (searching) PlayerColors.TextPrimary else PlayerColors.TextSecondary,
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) {
+                                    searching = !searching
+                                    if (!searching) query = ""
+                                },
+                        )
+                        Box(modifier = Modifier.padding(start = 14.dp)) {
+                            Icon(
+                                imageVector = AppIcons.Sort,
+                                contentDescription = null,
+                                tint = if (sort != TrackSort.DEFAULT) PlayerColors.TextPrimary else PlayerColors.TextSecondary,
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) { sortMenuOpen = true },
+                            )
+                            com.artemiy.player.ui.components.AppDropdownMenu(expanded = sortMenuOpen, onDismiss = { sortMenuOpen = false }) {
+                                TrackSort.entries.forEach { option ->
+                                    com.artemiy.player.ui.components.AppMenuItem(
+                                        text = stringResource(option.labelRes),
+                                        selected = option == sort,
+                                        onClick = { sortName = option.name; sortMenuOpen = false },
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                androidx.compose.animation.AnimatedVisibility(visible = searching) {
+                    Row(
+                        modifier = Modifier
+                            .padding(top = 10.dp)
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(if (com.artemiy.player.ui.theme.discUi) 18.dp else 10.dp))
+                            .background(if (com.artemiy.player.ui.theme.discUi) com.artemiy.player.ui.theme.Disc.tileFill else PlayerColors.Surface)
+                            .padding(horizontal = if (com.artemiy.player.ui.theme.discUi) 16.dp else 12.dp, vertical = if (com.artemiy.player.ui.theme.discUi) 15.dp else 9.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(imageVector = AppIcons.Search, contentDescription = null, tint = PlayerColors.TextSecondary, modifier = Modifier.size(16.dp))
+                        com.artemiy.player.ui.components.HintTextField(
+                            value = query,
+                            onValueChange = { query = it },
+                            hint = stringResource(R.string.search_tracks_hint),
+                            fontSize = 13.sp,
+                            modifier = Modifier.weight(1f).padding(start = 8.dp),
+                        )
+                    }
+                }
+            }
         }
-        items(songs.size, key = { songs[it].id }) { index ->
-                val song = songs[index]
+        if (shown.isEmpty() && query.isNotBlank()) {
+            item(key = "noTracks") {
+                Text(
+                    text = stringResource(R.string.no_tracks_found),
+                    color = PlayerColors.TextSecondary,
+                    fontSize = 14.sp,
+                    modifier = Modifier.fillMaxWidth().heroPanel().padding(horizontal = com.artemiy.player.ui.components.pageGutter).padding(vertical = 14.dp),
+                )
+            }
+        }
+        items(shown.size, key = { shown[it].id }) { index ->
+                val song = shown[index]
                 var menuExpanded by remember { mutableStateOf(false) }
                 Box(modifier = Modifier.fillMaxWidth().heroPanel().padding(horizontal = com.artemiy.player.ui.components.pageGutter)) {
                 com.artemiy.player.ui.components.SwipeSongRow(song) {
                     Row(
                         modifier = Modifier
                             .staggeredEntrance(index, entrance)
-                        .groupedCard(index, songs.size)
+                        .groupedCard(index, shown.size)
                             .fillMaxWidth()
                             .songLongPressTrigger(
-                                onClick = { onSongClick(song, songs) },
+                                onClick = { onSongClick(song, shown) },
                                 onLongPress = { menuExpanded = true },
                             )
                             .padding(vertical = 8.dp),
@@ -305,3 +448,19 @@ private fun AddArtistToQueueDialog(songCount: Int, messageRes: Int, onDismiss: (
     }
 }
 
+
+/** How the tracks of an artist (or year, genre) page can be ordered. */
+private enum class TrackSort(val labelRes: Int) {
+    DEFAULT(R.string.sort_default),
+    TITLE(R.string.sort_by_title),
+    MOST_PLAYED(R.string.sort_most_played),
+    NEWEST(R.string.sort_recent),
+    LONGEST(R.string.sort_longest),
+}
+
+/** The page's total playing time: "47 min", or "3 h 12 min". */
+@Composable
+private fun totalTimeLabel(ms: Long): String {
+    val minutes = (ms / 60_000).toInt()
+    return if (minutes < 60) stringResource(R.string.unit_min, minutes) else stringResource(R.string.unit_hours_min, minutes / 60, minutes % 60)
+}

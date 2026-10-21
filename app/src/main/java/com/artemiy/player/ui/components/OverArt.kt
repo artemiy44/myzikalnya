@@ -563,6 +563,16 @@ private fun DiscHero(
                         )
                     }
                 }
+                // A third fact (the playing time) is a quiet line, not a third big number.
+                stats.getOrNull(2)?.let { text ->
+                    androidx.compose.material3.Text(
+                        text = text,
+                        color = PlayerColors.TextSecondary,
+                        fontSize = 14.sp,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                        maxLines = 1,
+                    )
+                }
             }
         }
         Column(modifier = Modifier.padding(top = 14.dp).fillMaxWidth(), content = content)

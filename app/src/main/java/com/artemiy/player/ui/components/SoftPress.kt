@@ -57,7 +57,15 @@ private class SoftPressNode(private val source: InteractionSource) :
             if (size.minDimension < 44.dp.toPx()) {
                 drawCircle(color, radius = size.maxDimension / 2f + 8.dp.toPx())
             } else {
-                drawRoundRect(color, cornerRadius = CornerRadius(12.dp.toPx()))
+                // A little more than the row itself, all round, so the wash doesn't sit pixel-for-pixel on its edges.
+                val outX = 6.dp.toPx()
+                val outY = 3.dp.toPx()
+                drawRoundRect(
+                    color,
+                    topLeft = androidx.compose.ui.geometry.Offset(-outX, -outY),
+                    size = androidx.compose.ui.geometry.Size(size.width + 2 * outX, size.height + 2 * outY),
+                    cornerRadius = CornerRadius(16.dp.toPx()),
+                )
             }
         }
         drawContent()

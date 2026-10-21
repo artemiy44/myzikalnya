@@ -101,6 +101,7 @@ import com.artemiy.player.ui.home.HomeViewModel
 import com.artemiy.player.ui.library.AddToPlaylistDialog
 import com.artemiy.player.ui.library.LibraryRoute
 import com.artemiy.player.ui.library.LibraryScreen
+import com.artemiy.player.ui.library.pushOrReturn
 import com.artemiy.player.ui.library.PlaylistsViewModel
 import com.artemiy.player.ui.nowplaying.NowPlayingScreen
 import com.artemiy.player.ui.mood.MoodScreen
@@ -257,13 +258,13 @@ private fun PlayerApp(settings: SettingsViewModel) {
     fun goToAlbum(song: Song) {
         closeNowPlaying(animated = false)
         selectedTab = AppTab.Library
-        libraryBackStack.add(LibraryRoute.AlbumDetail(song.album, song.artist))
+        libraryBackStack.pushOrReturn(LibraryRoute.AlbumDetail(song.album, song.artist))
     }
 
     fun goToArtistNamed(name: String) {
         closeNowPlaying(animated = false)
         selectedTab = AppTab.Library
-        libraryBackStack.add(LibraryRoute.ArtistDetail(name))
+        libraryBackStack.pushOrReturn(LibraryRoute.ArtistDetail(name))
     }
 
     // Several artists on one song: ask which one's page to open.
@@ -853,6 +854,8 @@ private fun PlayerApp(settings: SettingsViewModel) {
           CompositionLocalProvider(
               LocalNowPlayingActive provides showNowPlaying,
               com.artemiy.player.ui.nowplaying.LocalRepeatOne provides playback.repeatOne,
+              com.artemiy.player.ui.components.LocalGlassSliders provides settings.glassSliders,
+              com.artemiy.player.ui.nowplaying.LocalQueueHistory provides remember(playback.queueHistory) { com.artemiy.player.ui.nowplaying.QueueHistoryState(playback.queueHistory, playback::playFromHistory) },
               com.artemiy.player.ui.nowplaying.LocalQualityLabel provides (if (settings.qualityBadge) playback.qualityLabel else null),
           ) {
             NowPlayingScreen(
@@ -984,6 +987,9 @@ private fun PlayerApp(settings: SettingsViewModel) {
                     onFadeModeChange = { settings.updateFadeMode(it) },
                     qualityBadge = settings.qualityBadge,
                     onQualityBadgeChange = { settings.updateQualityBadge(it) },
+                    glassSliders = settings.glassSliders,
+                    onGlassSlidersChange = { settings.updateGlassSliders(it) },
+                    onClearQueueHistory = { playback.clearQueueHistory() },
                 ),
                 songs = songs,
                 onDataRestored = { playlistsVm.refresh(); home.refresh(songs) },

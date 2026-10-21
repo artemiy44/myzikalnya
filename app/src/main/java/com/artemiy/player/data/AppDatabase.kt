@@ -16,14 +16,24 @@ private val MIGRATION_2_3 = object : Migration(2, 3) {
     }
 }
 
+/** Adds the history above the queue; everything already stored stays untouched. */
+private val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `queue_history` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `songId` INTEGER NOT NULL, `playedAt` INTEGER NOT NULL)",
+        )
+    }
+}
+
 @Database(
-    entities = [PlayHistoryEntity::class, PlaylistEntity::class, PlaylistSongEntity::class, SkipEventEntity::class],
-    version = 3,
+    entities = [PlayHistoryEntity::class, PlaylistEntity::class, PlaylistSongEntity::class, SkipEventEntity::class, QueueHistoryEntity::class],
+    version = 4,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun playHistoryDao(): PlayHistoryDao
     abstract fun playlistDao(): PlaylistDao
+    abstract fun queueHistoryDao(): QueueHistoryDao
 
     companion object {
         @Volatile private var instance: AppDatabase? = null
@@ -37,7 +47,7 @@ abstract class AppDatabase : RoomDatabase() {
                 )
                     // Real data lives here now (play history, playlists): schema changes get a
                     // proper migration, never a wipe.
-                    .addMigrations(MIGRATION_2_3)
+                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
                     .build().also { instance = it }
             }
     }

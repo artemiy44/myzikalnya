@@ -136,6 +136,7 @@
     <string name="hero_classic">Классическій</string>
     <string name="hero_vivid">Яркій</string>
     <string name="hide_romanization">Скрыть романизацію</string>
+    <string name="history_cleared">Очищено</string>
     <string name="home_quick_picks">Quick picks</string>
     <string name="home_recently_added">Recently added</string>
     <string name="in_lyrics">Въ текстѣ пѣсенъ</string>
@@ -179,6 +180,7 @@
     <string name="lyric_font_backup_desc">Въ Smiley Sans только упрощенные знаки; те, которыхъ въ немъ нѣтъ (традиціонные), берутся изъ этого шрифта, а если онъ не выбранъ — изъ шрифта телефона.</string>
     <string name="lyric_font_no_bold">Въ шрифте вашего телефона нѣтъ жирныхъ японскихъ, корейскихъ и китайскихъ знаковъ, поэтому названія тамъ выглядятъ тонкими. Выборъ одного изъ нашихъ это исправитъ.</string>
     <string name="lyrics">Текстъ пѣсни</string>
+    <string name="lyrics_controls_hint">Нажми здѣсь, чтобы вернуть кнопки</string>
     <string name="lyrics_indexing">Тексты пѣсенъ еще собираются (%1$d изъ %2$d) — по тексту найдется пока не все</string>
     <string name="lyrics_not_found">Текстъ для этого трека не найденъ</string>
     <string name="m3u_saved">Плейлистъ сохраненъ</string>
@@ -217,10 +219,11 @@
     <string name="no_genre">Безъ жанра</string>
     <string name="no_playlists">Плейлистовъ пока нѣтъ — первый создается значкомъ «+» сверху</string>
     <string name="no_track_chosen">Трекъ не выбранъ</string>
-    <string name="no_tracks_found">Треки не найдены</string>
+    <string name="no_tracks_found">Ничего не найдено</string>
     <string name="no_year">Безъ года</string>
     <string name="nothing_found">Ничего не найдено</string>
     <string name="nothing_playing">Ничего не играетъ</string>
+    <string name="often_played">Часто слушаешь</string>
     <string name="onb_allow">Разрешить</string>
     <string name="onb_folders_text">Можно отмѣтить папки съ музыкой — тогда рингтоны, голосовыя и прочія звуки не попадутъ въ медіатеку. Если ничего не отмѣчать, найдется все.</string>
     <string name="onb_folders_title">Гдѣ лежитъ музыка</string>
@@ -253,10 +256,10 @@
     <string name="playlist_export_m3u">Экспортъ въ M3U</string>
     <string name="playlists">Плейлисты</string>
     <plurals name="plays_count">
-        <item quantity="few">%d прослушиванія</item>
-        <item quantity="many">%d прослушиваній</item>
-        <item quantity="one">%d прослушиваніе</item>
-        <item quantity="other">%d прослушиванія</item>
+        <item quantity="few">%d раза</item>
+        <item quantity="many">%d разъ</item>
+        <item quantity="one">%d разъ</item>
+        <item quantity="other">%d раза</item>
     </plurals>
     <plurals name="plays_word">
         <item quantity="few">прослушиванія</item>
@@ -265,6 +268,7 @@
         <item quantity="other">прослушиванія</item>
     </plurals>
     <string name="queue">Очередь</string>
+    <string name="queue_history_title">Играло раньше</string>
     <string name="quick_picks_empty">Здѣсь появятся часто прослушиваемыя треки</string>
     <string name="recap_busiest_day">Самый музыкальный день</string>
     <string name="recap_busiest_part">Больше всего музыки</string>
@@ -302,6 +306,7 @@
     <string name="search_start_typing">Поискъ трека, исполнителя, альбома или строчки изъ пѣсни</string>
     <string name="search_title_artist_album">Названіе, исполнитель, альбомъ</string>
     <string name="search_tracks">Поискъ по трекамъ</string>
+    <string name="search_tracks_hint">Искать въ этихъ трекахъ</string>
     <string name="set_about">О приложеніи</string>
     <string name="set_about_sub">Версія, лицензіи, привѣтствіе</string>
     <string name="set_accent">Акцентный цвѣтъ</string>
@@ -316,9 +321,13 @@
     <string name="set_bg_mode">Режимъ фона</string>
     <string name="set_bg_mode_desc">Какъ выглядитъ фонъ плеера — одинаково за обложкой, текстомъ и очередью.</string>
     <string name="set_bg_sub">Живой блюръ, статичный блюръ или безъ блюра</string>
+    <string name="set_clear_history">Очистить списокъ сыгранного</string>
+    <string name="set_clear_history_sub">Пѣсни надъ очередью. Миксы и итоги недѣли не затрагиваются</string>
     <string name="set_colors">Цвѣта и акцентъ</string>
     <string name="set_colors_sub">Фонъ свѣтлой и темной ѳемы, цвѣтъ акцента</string>
     <string name="set_dark_bg">Фонъ темной ѳемы</string>
+    <string name="set_debug">Отладка</string>
+    <string name="set_debug_sub">Инструменты для проверки, только въ тестовыхъ сборкахъ</string>
     <string name="set_dial_card_desc">Фонъ (выбранный блюръ, а безъ блюра — цвѣтъ альбома и картинка жанра) лежитъ въ карточке сверху, а все остальное — въ цветахъ приложенія.</string>
     <string name="set_dial_full_desc">Фонъ заполняетъ весь экранъ; безъ блюра — просто фонъ приложенія, акцентъ только на кнопке плей.</string>
     <string name="set_dial_look">Видъ</string>
@@ -335,6 +344,8 @@
     <string name="set_font">Шрифтъ</string>
     <string name="set_general">Общія</string>
     <string name="set_general_sub">Вкладка при запускѣ, дѣленіе исполнителей</string>
+    <string name="set_glass_sliders">Мягкія полоски</string>
+    <string name="set_glass_sliders_sub">Классическій плееръ: толстые, чуть прозрачные полоски времени и громкости, которые растутъ подъ пальцемъ</string>
     <string name="set_hero_classic_desc">Картинка затухаетъ въ цвѣтъ фона страницы</string>
     <string name="set_hero_style">Страницы съ картинкой</string>
     <string name="set_hero_vivid_desc">Цвѣтъ картинки перетекаетъ внизъ по страницѣ и потомъ сходитъ на фонъ</string>
@@ -426,7 +437,10 @@
     <string name="sort_by_file">Имя файла</string>
     <string name="sort_by_name">По алфавиту</string>
     <string name="sort_by_title">По названію</string>
+    <string name="sort_default">Какъ есть</string>
+    <string name="sort_longest">Самые длинные</string>
     <string name="sort_mode">Сортировка: %1$s</string>
+    <string name="sort_most_played">Больше слушалъ</string>
     <string name="sort_recent">Недавно добавленныя</string>
     <string name="sort_recent_library">Недавно добавленныя въ медіатеку</string>
     <string name="sort_release_date">По датѣ выпуска</string>
@@ -473,6 +487,7 @@
     <string name="ui_style_expressive">Экспрессивный</string>
     <string name="ui_style_expressive_note">Крупныя заголовки, парящія панели, скругленныя карточки и игривыя формы.</string>
     <string name="unit_hours_approx">≈ %1$.1f ч</string>
+    <string name="unit_hours_min">%1$d ч %2$d мин</string>
     <string name="unit_kb">%1$d КБ</string>
     <string name="unit_kbps">%1$d кбит/съ</string>
     <string name="unit_khz">%1$.1f кГц</string>

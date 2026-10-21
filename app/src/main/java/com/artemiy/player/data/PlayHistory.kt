@@ -45,6 +45,10 @@ interface PlayHistoryDao {
     )
     suspend fun recentlyPlayed(limit: Int): List<Long>
 
+    /** How many times each song was played. */
+    @Query("SELECT songId, COUNT(*) as playCount FROM play_history GROUP BY songId")
+    suspend fun playCounts(): List<SongPlayCount>
+
     /** Every play ever — the raw material for mixes and the weekly recap. */
     @Query("SELECT songId, playedAt AS at FROM play_history")
     suspend fun allPlays(): List<SongEvent>

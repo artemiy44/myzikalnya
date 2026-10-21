@@ -85,6 +85,7 @@ internal fun NowPlayingMiniHeader(
         AlbumArt(
             uri = song?.uri,
             size = ART_SIZE_THUMB,
+            crossfade = true,
             modifier = Modifier
                 .size(52.dp)
                 .then(artModifier)
@@ -217,7 +218,7 @@ internal fun VolumeRow(modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(imageVector = AppIcons.VolumeDown, contentDescription = null, tint = LocalAdaptiveSecondaryColor.current, modifier = Modifier.size(18.dp))
-        MinimalSlider(
+        com.artemiy.player.ui.components.PlayerSlider(
             value = volume,
             onValueChange = {
                 dragging = true
@@ -235,6 +236,7 @@ internal fun VolumeRow(modifier: Modifier = Modifier) {
                 volume = systemVolume()
             },
             valueRange = 0f..maxVolume.toFloat(),
+            lifts = false,
             modifier = Modifier.weight(1f).padding(horizontal = 10.dp),
         )
         Icon(imageVector = AppIcons.VolumeUp, contentDescription = null, tint = LocalAdaptiveSecondaryColor.current, modifier = Modifier.size(20.dp))
@@ -440,7 +442,7 @@ internal fun SeekBar(positionMs: Long, durationMs: Long, onSeek: (Long) -> Unit,
     val shownPosition = if (isDragging) dragValue else positionMs.toFloat()
 
     Column(modifier = modifier) {
-        MinimalSlider(
+        com.artemiy.player.ui.components.PlayerSlider(
             value = shownPosition.coerceIn(0f, safeDuration.toFloat()),
             onValueChange = {
                 isDragging = true

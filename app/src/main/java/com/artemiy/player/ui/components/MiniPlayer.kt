@@ -85,7 +85,7 @@ fun MiniPlayer(
     val lineColor = PlayerColors.TextPrimary
     val lineAlpha by androidx.compose.animation.core.animateFloatAsState(
         if (progressShown) 1f else 0f,
-        if (progressShown) tween(450, delayMillis = 80) else tween(0),
+        tween(0), // the player's sheet draws the same line while it settles onto the bar (see MiniLineHandover), so this one just takes over
         label = "miniLine",
     )
     Row(
@@ -105,6 +105,7 @@ fun MiniPlayer(
     ) {
         AlbumArt(
             uri = albumArtUri,
+            crossfade = true,
             modifier = Modifier
                 .size(52.dp)
                 .onGloballyPositioned { anchors?.let { a -> a.art = a.keep(a.art, it.boundsInRoot()) } }
@@ -234,12 +235,12 @@ val MINI_CARD_CORNER = 22.dp
 
 /** The expressive mini player's song progress: a thin rounded line along the card's bottom — the
  * faint rest of the song, and the part already played. */
-private fun DrawScope.drawProgressLine(progress: Float, color: Color) {
+internal fun DrawScope.drawProgressLine(progress: Float, color: Color, width: Float = size.width, height: Float = size.height) {
     val inset = 20.dp.toPx()
     val thickness = 3.dp.toPx()
-    val y = size.height - 7.dp.toPx()
+    val y = height - 7.dp.toPx()
     val start = Offset(inset, y)
-    val end = Offset(size.width - inset, y)
+    val end = Offset(width - inset, y)
     drawLine(color.copy(alpha = 0.16f), start, end, thickness, StrokeCap.Round)
     val p = progress.coerceIn(0f, 1f)
     if (p > 0f) drawLine(color.copy(alpha = 0.85f), start, Offset(start.x + (end.x - start.x) * p, y), thickness, StrokeCap.Round)

@@ -130,7 +130,7 @@ fun SearchScreen(
         title = stringResource(R.string.tab_search),
         bigHeader = {
             if (com.artemiy.player.ui.theme.discUi) com.artemiy.player.ui.components.DiscPageTitle(
-                stringResource(R.string.tab_search), stringResource(R.string.disc_sub_search),
+                stringResource(R.string.tab_search),
                 modifier = Modifier.padding(20.dp, 20.dp, 20.dp, 12.dp),
             ) else Text(
                 text = stringResource(R.string.tab_search),

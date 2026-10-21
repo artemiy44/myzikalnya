@@ -130,6 +130,7 @@
     <string name="hero_classic">クラシック</string>
     <string name="hero_vivid">ビビッド</string>
     <string name="hide_romanization">ローマ字を隠す</string>
+    <string name="history_cleared">消去しました</string>
     <string name="home_quick_picks">クイックピック</string>
     <string name="home_recently_added">最近追加</string>
     <string name="in_lyrics">歌詞の中</string>
@@ -171,6 +172,7 @@
     <string name="lyric_font_backup_desc">Smiley Sans は簡体字のみです。ない文字（繁体字）はこのフォント、未選択なら端末のフォントで表示します。</string>
     <string name="lyric_font_no_bold">端末のフォントには太字の日本語・韓国語・中国語がなく、タイトルが細く見えます。内蔵フォントを選ぶと解消します。</string>
     <string name="lyrics">歌詞</string>
+    <string name="lyrics_controls_hint">ここをタップすると操作ボタンが戻ります</string>
     <string name="lyrics_indexing">歌詞を収集中です（%1$d / %2$d）— 歌詞での検索はまだすべてには対応していません</string>
     <string name="lyrics_not_found">この曲の歌詞は見つかりませんでした</string>
     <string name="m3u_saved">プレイリストを保存しました</string>
@@ -209,10 +211,11 @@
     <string name="no_genre">ジャンルなし</string>
     <string name="no_playlists">プレイリストはまだありません — 上の「+」から作成できます</string>
     <string name="no_track_chosen">曲が選ばれていません</string>
-    <string name="no_tracks_found">曲が見つかりません</string>
+    <string name="no_tracks_found">見つかりません</string>
     <string name="no_year">年不明</string>
     <string name="nothing_found">見つかりませんでした</string>
     <string name="nothing_playing">再生していません</string>
+    <string name="often_played">よく聴く曲</string>
     <string name="onb_allow">許可</string>
     <string name="onb_folders_text">音楽フォルダを選ぶと、着信音やボイスメモなどの音がライブラリに入りません。何も選ばなければ、すべてを見つけます。</string>
     <string name="onb_folders_title">音楽の場所</string>
@@ -245,6 +248,7 @@
     <string name="playlist_export_m3u">M3Uで書き出す</string>
     <string name="playlists">プレイリスト</string>
     <string name="queue">キュー</string>
+    <string name="queue_history_title">さっきまで再生</string>
     <string name="quick_picks_empty">よく聴く曲がここに表示されます</string>
     <string name="recap_busiest_day">いちばん音楽を聴いた日</string>
     <string name="recap_busiest_part">いちばん聴いた時間帯</string>
@@ -282,6 +286,7 @@
     <string name="search_start_typing">曲、アーティスト、アルバム、歌詞の一節を検索</string>
     <string name="search_title_artist_album">曲名、アーティスト、アルバム</string>
     <string name="search_tracks">曲を検索</string>
+    <string name="search_tracks_hint">この曲の中を検索</string>
     <string name="set_about">アプリについて</string>
     <string name="set_about_sub">バージョン、ライセンス、ようこそ画面</string>
     <string name="set_accent">アクセントカラー</string>
@@ -296,6 +301,8 @@
     <string name="set_bg_mode">背景モード</string>
     <string name="set_bg_mode_desc">プレーヤーの背景の見え方 — ジャケット、歌詞、キューの後ろで共通です。</string>
     <string name="set_bg_sub">ライブぼかし、静止ぼかし、ぼかしなし</string>
+    <string name="set_clear_history">再生済みリストを消去</string>
+    <string name="set_clear_history_sub">キューの上に出る曲です。ミックスや週のまとめには影響しません</string>
     <string name="set_colors">色とアクセント</string>
     <string name="set_colors_sub">ライト／ダークテーマの背景色とアクセントカラー</string>
     <string name="set_dark_bg">ダークテーマの背景</string>
@@ -315,6 +322,8 @@
     <string name="set_font">フォント</string>
     <string name="set_general">一般</string>
     <string name="set_general_sub">起動時のタブ、アーティストの分割</string>
+    <string name="set_glass_sliders">やわらかいバー</string>
+    <string name="set_glass_sliders_sub">クラシックプレーヤー：指に合わせて太くなる、少し透けた再生位置と音量のバー</string>
     <string name="set_hero_classic_desc">画像がページの背景にフェードします</string>
     <string name="set_hero_style">画像のあるページ</string>
     <string name="set_hero_vivid_desc">画像の色がページを流れ落ち、やがて背景に溶け込みます</string>
@@ -394,7 +403,10 @@
     <string name="sort_by_file">ファイル名</string>
     <string name="sort_by_name">名前順</string>
     <string name="sort_by_title">曲名順</string>
+    <string name="sort_default">そのまま</string>
+    <string name="sort_longest">長い順</string>
     <string name="sort_mode">並べ替え：%1$s</string>
+    <string name="sort_most_played">再生回数順</string>
     <string name="sort_recent">最近追加</string>
     <string name="sort_recent_library">ライブラリに最近追加</string>
     <string name="sort_release_date">リリース日順</string>
@@ -429,6 +441,7 @@
     <string name="ui_style_expressive">エクスプレッシブ</string>
     <string name="ui_style_expressive_note">大きな見出し、浮かぶバー、丸いカード、遊び心のある形。</string>
     <string name="unit_hours_approx">約 %1$.1f 時間</string>
+    <string name="unit_hours_min">%1$d時間%2$d分</string>
     <string name="unit_kb">%1$d KB</string>
     <string name="unit_kbps">%1$d kbps</string>
     <string name="unit_khz">%1$.1f kHz</string>
@@ -458,7 +471,7 @@
         <item quantity="other">%d 枚のアルバム</item>
     </plurals>
     <plurals name="plays_count">
-        <item quantity="other">%d 回再生</item>
+        <item quantity="other">%d 回</item>
     </plurals>
     <plurals name="plays_word">
         <item quantity="other">回再生</item>

@@ -6,6 +6,11 @@ import androidx.compose.animation.animateColorAsState
 import com.artemiy.player.ui.theme.inAppFont
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.animateScrollBy
+import kotlinx.coroutines.flow.first
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import kotlin.math.roundToInt
+import androidx.compose.ui.layout.layout
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -96,6 +101,94 @@ internal fun List<QueueEntry>.moved(fromKey: Any, toKey: Any): List<QueueEntry> 
 
 internal val QueueRemoveRed = Color(0xFFE5383B)
 
+internal enum class RowPhase { Settled, Entering, Leaving }
+
+/** A queue row as shown: [Leaving] rows are already gone from the player's queue but stay a moment to fold away. */
+internal class DisplayRow(val entry: QueueEntry, val phase: RowPhase)
+
+private class RowsMemory {
+    var shown: List<DisplayRow>? = null
+    var droppedAt = 0
+}
+
+private const val ROW_FOLD_MS = 260
+private const val ROW_GHOST_MS = 340L
+
+/**
+ * The rows to draw for [target], the player's list: rows that left it (a song picked or skipped to) fold up to nothing
+ * and the ones below follow, rows that joined it (the song just played, after skipping back) unfold. A list that
+ * changes completely (a new queue) just swaps. Nothing here slides rows around: their space really shrinks, so the
+ * list's fade always knows where a row is.
+ */
+@Composable
+private fun rememberAnimatedRows(target: List<QueueEntry>): List<DisplayRow> {
+    val memory = remember { RowsMemory() }
+    var generation by remember { androidx.compose.runtime.mutableIntStateOf(0) }
+    val rows = remember(target, generation) {
+        val before = memory.shown
+        val dropLeaving = generation != memory.droppedAt
+        memory.droppedAt = generation
+        val merged = if (before == null) target.map { DisplayRow(it, RowPhase.Settled) } else {
+            val targetKeys = target.mapTo(HashSet()) { it.key }
+            val beforeKeys = before.mapTo(HashSet()) { it.entry.key }
+            if (before.isNotEmpty() && target.isNotEmpty() && before.none { it.entry.key in targetKeys }) {
+                target.map { DisplayRow(it, RowPhase.Settled) }
+            } else {
+                // Leaving rows stay where they were: after the row that was above them.
+                val ghostsAfter = HashMap<String?, MutableList<DisplayRow>>()
+                var above: String? = null
+                for (row in before) {
+                    if (row.entry.key in targetKeys) above = row.entry.key
+                    else if (!dropLeaving) ghostsAfter.getOrPut(above) { mutableListOf() }.add(DisplayRow(row.entry, RowPhase.Leaving))
+                }
+                buildList {
+                    ghostsAfter[null]?.let { addAll(it) }
+                    for (entry in target) {
+                        add(DisplayRow(entry, if (entry.key in beforeKeys) RowPhase.Settled else RowPhase.Entering))
+                        ghostsAfter[entry.key]?.let { addAll(it) }
+                    }
+                }
+            }
+        }
+        memory.shown = merged
+        merged
+    }
+    val hasLeaving = rows.any { it.phase == RowPhase.Leaving }
+    androidx.compose.runtime.LaunchedEffect(hasLeaving, rows) {
+        if (hasLeaving) {
+            kotlinx.coroutines.delay(ROW_GHOST_MS)
+            generation++
+        }
+    }
+    return rows
+}
+
+/** Folds a row's height (and fades it) to nothing when [phase] is Leaving, unfolds it from nothing when it starts as Entering. */
+@Composable
+private fun FoldingRow(phase: RowPhase, content: @Composable () -> Unit) {
+    val startsFolded = remember { phase == RowPhase.Entering }
+    val fold = remember { androidx.compose.animation.core.Animatable(if (startsFolded) 0f else 1f) }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        if (startsFolded) fold.animateTo(1f, tween(ROW_FOLD_MS, easing = androidx.compose.animation.core.FastOutSlowInEasing))
+    }
+    val leaving = phase == RowPhase.Leaving
+    androidx.compose.runtime.LaunchedEffect(leaving) {
+        if (leaving) fold.animateTo(0f, tween(ROW_FOLD_MS, easing = androidx.compose.animation.core.FastOutSlowInEasing))
+    }
+    Box(
+        modifier = Modifier
+            .layout { measurable, constraints ->
+                val placeable = measurable.measure(constraints)
+                val height = (placeable.height * fold.value).roundToInt()
+                layout(placeable.width, height) { placeable.place(0, 0) }
+            }
+            .graphicsLayer {
+                alpha = fold.value
+                clip = true
+            },
+    ) { content() }
+}
+
 /** What the long-press song menu on a queue row can do — the same actions as everywhere else. */
 internal class QueueSongActions(
     val onPlayNext: (Song) -> Unit,
@@ -156,18 +249,126 @@ internal fun QueueList(
     // fadeInList() below) — index 0 is the "Очередь" header row, 1 is "Добавить треки", so the
     // manual rows start at 2; continue rows start after those plus their own header row (only
     // present when there are any).
-    val manualQueueStart = 2
-    val continueQueueStart = manualQueueStart + manualRows.size + 1
+    val manualDisplay = rememberAnimatedRows(manualRows)
+    val continueDisplay = rememberAnimatedRows(continueRows)
+    // The history sits above the queue, out of sight; pulling the list down at its very top lets it in: the last few
+    // songs are brought down into view, and the older ones are further up. Once it has been scrolled out of sight again
+    // it is taken away (nothing moves on screen: it is all above the viewport).
+    val history = LocalQueueHistory.current
+    var historyOpen by remember { mutableStateOf(false) }
+    val historyEntries = remember(history.songs, historyOpen) { if (historyOpen) queueEntries("h", history.songs) else emptyList() }
+    val historyOffset = if (historyEntries.isEmpty()) 0 else historyEntries.size + 1
+    val historyOffsetNow by androidx.compose.runtime.rememberUpdatedState(historyOffset)
+    val hasHistory by androidx.compose.runtime.rememberUpdatedState(history.songs.isNotEmpty())
+    val historySongsNow by androidx.compose.runtime.rememberUpdatedState(history.songs)
+    // The rows there were when the history was opened: they just stand; one that joins while it is open (a song
+    // that has been played on) unfolds into place.
+    var openingKeys by remember { mutableStateOf<Set<String>>(emptySet()) }
+    val pullThresholdPx = with(LocalDensity.current) { 150.dp.toPx() }
+    val rowPx = with(LocalDensity.current) { 68.dp.toPx() }
+    val pullConnection = remember(state) {
+        object : androidx.compose.ui.input.nestedscroll.NestedScrollConnection {
+            var pulled = 0f
+            override fun onPostScroll(consumed: Offset, available: Offset, source: androidx.compose.ui.input.nestedscroll.NestedScrollSource): Offset {
+                if (source == androidx.compose.ui.input.nestedscroll.NestedScrollSource.UserInput && available.y > 0f && !state.canScrollBackward && hasHistory && !historyOpen) {
+                    pulled += available.y
+                    if (pulled > pullThresholdPx) {
+                        pulled = 0f
+                        openingKeys = queueEntries("h", historySongsNow).mapTo(HashSet()) { it.key }
+                        historyOpen = true
+                    }
+                } else if (available.y <= 0f) pulled = 0f
+                return Offset.Zero
+            }
+            override suspend fun onPreFling(available: androidx.compose.ui.unit.Velocity): androidx.compose.ui.unit.Velocity {
+                pulled = 0f
+                return androidx.compose.ui.unit.Velocity.Zero
+            }
+        }
+    }
+    androidx.compose.runtime.LaunchedEffect(historyOpen) {
+        if (!historyOpen) return@LaunchedEffect
+        // Let the rows above be laid out, then bring the latest ones down into view. A finger still on the list
+        // (the pull that opened it) or any new scroll interrupts this: that is fine, it is only the glide.
+        launch {
+            androidx.compose.runtime.withFrameNanos { }
+            androidx.compose.runtime.withFrameNanos { }
+            val peek = (minOf(history.songs.size, 5) * rowPx) + rowPx * 0.6f
+            try {
+                state.animateScrollBy(-peek, tween(360, easing = androidx.compose.animation.core.FastOutSlowInEasing))
+            } catch (_: kotlinx.coroutines.CancellationException) {
+            }
+        }
+        // Gone once the queue's own header is back at the top (all of the history is then above it) — but only after
+        // the header has been seen further down: right at the opening it is still at the top.
+        var seenBelow = false
+        androidx.compose.runtime.snapshotFlow {
+            // Not in view at all: above the list's start (the history is behind us) or far below it (up in the history).
+            state.layoutInfo.visibleItemsInfo.firstOrNull { it.key == "header-queue" }?.offset
+                ?: if (state.firstVisibleItemIndex >= historyOffsetNow) Int.MIN_VALUE else Int.MAX_VALUE
+        }.first { offset ->
+            if (offset > rowPx * 0.5f) seenBelow = true
+            seenBelow && offset <= 0
+        }
+        historyOpen = false
+    }
+
+    val manualQueueStart = historyOffset + 2
+    val continueQueueStart = manualQueueStart + manualDisplay.size + 1
+
+    // A song picked from the list: once the rows before it have folded away, the list goes back to its top (the new
+    // queue from its first row). The covers up there were out of sight and not loaded, so they are decoded while the
+    // rows fold, ahead of the scroll.
+    val leavingNow = manualDisplay.any { it.phase == RowPhase.Leaving } || continueDisplay.any { it.phase == RowPhase.Leaving }
+    var hadLeaving by remember { mutableStateOf(false) }
+    var returnAfterPick by remember { mutableStateOf(false) }
+    val topSongs by androidx.compose.runtime.rememberUpdatedState((manualRows + continueRows).take(14).map { it.song })
+    val artContext = androidx.compose.ui.platform.LocalContext.current.applicationContext
+    androidx.compose.runtime.LaunchedEffect(leavingNow) {
+        if (leavingNow) {
+            hadLeaving = true
+            if (returnAfterPick) topSongs.forEach { com.artemiy.player.ui.components.prefetchAlbumArt(artContext, it.uri) }
+        } else if (hadLeaving) {
+            hadLeaving = false
+            if (returnAfterPick) {
+                returnAfterPick = false
+                if (state.firstVisibleItemIndex > 0 || state.firstVisibleItemScrollOffset > 0) {
+                    state.animateScrollToItem(0)
+                    if (state.firstVisibleItemIndex != 0 || state.firstVisibleItemScrollOffset != 0) state.scrollToItem(0)
+                }
+            }
+        }
+    }
     LazyColumn(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize().nestedScroll(pullConnection),
         state = state,
         contentPadding = contentPadding,
     ) {
+        if (historyEntries.isNotEmpty()) {
+            item(key = "history-title") {
+                Text(
+                    text = stringResource(R.string.queue_history_title),
+                    color = LocalAdaptiveSecondaryColor.current,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.fadeInList(state, 0, topFadePx, bottomFadePx).padding(top = 12.dp, bottom = 4.dp),
+                )
+            }
+            itemsIndexed(historyEntries, key = { _, entry -> entry.key }, contentType = { _, _ -> "history" }) { i, entry ->
+                FoldingRow(if (entry.key in openingKeys) RowPhase.Settled else RowPhase.Entering) {
+                    HistoryRow(
+                        song = entry.song,
+                        onClick = { history.onPlay(entry.song) },
+                        modifier = Modifier.fadeInList(state, 1 + i, topFadePx, bottomFadePx),
+                    )
+                }
+            }
+        }
         item(key = "header-queue") {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fadeInList(state, 0, topFadePx, bottomFadePx)
+                    .fadeInList(state, historyOffset, topFadePx, bottomFadePx)
                     .padding(top = 12.dp, bottom = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
@@ -185,15 +386,17 @@ internal fun QueueList(
             }
         }
         item(key = "header-add") {
-            AddSongsToQueueRow(onClick = onAddSongsClick, modifier = Modifier.fadeInList(state, 1, topFadePx, bottomFadePx))
+            AddSongsToQueueRow(onClick = onAddSongsClick, modifier = Modifier.fadeInList(state, historyOffset + 1, topFadePx, bottomFadePx))
         }
-        itemsIndexed(manualRows, key = { _, entry -> entry.key }, contentType = { _, _ -> "song" }) { i, entry ->
-            ReorderableItem(reorderState, key = entry.key) { isDragging ->
+        itemsIndexed(manualDisplay, key = { _, row -> row.entry.key }, contentType = { _, _ -> "song" }) { i, row ->
+            val entry = row.entry
+            ReorderableItem(reorderState, key = entry.key, animateItemModifier = if (reorderState.isAnyItemDragging) Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null) else Modifier) { isDragging ->
+              FoldingRow(row.phase) {
                 SwipeToRemove(onRemove = { onRemove(manualQueue.indexOfFirstEntry(entry.key, "m")) }) {
                     QueueRow(
                         item = entry.song,
                         isDragging = isDragging,
-                        onClick = { onItemClick(entry.song) },
+                        onClick = { returnAfterPick = true; onItemClick(entry.song) },
                         songActions = songActions,
                         dragHandleModifier = Modifier.draggableHandle(
                             onDragStarted = {
@@ -208,9 +411,10 @@ internal fun QueueList(
                         modifier = Modifier.fadeInList(state, manualQueueStart + i, topFadePx, bottomFadePx),
                     )
                 }
+              }
             }
         }
-        if (continueRows.isNotEmpty()) {
+        if (continueDisplay.isNotEmpty()) {
             item(key = "header-continue") {
                 Text(
                     text = stringResource(R.string.up_next),
@@ -218,19 +422,21 @@ internal fun QueueList(
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
-                        .fadeInList(state, manualQueueStart + manualRows.size, topFadePx, bottomFadePx)
+                        .fadeInList(state, manualQueueStart + manualDisplay.size, topFadePx, bottomFadePx)
                         .padding(top = 18.dp, bottom = 4.dp),
                 )
             }
-            itemsIndexed(continueRows, key = { _, entry -> entry.key }, contentType = { _, _ -> "song" }) { i, entry ->
-                ReorderableItem(reorderState, key = entry.key) { isDragging ->
+            itemsIndexed(continueDisplay, key = { _, row -> row.entry.key }, contentType = { _, _ -> "song" }) { i, row ->
+                val entry = row.entry
+                ReorderableItem(reorderState, key = entry.key, animateItemModifier = if (reorderState.isAnyItemDragging) Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null) else Modifier) { isDragging ->
+                  FoldingRow(row.phase) {
                     SwipeToRemove(onRemove = {
                         onRemove(manualQueue.size + continueQueue.indexOfFirstEntry(entry.key, "c"))
                     }) {
                         QueueRow(
                             item = entry.song,
                             isDragging = isDragging,
-                            onClick = { onItemClick(entry.song) },
+                            onClick = { returnAfterPick = true; onItemClick(entry.song) },
                             songActions = songActions,
                             dragHandleModifier = Modifier.draggableHandle(
                                 onDragStarted = {
@@ -245,6 +451,7 @@ internal fun QueueList(
                             modifier = Modifier.fadeInList(state, continueQueueStart + i, topFadePx, bottomFadePx),
                         )
                     }
+                  }
                 }
             }
         }
@@ -449,6 +656,29 @@ internal fun QueueRow(
                 .padding(start = 12.dp, end = 4.dp)
                 .size(22.dp),
         )
+    }
+}
+
+/** The songs heard before (the latest last) and what tapping one does — provided by the app, so every look of the queue shows them. */
+class QueueHistoryState(val songs: List<Song>, val onPlay: (Song) -> Unit)
+
+val LocalQueueHistory = androidx.compose.runtime.compositionLocalOf { QueueHistoryState(emptyList()) {} }
+
+/** A song from the history: like a queue row, a little quieter, and without the handle. */
+@Composable
+private fun HistoryRow(song: Song, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        AlbumArt(uri = song.uri, size = ART_SIZE_THUMB, modifier = Modifier.size(52.dp).clip(RoundedCornerShape(8.dp)))
+        Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+            Text(text = song.title, color = PlayerColors.TextPrimary.copy(alpha = 0.78f), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(text = song.artist, color = LocalAdaptiveSecondaryColor.current, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
     }
 }
 

@@ -41,7 +41,7 @@ private fun PreviewFrame(modifier: Modifier = Modifier, background: @Composable 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(150.dp)
+            .height(190.dp)
             .clip(RoundedCornerShape(18.dp))
             .background(PlayerColors.Background)
             .border(1.dp, PlayerColors.Border, RoundedCornerShape(18.dp)),
@@ -61,28 +61,28 @@ fun UiStylePreview(style: UiStyle, modifier: Modifier = Modifier) {
     PreviewFrame(modifier = modifier) {
         when (style) {
             UiStyle.CLASSIC -> Column(modifier = Modifier.fillMaxSize().padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                Bar(70.dp, 11.dp)
+                Bar(112.dp, 13.dp)
                 repeat(3) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Box(modifier = Modifier.size(22.dp).clip(RoundedCornerShape(5.dp)).background(PlayerColors.Surface))
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) { Bar(80.dp); Bar(50.dp, 4.dp, dim) }
+                        Box(modifier = Modifier.size(28.dp).clip(RoundedCornerShape(6.dp)).background(PlayerColors.Surface))
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) { Bar(130.dp, 7.dp); Bar(80.dp, 5.dp, dim) }
                     }
                 }
                 Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(PlayerColors.Border))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    repeat(4) { Box(modifier = Modifier.size(9.dp).clip(CircleShape).background(if (it == 1) PlayerColors.AccentMark else dim)) }
+                    repeat(4) { Box(modifier = Modifier.size(11.dp).clip(CircleShape).background(if (it == 1) PlayerColors.AccentMark else dim)) }
                 }
             }
             UiStyle.EXPRESSIVE -> Column(modifier = Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                Bar(80.dp, 13.dp)
+                Bar(124.dp, 15.dp)
                 repeat(2) {
                     Row(
                         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(PlayerColors.Surface).padding(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Box(modifier = Modifier.size(22.dp).clip(RoundedCornerShape(8.dp)).background(PlayerColors.AccentMark.copy(alpha = 0.3f)))
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) { Bar(80.dp); Bar(50.dp, 4.dp, dim) }
+                        Box(modifier = Modifier.size(28.dp).clip(RoundedCornerShape(9.dp)).background(PlayerColors.AccentMark.copy(alpha = 0.3f)))
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) { Bar(130.dp, 7.dp); Bar(80.dp, 5.dp, dim) }
                     }
                 }
                 Box(modifier = Modifier.weight(1f))
@@ -91,21 +91,21 @@ fun UiStylePreview(style: UiStyle, modifier: Modifier = Modifier) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Box(modifier = Modifier.width(44.dp).height(18.dp).clip(CircleShape).background(PlayerColors.AccentMark.copy(alpha = 0.25f)))
+                    Box(modifier = Modifier.width(54.dp).height(22.dp).clip(CircleShape).background(PlayerColors.AccentMark.copy(alpha = 0.25f)))
                     repeat(3) { Box(modifier = Modifier.padding(horizontal = 10.dp).size(8.dp).clip(CircleShape).background(dim)) }
                 }
             }
             UiStyle.DISC -> Column(modifier = Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Bar(76.dp, 12.dp)
-                Bar(54.dp, 12.dp, PlayerColors.TextTertiary)
+                Bar(116.dp, 14.dp)
+                Bar(84.dp, 14.dp, PlayerColors.TextTertiary)
                 repeat(2) {
                     Row(
                         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(11.dp)).background(PlayerColors.TextPrimary.copy(alpha = 0.07f)).padding(5.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(7.dp),
                     ) {
-                        Box(modifier = Modifier.size(18.dp).clip(RoundedCornerShape(6.dp)).background(PlayerColors.TextPrimary.copy(alpha = 0.12f)))
-                        Bar(80.dp)
+                        Box(modifier = Modifier.size(24.dp).clip(RoundedCornerShape(8.dp)).background(PlayerColors.TextPrimary.copy(alpha = 0.12f)))
+                        Bar(150.dp, 7.dp)
                     }
                 }
                 Box(modifier = Modifier.weight(1f))
@@ -114,8 +114,8 @@ fun UiStylePreview(style: UiStyle, modifier: Modifier = Modifier) {
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .height(16.dp)
-                                .clip(RoundedCornerShape(7.dp))
+                                .height(20.dp)
+                                .clip(RoundedCornerShape(8.dp))
                                 .background(if (it == 2) PlayerColors.TextPrimary else PlayerColors.TextPrimary.copy(alpha = 0.1f)),
                         )
                     }
@@ -126,7 +126,7 @@ fun UiStylePreview(style: UiStyle, modifier: Modifier = Modifier) {
 }
 
 
-/** Six icons of the chosen set: pause, back, forward and three more, so the set's look is seen at once. */
+/** Seven icons of the chosen set, the very ones the player draws (skip, pause, skip, shuffle, repeat, lyrics, queue), so the set's look is seen at once. */
 @Composable
 fun IconSetPreview(modifier: Modifier = Modifier) {
     Row(
@@ -138,7 +138,7 @@ fun IconSetPreview(modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        listOf(AppIcons.SkipBack, AppIcons.Pause, AppIcons.SkipForward, AppIcons.Shuffle, AppIcons.Search, AppIcons.Settings).forEach {
+        listOf(AppIcons.SkipPrevious, AppIcons.Pause, AppIcons.SkipNext, AppIcons.Shuffle, AppIcons.Repeat, AppIcons.Lyrics, AppIcons.Queue).forEach {
             Icon(it, contentDescription = null, tint = PlayerColors.TextPrimary, modifier = Modifier.size(24.dp))
         }
     }
@@ -158,7 +158,7 @@ fun PlayerStylePreview(style: PlayerStyle, dialCard: Boolean, background: NowPla
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(190.dp)
+            .height(236.dp)
             .clip(RoundedCornerShape(18.dp))
             .background(PlayerColors.Background)
             .border(1.dp, PlayerColors.Border, RoundedCornerShape(18.dp)),
@@ -171,25 +171,25 @@ fun PlayerStylePreview(style: PlayerStyle, dialCard: Boolean, background: NowPla
             }
         }
         Row(modifier = Modifier.fillMaxSize().padding(14.dp), horizontalArrangement = Arrangement.Center) {
-            Column(modifier = Modifier.width(120.dp).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(modifier = Modifier.width(190.dp).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
                 when (style) {
                     PlayerStyle.CLASSIC -> {
-                        Box(modifier = Modifier.size(78.dp).clip(RoundedCornerShape(10.dp)).background(tint))
+                        Box(modifier = Modifier.size(104.dp).clip(RoundedCornerShape(13.dp)).background(tint))
                         Column(modifier = Modifier.padding(top = 9.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Bar(70.dp, 7.dp, ink); Bar(44.dp, 5.dp, ink.copy(alpha = 0.55f)); Bar(120.dp, 3.dp, fill, Modifier.padding(top = 4.dp))
+                            Bar(120.dp, 9.dp, ink); Bar(76.dp, 6.dp, ink.copy(alpha = 0.55f)); Bar(190.dp, 4.dp, fill, Modifier.padding(top = 5.dp))
                         }
-                        Row(modifier = Modifier.padding(top = 9.dp), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Box(modifier = Modifier.size(14.dp).clip(CircleShape).background(fill))
-                            Box(modifier = Modifier.size(22.dp).clip(CircleShape).background(ink))
-                            Box(modifier = Modifier.size(14.dp).clip(CircleShape).background(fill))
+                        Row(modifier = Modifier.padding(top = 9.dp), horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Box(modifier = Modifier.size(18.dp).clip(CircleShape).background(fill))
+                            Box(modifier = Modifier.size(30.dp).clip(CircleShape).background(ink))
+                            Box(modifier = Modifier.size(18.dp).clip(CircleShape).background(fill))
                         }
                     }
                     PlayerStyle.EXPRESSIVE -> {
-                        Box(modifier = Modifier.size(78.dp).clip(RoundedCornerShape(22.dp)).background(tint))
+                        Box(modifier = Modifier.size(104.dp).clip(RoundedCornerShape(28.dp)).background(tint))
                         Column(modifier = Modifier.padding(top = 9.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Bar(70.dp, 7.dp, ink); Bar(44.dp, 5.dp, ink.copy(alpha = 0.55f)); Bar(120.dp, 3.dp, fill, Modifier.padding(top = 4.dp))
+                            Bar(120.dp, 9.dp, ink); Bar(76.dp, 6.dp, ink.copy(alpha = 0.55f)); Bar(190.dp, 4.dp, fill, Modifier.padding(top = 5.dp))
                         }
-                        Row(modifier = Modifier.padding(top = 9.dp).fillMaxWidth().height(26.dp), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Row(modifier = Modifier.padding(top = 9.dp).fillMaxWidth().height(34.dp), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                             Box(modifier = Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(topStart = 13.dp, bottomStart = 13.dp, topEnd = 5.dp, bottomEnd = 5.dp)).background(fill))
                             Box(modifier = Modifier.weight(2f).fillMaxHeight().clip(RoundedCornerShape(8.dp)).background(ink))
                             Box(modifier = Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(topStart = 5.dp, bottomStart = 5.dp, topEnd = 13.dp, bottomEnd = 13.dp)).background(fill))
@@ -197,10 +197,10 @@ fun PlayerStylePreview(style: PlayerStyle, dialCard: Boolean, background: NowPla
                     }
                     PlayerStyle.DIAL -> {
                         // The card up top (with the blur in it), the title, and the grid of six tiles under it.
-                        val cardMod = Modifier.fillMaxWidth().height(70.dp).clip(RoundedCornerShape(14.dp))
+                        val cardMod = Modifier.fillMaxWidth().height(92.dp).clip(RoundedCornerShape(16.dp))
                         Box(modifier = if (dialCard) cardMod.background(if (blurred) tint else Brush.linearGradient(listOf(fill, fill))) else cardMod) {
                             Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Bar(60.dp, 8.dp, if (dialCard && blurred) Color.White else ink); Bar(38.dp, 8.dp, (if (dialCard && blurred) Color.White else ink).copy(alpha = 0.6f))
+                                Bar(96.dp, 10.dp, if (dialCard && blurred) Color.White else ink); Bar(60.dp, 10.dp, (if (dialCard && blurred) Color.White else ink).copy(alpha = 0.6f))
                             }
                         }
                         Column(modifier = Modifier.padding(top = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -212,8 +212,8 @@ fun PlayerStylePreview(style: PlayerStyle, dialCard: Boolean, background: NowPla
                                         Box(
                                             modifier = Modifier
                                                 .weight(1f)
-                                                .height(26.dp)
-                                                .clip(RoundedCornerShape(8.dp))
+                                                .height(34.dp)
+                                                .clip(RoundedCornerShape(10.dp))
                                                 .background(if (play) PlayerColors.Accent else tile),
                                         )
                                     }

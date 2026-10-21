@@ -71,6 +71,7 @@ import com.artemiy.player.data.SettingsRepository
 import com.artemiy.player.ui.components.MinimalSlider
 import com.artemiy.player.ui.components.AppTab
 import com.artemiy.player.ui.icons.IconSet
+import kotlinx.coroutines.launch
 import com.artemiy.player.ui.theme.AccentChoice
 import com.artemiy.player.ui.theme.AccentFamily
 import com.artemiy.player.ui.theme.LightVariant
@@ -88,6 +89,9 @@ class ExtraSettings(
     val onFadeModeChange: (com.artemiy.player.data.FadeMode) -> Unit = {},
     val qualityBadge: Boolean = false,
     val onQualityBadgeChange: (Boolean) -> Unit = {},
+    val glassSliders: Boolean = false,
+    val onGlassSlidersChange: (Boolean) -> Unit = {},
+    val onClearQueueHistory: () -> Unit = {},
 )
 
 /** Settings pages. [parent] is where "back" goes from each one. */
@@ -106,6 +110,7 @@ private enum class SettingsRoute(val titleRes: Int, val parent: SettingsRoute?) 
     Backup(R.string.set_backup, Main),
     Language(R.string.set_language, Main),
     About(R.string.set_about, Main),
+    Debug(R.string.set_debug, Main),
 }
 
 @Composable
@@ -315,7 +320,8 @@ fun SettingsScreen(
                     intensity = liveBlurIntensity,
                     onIntensityChange = onLiveBlurIntensityChange,
                 )
-                SettingsRoute.About -> AboutContent(onShowOnboarding = onShowOnboarding)
+                SettingsRoute.About -> AboutContent()
+                SettingsRoute.Debug -> DebugContent(onShowOnboarding = onShowOnboarding)
                 SettingsRoute.Language -> LanguageContent()
             }
                     }
@@ -348,7 +354,10 @@ private fun SettingsCategories(onOpen: (SettingsRoute) -> Unit) {
                 Triple(AppIcons.Download, R.string.set_backup to R.string.set_backup_sub, SettingsRoute.Backup),
                 Triple(AppIcons.Language, R.string.set_language to R.string.set_language_sub, SettingsRoute.Language),
                 Triple(AppIcons.Info, R.string.set_about to R.string.set_about_sub, SettingsRoute.About),
-            )
+            ) + (if (isTestBuild(androidx.compose.ui.platform.LocalContext.current)) listOf(
+                null,
+                Triple(AppIcons.Settings, R.string.set_debug to R.string.set_debug_sub, SettingsRoute.Debug),
+            ) else emptyList())
             tiles.forEach { tile ->
                 if (tile == null) Spacer(modifier = Modifier.height(14.dp))
                 else DiscSettingsTile(tile.first, stringResource(tile.second.first), stringResource(tile.second.second)) { onOpen(tile.third) }
@@ -384,6 +393,12 @@ private fun SettingsCategories(onOpen: (SettingsRoute) -> Unit) {
             SettingsRow(AppIcons.Language, stringResource(R.string.set_language), stringResource(R.string.set_language_sub), { onOpen(SettingsRoute.Language) }, showChevron = true)
             CategoryDivider()
             SettingsRow(AppIcons.Info, stringResource(R.string.set_about), stringResource(R.string.set_about_sub), { onOpen(SettingsRoute.About) }, showChevron = true)
+        }
+        if (isTestBuild(androidx.compose.ui.platform.LocalContext.current)) {
+            Spacer(modifier = Modifier.height(12.dp))
+            SettingsCard {
+                SettingsRow(AppIcons.Settings, stringResource(R.string.set_debug), stringResource(R.string.set_debug_sub), { onOpen(SettingsRoute.Debug) }, showChevron = true)
+            }
         }
         Spacer(modifier = Modifier.height(20.dp))
     }
@@ -1060,6 +1075,19 @@ private fun SettingsSectionContent(
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 SettingsCard {
+                    val clearedText = stringResource(R.string.history_cleared)
+                    SettingsRow(
+                        icon = AppIcons.Close,
+                        title = stringResource(R.string.set_clear_history),
+                        subtitle = stringResource(R.string.set_clear_history_sub),
+                        onClick = {
+                            extras.onClearQueueHistory()
+                            android.widget.Toast.makeText(context, clearedText, android.widget.Toast.LENGTH_SHORT).show()
+                        },
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                SettingsCard {
                     SettingsLabel(stringResource(R.string.set_notif_button))
                     Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
                         InfinitePlayModeChip(stringResource(R.string.endless_play), !notificationRepeatButton) { onNotificationRepeatButtonChange(false) }
@@ -1178,6 +1206,18 @@ private fun SettingsSectionContent(
                         onClick = onOpenNowPlayingBackground,
                         showChevron = true,
                     )
+                    }
+                    if (playerStyle == PlayerStyle.CLASSIC) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        SettingsCard {
+                            SettingsSwitchRow(
+                                icon = AppIcons.Equalizer,
+                                title = stringResource(R.string.set_glass_sliders),
+                                subtitle = stringResource(R.string.set_glass_sliders_sub),
+                                checked = extras.glassSliders,
+                                onCheckedChange = extras.onGlassSlidersChange,
+                            )
+                        }
                     }
                 } else {
                     SettingsCard { LyricsFilesRow() }
@@ -1535,7 +1575,7 @@ private const val RELEASE_NAME = "Akashi"
 private const val RELEASE_NAME_JP = "灯"
 
 @Composable
-private fun AboutContent(onShowOnboarding: () -> Unit) {
+private fun AboutContent() {
     val context = LocalContext.current
     val version = remember {
         runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "?"
@@ -1580,8 +1620,6 @@ private fun AboutContent(onShowOnboarding: () -> Unit) {
         }
         Spacer(modifier = Modifier.height(12.dp))
         SettingsCard {
-            SettingsRow(AppIcons.Refresh, stringResource(R.string.set_show_welcome), stringResource(R.string.about_welcome_sub), onShowOnboarding, showChevron = true)
-            CategoryDivider()
             SettingsRow(AppIcons.Share, stringResource(R.string.about_source), stringResource(R.string.about_source_sub), {
                 runCatching {
                     context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(SOURCE_URL)))
@@ -2133,3 +2171,33 @@ private fun settingsTabFade(): androidx.compose.animation.ContentTransform =
     (androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(220, delayMillis = 70)) +
         androidx.compose.animation.scaleIn(androidx.compose.animation.core.tween(220, delayMillis = 70), initialScale = 0.96f))
         .togetherWith(androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(90)))
+
+/** A test build (debuggable): only these show the Debug section — a release or R8 APK never does. */
+private fun isTestBuild(context: android.content.Context): Boolean =
+    (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
+
+/** Tools for checking things that are shown once or rarely — in test builds only. */
+@Composable
+private fun DebugContent(onShowOnboarding: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    Column(
+        modifier = Modifier
+            .verticalScroll(rememberScrollState()).barsInset()
+            .padding(horizontal = 20.dp)
+            .navigationBarsPadding(),
+    ) {
+        Spacer(modifier = Modifier.height(12.dp))
+        SettingsCard {
+            SettingsRow(AppIcons.Refresh, stringResource(R.string.set_show_welcome), stringResource(R.string.about_welcome_sub), onShowOnboarding, showChevron = true)
+            CategoryDivider()
+            SettingsRow(
+                icon = AppIcons.Refresh,
+                title = "Reset the lyrics hint",
+                subtitle = "Shows the \"tap to bring the controls back\" frame once more",
+                onClick = { scope.launch { com.artemiy.player.data.SettingsRepository(context.applicationContext).setLyricsControlsHintSeen(false) } },
+            )
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+    }
+}

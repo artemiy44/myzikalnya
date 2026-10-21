@@ -33,6 +33,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -196,7 +198,19 @@ fun DialogListRow(icon: ImageVector, title: String, subtitle: String? = null, tr
  */
 @Composable
 fun AppDropdownMenu(expanded: Boolean, onDismiss: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
-    if (!expanded) return
+    // Kept on the screen while it fades away, rather than gone the moment it is closed.
+    val appear = remember { Animatable(0f) }
+    var present by remember { androidx.compose.runtime.mutableStateOf(expanded) }
+    LaunchedEffect(expanded) {
+        if (expanded) {
+            present = true
+            appear.animateTo(1f, tween(140))
+        } else if (present) {
+            appear.animateTo(0f, tween(110))
+            present = false
+        }
+    }
+    if (!present) return
     val app = com.artemiy.player.ui.theme.LocalAppPalette.current
     val density = androidx.compose.ui.platform.LocalDensity.current
     val provider = remember(density) {
@@ -208,8 +222,6 @@ fun AppDropdownMenu(expanded: Boolean, onDismiss: () -> Unit, content: @Composab
         )
     }
     val maxHeight = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp - 64.dp
-    val appear = remember { Animatable(0f) }
-    LaunchedEffect(Unit) { appear.animateTo(1f, tween(140)) }
     // Its own window rather than Material's DropdownMenu: that one is exactly the menu's size and
     // cut its shadow off at the edges. This one is bigger by a transparent margin the shadow falls
     // into, and the position below counts only the visible menu.

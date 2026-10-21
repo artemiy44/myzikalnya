@@ -130,6 +130,7 @@
     <string name="hero_classic">经典</string>
     <string name="hero_vivid">鲜明</string>
     <string name="hide_romanization">隐藏罗马音</string>
+    <string name="history_cleared">已清除</string>
     <string name="home_quick_picks">快速精选</string>
     <string name="home_recently_added">最近添加</string>
     <string name="in_lyrics">歌词中</string>
@@ -171,6 +172,7 @@
     <string name="lyric_font_backup_desc">Smiley Sans 只有简体字；缺少的字（繁体）使用此字体，未选择时使用手机字体。</string>
     <string name="lyric_font_no_bold">手机自带字体没有粗体的日文、韩文和中文字符，所以标题看起来很细。选择我们提供的字体即可解决。</string>
     <string name="lyrics">歌词</string>
+    <string name="lyrics_controls_hint">点按此处即可恢复控制按钮</string>
     <string name="lyrics_indexing">歌词仍在收集中（%1$d / %2$d）——暂时还不能按歌词找到全部内容</string>
     <string name="lyrics_not_found">未找到这首曲目的歌词</string>
     <string name="m3u_saved">播放列表已保存</string>
@@ -209,10 +211,11 @@
     <string name="no_genre">无流派</string>
     <string name="no_playlists">还没有歌单——可以用顶部的“+”创建第一个</string>
     <string name="no_track_chosen">未选择曲目</string>
-    <string name="no_tracks_found">未找到曲目</string>
+    <string name="no_tracks_found">没有找到</string>
     <string name="no_year">无年份</string>
     <string name="nothing_found">没有找到结果</string>
     <string name="nothing_playing">未在播放</string>
+    <string name="often_played">常听</string>
     <string name="onb_allow">允许</string>
     <string name="onb_folders_text">可以标记音乐文件夹——这样铃声、语音和其他声音就不会进入音乐库。如果什么都不标记，就会找到全部内容。</string>
     <string name="onb_folders_title">音乐在哪里</string>
@@ -245,6 +248,7 @@
     <string name="playlist_export_m3u">导出为 M3U</string>
     <string name="playlists">歌单</string>
     <string name="queue">队列</string>
+    <string name="queue_history_title">之前播放过</string>
     <string name="quick_picks_empty">经常收听的曲目会显示在这里</string>
     <string name="recap_busiest_day">最有音乐感的一天</string>
     <string name="recap_busiest_part">听得最多的时段</string>
@@ -282,6 +286,7 @@
     <string name="search_start_typing">搜索曲目、艺人、专辑或一句歌词</string>
     <string name="search_title_artist_album">标题、艺人、专辑</string>
     <string name="search_tracks">搜索曲目</string>
+    <string name="search_tracks_hint">在这些曲目中搜索</string>
     <string name="set_about">关于</string>
     <string name="set_about_sub">版本、许可证、欢迎页</string>
     <string name="set_accent">强调色</string>
@@ -296,6 +301,8 @@
     <string name="set_bg_mode">背景模式</string>
     <string name="set_bg_mode_desc">播放器背景的样子——在封面、歌词和队列后面都一样。</string>
     <string name="set_bg_sub">动态模糊、静态模糊或无模糊</string>
+    <string name="set_clear_history">清除已播放列表</string>
+    <string name="set_clear_history_sub">队列上方显示的歌曲。混音和每周回顾不受影响</string>
     <string name="set_colors">颜色与强调色</string>
     <string name="set_colors_sub">浅色和深色主题的背景、强调色</string>
     <string name="set_dark_bg">深色主题背景</string>
@@ -315,6 +322,8 @@
     <string name="set_font">字体</string>
     <string name="set_general">通用</string>
     <string name="set_general_sub">启动标签页、艺人拆分</string>
+    <string name="set_glass_sliders">柔和进度条</string>
+    <string name="set_glass_sliders_sub">经典播放器：略带透明的粗进度条和音量条，手指按住时会变大</string>
     <string name="set_hero_classic_desc">图片渐隐为页面背景色</string>
     <string name="set_hero_style">带图片的页面</string>
     <string name="set_hero_vivid_desc">图片的颜色顺着页面流下，再融入背景</string>
@@ -394,7 +403,10 @@
     <string name="sort_by_file">文件名</string>
     <string name="sort_by_name">按字母顺序</string>
     <string name="sort_by_title">按标题</string>
+    <string name="sort_default">原顺序</string>
+    <string name="sort_longest">最长</string>
     <string name="sort_mode">排序：%1$s</string>
+    <string name="sort_most_played">播放最多</string>
     <string name="sort_recent">最近添加</string>
     <string name="sort_recent_library">最近添加到音乐库</string>
     <string name="sort_release_date">按发行日期</string>
@@ -429,6 +441,7 @@
     <string name="ui_style_expressive">表现力</string>
     <string name="ui_style_expressive_note">大标题、悬浮栏、圆角卡片和俏皮的形状。</string>
     <string name="unit_hours_approx">≈ %1$.1f 小时</string>
+    <string name="unit_hours_min">%1$d小时%2$d分钟</string>
     <string name="unit_kb">%1$d KB</string>
     <string name="unit_kbps">%1$d kbps</string>
     <string name="unit_khz">%1$.1f kHz</string>
@@ -458,7 +471,7 @@
         <item quantity="other">%d 张专辑</item>
     </plurals>
     <plurals name="plays_count">
-        <item quantity="other">%d 次播放</item>
+        <item quantity="other">%d 次</item>
     </plurals>
     <plurals name="plays_word">
         <item quantity="other">次播放</item>

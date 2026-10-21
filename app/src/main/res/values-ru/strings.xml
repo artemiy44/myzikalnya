@@ -136,6 +136,7 @@
     <string name="hero_classic">Классический</string>
     <string name="hero_vivid">Яркий</string>
     <string name="hide_romanization">Скрыть романизацию</string>
+    <string name="history_cleared">Очищено</string>
     <string name="home_quick_picks">Quick picks</string>
     <string name="home_recently_added">Recently added</string>
     <string name="in_lyrics">В тексте песен</string>
@@ -179,6 +180,7 @@
     <string name="lyric_font_backup_desc">В Smiley Sans только упрощённые знаки; те, которых в нём нет (традиционные), берутся из этого шрифта, а если он не выбран — из шрифта телефона.</string>
     <string name="lyric_font_no_bold">В шрифте вашего телефона нет жирных японских, корейских и китайских знаков, поэтому названия там выглядят тонкими. Выбор одного из наших это исправит.</string>
     <string name="lyrics">Текст песни</string>
+    <string name="lyrics_controls_hint">Нажми здесь, чтобы вернуть кнопки</string>
     <string name="lyrics_indexing">Тексты песен ещё собираются (%1$d из %2$d) — по тексту найдётся пока не всё</string>
     <string name="lyrics_not_found">Текст для этого трека не найден</string>
     <string name="m3u_saved">Плейлист сохранён</string>
@@ -217,10 +219,11 @@
     <string name="no_genre">Без жанра</string>
     <string name="no_playlists">Плейлистов пока нет — первый создаётся значком «+» сверху</string>
     <string name="no_track_chosen">Трек не выбран</string>
-    <string name="no_tracks_found">Треки не найдены</string>
+    <string name="no_tracks_found">Ничего не найдено</string>
     <string name="no_year">Без года</string>
     <string name="nothing_found">Ничего не найдено</string>
     <string name="nothing_playing">Ничего не играет</string>
+    <string name="often_played">Часто слушаешь</string>
     <string name="onb_allow">Разрешить</string>
     <string name="onb_folders_text">Можно отметить папки с музыкой — тогда рингтоны, голосовые и прочие звуки не попадут в медиатеку. Если ничего не отмечать, найдётся всё.</string>
     <string name="onb_folders_title">Где лежит музыка</string>
@@ -253,10 +256,10 @@
     <string name="playlist_export_m3u">Экспорт в M3U</string>
     <string name="playlists">Плейлисты</string>
     <plurals name="plays_count">
-        <item quantity="few">%d прослушивания</item>
-        <item quantity="many">%d прослушиваний</item>
-        <item quantity="one">%d прослушивание</item>
-        <item quantity="other">%d прослушивания</item>
+        <item quantity="few">%d раза</item>
+        <item quantity="many">%d раз</item>
+        <item quantity="one">%d раз</item>
+        <item quantity="other">%d раза</item>
     </plurals>
     <plurals name="plays_word">
         <item quantity="few">прослушивания</item>
@@ -265,6 +268,7 @@
         <item quantity="other">прослушивания</item>
     </plurals>
     <string name="queue">Очередь</string>
+    <string name="queue_history_title">Играло раньше</string>
     <string name="quick_picks_empty">Здесь появятся часто прослушиваемые треки</string>
     <string name="recap_busiest_day">Самый музыкальный день</string>
     <string name="recap_busiest_part">Больше всего музыки</string>
@@ -302,6 +306,7 @@
     <string name="search_start_typing">Поиск трека, исполнителя, альбома или строчки из песни</string>
     <string name="search_title_artist_album">Название, исполнитель, альбом</string>
     <string name="search_tracks">Поиск по трекам</string>
+    <string name="search_tracks_hint">Искать в этих треках</string>
     <string name="set_about">О приложении</string>
     <string name="set_about_sub">Версия, лицензии, приветствие</string>
     <string name="set_accent">Акцентный цвет</string>
@@ -316,9 +321,13 @@
     <string name="set_bg_mode">Режим фона</string>
     <string name="set_bg_mode_desc">Как выглядит фон плеера — одинаково за обложкой, текстом и очередью.</string>
     <string name="set_bg_sub">Живой блюр, статичный блюр или без блюра</string>
+    <string name="set_clear_history">Очистить список сыгранного</string>
+    <string name="set_clear_history_sub">Песни над очередью. Миксы и итоги недели не затрагиваются</string>
     <string name="set_colors">Цвета и акцент</string>
     <string name="set_colors_sub">Фон светлой и тёмной темы, цвет акцента</string>
     <string name="set_dark_bg">Фон тёмной темы</string>
+    <string name="set_debug">Отладка</string>
+    <string name="set_debug_sub">Инструменты для проверки, только в тестовых сборках</string>
     <string name="set_dial_card_desc">Фон (выбранный блюр, а без блюра — цвет альбома и картинка жанра) лежит в карточке сверху, а всё остальное — в цветах приложения.</string>
     <string name="set_dial_full_desc">Фон заполняет весь экран; без блюра — просто фон приложения, акцент только на кнопке плей.</string>
     <string name="set_dial_look">Вид</string>
@@ -335,6 +344,8 @@
     <string name="set_font">Шрифт</string>
     <string name="set_general">Общие</string>
     <string name="set_general_sub">Вкладка при запуске, деление исполнителей</string>
+    <string name="set_glass_sliders">Мягкие полоски</string>
+    <string name="set_glass_sliders_sub">Классический плеер: толстые, чуть прозрачные полоски времени и громкости, которые растут под пальцем</string>
     <string name="set_hero_classic_desc">Картинка затухает в цвет фона страницы</string>
     <string name="set_hero_style">Страницы с картинкой</string>
     <string name="set_hero_vivid_desc">Цвет картинки перетекает вниз по странице и потом сходит на фон</string>
@@ -426,7 +437,10 @@
     <string name="sort_by_file">Имя файла</string>
     <string name="sort_by_name">По алфавиту</string>
     <string name="sort_by_title">По названию</string>
+    <string name="sort_default">Как есть</string>
+    <string name="sort_longest">Самые длинные</string>
     <string name="sort_mode">Сортировка: %1$s</string>
+    <string name="sort_most_played">Больше слушал</string>
     <string name="sort_recent">Недавно добавленные</string>
     <string name="sort_recent_library">Недавно добавленные в медиатеку</string>
     <string name="sort_release_date">По дате выпуска</string>
@@ -473,6 +487,7 @@
     <string name="ui_style_expressive">Экспрессивный</string>
     <string name="ui_style_expressive_note">Крупные заголовки, парящие панели, скруглённые карточки и игривые формы.</string>
     <string name="unit_hours_approx">≈ %1$.1f ч</string>
+    <string name="unit_hours_min">%1$d ч %2$d мин</string>
     <string name="unit_kb">%1$d КБ</string>
     <string name="unit_kbps">%1$d кбит/с</string>
     <string name="unit_khz">%1$.1f кГц</string>

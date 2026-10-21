@@ -127,6 +127,17 @@ sealed class LibraryRoute {
     data class PlaylistDetail(val playlistId: Long, val name: String) : LibraryRoute()
 }
 
+/**
+ * Opens [route] on top of the stack — unless that very page is already in it (Artist → Album → the same artist):
+ * then the pages above it are closed and it is the one shown, as "back" to it. Two identical pages in the
+ * stack made the transition animations mix them up.
+ */
+fun androidx.compose.runtime.snapshots.SnapshotStateList<LibraryRoute>.pushOrReturn(route: LibraryRoute) {
+    val existing = if (route is LibraryRoute.ArtistDetail || route is LibraryRoute.AlbumDetail || route is LibraryRoute.PlaylistDetail ||
+        route is LibraryRoute.GenreDetail || route is LibraryRoute.YearDetail || route is LibraryRoute.FolderDetail) lastIndexOf(route) else -1
+    if (existing < 0) add(route) else while (lastIndex > existing) removeAt(lastIndex)
+}
+
 internal data class ArtistGroup(val name: String, val songs: List<Song>)
 
 internal data class AlbumGroup(val album: String, val artist: String, val songs: List<Song>)

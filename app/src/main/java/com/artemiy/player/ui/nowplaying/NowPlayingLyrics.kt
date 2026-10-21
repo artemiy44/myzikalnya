@@ -246,6 +246,15 @@ internal fun LyricsView(
                     }
                 }
             }
+            // The song's last line, once it has been sung: it lets go of the light and becomes an ordinary background line
+            // (it used to stay lit to the end of the file, burning for nothing). Flips once, so nothing rebuilds per frame.
+            val lastLineDone by remember(lines) {
+                derivedStateOf {
+                    val last = lines.lastOrNull()
+                    last != null && last.instrumentalUntilMs == null && activeIndexState.value == lines.lastIndex &&
+                        smoothPositionMs > last.finishedAtMs() + LAST_LINE_LINGER_MS
+                }
+            }
             val plainLines = remember(lyrics) { lyrics.lines.filter { it.text.isNotBlank() } }
             val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
             val listState = rememberLazyListState()
@@ -325,7 +334,8 @@ internal fun LyricsView(
                 contentPadding = contentPadding,
             ) {
                 itemsIndexed(lines) { index, line ->
-                    val active = index == activeIndex || index in stillSinging
+                    val finishedLast = lastLineDone && index == lines.lastIndex
+                    val active = (index == activeIndex || index in stillSinging) && !finishedLast
                     // Only a line being sung follows the smooth per-frame clock; the rest get the
                     // player's ~10-a-second position — reading the clock made every visible line
                     // rebuild itself 120 times a second.
@@ -333,6 +343,7 @@ internal fun LyricsView(
                     // slightly older) player position, which could draw its last word a hair short again.
                     val linePositionMs = when {
                         active -> smoothPositionMs
+                        finishedLast -> maxOf(positionMs, line.finishedAtMs())
                         index < activeIndex && line.instrumentalUntilMs == null -> maxOf(positionMs, line.singingEndMs())
                         else -> positionMs
                     }
@@ -461,6 +472,13 @@ private fun LyricLine.singingEndMs(): Long {
     // Without its own end time a line only counts through its extras, as before.
     return maxOf(endTimeMs ?: Long.MIN_VALUE, background, others)
 }
+
+/** How long after its end the last line stays lit before it settles back. */
+private const val LAST_LINE_LINGER_MS = 700L
+
+/** When the song's last line is over: its tagged end, or its last word, or (a plain line with nothing but a start) a guess. */
+private fun LyricLine.finishedAtMs(): Long =
+    maxOf(singingEndMs(), endTimeMs ?: words?.last()?.timeMs?.plus(400L) ?: (timeMs + 6_000L))
 
 /** Font size every synced lyric line is laid out at (the size of the line being sung). */
 internal const val LYRIC_SIZE = 33f
@@ -843,17 +861,23 @@ internal fun WordSyncedLine(
         groups.forEach { group ->
           // A word held for a long time ("fooor...") swells a little as a whole — every syllable
           // of it, not just the one being stretched — and glows brighter while it lasts, then
-          // settles back. Mid-line words count from HELD_WORD_MS; a line's last word only from
-          // HELD_LAST_WORD_MS, since files often just stretch it up to the next line.
+          // settles back. Mid-line words count by how far they overrun their ordinary length (HELD_FULL_EXCESS_MS); a line's last word only by
+          // HELD_LAST_FULL_EXCESS_MS, since files often just stretch it up to the next line.
           // "Held" is one piece of the word really being stretched, not several quick ones that
           // only add up to a long time together.
-          val heldFor = if (currentIndex == words.lastIndex) HELD_LAST_WORD_MS else HELD_WORD_MS
+          val fullExcess = if (currentIndex == words.lastIndex) HELD_LAST_FULL_EXCESS_MS else HELD_FULL_EXCESS_MS
           val inThisGroup = sweep && currentIndex in group && words[currentIndex].text.isNotBlank() && positionMs < endOf(currentIndex)
           // How much the word lingers: nothing for a quick one, a little for a medium one, all of it
-          // by [heldFor] — it grows with the length rather than switching on at a threshold.
+          // by [fullExcess] — it grows with the length rather than switching on at a threshold.
           val holdLevel = if (inThisGroup) {
               val length = endOf(currentIndex) - words[currentIndex].timeMs
-              val t = ((length - HELD_START_MS).toFloat() / (heldFor - HELD_START_MS)).coerceIn(0f, 1f)
+              // Judged against how long the word takes to sing at an ordinary pace (longer words need longer): only
+              // what it lasts beyond that counts as held. 'Stairway' in a second is just a long word; 'lady' in a
+              // second is stretched.
+              val letters = words[currentIndex].text.count { it.isLetterOrDigit() }
+              val expected = (letters * HELD_PER_LETTER_MS).coerceIn(HELD_MIN_EXPECTED_MS, HELD_MAX_EXPECTED_MS)
+              val excess = length - expected
+              val t = ((excess - HELD_START_EXCESS_MS).toFloat() / (fullExcess - HELD_START_EXCESS_MS)).coerceIn(0f, 1f)
               t * t * (3f - 2f * t)
           } else 0f
           val swell by animateFloatAsState(holdLevel, tween(700, easing = FastOutSlowInEasing), label = "heldWord")
@@ -1025,9 +1049,15 @@ private const val DOTS_FOLD_EARLY_MS = 450L
 /** A word held at least this long counts as a long, stretched note — in the middle of a line,
  * and as a line's last word (which files often stretch to the next line anyway, so more). */
 /** A word shorter than this doesn't linger at all; from here the lift and glow grow with its length. */
-private const val HELD_START_MS = 600L
-private const val HELD_WORD_MS = 2_000L
-private const val HELD_LAST_WORD_MS = 3_000L
+/** What a word takes to sing at an ordinary pace: this much per letter, within these limits. */
+private const val HELD_PER_LETTER_MS = 120L
+private const val HELD_MIN_EXPECTED_MS = 250L
+private const val HELD_MAX_EXPECTED_MS = 1_000L
+/** The lift begins when a word lasts this much longer than that, and is complete at [HELD_FULL_EXCESS_MS] (a line's last word, which files
+ * often stretch up to the next line, only at [HELD_LAST_FULL_EXCESS_MS]). */
+private const val HELD_START_EXCESS_MS = 250L
+private const val HELD_FULL_EXCESS_MS = 1_300L
+private const val HELD_LAST_FULL_EXCESS_MS = 2_200L
 
 /** How much bigger a held word gets while it lasts. */
 private const val HELD_WORD_GROWTH = 0.08f

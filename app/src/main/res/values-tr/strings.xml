@@ -130,6 +130,7 @@
     <string name="hero_classic">Klasik</string>
     <string name="hero_vivid">Canlı</string>
     <string name="hide_romanization">Latin harfli okunuşu gizle</string>
+    <string name="history_cleared">Temizlendi</string>
     <string name="home_quick_picks">Hızlı seçimler</string>
     <string name="home_recently_added">Son eklenenler</string>
     <string name="in_lyrics">Şarkı sözlerinde</string>
@@ -171,6 +172,7 @@
     <string name="lyric_font_backup_desc">Smiley Sans yalnızca basitleştirilmiş karakterlere sahiptir; eksik olanlar (geleneksel) bu yazı tipinden, seçilmediyse telefondan gelir.</string>
     <string name="lyric_font_no_bold">Telefonunuzun yazı tipinde kalın Japonca, Korece veya Çince karakter yok, bu yüzden başlıklar ince görünür. Bizim yazı tiplerimizden biri bunu çözer.</string>
     <string name="lyrics">Şarkı sözleri</string>
+    <string name="lyrics_controls_hint">Kontrolleri geri getirmek için buraya dokun</string>
     <string name="lyrics_indexing">Şarkı sözleri hâlâ toplanıyor (%1$d / %2$d) — sözlerle henüz her şey bulunamıyor</string>
     <string name="lyrics_not_found">Bu parçanın sözleri bulunamadı</string>
     <string name="m3u_saved">Çalma listesi kaydedildi</string>
@@ -209,10 +211,11 @@
     <string name="no_genre">Türü yok</string>
     <string name="no_playlists">Henüz çalma listesi yok — ilki üstteki «+» ile oluşturulur</string>
     <string name="no_track_chosen">Parça seçilmedi</string>
-    <string name="no_tracks_found">Parça bulunamadı</string>
+    <string name="no_tracks_found">Bir şey bulunamadı</string>
     <string name="no_year">Yılı yok</string>
     <string name="nothing_found">Hiçbir şey bulunamadı</string>
     <string name="nothing_playing">Hiçbir şey çalmıyor</string>
+    <string name="often_played">Sık dinlenenler</string>
     <string name="onb_allow">İzin ver</string>
     <string name="onb_folders_text">Müzik klasörleri işaretlenebilir — böylece zil sesleri, sesli notlar ve diğer sesler kitaplığa girmez. Hiçbir şey işaretlenmezse her şey bulunur.</string>
     <string name="onb_folders_title">Müzik nerede</string>
@@ -245,6 +248,7 @@
     <string name="playlist_export_m3u">M3U olarak dışa aktar</string>
     <string name="playlists">Çalma listeleri</string>
     <string name="queue">Kuyruk</string>
+    <string name="queue_history_title">Daha önce çalanlar</string>
     <string name="quick_picks_empty">Sık dinlenen parçalar burada görünecek</string>
     <string name="recap_busiest_day">En müzikli gün</string>
     <string name="recap_busiest_part">En çok müzik</string>
@@ -282,6 +286,7 @@
     <string name="search_start_typing">Parça, sanatçı, albüm veya şarkıdan bir satır ara</string>
     <string name="search_title_artist_album">Ad, sanatçı, albüm</string>
     <string name="search_tracks">Parçalarda ara</string>
+    <string name="search_tracks_hint">Bu parçalarda ara</string>
     <string name="set_about">Hakkında</string>
     <string name="set_about_sub">Sürüm, lisanslar, karşılama</string>
     <string name="set_accent">Vurgu rengi</string>
@@ -296,6 +301,8 @@
     <string name="set_bg_mode">Arka plan modu</string>
     <string name="set_bg_mode_desc">Oynatıcının arka planı nasıl görünür — kapak, sözler ve kuyruk arkasında aynı.</string>
     <string name="set_bg_sub">Canlı bulanıklık, sabit bulanıklık veya bulanıklık yok</string>
+    <string name="set_clear_history">Çalınanlar listesini temizle</string>
+    <string name="set_clear_history_sub">Sıranın üstünde görünen parçalar. Miksler ve haftalık özet etkilenmez</string>
     <string name="set_colors">Renkler ve vurgu</string>
     <string name="set_colors_sub">Açık ve koyu temanın arka planları, vurgu rengi</string>
     <string name="set_dark_bg">Koyu tema arka planı</string>
@@ -315,6 +322,8 @@
     <string name="set_font">Yazı tipi</string>
     <string name="set_general">Genel</string>
     <string name="set_general_sub">Başlangıç sekmesi, sanatçıların bölünmesi</string>
+    <string name="set_glass_sliders">Yumuşak çubuklar</string>
+    <string name="set_glass_sliders_sub">Klasik oynatıcı: parmağınızın altında büyüyen, kalın ve hafif saydam süre ve ses çubukları</string>
     <string name="set_hero_classic_desc">Görsel sayfa arka planına karışır</string>
     <string name="set_hero_style">Görselli sayfalar</string>
     <string name="set_hero_vivid_desc">Görselin rengi sayfada aşağı akar, sonra arka plana yerleşir</string>
@@ -394,7 +403,10 @@
     <string name="sort_by_file">Dosya adı</string>
     <string name="sort_by_name">Alfabetik</string>
     <string name="sort_by_title">Ada göre</string>
+    <string name="sort_default">Olduğu gibi</string>
+    <string name="sort_longest">En uzun</string>
     <string name="sort_mode">Sıralama: %1$s</string>
+    <string name="sort_most_played">En çok dinlenen</string>
     <string name="sort_recent">Son eklenenler</string>
     <string name="sort_recent_library">Kitaplığa son eklenenler</string>
     <string name="sort_release_date">Çıkış tarihine göre</string>
@@ -429,6 +441,7 @@
     <string name="ui_style_expressive">Etkileyici</string>
     <string name="ui_style_expressive_note">Büyük başlıklar, yüzen çubuklar, yuvarlak kartlar ve eğlenceli şekiller.</string>
     <string name="unit_hours_approx">≈ %1$.1f sa</string>
+    <string name="unit_hours_min">%1$d sa %2$d dk</string>
     <string name="unit_kb">%1$d KB</string>
     <string name="unit_kbps">%1$d kbps</string>
     <string name="unit_khz">%1$.1f kHz</string>
@@ -459,8 +472,8 @@
         <item quantity="other">%d albüm</item>
     </plurals>
     <plurals name="plays_count">
-        <item quantity="one">%d dinlenme</item>
-        <item quantity="other">%d dinlenme</item>
+        <item quantity="one">%d dinleme</item>
+        <item quantity="other">%d dinleme</item>
     </plurals>
     <plurals name="plays_word">
         <item quantity="one">dinlenme</item>

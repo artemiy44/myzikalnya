@@ -24,7 +24,6 @@
     <string name="music_access_needed">Without access to the music, it\'s rather quiet in here</string>
     <string name="no_playlists">No playlists yet — the «+» at the top will sort that out</string>
     <string name="no_track_chosen">Time to pop something on</string>
-    <string name="no_tracks_found">Not a single track about</string>
     <string name="nothing_found">Nothing turned up</string>
     <string name="nothing_playing">Nothing on at the moment</string>
     <string name="onb_folders_text">Music folders can be picked here — then ringtones and voice notes won\'t barge into the library. Pick nothing, and everything is found.</string>

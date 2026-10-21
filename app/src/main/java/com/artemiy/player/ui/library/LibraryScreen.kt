@@ -186,7 +186,7 @@ fun LibraryScreen(
     val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
 
     fun push(r: LibraryRoute) {
-        backStack.add(r)
+        backStack.pushOrReturn(r)
     }
 
     // Each page of the Library stack, animated: pushing slides in, going back (arrow or the
@@ -887,7 +887,7 @@ fun LibraryScreen(
                     title = pageTitle,
                     bigHeader = {
                         Column {
-                            LibraryHeader(title = pageTitle, showBack = route != LibraryRoute.Home, onBack = goBack, trailing = pageTrailing, discSub = if (route == LibraryRoute.Home) stringResource(R.string.disc_sub_library) else null)
+                            LibraryHeader(title = pageTitle, showBack = route != LibraryRoute.Home, onBack = goBack, trailing = pageTrailing)
                             val sectionTab = when (route) {
                                 LibraryRoute.Playlists -> LibraryTab.PLAYLISTS
                                 LibraryRoute.Artists -> LibraryTab.ARTISTS

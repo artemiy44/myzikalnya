@@ -216,7 +216,7 @@ fun HomeScreen(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             if (com.artemiy.player.ui.theme.discUi) com.artemiy.player.ui.components.DiscPageTitle(
-                                stringResource(R.string.tab_home), stringResource(R.string.disc_sub_home),
+                                stringResource(R.string.tab_home),
                             ) else Text(
                                 text = stringResource(R.string.tab_home),
                                 color = PlayerColors.TextPrimary,

@@ -54,6 +54,7 @@ class SettingsRepository(private val context: Context) {
         val LIVE_BLUR_INTENSITY_KEY = stringPreferencesKey("live_blur_intensity")
         val LYRICS_ROMANIZATION_KEY = booleanPreferencesKey("lyrics_romanization")
         val LYRICS_TAP_PLAYS_KEY = booleanPreferencesKey("lyrics_tap_plays")
+        val LYRICS_CONTROLS_HINT_KEY = booleanPreferencesKey("lyrics_controls_hint_seen")
         val HERO_STYLE_KEY = stringPreferencesKey("hero_style")
         val LRC_GAP_DOTS_KEY = booleanPreferencesKey("lrc_gap_dots")
         val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
@@ -68,6 +69,7 @@ class SettingsRepository(private val context: Context) {
         val FOLDER_SORT_KEY = stringPreferencesKey("folder_sort")
         val FADE_MODE_KEY = stringPreferencesKey("fade_mode")
         val QUALITY_BADGE_KEY = booleanPreferencesKey("quality_badge")
+        val GLASS_SLIDERS_KEY = booleanPreferencesKey("glass_sliders")
         val ONBOARDING_DONE_KEY = booleanPreferencesKey("onboarding_done")
         private fun viewModeKey(tab: String) = stringPreferencesKey("view_mode_$tab")
     }
@@ -268,6 +270,13 @@ class SettingsRepository(private val context: Context) {
         }
     }
 
+    /** The one-time hint in the lyrics ("tap here to bring the controls back") has been shown once. */
+    val lyricsControlsHintSeen: Flow<Boolean> = context.settingsDataStore.data.map { it[LYRICS_CONTROLS_HINT_KEY] ?: false }
+
+    suspend fun setLyricsControlsHintSeen(seen: Boolean = true) {
+        context.settingsDataStore.edit { it[LYRICS_CONTROLS_HINT_KEY] = seen }
+    }
+
     /** Whether tapping a lyric line while paused also starts playback (not just seeks). */
     val lyricsTapPlays: Flow<Boolean> = context.settingsDataStore.data.map { prefs ->
         prefs[LYRICS_TAP_PLAYS_KEY] ?: false
@@ -337,6 +346,13 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setFadeMode(value: FadeMode) {
         context.settingsDataStore.edit { it[FADE_MODE_KEY] = value.name }
+    }
+
+    /** The classic player's seek/volume bars in the soft see-through look. */
+    val glassSliders: Flow<Boolean> = context.settingsDataStore.data.map { it[GLASS_SLIDERS_KEY] ?: false }
+
+    suspend fun setGlassSliders(value: Boolean) {
+        context.settingsDataStore.edit { it[GLASS_SLIDERS_KEY] = value }
     }
 
     val qualityBadge: Flow<Boolean> = context.settingsDataStore.data.map { it[QUALITY_BADGE_KEY] ?: false }

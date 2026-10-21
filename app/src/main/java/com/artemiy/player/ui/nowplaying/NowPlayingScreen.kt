@@ -49,6 +49,9 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.drawscope.translate
+import com.artemiy.player.ui.components.drawProgressLine
 import com.artemiy.player.ui.components.marquee
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.boundsInRoot
@@ -71,6 +74,8 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.animation.EnterTransition
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.rememberUpdatedState
 import com.artemiy.player.data.PlayerStyle
 import com.artemiy.player.data.Song
 import com.artemiy.player.playback.PlaySource
@@ -249,6 +254,24 @@ fun NowPlayingScreen(
     var showAddToQueuePicker by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
+    // The one-time hint over the lyrics once the controls have hidden themselves: where to tap to bring them back.
+    val hintRepository = remember { com.artemiy.player.data.SettingsRepository(context.applicationContext) }
+    val hintSeen by produceState(true) { hintRepository.lyricsControlsHintSeen.collect { value = it } }
+    val hintSeenNow by rememberUpdatedState(hintSeen)
+    var controlsHintShown by remember { mutableStateOf(false) }
+    LaunchedEffect(centerMode, controlsVisible) {
+        try {
+            if (centerMode == CenterMode.Lyrics && !controlsVisible && !hintSeenNow) {
+                delay(500)
+                controlsHintShown = true
+                hintRepository.setLyricsControlsHintSeen()
+                delay(4500)
+            }
+        } finally {
+            controlsHintShown = false
+        }
+    }
+
     // Reset to visible whenever the center content changes mode.
     LaunchedEffect(centerMode) {
         controlsVisible = true
@@ -265,6 +288,14 @@ fun NowPlayingScreen(
     LaunchedEffect(isPlaying) {
         if (!isPlaying && centerMode == CenterMode.Lyrics) controlsVisible = true
     }
+
+    // The list's fade above the control panel eases away together with the panel's slide (it used to jump
+    // the moment the panel started leaving, so the rows behind it popped in all at once).
+    val controlsFade = androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (controlsVisible) 1f else 0f,
+        animationSpec = tween(if (controlsVisible) 300 else 260, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+        label = "controlsFade",
+    )
 
     val queueListState = rememberLazyListState()
     val queueNestedScrollConnection = remember {
@@ -356,7 +387,9 @@ fun NowPlayingScreen(
         openCorner = mini?.barCorner ?: 18.dp,
         openProgress = expand,
         openTint = miniColor,
+        flatBar = mini?.barCorner == null,
     ) {
+        MiniLineHandover(bar = mini?.bar, progress = { if (durationMs > 0) positionMs.toFloat() / durationMs else 0f }, expand = expand)
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -498,7 +531,7 @@ fun NowPlayingScreen(
                             // up means nothing for the list to fade out from under, so the fade
                             // boundary collapses to the true bottom edge instead of staying
                             // pinned to the (now invisible) panel's last known height.
-                            bottomFadePx = { if (controlsVisible) controlsHeightPx else 0 },
+                            bottomFadePx = { (controlsHeightPx * controlsFade.value).toInt() },
                             anchorTopPx = headerHeightPx,
                             anchorBottomPx = if (controlsVisible) controlsHeightPx else 0,
                             onLineClick = { timeMs ->
@@ -527,6 +560,7 @@ fun NowPlayingScreen(
                                         indication = null,
                                     ) { controlsVisible = true },
                             )
+                            LyricsControlsHint(visible = controlsHintShown, panelHeight = with(density) { controlsHeightPx.toDp() }, modifier = Modifier.align(Alignment.BottomCenter))
                         }
                     }
 
@@ -560,7 +594,7 @@ fun NowPlayingScreen(
                             topFadePx = { headerHeightPx + toggleRowHeightPx },
                             // Same reasoning as Lyrics — the panel hides on scroll in Queue too,
                             // so the fade should collapse with it instead of hanging around.
-                            bottomFadePx = { if (controlsVisible) controlsHeightPx else 0 },
+                            bottomFadePx = { (controlsHeightPx * controlsFade.value).toInt() },
                             modifier = Modifier
                                 .fillMaxSize()
                                 .nestedScroll(queueNestedScrollConnection),
@@ -685,8 +719,11 @@ fun NowPlayingScreen(
                 }
                 androidx.compose.animation.AnimatedVisibility(
                     visible = controlsVisible || inFlight,
-                    enter = if (inFlight) EnterTransition.None else fadeIn(tween(250)),
-                    exit = fadeOut(tween(250)),
+                    // Hiding or coming back (lyrics, queue): the panel slides a little way down, fading, and comes up the same
+                    // way — quick and soft, in tune with the opening but not a copy of it.
+                    enter = if (inFlight) EnterTransition.None else
+                        androidx.compose.animation.slideInVertically(tween(300, easing = androidx.compose.animation.core.FastOutSlowInEasing)) { it / 2 } + fadeIn(tween(240)),
+                    exit = androidx.compose.animation.slideOutVertically(tween(260, easing = androidx.compose.animation.core.FastOutSlowInEasing)) { it / 2 } + fadeOut(tween(200)),
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
@@ -972,3 +1009,74 @@ private fun Modifier.drawMiniTile(color: androidx.compose.ui.graphics.Color?, pr
 
 /** How far into the opening the mini player's tiles are gone. */
 private const val TILE_HANDOFF = 0.3f
+
+
+/** A soft one-time hint: rounded corner marks around the area to tap, and a line of text in the middle. */
+@Composable
+private fun LyricsControlsHint(visible: Boolean, panelHeight: androidx.compose.ui.unit.Dp, modifier: Modifier = Modifier) {
+    val alpha by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (visible) 1f else 0f,
+        animationSpec = androidx.compose.animation.core.tween(if (visible) 400 else 600),
+        label = "lyricsControlsHint",
+    )
+    if (alpha <= 0.01f) return
+    val ink = LocalAdaptiveSecondaryColor.current
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            // The corner marks sit on the corners of the real control panel (seek bar, buttons, volume), above the system bar.
+            .height(panelHeight)
+            .navigationBarsPadding()
+            .padding(start = 14.dp, end = 14.dp, top = 6.dp, bottom = 20.dp)
+            .graphicsLayer { this.alpha = alpha }
+            .drawBehind {
+                val r = 14.dp.toPx()
+                val arm = 26.dp.toPx()
+                val stroke = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.5.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round)
+                val x1 = size.width
+                val y1 = size.height
+                fun corner(cx: Float, cy: Float, sx: Float, sy: Float, startAngle: Float) {
+                    // (cx, cy): the corner point; sx, sy: which way is "inward" along each edge.
+                    val topLeft = androidx.compose.ui.geometry.Offset(if (sx > 0) cx else cx - 2 * r, if (sy > 0) cy else cy - 2 * r)
+                    drawArc(ink, startAngle, 90f, false, topLeft, androidx.compose.ui.geometry.Size(2 * r, 2 * r), style = stroke)
+                    drawLine(ink, androidx.compose.ui.geometry.Offset(cx, cy + sy * r), androidx.compose.ui.geometry.Offset(cx, cy + sy * arm), stroke.width, stroke.cap)
+                    drawLine(ink, androidx.compose.ui.geometry.Offset(cx + sx * r, cy), androidx.compose.ui.geometry.Offset(cx + sx * arm, cy), stroke.width, stroke.cap)
+                }
+                corner(0f, 0f, 1f, 1f, 180f)
+                corner(x1, 0f, -1f, 1f, 270f)
+                corner(x1, y1, -1f, -1f, 0f)
+                corner(0f, y1, 1f, -1f, 90f)
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = stringResource(R.string.lyrics_controls_hint),
+            color = ink,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Medium,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 24.dp),
+        )
+    }
+}
+
+
+/**
+ * Expressive mini player + this player: the mini player's thin progress line fades in on the sheet as it settles onto the bar,
+ * so it is already there when the sheet is gone (it used to appear a moment after the animation had ended).
+ */
+@Composable
+private fun MiniLineHandover(bar: Rect?, progress: () -> Float, expand: () -> Float) {
+    if (!com.artemiy.player.ui.theme.expressiveUi || bar == null) return
+    val color = com.artemiy.player.ui.theme.LocalAppPalette.current.textPrimary
+    Box(
+        modifier = Modifier.fillMaxSize().drawBehind {
+            val visible = ((0.25f - expand()) / 0.25f).coerceIn(0f, 1f)
+            if (visible > 0f) {
+                translate(bar.left, bar.top) {
+                    drawProgressLine(progress(), color.copy(alpha = color.alpha * visible), bar.width, bar.height)
+                }
+            }
+        },
+    )
+}

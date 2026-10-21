@@ -114,11 +114,61 @@ object LyricsRomanizer {
         val language = languageOf(line.text, japaneseSong)
         val words = line.words?.let { if (language == Language.JAPANESE) splitJapaneseWords(it, line.endTimeMs) else it }
         return if (words != null) {
-            val readings = words.map { word -> reading(word.text, runCatching { readingOf(word.text.trim(), language) }.getOrNull()) }
+            var readings = words.map { word -> reading(word.text, runCatching { readingOf(word.text.trim(), language) }.getOrNull()) }
+            if (language == Language.JAPANESE) readings = runCatching { readSplitWords(words, readings) }.getOrDefault(readings)
             if (readings.all { it == null }) line else line.copy(words = words, wordReadings = readings)
         } else {
             line.copy(ruby = rubyFor(line.text, japaneseSong))
         }
+    }
+
+    /**
+     * Some files cut a word between two timed pieces ("徘" | "徊し", "haikai"): on its own a half is a kanji the
+     * dictionary doesn't know, and got no reading at all. For such a piece the line is read as a whole, and the
+     * reading of the word it is part of is shared between its pieces, a kanji at a time.
+     */
+    private fun readSplitWords(words: List<LyricWord>, readings: List<String?>): List<String?> {
+        val full = words.joinToString("") { it.text }
+        val tokens = tokenizer.tokenize(full)
+        val out = readings.toMutableList()
+        var start = 0
+        words.forEachIndexed { index, word ->
+            val end = start + word.text.length
+            val alone = tokenizer.tokenize(word.text)
+            if (alone.any { !it.isKnown && HAN.containsMatchIn(it.surface) }) {
+                val sb = StringBuilder()
+                tokens.forEachIndexed { t, token ->
+                    val tStart = token.position
+                    val tEnd = tStart + token.surface.length
+                    if (tEnd <= start || tStart >= end) return@forEachIndexed
+                    val reading = token.reading?.takeIf { it.isNotEmpty() && it != "*" } ?: return@forEachIndexed
+                    val next = tokens.getOrNull(t + 1)?.reading?.takeIf { it != "*" }
+                    if (tStart >= start && tEnd <= end) {
+                        sb.append(kanaToRomaji(reading, next).replace(HAN, ""))
+                    } else if (token.surface.all { HAN.matches(it.toString()) }) {
+                        // A word of kanji only, cut between its pieces: its kana split evenly, a kanji's share each.
+                        val units = kanaUnits(toKatakana(reading))
+                        val k = token.surface.length
+                        val from = (maxOf(start, tStart) - tStart)
+                        val to = (minOf(end, tEnd) - tStart)
+                        sb.append(kanaToRomaji(units.subList(units.size * from / k, units.size * to / k).joinToString(""), null))
+                    }
+                }
+                val joined = sb.toString().trim()
+                if (joined.isNotEmpty()) out[index] = joined
+            }
+            start = end
+        }
+        return out
+    }
+
+    /** Katakana cut into syllable units: a small ャュョ… stays with the kana before it (シ+ョ = ショ), as does ー. */
+    private fun kanaUnits(kana: String): List<String> {
+        val units = mutableListOf<String>()
+        kana.forEach { c ->
+            if (units.isNotEmpty() && c in "ャュョァィゥェォヮー") units[units.lastIndex] = units.last() + c else units += c.toString()
+        }
+        return units
     }
 
     /**

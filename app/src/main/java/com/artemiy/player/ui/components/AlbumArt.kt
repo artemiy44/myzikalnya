@@ -54,6 +54,17 @@ private object AlbumArtCache {
     fun put(id: Long, size: Int, bitmap: Bitmap) = cache.put(id to size, bitmap)
 }
 
+/** Decodes a cover into the cache ahead of time (no-op if it's there already), so a row that is about to scroll in finds it ready. */
+suspend fun prefetchAlbumArt(context: android.content.Context, uri: Uri, size: Int = ART_SIZE_THUMB) {
+    if (Build.VERSION.SDK_INT < 29) return
+    val id = runCatching { ContentUris.parseId(uri) }.getOrNull() ?: return
+    if (AlbumArtCache.get(id, size) != null) return
+    withContext(ArtDecoding) {
+        runCatching { context.contentResolver.loadThumbnail(uri, Size(size, size), null) }.getOrNull()
+            ?.let { AlbumArtCache.put(id, size, it) }
+    }
+}
+
 /** Loads (and caches) the raw thumbnail bitmap behind [AlbumArt] — reusable wherever the pixels
  * themselves are needed too, e.g. to extract a color palette for a background effect. */
 @Composable
@@ -84,7 +95,8 @@ fun rememberAlbumArtBitmap(uri: Uri?, size: Int = ART_SIZE_THUMB): Bitmap? {
         value = withContext(ArtDecoding) {
             runCatching {
                 context.contentResolver.loadThumbnail(uri, Size(size, size), cancel)
-            }.getOrNull()?.also { bmp -> AlbumArtCache.put(id, size, bmp) } ?: value
+            }.getOrNull()?.also { bmp -> AlbumArtCache.put(id, size, bmp) }
+                // No cover to be had: show none — the previous song's must not stay behind (it did, being the held value).
         }
     }
     return bitmap
@@ -134,7 +146,8 @@ fun AlbumArt(uri: Uri?, modifier: Modifier = Modifier, size: Int = ART_SIZE_THUM
  */
 @Composable
 fun MissingArt(modifier: Modifier = Modifier) {
-    val light = LocalPlayerPalette.current.isLight
+    // The app's own theme, not the player's (always dark): the cover flying out of a light mini player must not turn black on opening.
+    val light = com.artemiy.player.ui.theme.LocalAppPalette.current.isLight
     androidx.compose.foundation.layout.BoxWithConstraints(
         modifier = modifier.background(if (light) Color.White else Color.Black),
         contentAlignment = androidx.compose.ui.Alignment.Center,

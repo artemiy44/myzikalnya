@@ -19,7 +19,6 @@
     <string name="music_access_needed">Без доступа к музыке тут будет тихо</string>
     <string name="no_playlists">Плейлистов ещё нет — «+» сверху это исправит</string>
     <string name="no_track_chosen">Самое время что-нибудь включить</string>
-    <string name="no_tracks_found">Ни одного трека</string>
     <string name="nothing_found">Ничего не нашлось</string>
     <string name="nothing_playing">Тишина…</string>
     <string name="onb_folders_text">Можно отметить папки с музыкой — тогда рингтоны и голосовые не пролезут в медиатеку. Если ничего не отмечать, найдётся всё.</string>

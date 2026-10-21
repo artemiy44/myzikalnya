@@ -105,6 +105,7 @@ fun DiscMiniPlayer(
         if (showCover) {
             AlbumArt(
                 uri = albumArtUri,
+                crossfade = true,
                 modifier = Modifier
                     .size(46.dp)
                     .onGloballyPositioned { anchors?.let { a -> a.art = a.keep(a.art, it.boundsInRoot()) } }
@@ -222,9 +223,9 @@ fun SpinningPlate(isPlaying: Boolean, size: androidx.compose.ui.unit.Dp, modifie
 
 /** The "Диск" page heading: the title, and under it a second word in the second tone, same size. */
 @Composable
-fun DiscPageTitle(title: String, sub: String, modifier: Modifier = Modifier) {
+fun DiscPageTitle(title: String, sub: String = "", modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
         Text(text = title, color = PlayerColors.TextPrimary, style = com.artemiy.player.ui.theme.pageTitleStyle, maxLines = 1)
-        Text(text = sub, color = PlayerColors.TextTertiary, style = com.artemiy.player.ui.theme.pageTitleStyle, maxLines = 1)
+        if (sub.isNotEmpty()) Text(text = sub, color = PlayerColors.TextTertiary, style = com.artemiy.player.ui.theme.pageTitleStyle, maxLines = 1)
     }
 }

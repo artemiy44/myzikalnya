@@ -257,6 +257,8 @@ internal fun NowPlayingSurface(
     openCorner: androidx.compose.ui.unit.Dp = SHEET_CORNER,
     openProgress: () -> Float = { 1f },
     openTint: Color = Color.Transparent,
+    /** The bar the sheet grows out of has square corners (so the sheet starts out square, too). */
+    flatBar: Boolean = false,
     /** The "Диск" card: the background gets the mixes' matte, even colour (see [matteColor]). */
     matte: Boolean = false,
     content: @Composable BoxScope.() -> Unit,
@@ -310,11 +312,15 @@ internal fun NowPlayingSurface(
                         val p = openProgress()
                         val from = openFrom
                         if (p < 1f && from != null) {
-                            val top = from.top * (1f - p)
-                            val bottom = from.bottom + (size.height - from.bottom) * p
-                            val left = from.left * (1f - p)
-                            val right = from.right + (size.width - from.right) * p
-                            val corner = openCorner.toPx() * (1f - p).coerceAtMost(1f)
+                            // Whole pixels: a sheet edge between two pixels is drawn as a faint extra line along the bar's edge.
+                            val top = Math.round(from.top * (1f - p)).toFloat()
+                            val bottom = Math.round(from.bottom + (size.height - from.bottom) * p).toFloat()
+                            val left = Math.round(from.left * (1f - p)).toFloat()
+                            val right = Math.round(from.right + (size.width - from.right) * p).toFloat()
+                            // A flat bar (the classic mini player) has square corners: the sheet comes down to them in the very last
+                            // stretch, instead of landing on it rounded and leaving the bar's corners showing as a frame.
+                            val flatStart = if (flatBar) (p / 0.1f).coerceIn(0f, 1f) else 1f
+                            val corner = openCorner.toPx() * (1f - p).coerceAtMost(1f) * flatStart
                             clip = true
                             shape = GenericShape { _, _ ->
                                 addRoundRect(RoundRect(Rect(left, top, right, bottom), CornerRadius(corner)))

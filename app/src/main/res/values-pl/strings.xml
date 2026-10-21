@@ -130,6 +130,7 @@
     <string name="hero_classic">Klasyczny</string>
     <string name="hero_vivid">Żywy</string>
     <string name="hide_romanization">Ukryj romanizację</string>
+    <string name="history_cleared">Wyczyszczono</string>
     <string name="home_quick_picks">Szybki wybór</string>
     <string name="home_recently_added">Ostatnio dodane</string>
     <string name="in_lyrics">W tekstach piosenek</string>
@@ -171,6 +172,7 @@
     <string name="lyric_font_backup_desc">Smiley Sans ma tylko znaki uproszczone; brakujące (tradycyjne) pochodzą z tej czcionki lub, gdy nie wybrano żadnej, z telefonu.</string>
     <string name="lyric_font_no_bold">Czcionka telefonu nie ma pogrubionych znaków japońskich, koreańskich ani chińskich, więc tytuły wyglądają cienko. Wybór jednej z naszych to naprawia.</string>
     <string name="lyrics">Tekst piosenki</string>
+    <string name="lyrics_controls_hint">Dotknij tutaj, aby przywrócić przyciski</string>
     <string name="lyrics_indexing">Teksty piosenek wciąż są zbierane (%1$d z %2$d) — po tekście nie wszystko da się jeszcze znaleźć</string>
     <string name="lyrics_not_found">Nie znaleziono tekstu tego utworu</string>
     <string name="m3u_saved">Playlista zapisana</string>
@@ -209,10 +211,11 @@
     <string name="no_genre">Bez gatunku</string>
     <string name="no_playlists">Nie ma jeszcze playlist — pierwszą tworzy się ikoną „+” u góry</string>
     <string name="no_track_chosen">Nie wybrano utworu</string>
-    <string name="no_tracks_found">Nie znaleziono utworów</string>
+    <string name="no_tracks_found">Nic nie znaleziono</string>
     <string name="no_year">Bez roku</string>
     <string name="nothing_found">Nic nie znaleziono</string>
     <string name="nothing_playing">Nic nie gra</string>
+    <string name="often_played">Często słuchane</string>
     <string name="onb_allow">Zezwól</string>
     <string name="onb_folders_text">Można zaznaczyć foldery z muzyką — wtedy dzwonki, notatki głosowe i inne dźwięki nie trafią do biblioteki. Jeśli nic nie zaznaczyć, znajdzie się wszystko.</string>
     <string name="onb_folders_title">Gdzie jest muzyka</string>
@@ -245,6 +248,7 @@
     <string name="playlist_export_m3u">Eksportuj jako M3U</string>
     <string name="playlists">Playlisty</string>
     <string name="queue">Kolejka</string>
+    <string name="queue_history_title">Grane wcześniej</string>
     <string name="quick_picks_empty">Tu pojawią się często słuchane utwory</string>
     <string name="recap_busiest_day">Najbardziej muzyczny dzień</string>
     <string name="recap_busiest_part">Najwięcej muzyki</string>
@@ -282,6 +286,7 @@
     <string name="search_start_typing">Szukaj utworu, wykonawcy, albumu lub wersu z piosenki</string>
     <string name="search_title_artist_album">Tytuł, wykonawca, album</string>
     <string name="search_tracks">Szukaj utworów</string>
+    <string name="search_tracks_hint">Szukaj w tych utworach</string>
     <string name="set_about">O aplikacji</string>
     <string name="set_about_sub">Wersja, licencje, powitanie</string>
     <string name="set_accent">Kolor akcentu</string>
@@ -296,6 +301,8 @@
     <string name="set_bg_mode">Tryb tła</string>
     <string name="set_bg_mode_desc">Jak wygląda tło odtwarzacza — tak samo za okładką, tekstem i kolejką.</string>
     <string name="set_bg_sub">Żywe rozmycie, statyczne rozmycie lub bez rozmycia</string>
+    <string name="set_clear_history">Wyczyść listę odtworzonych</string>
+    <string name="set_clear_history_sub">Utwory nad kolejką. Miksy i podsumowanie tygodnia pozostają bez zmian</string>
     <string name="set_colors">Kolory i akcent</string>
     <string name="set_colors_sub">Tła jasnego i ciemnego motywu, kolor akcentu</string>
     <string name="set_dark_bg">Tło ciemnego motywu</string>
@@ -315,6 +322,8 @@
     <string name="set_font">Czcionka</string>
     <string name="set_general">Ogólne</string>
     <string name="set_general_sub">Karta startowa, dzielenie wykonawców</string>
+    <string name="set_glass_sliders">Miękkie paski</string>
+    <string name="set_glass_sliders_sub">Klasyczny odtwarzacz: grube, lekko przezroczyste paski czasu i głośności, które rosną pod palcem</string>
     <string name="set_hero_classic_desc">Obraz zanika w tle strony</string>
     <string name="set_hero_style">Strony z obrazem</string>
     <string name="set_hero_vivid_desc">Kolor obrazu spływa w dół strony, a potem przechodzi w tło</string>
@@ -394,7 +403,10 @@
     <string name="sort_by_file">Nazwa pliku</string>
     <string name="sort_by_name">Alfabetycznie</string>
     <string name="sort_by_title">Według tytułu</string>
+    <string name="sort_default">Jak jest</string>
+    <string name="sort_longest">Najdłuższe</string>
     <string name="sort_mode">Sortowanie: %1$s</string>
+    <string name="sort_most_played">Najczęściej słuchane</string>
     <string name="sort_recent">Ostatnio dodane</string>
     <string name="sort_recent_library">Ostatnio dodane do biblioteki</string>
     <string name="sort_release_date">Według daty wydania</string>
@@ -429,6 +441,7 @@
     <string name="ui_style_expressive">Ekspresyjny</string>
     <string name="ui_style_expressive_note">Duże nagłówki, pływające paski, zaokrąglone karty i zabawne kształty.</string>
     <string name="unit_hours_approx">≈ %1$.1f godz.</string>
+    <string name="unit_hours_min">%1$d godz. %2$d min</string>
     <string name="unit_kb">%1$d KB</string>
     <string name="unit_kbps">%1$d kb/s</string>
     <string name="unit_khz">%1$.1f kHz</string>

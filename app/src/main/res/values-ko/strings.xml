@@ -130,6 +130,7 @@
     <string name="hero_classic">클래식</string>
     <string name="hero_vivid">선명</string>
     <string name="hide_romanization">로마자 숨기기</string>
+    <string name="history_cleared">지웠어요</string>
     <string name="home_quick_picks">빠른 선곡</string>
     <string name="home_recently_added">최근 추가</string>
     <string name="in_lyrics">가사에서</string>
@@ -171,6 +172,7 @@
     <string name="lyric_font_backup_desc">Smiley Sans에는 간체자만 있어요. 없는 글자(번체)는 이 글꼴로, 선택하지 않으면 휴대폰 글꼴로 표시돼요.</string>
     <string name="lyric_font_no_bold">휴대폰 글꼴에 굵은 일본어·한국어·중국어 글자가 없어 제목이 가늘게 보여요. 앱 글꼴을 고르면 해결돼요.</string>
     <string name="lyrics">가사</string>
+    <string name="lyrics_controls_hint">여기를 누르면 컨트롤이 다시 나타나요</string>
     <string name="lyrics_indexing">가사를 아직 모으는 중이에요(%1$d / %2$d) — 가사로는 아직 모든 곡을 찾을 수 없어요</string>
     <string name="lyrics_not_found">이 곡의 가사를 찾지 못했습니다</string>
     <string name="m3u_saved">재생목록을 저장했습니다</string>
@@ -209,10 +211,11 @@
     <string name="no_genre">장르 없음</string>
     <string name="no_playlists">아직 플레이리스트가 없어요 — 위쪽 «+»로 첫 번째를 만들 수 있어요</string>
     <string name="no_track_chosen">선택한 곡 없음</string>
-    <string name="no_tracks_found">곡을 찾지 못했습니다</string>
+    <string name="no_tracks_found">찾을 수 없어요</string>
     <string name="no_year">연도 없음</string>
     <string name="nothing_found">검색 결과 없음</string>
     <string name="nothing_playing">재생 중인 곡 없음</string>
+    <string name="often_played">자주 듣는 곡</string>
     <string name="onb_allow">허용</string>
     <string name="onb_folders_text">음악 폴더를 표시할 수 있어요 — 그러면 벨소리, 음성 메모 등의 소리가 보관함에 들어오지 않아요. 아무것도 표시하지 않으면 모두 찾아요.</string>
     <string name="onb_folders_title">음악이 있는 곳</string>
@@ -245,6 +248,7 @@
     <string name="playlist_export_m3u">M3U로 내보내기</string>
     <string name="playlists">플레이리스트</string>
     <string name="queue">대기열</string>
+    <string name="queue_history_title">이전에 재생한 곡</string>
     <string name="quick_picks_empty">자주 듣는 곡이 여기에 표시됩니다</string>
     <string name="recap_busiest_day">가장 음악이 많았던 날</string>
     <string name="recap_busiest_part">가장 많이 들은 시간대</string>
@@ -282,6 +286,7 @@
     <string name="search_start_typing">곡, 아티스트, 앨범 또는 가사 한 줄 검색</string>
     <string name="search_title_artist_album">제목, 아티스트, 앨범</string>
     <string name="search_tracks">곡 검색</string>
+    <string name="search_tracks_hint">이 곡들에서 검색</string>
     <string name="set_about">앱 정보</string>
     <string name="set_about_sub">버전, 라이선스, 환영 화면</string>
     <string name="set_accent">강조 색상</string>
@@ -296,6 +301,8 @@
     <string name="set_bg_mode">배경 모드</string>
     <string name="set_bg_mode_desc">플레이어 배경의 모습 — 커버, 가사, 대기열 뒤에서 모두 같아요.</string>
     <string name="set_bg_sub">라이브 블러, 정지 블러 또는 블러 없음</string>
+    <string name="set_clear_history">재생한 곡 목록 지우기</string>
+    <string name="set_clear_history_sub">대기열 위에 보이는 곡입니다. 믹스와 주간 요약에는 영향이 없어요</string>
     <string name="set_colors">색상 및 강조색</string>
     <string name="set_colors_sub">라이트/다크 테마 배경과 강조색</string>
     <string name="set_dark_bg">다크 테마 배경</string>
@@ -315,6 +322,8 @@
     <string name="set_font">글꼴</string>
     <string name="set_general">일반</string>
     <string name="set_general_sub">시작 탭, 아티스트 나누기</string>
+    <string name="set_glass_sliders">부드러운 바</string>
+    <string name="set_glass_sliders_sub">클래식 플레이어: 손가락을 대면 두꺼워지는 살짝 투명한 재생 위치·음량 바</string>
     <string name="set_hero_classic_desc">이미지가 페이지 배경으로 서서히 사라집니다</string>
     <string name="set_hero_style">이미지 페이지</string>
     <string name="set_hero_vivid_desc">이미지의 색이 페이지 아래로 흘러내린 뒤 배경에 스며듭니다</string>
@@ -394,7 +403,10 @@
     <string name="sort_by_file">파일 이름</string>
     <string name="sort_by_name">이름순</string>
     <string name="sort_by_title">제목순</string>
+    <string name="sort_default">기본 순서</string>
+    <string name="sort_longest">긴 순</string>
     <string name="sort_mode">정렬: %1$s</string>
+    <string name="sort_most_played">많이 들은 순</string>
     <string name="sort_recent">최근 추가</string>
     <string name="sort_recent_library">보관함에 최근 추가</string>
     <string name="sort_release_date">발매일순</string>
@@ -429,6 +441,7 @@
     <string name="ui_style_expressive">익스프레시브</string>
     <string name="ui_style_expressive_note">큰 제목, 떠 있는 바, 둥근 카드와 재미있는 모양.</string>
     <string name="unit_hours_approx">약 %1$.1f시간</string>
+    <string name="unit_hours_min">%1$d시간 %2$d분</string>
     <string name="unit_kb">%1$d KB</string>
     <string name="unit_kbps">%1$d kbps</string>
     <string name="unit_khz">%1$.1f kHz</string>
@@ -458,7 +471,7 @@
         <item quantity="other">앨범 %d개</item>
     </plurals>
     <plurals name="plays_count">
-        <item quantity="other">%d회 재생</item>
+        <item quantity="other">%d회</item>
     </plurals>
     <plurals name="plays_word">
         <item quantity="other">회 재생</item>
