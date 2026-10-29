@@ -12,13 +12,10 @@ Lumine — это офлайн-плеер для Android, который игр�
 
 Я не программист. Всё, что вы здесь видите, придумано и проверено мной, а написано ИИ: я объяснял, что хочу, смотрел, что получилось, говорил «не так», и так много раз. Получился плеер, которым я каждый день пользуюсь сам. Поэтому ждите, что где-то он шероховатый, а где-то странный, и если найдёте такое место, пишите, поправим.
 
-<p align="center">
-<a href="docs/01-home.png"><img src="docs/01-home.png" width="170" alt="Home"></a> <a href="docs/02-player-classic.png"><img src="docs/02-player-classic.png" width="170" alt="Classic player"></a> <a href="docs/03-player-island.png"><img src="docs/03-player-island.png" width="170" alt="Expressive player, Island look"></a> <a href="docs/04-player-disc.png"><img src="docs/04-player-disc.png" width="170" alt="Disc player"></a> <a href="docs/05-queue.png"><img src="docs/05-queue.png" width="170" alt="Queue"></a> 
-</p>
-
-<p align="center">
-<a href="docs/06-artist.png"><img src="docs/06-artist.png" width="170" alt="Artist page"></a> <a href="docs/07-mood.png"><img src="docs/07-mood.png" width="170" alt="Mood"></a> <a href="docs/08-colors.png"><img src="docs/08-colors.png" width="170" alt="Colours and accent"></a> <a href="docs/09-style.png"><img src="docs/09-style.png" width="170" alt="Interface style"></a> <a href="docs/10-fonts.png"><img src="docs/10-fonts.png" width="170" alt="Icons and fonts"></a> 
-</p>
+<table>
+<tr><td width="20%"><a href="docs/01-home.png"><img src="docs/01-home.png" width="100%" alt="Home"></a></td><td width="20%"><a href="docs/02-player-classic.png"><img src="docs/02-player-classic.png" width="100%" alt="Classic player"></a></td><td width="20%"><a href="docs/03-player-island.png"><img src="docs/03-player-island.png" width="100%" alt="Expressive player, Island look"></a></td><td width="20%"><a href="docs/04-player-disc.png"><img src="docs/04-player-disc.png" width="100%" alt="Disc player"></a></td><td width="20%"><a href="docs/05-queue.png"><img src="docs/05-queue.png" width="100%" alt="Queue"></a></td></tr>
+<tr><td width="20%"><a href="docs/06-artist.png"><img src="docs/06-artist.png" width="100%" alt="Artist page"></a></td><td width="20%"><a href="docs/07-mood.png"><img src="docs/07-mood.png" width="100%" alt="Mood"></a></td><td width="20%"><a href="docs/08-colors.png"><img src="docs/08-colors.png" width="100%" alt="Colours and accent"></a></td><td width="20%"><a href="docs/09-style.png"><img src="docs/09-style.png" width="100%" alt="Interface style"></a></td><td width="20%"><a href="docs/10-fonts.png"><img src="docs/10-fonts.png" width="100%" alt="Icons and fonts"></a></td></tr>
+</table>
 
 ## Что умеет
 
