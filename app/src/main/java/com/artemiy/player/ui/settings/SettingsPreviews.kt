@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -144,12 +145,14 @@ fun IconSetPreview(modifier: Modifier = Modifier) {
     }
 }
 
+data class PreviewKey(val style: PlayerStyle, val card: Boolean, val background: NowPlayingBackgroundMode, val island: Boolean, val roundKeys: Boolean)
+
 /**
  * A small drawing of the player in the chosen style — its layout, and the background behind it (blurred
  * colours of the cover, or the app's own plain page).
  */
 @Composable
-fun PlayerStylePreview(style: PlayerStyle, dialCard: Boolean, background: NowPlayingBackgroundMode, modifier: Modifier = Modifier) {
+fun PlayerStylePreview(style: PlayerStyle, dialCard: Boolean, background: NowPlayingBackgroundMode, modifier: Modifier = Modifier, island: Boolean = false, roundKeys: Boolean = false) {
     val blurred = background != NowPlayingBackgroundMode.NONE
     val tint = Brush.linearGradient(listOf(Color(0xFF8A5C5C), Color(0xFF3F3F63), Color(0xFF6A4A33)))
     val onBlur = blurred && !(style == PlayerStyle.DIAL && dialCard)
@@ -184,7 +187,42 @@ fun PlayerStylePreview(style: PlayerStyle, dialCard: Boolean, background: NowPla
                             Box(modifier = Modifier.size(18.dp).clip(CircleShape).background(fill))
                         }
                     }
-                    PlayerStyle.EXPRESSIVE -> {
+                    PlayerStyle.EXPRESSIVE -> if (island) {
+                        Box(modifier = Modifier.size(70.dp).clip(RoundedCornerShape(20.dp)).background(tint))
+                        Column(modifier = Modifier.padding(top = 6.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Bar(100.dp, 8.dp, ink); Bar(62.dp, 5.dp, ink.copy(alpha = 0.55f))
+                        }
+                        val key: @Composable () -> Unit = {
+                            if (roundKeys) Box(modifier = Modifier.size(24.dp).background(fill, RoundedCornerShape(9.dp)))
+                            else Box(modifier = Modifier.size(24.dp).drawBehind { drawPath(com.artemiy.player.ui.nowplaying.cloverPath(size, 0f), fill) })
+                        }
+                        Column(
+                            modifier = Modifier
+                                .padding(top = 7.dp)
+                                .fillMaxWidth()
+                                .background(if (onBlur) Color.Black.copy(alpha = 0.3f) else ink.copy(alpha = 0.08f), RoundedCornerShape(14.dp))
+                                .padding(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Box(modifier = Modifier.weight(1f).height(24.dp).background(ink, RoundedCornerShape(12.dp)))
+                                key()
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.CenterVertically) {
+                                key()
+                                Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                                    Box(modifier = Modifier.width(44.dp).height(3.dp).background(ink, CircleShape))
+                                    Box(modifier = Modifier.size(7.dp).background(ink, CircleShape))
+                                    Box(modifier = Modifier.weight(1f).height(3.dp).background(fill, CircleShape))
+                                }
+                            }
+                        }
+                        Row(modifier = Modifier.padding(top = 7.dp), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Box(modifier = Modifier.size(width = 24.dp, height = 16.dp).background(fill, RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp, topEnd = 3.dp, bottomEnd = 3.dp)))
+                            Box(modifier = Modifier.size(width = 24.dp, height = 16.dp).background(fill, RoundedCornerShape(3.dp)))
+                            Box(modifier = Modifier.size(width = 24.dp, height = 16.dp).background(fill, RoundedCornerShape(topStart = 3.dp, bottomStart = 3.dp, topEnd = 8.dp, bottomEnd = 8.dp)))
+                        }
+                    } else {
                         Box(modifier = Modifier.size(104.dp).clip(RoundedCornerShape(28.dp)).background(tint))
                         Column(modifier = Modifier.padding(top = 9.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Bar(120.dp, 9.dp, ink); Bar(76.dp, 6.dp, ink.copy(alpha = 0.55f)); Bar(190.dp, 4.dp, fill, Modifier.padding(top = 5.dp))

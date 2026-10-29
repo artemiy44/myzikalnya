@@ -71,6 +71,10 @@ interface LyricsIndexDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun put(entry: IndexedLyrics)
 
+    /** How many songs have lyrics (written in the file or in a .lrc beside it) — counted live while the cache fills. */
+    @Query("SELECT COUNT(*) FROM indexed_lyrics WHERE text != ''")
+    fun countWithLyrics(): kotlinx.coroutines.flow.Flow<Int>
+
     @Query("DELETE FROM indexed_lyrics WHERE songId IN (:songIds)")
     suspend fun delete(songIds: List<Long>)
 

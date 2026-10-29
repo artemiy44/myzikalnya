@@ -4,6 +4,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import com.artemiy.player.R
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import com.artemiy.player.ui.components.pressScale
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
@@ -166,8 +175,9 @@ internal fun ExpressiveNowPlaying(
     /** "Диск" with its background in a card up top (otherwise over the whole screen). */
     dialCard: Boolean = true,
 ) {
-    val dialMinimal = dial && LocalDialMinimal.current
-    val cardLook = dial && dialCard && !dialMinimal
+    val cardLook = dial && dialCard
+    val wide = !dial && LocalExpressiveWide.current
+    var wideQueueOpen by remember { mutableStateOf(memory.expressiveQueueOpen) }
     var showLyrics by memory::expressiveLyrics
     var showAddToQueuePicker by remember { mutableStateOf(false) }
     // The "Диск" style has no bottom sheet: its queue is a panel opened by a button.
@@ -234,6 +244,8 @@ internal fun ExpressiveNowPlaying(
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             // A little extra lift, so the bar doesn't sit right on the screen's bottom edge.
             val barHeight = (if (dial) 8.dp else 78.dp) + navBottom
+            // The wide look's three buttons stand at the foot; the queue sheet comes up from just above them.
+            val widePillsArea = navBottom + 14.dp + WIDE_PILL_HEIGHT + 12.dp
 
             val dialQueuePanel: @Composable (Modifier) -> Unit = { panelModifier ->
                     DialQueuePanel(
@@ -257,43 +269,10 @@ internal fun ExpressiveNowPlaying(
                             QueueSongActions(onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
                         },
                         modifier = panelModifier,
-                        flat = dialMinimal,
                     )
                 }
 
-            if (dialMinimal) DialMinimalContent(
-                song = song,
-                isPlaying = isPlaying,
-                positionMs = positionMs,
-                durationMs = durationMs,
-                showLyrics = showLyrics,
-                lyrics = lyrics,
-                lyricsRomanization = lyricsRomanization,
-                lyricsLoading = lyricsLoading,
-                lyricsTapPlays = lyricsTapPlays,
-                onSeek = onSeek,
-                onTogglePlayPause = onTogglePlayPause,
-                onSkipNext = onSkipNext,
-                onSkipPrevious = onSkipPrevious,
-                onGoToAlbum = onGoToAlbum,
-                onGoToArtist = onGoToArtist,
-                onPlayNext = onPlayNext,
-                onAddToQueue = onAddToQueue,
-                onAddToPlaylist = onAddToPlaylist,
-                onLineLongClick = { shareFrom = it },
-                expand = expand,
-                active = active,
-                barHeight = barHeight,
-                statusTop = statusTop,
-                playingFrom = playingFrom,
-                backgroundMode = backgroundMode,
-                onClose = onClose,
-                onToggleRomanization = onToggleLyricsRomanization,
-                onToggleLyrics = { showLyrics = !showLyrics },
-                queueOpen = dialQueueOpen,
-                onQueueOpenChange = { dialQueueOpen = it; memory.expressiveQueueOpen = it },
-                queuePanel = dialQueuePanel,
-            ) else if (dial) DialContent(
+            if (dial) DialContent(
                 song = song,
                 isPlaying = isPlaying,
                 positionMs = positionMs,
@@ -328,6 +307,27 @@ internal fun ExpressiveNowPlaying(
                 queueOpen = dialQueueOpen,
                 onQueueOpenChange = { dialQueueOpen = it; memory.expressiveQueueOpen = it },
                 queuePanel = dialQueuePanel,
+            ) else if (wide) WideContent(
+                song = song,
+                isPlaying = isPlaying,
+                positionMs = positionMs,
+                durationMs = durationMs,
+                showLyrics = showLyrics,
+                lyrics = lyrics,
+                lyricsRomanization = lyricsRomanization,
+                lyricsLoading = lyricsLoading,
+                lyricsTapPlays = lyricsTapPlays,
+                onSeek = onSeek,
+                onTogglePlayPause = onTogglePlayPause,
+                onSkipNext = onSkipNext,
+                onSkipPrevious = onSkipPrevious,
+                onGoToAlbum = onGoToAlbum,
+                onGoToArtist = onGoToArtist,
+                onLineLongClick = { shareFrom = it },
+                expand = expand,
+                active = active,
+                statusTop = statusTop,
+                barHeight = widePillsArea + 16.dp,
             ) else Column(modifier = Modifier.fillMaxSize()) {
                 // Everything above the title: the cover sitting at the bottom of this space, or the
                 // lyrics filling all of it.
@@ -434,11 +434,20 @@ internal fun ExpressiveNowPlaying(
                 }
             }
 
+            if (wide) WidePills(
+                lyricsActive = showLyrics,
+                onLyricsClick = { showLyrics = !showLyrics },
+                onDeviceClick = { openOutputSwitcher(context) },
+                queueOpen = wideQueueOpen,
+                onQueueClick = { wideQueueOpen = !wideQueueOpen },
+                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = navBottom + 14.dp).popIn(expand, active, order = 3),
+            )
+
             if (!dial) QueueSheet(
                 // Stops well short of the top, so reaching for the top of the open queue doesn't
                 // land on the player itself and swipe the whole thing shut.
                 fullHeight = maxHeight - statusTop - 64.dp,
-                barHeight = barHeight,
+                barHeight = if (wide) 0.dp else barHeight,
                 playingFrom = playingFrom,
                 song = song,
                 lyricsActive = showLyrics,
@@ -462,7 +471,9 @@ internal fun ExpressiveNowPlaying(
                 },
                 navBottom = navBottom,
                 initiallyOpen = memory.expressiveQueueOpen,
-                onOpenChange = { memory.expressiveQueueOpen = it },
+                onOpenChange = { memory.expressiveQueueOpen = it; wideQueueOpen = it },
+                pills = wide,
+                externalOpen = wideQueueOpen,
                 modifier = Modifier.align(Alignment.BottomCenter).popIn(expand, active, order = 4),
             )
         }
@@ -587,7 +598,7 @@ private fun ExpressiveTitleRow(
  * dot. Tap or drag anywhere on it; seeks on release. Time left is shown as "-m:ss".
  */
 @Composable
-private fun WavySeekBar(positionMs: Long, durationMs: Long, isPlaying: Boolean, onSeek: (Long) -> Unit, modifier: Modifier = Modifier, showTimes: Boolean = true) {
+private fun WavySeekBar(positionMs: Long, durationMs: Long, isPlaying: Boolean, onSeek: (Long) -> Unit, modifier: Modifier = Modifier, showTimes: Boolean = true, knob: Boolean = false, height: androidx.compose.ui.unit.Dp? = null) {
     val safeDuration = max(durationMs, 1L).toFloat()
     var dragFraction by remember { mutableStateOf<Float?>(null) }
     val fraction = dragFraction ?: (positionMs / safeDuration).coerceIn(0f, 1f)
@@ -608,11 +619,14 @@ private fun WavySeekBar(positionMs: Long, durationMs: Long, isPlaying: Boolean, 
     val played = PlayerColors.TextPrimary
     val rest = PlayerColors.TextPrimary.copy(alpha = 0.3f)
 
-    Column(modifier = modifier) {
+    Column(
+        modifier = if (height != null) modifier.height(height) else modifier,
+        verticalArrangement = if (height != null) Arrangement.SpaceBetween else Arrangement.Top,
+    ) {
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(34.dp)
+                .height(if (knob) 22.dp else 34.dp)
                 .pointerInput(Unit) {
                     detectTapGestures { offset ->
                         val f = (offset.x / size.width).coerceIn(0f, 1f)
@@ -635,8 +649,11 @@ private fun WavySeekBar(positionMs: Long, durationMs: Long, isPlaying: Boolean, 
         ) {
             val mid = size.height / 2
             val stroke = 4.dp.toPx()
-            val gap = 5.dp.toPx()
-            val thumbX = (size.width * fraction).coerceIn(stroke, size.width - stroke)
+            // The wide look ends the wave in a round knob (a bigger gap around it) instead of the short bar.
+            val knobRadius = 9.dp.toPx()
+            val gap = if (knob) knobRadius + 3.dp.toPx() else 5.dp.toPx()
+            val edge = if (knob) knobRadius else stroke
+            val thumbX = (size.width * fraction).coerceIn(edge, size.width - edge)
             val amp = amplitude.toPx()
             val wavelength = 40.dp.toPx()
 
@@ -667,9 +684,10 @@ private fun WavySeekBar(positionMs: Long, durationMs: Long, isPlaying: Boolean, 
                 drawLine(rest, Offset(restStart, mid), Offset(size.width - stroke / 2, mid), strokeWidth = stroke, cap = StrokeCap.Round)
                 drawCircle(played, radius = stroke * 0.6f, center = Offset(size.width - stroke / 2, mid))
             }
-            drawLine(played, Offset(thumbX, mid - 15.dp.toPx()), Offset(thumbX, mid + 15.dp.toPx()), strokeWidth = stroke, cap = StrokeCap.Round)
+            if (knob) drawCircle(played, radius = knobRadius, center = Offset(thumbX, mid))
+            else drawLine(played, Offset(thumbX, mid - 15.dp.toPx()), Offset(thumbX, mid + 15.dp.toPx()), strokeWidth = stroke, cap = StrokeCap.Round)
         }
-        if (showTimes) Row(modifier = Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+        if (showTimes) Row(modifier = Modifier.fillMaxWidth().padding(top = if (knob) 2.dp else 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
             val shownMs = (fraction * safeDuration).toLong()
             Text(text = formatMs(shownMs), color = LocalAdaptiveSecondaryColor.current, fontSize = 12.sp)
             Text(text = "-" + formatMs((durationMs - shownMs).coerceAtLeast(0)), color = LocalAdaptiveSecondaryColor.current, fontSize = 12.sp)
@@ -826,6 +844,10 @@ private fun QueueSheet(
     navBottom: androidx.compose.ui.unit.Dp,
     initiallyOpen: Boolean,
     onOpenChange: (Boolean) -> Unit,
+    /** The "cover across the top" look: no bar of its own (the buttons that open it stay put at the screen's foot), and it's opened from outside. */
+    pills: Boolean = false,
+    /** With [pills]: whether the buttons want the sheet open. */
+    externalOpen: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
@@ -841,7 +863,37 @@ private fun QueueSheet(
         }
     }
     BackHandler(enabled = openness.targetValue > 0.5f && LocalNowPlayingActive.current) { settle(false) }
+    if (pills) LaunchedEffect(externalOpen) { if (externalOpen != openness.targetValue > 0.5f) settle(externalOpen) }
 
+    // The wide look: pulling the list down while it is at its top pulls the sheet down with it (and closes it),
+    // so the whole sheet is a handle, not just its top edge — pulling there would otherwise close the player.
+    val pullToClose = remember(travelPx) {
+        object : androidx.compose.ui.input.nestedscroll.NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: androidx.compose.ui.input.nestedscroll.NestedScrollSource): Offset {
+                if (available.y < 0f && openness.value < 1f && source == androidx.compose.ui.input.nestedscroll.NestedScrollSource.UserInput) {
+                    scope.launch { openness.snapTo((openness.value - available.y / travelPx).coerceIn(0f, 1f)) }
+                    return Offset(0f, available.y)
+                }
+                return Offset.Zero
+            }
+
+            override fun onPostScroll(consumed: Offset, available: Offset, source: androidx.compose.ui.input.nestedscroll.NestedScrollSource): Offset {
+                if (available.y > 0f && source == androidx.compose.ui.input.nestedscroll.NestedScrollSource.UserInput) {
+                    scope.launch { openness.snapTo((openness.value - available.y / travelPx).coerceIn(0f, 1f)) }
+                    return Offset(0f, available.y)
+                }
+                return Offset.Zero
+            }
+
+            override suspend fun onPreFling(available: androidx.compose.ui.unit.Velocity): androidx.compose.ui.unit.Velocity {
+                if (openness.value in 0.001f..0.999f) {
+                    settle(if (available.y > 600f) false else if (available.y < -600f) true else openness.value > 0.5f)
+                    return available
+                }
+                return androidx.compose.ui.unit.Velocity.Zero
+            }
+        }
+    }
     val dragState = rememberDraggableState { delta ->
         scope.launch { openness.snapTo((openness.value - delta / travelPx).coerceIn(0f, 1f)) }
     }
@@ -852,7 +904,7 @@ private fun QueueSheet(
         tween(600),
         label = "queueSheetTone",
     )
-    val sheetFill = lerp(tone.copy(alpha = 0.4f), tone.copy(alpha = 0.97f), openness.value)
+    val sheetFill = lerp(tone.copy(alpha = if (pills) 0f else 0.4f), tone.copy(alpha = 0.97f), openness.value)
 
     Column(
         modifier = modifier
@@ -880,9 +932,11 @@ private fun QueueSheet(
                         )
                     },
                 )
-                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
-                    settle(openness.targetValue < 0.5f)
-                }
+                .then(
+                    if (pills) Modifier else Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                        settle(openness.targetValue < 0.5f)
+                    },
+                )
                 .padding(horizontal = 20.dp),
         ) {
             Box(
@@ -890,10 +944,13 @@ private fun QueueSheet(
                     .align(Alignment.CenterHorizontally)
                     .padding(top = 8.dp)
                     .size(width = 32.dp, height = 4.dp)
+                    .graphicsLayer { if (pills) alpha = openness.value }
                     .clip(RoundedCornerShape(2.dp))
                     .background(PlayerColors.TextPrimary.copy(alpha = 0.35f)),
             )
-            Row(
+            // A taller strip to take hold of (the handle alone is thin, and a miss closes the player instead).
+            if (pills) Spacer(modifier = Modifier.height(36.dp))
+            if (!pills) Row(
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -969,7 +1026,10 @@ private fun QueueSheet(
 
         // The queue — only built once the sheet starts opening.
         if (openness.value > 0.001f) {
-            Column(modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 20.dp)) {
+            Box(modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 20.dp).then(if (pills) Modifier.nestedScroll(pullToClose) else Modifier)) {
+                // The list runs on behind the play modes (they are see-through): the rows fade out only about half way down them.
+                val modesRoom = navBottom + 16.dp + 56.dp
+                val fadeEdgePx = with(density) { (navBottom + 16.dp + 38.dp).roundToPx() }
                 QueueList(
                     manualQueue = manualQueue,
                     continueQueue = continueQueue,
@@ -981,12 +1041,35 @@ private fun QueueSheet(
                     onDragActiveChange = {},
                     songActions = songActions,
                     topFadePx = { 0 },
-                    bottomFadePx = { 0 },
-                    modifier = Modifier.fillMaxWidth().weight(1f),
-                    contentPadding = PaddingValues(top = 8.dp, bottom = 12.dp),
+                    bottomFadePx = { fadeEdgePx },
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(top = 8.dp, bottom = modesRoom + 8.dp),
+                    fadeSpan = 36.dp,
                 )
                 // The play modes under the list, in the same chunky connected style as the
                 // transport buttons, lit in the cover's color.
+                // A veil of the sheet's own colour under the buttons, thickest at the foot: the rows melt into it rather than
+                // showing through the buttons as words.
+                val veilHeight = modesRoom + 36.dp
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .height(veilHeight)
+                        .drawBehind {
+                            val side = 20.dp.toPx()
+                            drawRect(
+                                androidx.compose.ui.graphics.Brush.verticalGradient(
+                                    0f to tone.copy(alpha = 0f),
+                                    0.4f to tone.copy(alpha = 0.8f),
+                                    0.6f to tone.copy(alpha = 0.97f),
+                                    1f to tone.copy(alpha = 0.97f),
+                                ),
+                                topLeft = Offset(-side, 0f),
+                                size = androidx.compose.ui.geometry.Size(size.width + 2 * side, size.height),
+                            )
+                        },
+                )
                 ExpressiveQueueModes(
                     song = song,
                     shuffleEnabled = shuffleEnabled,
@@ -995,7 +1078,7 @@ private fun QueueSheet(
                     onToggleShuffle = onToggleShuffle,
                     onToggleRepeat = onToggleRepeat,
                     onToggleInfinitePlay = onToggleInfinitePlay,
-                    modifier = Modifier.padding(top = 4.dp, bottom = navBottom + 16.dp),
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = navBottom + 16.dp),
                 )
             }
         }
@@ -1168,4 +1251,314 @@ private fun ExpressiveQueueModes(
             }
         }
     }
+}
+
+/**
+ * The expressive player's second look: the cover as in the usual one, the title and artist centred under it, then a dark
+ * card with the play key, the skip keys and the wavy bar. The three small buttons under the card are [WidePills].
+ */
+@Composable
+private fun WideContent(
+    song: Song?,
+    isPlaying: Boolean,
+    positionMs: Long,
+    durationMs: Long,
+    showLyrics: Boolean,
+    lyrics: ParsedLyrics?,
+    lyricsRomanization: Boolean,
+    lyricsLoading: Boolean,
+    lyricsTapPlays: Boolean,
+    onSeek: (Long) -> Unit,
+    onTogglePlayPause: () -> Unit,
+    onSkipNext: () -> Unit,
+    onSkipPrevious: () -> Unit,
+    onGoToAlbum: (Song) -> Unit,
+    onGoToArtist: (Song) -> Unit,
+    onLineLongClick: (Int) -> Unit,
+    expand: () -> Float,
+    active: Boolean,
+    statusTop: androidx.compose.ui.unit.Dp,
+    barHeight: androidx.compose.ui.unit.Dp,
+) {
+    val density = LocalDensity.current
+    Column(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxWidth().weight(1f).popIn(expand, active, order = 0, grow = true)) {
+            Crossfade(targetState = showLyrics, animationSpec = tween(300), label = "wideCoverOrLyrics") { lyricsShown ->
+                if (lyricsShown) {
+                    if (LocalNowPlayingActive.current) com.artemiy.player.ui.components.KeepScreenOn()
+                    val topPx = with(density) { (statusTop + 36.dp).roundToPx() }
+                    val reachPx = with(density) { 20.dp.roundToPx() }
+                    // The list goes on 20 dp below this space, behind the title (which is drawn after it), so the last line is
+                    // not cut off in the middle above the title but fades out just as it reaches it.
+                    Box(
+                        modifier = Modifier.layout { measurable, constraints ->
+                            val taller = constraints.maxHeight + reachPx
+                            val placeable = measurable.measure(constraints.copy(minHeight = taller, maxHeight = taller))
+                            layout(placeable.width, constraints.maxHeight) { placeable.place(0, 0) }
+                        },
+                    ) {
+                        LyricsView(
+                            lyrics = lyrics,
+                            positionMs = positionMs,
+                            isPlaying = isPlaying,
+                            topFadePx = { topPx },
+                            bottomFadePx = { 0 },
+                            anchorTopPx = topPx,
+                            anchorBottomPx = 0,
+                            onLineClick = { timeMs ->
+                                onSeek(timeMs)
+                                if (lyricsTapPlays && !isPlaying) onTogglePlayPause()
+                            },
+                            onLineLongClick = onLineLongClick,
+                            showRomanization = lyricsRomanization,
+                            loading = lyricsLoading,
+                            // The text goes on almost to the title (a short fade at the foot, not the long one).
+                            bottomFadeSpan = 28.dp,
+                            contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = statusTop + 36.dp + FADE_SPAN, bottom = 8.dp),
+                        )
+                    }
+                } else {
+                    // Like the usual expressive look: a rounded square as wide as the card, in the middle of the space above the title.
+                    val coverScale by animateFloatAsState(if (isPlaying) 1f else 0.92f, spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessLow), label = "wideCoverScale")
+                    val chosenCorner = LocalCoverCorner.current
+                    val coverCorner by animateDpAsState(chosenCorner ?: if (isPlaying) 28.dp else 40.dp, spring(stiffness = Spring.StiffnessLow), label = "wideCoverCorner")
+                    BoxWithConstraints(
+                        modifier = Modifier.fillMaxSize().padding(start = 38.dp, end = 38.dp, top = statusTop + 28.dp, bottom = 12.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        AlbumArt(
+                            uri = song?.uri,
+                            size = ART_SIZE_FULL,
+                            crossfade = true,
+                            modifier = Modifier
+                                .size(min(maxWidth, maxHeight))
+                                .graphicsLayer { scaleX = coverScale; scaleY = coverScale }
+                                .clip(RoundedCornerShape(coverCorner)),
+                        )
+                    }
+                }
+            }
+        }
+
+        // The title and artist, in the middle, on the melt of the cover.
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(top = 4.dp).popIn(expand, active, order = 1),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = song?.title ?: stringResource(R.string.nothing_playing),
+                color = PlayerColors.TextPrimary,
+                fontSize = 28.sp,
+                lineHeight = 32.sp,
+                fontWeight = FontWeight.ExtraBold,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                maxLines = 1,
+                modifier = Modifier.fillMaxWidth().marquee(LocalNowPlayingActive.current).clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                    song?.let(onGoToAlbum)
+                },
+            )
+            Text(
+                text = song?.artist ?: "",
+                color = LocalAdaptiveSecondaryColor.current,
+                fontSize = 20.sp,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                maxLines = 1,
+                modifier = Modifier.fillMaxWidth().marquee(LocalNowPlayingActive.current).clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                    song?.let(onGoToArtist)
+                },
+            )
+            QualityBadge()
+        }
+
+        // The card: the play pill and "next" on the first row, "previous" and the bar on the second.
+        val dark = !com.artemiy.player.ui.theme.LocalPlayerPalette.current.isLight
+        val cardFill = if (dark) Color.Black.copy(alpha = 0.34f) else PlayerColors.TextPrimary.copy(alpha = 0.08f)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 38.dp)
+                .padding(top = 16.dp)
+                .popIn(expand, active, order = 2)
+                .background(cardFill, RoundedCornerShape(32.dp))
+                .padding(14.dp),
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                val playInteraction = remember { MutableInteractionSource() }
+                val playPressed by playInteraction.collectIsPressedAsState()
+                val playCorner by animateDpAsState(if (playPressed) 18.dp else if (isPlaying) 26.dp else 34.dp, spring(stiffness = Spring.StiffnessMediumLow), label = "widePlayCorner")
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(WIDE_KEY)
+                        .pressScale(playInteraction, pressedScale = 0.97f)
+                        .background(PlayerColors.TextPrimary, RoundedCornerShape(playCorner))
+                        .clickable(interactionSource = playInteraction, indication = null, onClick = buttonTicked(onTogglePlayPause)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = stringResource(if (isPlaying) R.string.cd_pause else R.string.cd_play),
+                        color = PlayerColors.Background,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        maxLines = 1,
+                    )
+                }
+                WideKey(onClick = onSkipNext) {
+                    Icon(AppIcons.SkipForward, contentDescription = stringResource(R.string.cd_next_track), tint = PlayerColors.TextPrimary, modifier = Modifier.size(25.dp))
+                }
+            }
+            Row(
+                modifier = Modifier.padding(top = 16.dp),
+                // The same gap between the key and the bar as between the bar and the card's edge.
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.Top,
+            ) {
+                WideKey(onClick = onSkipPrevious) {
+                    Icon(AppIcons.SkipBack, contentDescription = stringResource(R.string.cd_previous_track), tint = PlayerColors.TextPrimary, modifier = Modifier.size(25.dp))
+                }
+                WavySeekBar(
+                    positionMs = positionMs,
+                    durationMs = durationMs,
+                    isPlaying = isPlaying,
+                    onSeek = onSeek,
+                    // The line starts near the key's top corner and the times end at its bottom.
+                    knob = true,
+                    height = WIDE_KEY,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+        // Room for the three small buttons at the foot.
+        Spacer(modifier = Modifier.height(barHeight))
+    }
+}
+
+private val WIDE_KEY = 58.dp
+
+/** A key of the wide look's card: a soft four-bladed clover that rounds off into a plain soft square while pressed, and springs back. */
+@Composable
+private fun WideKey(onClick: () -> Unit, content: @Composable () -> Unit) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val round by animateFloatAsState(if (pressed) 1f else 0f, spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow), label = "wideKeyRound")
+    val fill = PlayerColors.TextPrimary.copy(alpha = 0.16f)
+    // The setting for plain keys: the soft square the clover rounds into, always.
+    val plain = LocalExpressiveRoundKeys.current
+    Box(
+        modifier = Modifier
+            .size(WIDE_KEY)
+            .pressScale(interaction, pressedScale = 0.94f)
+            .drawBehind { drawPath(cloverPath(size, if (plain) 1f else round), fill) }
+            .clickable(interactionSource = interaction, indication = null, onClick = buttonTicked(onClick)),
+        contentAlignment = Alignment.Center,
+    ) {
+        content()
+    }
+}
+
+/**
+ * The key's outline as the radius from its centre, round the full circle. At [round] 0: four soft blades towards the corners
+ * with the middle of each side drawn in; at 1: a soft square (a superellipse), the shape the keys had before the blades.
+ */
+internal fun cloverPath(size: androidx.compose.ui.geometry.Size, round: Float): Path {
+    val half = size.minDimension / 2f
+    val dip = 0.15f
+    val base = half * 1.2f / (1f + dip)
+    val path = Path()
+    val steps = 160
+    val n = 3.2f
+    for (i in 0..steps) {
+        val t = (2.0 * PI * i / steps).toFloat()
+        val c = kotlin.math.cos(t)
+        val sn = sin(t)
+        val blades = base * (1f - dip * kotlin.math.cos(4f * t))
+        val soft = half / Math.pow((Math.pow(kotlin.math.abs(c).toDouble(), n.toDouble()) + Math.pow(kotlin.math.abs(sn).toDouble(), n.toDouble())), 1.0 / n).toFloat()
+        val r = blades + (soft - blades) * round.coerceIn(0f, 1.2f)
+        val x = size.width / 2f + r * c
+        val y = size.height / 2f + r * sn
+        if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+    }
+    path.close()
+    return path
+}
+
+private val WIDE_PILL_HEIGHT = 48.dp
+
+/**
+ * The three small buttons at the foot of the wide look: lyrics, the playback device, the queue. Narrow, close together; the
+ * middle one is nearly square, the outer ones are round on their outer side and nearly square towards the middle.
+ */
+@Composable
+private fun WidePills(
+    lyricsActive: Boolean,
+    onLyricsClick: () -> Unit,
+    onDeviceClick: () -> Unit,
+    queueOpen: Boolean,
+    onQueueClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val output = rememberOutputDevice(active = LocalNowPlayingActive.current)
+    Row(
+        modifier = modifier.fillMaxWidth().height(WIDE_PILL_HEIGHT),
+        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+    ) {
+        WidePill(onClick = onLyricsClick, lit = lyricsActive, label = stringResource(R.string.lyrics), side = -1) {
+            Icon(AppIcons.LyricsBubble, contentDescription = null, tint = PlayerColors.TextPrimary, modifier = Modifier.size(24.dp))
+        }
+        WidePill(onClick = onDeviceClick, lit = false, label = output.name ?: stringResource(R.string.this_device), side = 0) {
+            Icon(
+                imageVector = when (output.kind) {
+                    OutputKind.PHONE -> AppIcons.DevicePhone
+                    OutputKind.HEADPHONES -> AppIcons.DeviceHeadphones
+                    OutputKind.EARBUDS -> AppIcons.DeviceEarbuds
+                    OutputKind.SPEAKER -> AppIcons.DeviceSpeaker
+                    OutputKind.BLUETOOTH -> AppIcons.DeviceBluetooth
+                    OutputKind.USB -> AppIcons.DeviceUsb
+                    OutputKind.TV -> AppIcons.DeviceTv
+                    OutputKind.CAR -> AppIcons.DeviceCar
+                },
+                contentDescription = null,
+                tint = PlayerColors.TextPrimary,
+                modifier = Modifier.size(24.dp),
+            )
+        }
+        WidePill(onClick = onQueueClick, lit = queueOpen, label = stringResource(R.string.queue), side = 1) {
+            Icon(AppIcons.Queue, contentDescription = null, tint = PlayerColors.TextPrimary, modifier = Modifier.size(24.dp))
+        }
+    }
+}
+
+/** One of those buttons: springy like the transport keys (it widens and squares off under a finger); [lit] brightens it. [side]: -1 left, 0 middle, 1 right. */
+@Composable
+private fun WidePill(
+    onClick: () -> Unit,
+    lit: Boolean,
+    label: String,
+    side: Int,
+    content: @Composable () -> Unit,
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val width by animateDpAsState(if (pressed) 72.dp else 56.dp, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow), label = "widePillWidth")
+    val inner by animateDpAsState(if (pressed) 10.dp else 14.dp, spring(stiffness = Spring.StiffnessMediumLow), label = "widePillInner")
+    val outer by animateDpAsState(if (pressed) 18.dp else 24.dp, spring(stiffness = Spring.StiffnessMediumLow), label = "widePillOuter")
+    val shape = when (side) {
+        -1 -> RoundedCornerShape(topStart = outer, bottomStart = outer, topEnd = inner, bottomEnd = inner)
+        1 -> RoundedCornerShape(topStart = inner, bottomStart = inner, topEnd = outer, bottomEnd = outer)
+        else -> RoundedCornerShape(inner)
+    }
+    val fill by androidx.compose.animation.animateColorAsState(
+        PlayerColors.TextPrimary.copy(alpha = if (lit) 0.30f else 0.14f),
+        tween(200),
+        label = "widePillFill",
+    )
+    Box(
+        modifier = Modifier
+            .width(width)
+            .fillMaxHeight()
+            .background(fill, shape)
+            .clickable(interactionSource = interaction, indication = null, onClick = buttonTicked(onClick))
+            .semantics { contentDescription = label },
+        contentAlignment = Alignment.Center,
+    ) { content() }
 }

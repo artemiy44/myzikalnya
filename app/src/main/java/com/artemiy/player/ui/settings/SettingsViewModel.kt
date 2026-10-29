@@ -105,13 +105,14 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
 
     /** The Library page's sections, in the user's order, each shown or hidden. */
     var fadeMode by mutableStateOf(com.artemiy.player.data.FadeMode.OFF)
+    var replayGain by mutableStateOf(com.artemiy.player.data.ReplayGainMode.OFF)
         private set
     var qualityBadge by mutableStateOf(false)
     var glassSliders by mutableStateOf(false)
     var haptics by mutableStateOf(true)
-    var dialMinimal by mutableStateOf(false)
     var dialDots by mutableStateOf(false)
-    var discFont by mutableStateOf(com.artemiy.player.ui.theme.DiscFont.STANDARD)
+    var expressiveWide by mutableStateOf(false)
+    var expressiveRoundKeys by mutableStateOf(false)
     var coverCornerDp by mutableStateOf(-1)
     var platePitch by mutableStateOf(true)
     var showVolumeBar by mutableStateOf(true)
@@ -144,6 +145,7 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     private var queuePickerViewMode by mutableStateOf(LibraryViewMode.LIST)
 
     init {
+        viewModelScope.launch { repository.seedFirstRunDefaults() }
         viewModelScope.launch {
             repository.fontScale.collect { fontScale = it }
         }
@@ -225,12 +227,13 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
             repository.onboardingDone.collect { onboardingDone = it }
         }
         viewModelScope.launch { repository.fadeMode.collect { fadeMode = it } }
+        viewModelScope.launch { repository.replayGain.collect { replayGain = it } }
         viewModelScope.launch { repository.qualityBadge.collect { qualityBadge = it } }
         viewModelScope.launch { repository.glassSliders.collect { glassSliders = it } }
         viewModelScope.launch { repository.haptics.collect { haptics = it } }
-        viewModelScope.launch { repository.dialMinimal.collect { dialMinimal = it } }
         viewModelScope.launch { repository.dialDots.collect { dialDots = it } }
-        viewModelScope.launch { repository.discFont.collect { name -> discFont = runCatching { com.artemiy.player.ui.theme.DiscFont.valueOf(name) }.getOrDefault(com.artemiy.player.ui.theme.DiscFont.STANDARD) } }
+        viewModelScope.launch { repository.expressiveWide.collect { expressiveWide = it } }
+        viewModelScope.launch { repository.expressiveRoundKeys.collect { expressiveRoundKeys = it } }
         viewModelScope.launch { repository.coverCornerDp.collect { coverCornerDp = it } }
         viewModelScope.launch { repository.platePitch.collect { platePitch = it } }
         viewModelScope.launch { repository.showVolumeBar.collect { showVolumeBar = it } }
@@ -392,15 +395,20 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { repository.setAppFont(font.name) }
     }
 
+    fun updateReplayGain(mode: com.artemiy.player.data.ReplayGainMode) {
+        replayGain = mode
+        viewModelScope.launch { repository.setReplayGain(mode) }
+    }
+
     fun updateFadeMode(mode: com.artemiy.player.data.FadeMode) {
         fadeMode = mode
         viewModelScope.launch { repository.setFadeMode(mode) }
     }
 
     fun updateCoverCornerDp(dp: Int) { coverCornerDp = dp; viewModelScope.launch { repository.setCoverCornerDp(dp) } }
-    fun updateDiscFont(font: com.artemiy.player.ui.theme.DiscFont) { discFont = font; viewModelScope.launch { repository.setDiscFont(font.name) } }
     fun updateDialDots(on: Boolean) { dialDots = on; viewModelScope.launch { repository.setDialDots(on) } }
-    fun updateDialMinimal(on: Boolean) { dialMinimal = on; viewModelScope.launch { repository.setDialMinimal(on) } }
+    fun updateExpressiveWide(on: Boolean) { expressiveWide = on; viewModelScope.launch { repository.setExpressiveWide(on) } }
+    fun updateExpressiveRoundKeys(on: Boolean) { expressiveRoundKeys = on; viewModelScope.launch { repository.setExpressiveRoundKeys(on) } }
     fun updateHaptics(on: Boolean) { haptics = on; viewModelScope.launch { repository.setHaptics(on) } }
     fun updatePlatePitch(on: Boolean) { platePitch = on; viewModelScope.launch { repository.setPlatePitch(on) } }
     fun updateShowVolumeBar(on: Boolean) { showVolumeBar = on; viewModelScope.launch { repository.setShowVolumeBar(on) } }

@@ -28,6 +28,9 @@ class LyricsSearchViewModel(app: Application) : AndroidViewModel(app) {
     private val dao = LyricsIndexDatabase.get(app).dao()
     private var syncJob: Job? = null
 
+    /** How many songs have lyrics so far (the welcome screens show it growing). */
+    val withLyrics: kotlinx.coroutines.flow.Flow<Int> = dao.countWithLyrics()
+
     /** Files read so far / files that needed reading in the current pass; null when idle. */
     var indexProgress by mutableStateOf<Pair<Int, Int>?>(null)
         private set

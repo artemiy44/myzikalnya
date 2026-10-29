@@ -13,6 +13,8 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -56,6 +58,12 @@ import androidx.compose.ui.unit.sp
 import com.artemiy.player.data.PlayerStyle
 import com.artemiy.player.ui.components.LoadingMark
 import com.artemiy.player.ui.components.pressScale
+import com.artemiy.player.data.NowPlayingBackgroundMode
+import com.artemiy.player.ui.settings.PlayerStylePreview
+import com.artemiy.player.ui.settings.UiStylePreview
+import com.artemiy.player.ui.theme.AccentChoice
+import com.artemiy.player.ui.theme.AccentFamily
+import com.artemiy.player.ui.theme.accentColors
 import com.artemiy.player.ui.mood.TalkingBurst
 import com.artemiy.player.ui.settings.FolderChips
 import com.artemiy.player.ui.theme.PlayerColors
@@ -74,6 +82,12 @@ class OnboardingState(
     val uiStyle: com.artemiy.player.ui.theme.UiStyle = com.artemiy.player.ui.theme.UiStyle.CLASSIC,
     /** Android 13+ asks for notifications separately; below that there's nothing to ask. */
     val notificationsNeedAsking: Boolean,
+    val accent: AccentChoice? = null,
+    val expressiveWide: Boolean = false,
+    val dialCard: Boolean = true,
+    /** How many songs have lyrics so far, and whether the files are still being looked through. */
+    val songsWithLyrics: Int = 0,
+    val lyricsScanning: Boolean = false,
 )
 
 class OnboardingActions(
@@ -85,14 +99,21 @@ class OnboardingActions(
     val setUiStyle: (com.artemiy.player.ui.theme.UiStyle) -> Unit = {},
     val requestNotifications: () -> Unit,
     val finish: () -> Unit,
+    val setAccent: (AccentChoice?) -> Unit = {},
+    val setExpressiveWide: (Boolean) -> Unit = {},
+    val setDialCard: (Boolean) -> Unit = {},
+    /** Looks for lyrics again (after access to the lyric files was given). */
+    val refreshLyrics: () -> Unit = {},
+    /** Asks for the music permission if needed, lets the person pick a backup file, restores it and ends the welcome. */
+    val restoreBackup: () -> Unit = {},
 )
 
-private enum class Step { Hello, Music, Folders, Look, Notifications, Done }
+private enum class Step { Hello, Music, Folders, Lyrics, Colours, Look, Notifications, Done }
 
 /**
  * The welcome screens, shown once on first launch (and again from "О приложении"): the app's
  * burst introduces itself line by line — a tap shows the next line — then a few short steps:
- * access to the music, which folders, theme and player style, notifications, and a last word.
+ * access to the music, which folders, lyrics, colours, the look of the app and the player, notifications, and a last word.
  * Going back (the back gesture) returns to the step before.
  */
 @Composable
@@ -106,10 +127,12 @@ fun OnboardingScreen(state: OnboardingState, actions: OnboardingActions) {
         forward = to > index
         index = to.coerceIn(0, steps.lastIndex)
     }
+    // Folders and lyrics only make sense once the music can be read.
+    fun needsMusic(step: Step?) = step == Step.Folders || step == Step.Lyrics
+    var showRestoreAsk by remember { mutableStateOf(false) }
     fun next() {
         var to = index + 1
-        // Folders only make sense once the music can be read.
-        if (steps.getOrNull(to) == Step.Folders && !state.musicAllowed) to++
+        while (needsMusic(steps.getOrNull(to)) && !state.musicAllowed) to++
         if (to > steps.lastIndex) actions.finish() else go(to)
     }
     // The back gesture: the step shrinks and fades under the finger like every other page here;
@@ -122,7 +145,7 @@ fun OnboardingScreen(state: OnboardingState, actions: OnboardingActions) {
             progress.collect { event -> back.snapTo(event.progress) }
             back.animateTo(1f, tween(240))
             var to = index - 1
-            if (steps.getOrNull(to) == Step.Folders && !state.musicAllowed) to--
+            while (needsMusic(steps.getOrNull(to)) && !state.musicAllowed) to--
             byGesture = true
             gestureLeave = true
             go(to)
@@ -178,7 +201,14 @@ fun OnboardingScreen(state: OnboardingState, actions: OnboardingActions) {
         ) { step ->
           Box(modifier = Modifier.graphicsLayer { if (gestureLeave && step != steps[index]) alpha = 0f }) {
             when (step) {
-                Step.Hello -> TalkingStep(lines = HELLO_LINES.map { stringResource(it) }, lastButton = stringResource(R.string.onb_start), onLastTap = ::next, startAtEnd = !forward)
+                Step.Hello -> TalkingStep(
+                    lines = HELLO_LINES.map { stringResource(it) },
+                    lastButton = stringResource(R.string.onb_start),
+                    onLastTap = ::next,
+                    startAtEnd = !forward,
+                    lastSecondary = stringResource(R.string.onb_restore),
+                    onLastSecondary = { showRestoreAsk = true },
+                )
                 Step.Music -> StepPage(
                     title = stringResource(R.string.onb_music_title),
                     text = stringResource(R.string.onb_music_text),
@@ -227,9 +257,62 @@ fun OnboardingScreen(state: OnboardingState, actions: OnboardingActions) {
                         }
                     }
                 }
-                Step.Look -> StepPage(
-                    title = stringResource(R.string.onb_look_title),
-                    text = stringResource(R.string.onb_look_text),
+                Step.Lyrics -> {
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    var filesGranted by remember { mutableStateOf(com.artemiy.player.lyrics.LyricsExtractor.canReadSidecars(context)) }
+                    // Back from the system screen where the access is given: look again, and read the lyric files.
+                    val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+                    androidx.compose.runtime.DisposableEffect(owner) {
+                        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+                            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                                val now = com.artemiy.player.lyrics.LyricsExtractor.canReadSidecars(context)
+                                if (now && !filesGranted) actions.refreshLyrics()
+                                filesGranted = now
+                            }
+                        }
+                        owner.lifecycle.addObserver(observer)
+                        onDispose { owner.lifecycle.removeObserver(observer) }
+                    }
+                    val canAskFiles = android.os.Build.VERSION.SDK_INT >= 30 && !filesGranted
+                    StepPage(
+                        title = stringResource(R.string.onb_lyrics_title),
+                        text = stringResource(R.string.onb_lyrics_text),
+                        button = stringResource(R.string.onb_next),
+                        onButton = ::next,
+                        secondary = if (canAskFiles) stringResource(R.string.onb_lyrics_allow) else null,
+                        onSecondary = {
+                            runCatching {
+                                context.startActivity(
+                                    android.content.Intent(
+                                        android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                                        android.net.Uri.parse("package:${context.packageName}"),
+                                    ),
+                                )
+                            }
+                        },
+                        progress = index to steps.size,
+                    ) {
+                        Column(modifier = Modifier.fillMaxWidth().padding(top = 28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "%,d".format(state.songsWithLyrics).replace(',', ' '),
+                                color = PlayerColors.AccentStandalone,
+                                fontSize = 44.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                            )
+                            Text(text = stringResource(R.string.onb_lyrics_count), color = PlayerColors.TextSecondary, fontSize = 15.sp)
+                            if (state.lyricsScanning) {
+                                Text(text = stringResource(R.string.onb_lyrics_checking), color = PlayerColors.TextTertiary, fontSize = 13.sp, modifier = Modifier.padding(top = 8.dp))
+                            }
+                        }
+                        if (filesGranted && android.os.Build.VERSION.SDK_INT >= 30) {
+                            Text(text = stringResource(R.string.onb_lyrics_allowed), color = PlayerColors.TextSecondary, fontSize = 13.sp, modifier = Modifier.padding(top = 18.dp).fillMaxWidth(), textAlign = TextAlign.Center)
+                        }
+                        Text(text = stringResource(R.string.onb_lyrics_roman), color = PlayerColors.TextSecondary, fontSize = 14.sp, lineHeight = 20.sp, modifier = Modifier.padding(top = 26.dp))
+                    }
+                }
+                Step.Colours -> StepPage(
+                    title = stringResource(R.string.onb_colours_title),
+                    text = stringResource(R.string.onb_colours_text),
                     button = stringResource(R.string.onb_next),
                     onButton = ::next,
                     progress = index to steps.size,
@@ -240,6 +323,16 @@ fun OnboardingScreen(state: OnboardingState, actions: OnboardingActions) {
                         selected = state.themeMode,
                         onSelect = actions.setThemeMode,
                     )
+                    ChoiceLabel(stringResource(R.string.onb_accent))
+                    AccentSwatches(selected = state.accent, onSelect = actions.setAccent)
+                }
+                Step.Look -> StepPage(
+                    title = stringResource(R.string.onb_look_title),
+                    text = stringResource(R.string.onb_look_text),
+                    button = stringResource(R.string.onb_next),
+                    onButton = ::next,
+                    progress = index to steps.size,
+                ) {
                     ChoiceLabel(stringResource(R.string.set_ui_style))
                     Choices(
                         options = listOf(
@@ -250,6 +343,7 @@ fun OnboardingScreen(state: OnboardingState, actions: OnboardingActions) {
                         selected = state.uiStyle,
                         onSelect = actions.setUiStyle,
                     )
+                    androidx.compose.animation.Crossfade(targetState = state.uiStyle, animationSpec = tween(220), label = "onbUiPreview", modifier = Modifier.padding(top = 12.dp)) { UiStylePreview(it) }
                     Text(
                         text = stringResource(
                             when (state.uiStyle) {
@@ -268,6 +362,29 @@ fun OnboardingScreen(state: OnboardingState, actions: OnboardingActions) {
                         selected = state.playerStyle,
                         onSelect = actions.setPlayerStyle,
                     )
+                    // A little setting for the look of the two styles that have one.
+                    if (state.playerStyle == PlayerStyle.EXPRESSIVE) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Choices(
+                            options = listOf(false to stringResource(R.string.expressive_look_square), true to stringResource(R.string.expressive_look_wide)),
+                            selected = state.expressiveWide,
+                            onSelect = actions.setExpressiveWide,
+                        )
+                    }
+                    if (state.playerStyle == PlayerStyle.DIAL) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Choices(
+                            options = listOf(true to stringResource(R.string.dial_look_card), false to stringResource(R.string.dial_look_full)),
+                            selected = state.dialCard,
+                            onSelect = actions.setDialCard,
+                        )
+                    }
+                    androidx.compose.animation.Crossfade(
+                        targetState = Triple(state.playerStyle, state.dialCard, state.expressiveWide),
+                        animationSpec = tween(220),
+                        label = "onbPlayerPreview",
+                        modifier = Modifier.padding(top = 12.dp),
+                    ) { (st, card, island) -> PlayerStylePreview(st, card, NowPlayingBackgroundMode.LIVE_BLUR, island = island) }
                     Text(
                         text = stringResource(
                             when (state.playerStyle) {
@@ -297,12 +414,9 @@ fun OnboardingScreen(state: OnboardingState, actions: OnboardingActions) {
                     exit = { exit.value },
                     farewell = farewell,
                     below = { line, lineDone ->
+                        val reveal = fadeIn(tween(300)) + androidx.compose.animation.scaleIn(tween(420), initialScale = 0.6f)
                         // "…вот за этой кнопкой": the settings button itself, as on Home.
-                        androidx.compose.animation.AnimatedVisibility(
-                            visible = line == SETTINGS_LINE && lineDone,
-                            enter = fadeIn(tween(300)) + androidx.compose.animation.scaleIn(tween(420), initialScale = 0.6f),
-                            exit = fadeOut(tween(200)),
-                        ) {
+                        androidx.compose.animation.AnimatedVisibility(visible = line == SETTINGS_LINE && lineDone, enter = reveal, exit = fadeOut(tween(200))) {
                             Box(
                                 modifier = Modifier
                                     .padding(top = 18.dp)
@@ -319,10 +433,34 @@ fun OnboardingScreen(state: OnboardingState, actions: OnboardingActions) {
                                 )
                             }
                         }
+                        // A held lyric line: the card to share comes up.
+                        androidx.compose.animation.AnimatedVisibility(visible = line == CARD_LINE && lineDone, enter = reveal, exit = fadeOut(tween(200))) {
+                            LyricCardMock(modifier = Modifier.padding(top = 20.dp))
+                        }
+                        // The queue pulled down: the history appears above it.
+                        androidx.compose.animation.AnimatedVisibility(visible = line == HISTORY_LINE && lineDone, enter = reveal, exit = fadeOut(tween(200))) {
+                            HistoryMock(modifier = Modifier.padding(top = 20.dp))
+                        }
+                        // A held song: its menu.
+                        androidx.compose.animation.AnimatedVisibility(visible = line == MENU_LINE && lineDone, enter = reveal, exit = fadeOut(tween(200))) {
+                            MenuMock(modifier = Modifier.padding(top = 20.dp))
+                        }
                     },
                 )
             }
           }
+        }
+        if (showRestoreAsk) {
+            com.artemiy.player.ui.components.AppDialog(onDismiss = { showRestoreAsk = false }) {
+                com.artemiy.player.ui.components.DialogTitle(stringResource(R.string.onb_restore_title))
+                com.artemiy.player.ui.components.DialogMessage(stringResource(R.string.onb_restore_text))
+                com.artemiy.player.ui.components.DialogButtons(
+                    dismissLabel = stringResource(R.string.cancel),
+                    onDismiss = { showRestoreAsk = false },
+                    confirmLabel = stringResource(R.string.onb_restore_choose),
+                    onConfirm = { showRestoreAsk = false; actions.restoreBackup() },
+                )
+            }
         }
     }
 }
@@ -331,8 +469,11 @@ fun OnboardingScreen(state: OnboardingState, actions: OnboardingActions) {
 private val HELLO_LINES = listOf(R.string.hello_1, R.string.hello_2, R.string.hello_3, R.string.hello_4, R.string.hello_5)
 
 /** The burst's goodbye at the end. */
-private val FAREWELL_LINES = listOf(R.string.bye_1, R.string.bye_2, R.string.bye_3, R.string.bye_4)
+private val FAREWELL_LINES = listOf(R.string.bye_1, R.string.bye_2, R.string.bye_3, R.string.bye_g1, R.string.bye_g2, R.string.bye_g3, R.string.bye_4)
 private const val SETTINGS_LINE = 2
+private const val CARD_LINE = 3
+private const val HISTORY_LINE = 4
+private const val MENU_LINE = 5
 
 private enum class Farewell { FlyAtViewer, Shatter }
 
@@ -347,6 +488,9 @@ private fun TalkingStep(
     lines: List<String>,
     onLastTap: () -> Unit,
     lastButton: String? = null,
+    /** A second button on the last line, to the left of [lastButton]. */
+    lastSecondary: String? = null,
+    onLastSecondary: () -> Unit = {},
     lastHint: String? = null,
     /** Coming back to it from a later step: it stands on its last line, already said. */
     startAtEnd: Boolean = false,
@@ -426,7 +570,10 @@ private fun TalkingStep(
                     visible = last && !typing,
                     enter = fadeIn(tween(300)) + slideInVertically(tween(420)) { it / 2 },
                 ) {
-                    PrimaryButton(lastButton, onClick = onLastTap)
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        if (lastSecondary != null) SecondaryButton(lastSecondary, onClick = onLastSecondary, modifier = Modifier.weight(1f))
+                        PrimaryButton(lastButton, onClick = onLastTap, modifier = Modifier.weight(1f))
+                    }
                 }
             }
             val hint = if (last) lastHint else stringResource(R.string.onb_tap_to_continue)
@@ -569,10 +716,10 @@ private fun StepPage(
 }
 
 @Composable
-private fun PrimaryButton(label: String, onClick: () -> Unit) {
+private fun PrimaryButton(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val interaction = remember { MutableInteractionSource() }
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(54.dp)
             .pressScale(interaction, pressedScale = 0.96f)
@@ -582,6 +729,115 @@ private fun PrimaryButton(label: String, onClick: () -> Unit) {
         contentAlignment = Alignment.Center,
     ) {
         Text(text = label, color = PlayerColors.OnAccent, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+/** A little drawing of the card made from a held lyric line: a tinted card, the lines, and the sung one lit. */
+@Composable
+private fun LyricCardMock(modifier: Modifier = Modifier) {
+    val accent = PlayerColors.Accent
+    Column(
+        modifier = modifier
+            .width(210.dp)
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(18.dp))
+            .background(androidx.compose.ui.graphics.Brush.linearGradient(listOf(accent.copy(alpha = 0.85f), accent.copy(alpha = 0.45f))))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Box(modifier = Modifier.width(120.dp).height(9.dp).clip(CircleShape).background(PlayerColors.OnAccent.copy(alpha = 0.55f)))
+        Box(modifier = Modifier.width(168.dp).height(12.dp).clip(CircleShape).background(PlayerColors.OnAccent))
+        Box(modifier = Modifier.width(90.dp).height(9.dp).clip(CircleShape).background(PlayerColors.OnAccent.copy(alpha = 0.55f)))
+    }
+}
+
+/** The history coming down above the queue: a few faint rows and an arrow pointing down. */
+@Composable
+private fun HistoryMock(modifier: Modifier = Modifier) {
+    val bob = androidx.compose.animation.core.rememberInfiniteTransition(label = "historyArrow")
+    val dy by bob.animateFloat(
+        initialValue = 0f,
+        targetValue = 8f,
+        animationSpec = androidx.compose.animation.core.infiniteRepeatable(tween(700, easing = androidx.compose.animation.core.FastOutSlowInEasing), androidx.compose.animation.core.RepeatMode.Reverse),
+        label = "historyArrowOffset",
+    )
+    Column(modifier = modifier.width(210.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(text = "↓", color = PlayerColors.AccentStandalone, fontSize = 30.sp, fontWeight = FontWeight.Bold, modifier = Modifier.graphicsLayer { translationY = dy.dp.toPx() })
+        repeat(2) { i ->
+            Row(
+                modifier = Modifier.fillMaxWidth().clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp)).background(PlayerColors.Surface.copy(alpha = if (i == 0) 0.55f else 1f)).padding(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(modifier = Modifier.size(28.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(7.dp)).background(PlayerColors.TextTertiary.copy(alpha = 0.4f)))
+                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Box(modifier = Modifier.width(100.dp).height(7.dp).clip(CircleShape).background(PlayerColors.TextPrimary.copy(alpha = 0.7f)))
+                    Box(modifier = Modifier.width(60.dp).height(5.dp).clip(CircleShape).background(PlayerColors.TextTertiary.copy(alpha = 0.6f)))
+                }
+            }
+        }
+    }
+}
+
+/** A song's menu, as it opens on a long press. */
+@Composable
+private fun MenuMock(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .width(190.dp)
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+            .background(PlayerColors.Surface)
+            .padding(vertical = 8.dp),
+    ) {
+        listOf(100.dp to true, 130.dp to false, 84.dp to false, 112.dp to false).forEach { (w, lit) ->
+            Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 9.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(14.dp).clip(CircleShape).background(if (lit) PlayerColors.AccentStandalone else PlayerColors.TextTertiary.copy(alpha = 0.5f)))
+                Box(modifier = Modifier.width(w - 30.dp).height(7.dp).clip(CircleShape).background(PlayerColors.TextPrimary.copy(alpha = if (lit) 0.9f else 0.5f)))
+            }
+        }
+    }
+}
+
+/** The accent to pick: GNOME's nine stock colours, and the plain monochrome look. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun AccentSwatches(selected: AccentChoice?, onSelect: (AccentChoice?) -> Unit) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        @Composable
+        fun swatch(color: androidx.compose.ui.graphics.Color, chosen: Boolean, onClick: () -> Unit) {
+            val press = remember { MutableInteractionSource() }
+            Box(
+                modifier = Modifier
+                    .pressScale(press, 0.88f)
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .border(width = if (chosen) 2.dp else 1.dp, color = if (chosen) PlayerColors.TextPrimary else PlayerColors.Border, shape = CircleShape)
+                    .padding(if (chosen) 5.dp else 0.dp)
+                    .clip(CircleShape)
+                    .background(color)
+                    .clickable(interactionSource = press, indication = null, onClick = onClick),
+            )
+        }
+        swatch(PlayerColors.TextPrimary, selected == null) { onSelect(null) }
+        accentColors(AccentFamily.STOCK).forEachIndexed { index, color ->
+            swatch(color, selected?.family == AccentFamily.STOCK && selected.index == index) { onSelect(AccentChoice(AccentFamily.STOCK, index)) }
+        }
+    }
+}
+
+/** The quieter button beside the main one. */
+@Composable
+private fun SecondaryButton(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val interaction = remember { MutableInteractionSource() }
+    Box(
+        modifier = modifier
+            .height(54.dp)
+            .pressScale(interaction, pressedScale = 0.96f)
+            .clip(CircleShape)
+            .background(PlayerColors.Surface)
+            .clickable(interactionSource = interaction, indication = null, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text = label, color = PlayerColors.TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, modifier = Modifier.padding(horizontal = 12.dp))
     }
 }
 

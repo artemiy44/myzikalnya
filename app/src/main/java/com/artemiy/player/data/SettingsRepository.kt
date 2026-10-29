@@ -16,6 +16,9 @@ private val Context.settingsDataStore by preferencesDataStore(name = "settings")
 /** How long the end of a song fades out and the next fades in. */
 enum class FadeMode(val ms: Long) { OFF(0), SHORT(700), MEDIUM(1800), LONG(4000) }
 
+/** Volume levelling by the files' own ReplayGain tags: off, by each song, or by its album. */
+enum class ReplayGainMode { OFF, TRACK, ALBUM }
+
 enum class LibraryViewMode { LIST, GRID_2, GRID_3 }
 
 enum class InfinitePlayMode { RANDOM, GENRE_RADIO }
@@ -68,12 +71,13 @@ class SettingsRepository(private val context: Context) {
         val LIBRARY_TABS_KEY = stringPreferencesKey("library_tabs")
         val FOLDER_SORT_KEY = stringPreferencesKey("folder_sort")
         val FADE_MODE_KEY = stringPreferencesKey("fade_mode")
+        val REPLAY_GAIN_KEY = stringPreferencesKey("replay_gain")
         val QUALITY_BADGE_KEY = booleanPreferencesKey("quality_badge")
         val GLASS_SLIDERS_KEY = booleanPreferencesKey("glass_sliders")
         val HAPTICS_KEY = booleanPreferencesKey("haptics")
-        val DIAL_MINIMAL_KEY = booleanPreferencesKey("dial_minimal")
         val DIAL_DOTS_KEY = booleanPreferencesKey("dial_dots")
-        val DISC_FONT_KEY = androidx.datastore.preferences.core.stringPreferencesKey("disc_font")
+        val EXPRESSIVE_WIDE_KEY = booleanPreferencesKey("expressive_wide")
+        val EXPRESSIVE_ROUND_KEYS_KEY = booleanPreferencesKey("expressive_round_keys")
         val COVER_CORNER_KEY = androidx.datastore.preferences.core.intPreferencesKey("cover_corner_dp")
         val PLATE_PITCH_KEY = booleanPreferencesKey("plate_pitch")
         val SHOW_VOLUME_BAR_KEY = booleanPreferencesKey("show_volume_bar")
@@ -352,6 +356,14 @@ class SettingsRepository(private val context: Context) {
         FadeMode.entries.firstOrNull { it.name == prefs[FADE_MODE_KEY] } ?: FadeMode.OFF
     }
 
+    val replayGain: Flow<ReplayGainMode> = context.settingsDataStore.data.map { prefs ->
+        ReplayGainMode.entries.firstOrNull { it.name == prefs[REPLAY_GAIN_KEY] } ?: ReplayGainMode.OFF
+    }
+
+    suspend fun setReplayGain(value: ReplayGainMode) {
+        context.settingsDataStore.edit { it[REPLAY_GAIN_KEY] = value.name }
+    }
+
     suspend fun setFadeMode(value: FadeMode) {
         context.settingsDataStore.edit { it[FADE_MODE_KEY] = value.name }
     }
@@ -360,17 +372,17 @@ class SettingsRepository(private val context: Context) {
     val coverCornerDp: Flow<Int> = context.settingsDataStore.data.map { it[COVER_CORNER_KEY] ?: -1 }
     suspend fun setCoverCornerDp(value: Int) { context.settingsDataStore.edit { it[COVER_CORNER_KEY] = value } }
 
-    /** The Dial\'s third look: the minimal one (it takes the place of the card / full-screen choice while on). */
-    val dialMinimal: Flow<Boolean> = context.settingsDataStore.data.map { it[DIAL_MINIMAL_KEY] ?: false }
-    suspend fun setDialMinimal(value: Boolean) { context.settingsDataStore.edit { it[DIAL_MINIMAL_KEY] = value } }
-
-    /** The typeface of the Dial's player (enum name; the usual one by default). */
-    val discFont: Flow<String> = context.settingsDataStore.data.map { it[DISC_FONT_KEY] ?: "STANDARD" }
-    suspend fun setDiscFont(value: String) { context.settingsDataStore.edit { it[DISC_FONT_KEY] = value } }
-
     /** The Dial shows the time as rows of small squares instead of the big digits. */
     val dialDots: Flow<Boolean> = context.settingsDataStore.data.map { it[DIAL_DOTS_KEY] ?: false }
     suspend fun setDialDots(value: Boolean) { context.settingsDataStore.edit { it[DIAL_DOTS_KEY] = value } }
+
+    /** The expressive player with the cover across the top of the screen (instead of the square cover and the title row). */
+    val expressiveWide: Flow<Boolean> = context.settingsDataStore.data.map { it[EXPRESSIVE_WIDE_KEY] ?: false }
+    suspend fun setExpressiveWide(value: Boolean) { context.settingsDataStore.edit { it[EXPRESSIVE_WIDE_KEY] = value } }
+
+    /** The island look's skip keys as plain soft squares instead of the clover. */
+    val expressiveRoundKeys: Flow<Boolean> = context.settingsDataStore.data.map { it[EXPRESSIVE_ROUND_KEYS_KEY] ?: false }
+    suspend fun setExpressiveRoundKeys(value: Boolean) { context.settingsDataStore.edit { it[EXPRESSIVE_ROUND_KEYS_KEY] = value } }
 
     /** Vibration ticks on buttons, rows and the plate; everything is on by default. */
     val haptics: Flow<Boolean> = context.settingsDataStore.data.map { it[HAPTICS_KEY] ?: true }
@@ -434,6 +446,16 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setStartTab(value: String) {
         context.settingsDataStore.edit { it[START_TAB_KEY] = value }
+    }
+
+    /**
+     * A fresh install (no welcome-screen state and no accent saved yet) starts with GNOME's blue instead of the
+     * monochrome look, so the app has a colour from the first screen. Anyone who has been here before is left alone.
+     */
+    suspend fun seedFirstRunDefaults() {
+        context.settingsDataStore.edit { prefs ->
+            if (!prefs.contains(ONBOARDING_DONE_KEY) && !prefs.contains(ACCENT_KEY)) prefs[ACCENT_KEY] = "STOCK:0"
+        }
     }
 
     suspend fun setAccent(value: String) {

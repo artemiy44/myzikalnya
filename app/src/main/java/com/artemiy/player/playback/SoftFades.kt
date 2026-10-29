@@ -21,6 +21,10 @@ import kotlinx.coroutines.launch
  * follow each other are left alone — live albums and mixes are meant to run into each other.
  */
 class SoftFades(context: Context, private val player: Player) : Player.Listener {
+    private val appContext = context.applicationContext
+    private var levelling = com.artemiy.player.data.ReplayGainMode.OFF
+    /** How far the current song is turned down by its ReplayGain tags (1 = not at all). */
+    private var gain = 1f
     private val handler = Handler(Looper.getMainLooper())
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var mode = FadeMode.OFF
@@ -34,6 +38,33 @@ class SoftFades(context: Context, private val player: Player) : Player.Listener 
                 mode = it
                 apply()
             }
+        }
+        scope.launch {
+            SettingsRepository(context).replayGain.collect {
+                levelling = it
+                refreshGain()
+            }
+        }
+    }
+
+    /** Works out [gain] for the song now playing (reading its tags if need be), and looks at the next one's ahead of time. */
+    private fun refreshGain() {
+        val item = player.currentMediaItem
+        val uri = com.artemiy.player.playback.ReplayGain.uriOf(item)
+        gain = if (levelling == com.artemiy.player.data.ReplayGainMode.OFF) 1f
+        else com.artemiy.player.playback.ReplayGain.factor(com.artemiy.player.playback.ReplayGain.cached(uri), levelling)
+        apply()
+        if (levelling == com.artemiy.player.data.ReplayGainMode.OFF) return
+        scope.launch {
+            if (uri != null) {
+                val tags = com.artemiy.player.playback.ReplayGain.read(appContext, uri)
+                if (player.currentMediaItem === item) {
+                    gain = com.artemiy.player.playback.ReplayGain.factor(tags, levelling)
+                    apply()
+                }
+            }
+            val next = player.nextMediaItemIndex.takeIf { it >= 0 }?.let { player.getMediaItemAt(it) }
+            com.artemiy.player.playback.ReplayGain.uriOf(next)?.let { com.artemiy.player.playback.ReplayGain.read(appContext, it) }
         }
     }
 
@@ -54,7 +85,7 @@ class SoftFades(context: Context, private val player: Player) : Player.Listener 
     /** The volume the position calls for. */
     private fun apply() {
         if (mode == FadeMode.OFF) {
-            if (player.volume != 1f) player.volume = 1f
+            if (player.volume != gain) player.volume = gain
             return
         }
         val length = mode.ms
@@ -69,6 +100,7 @@ class SoftFades(context: Context, private val player: Player) : Player.Listener 
             val left = duration - position
             if (left in 0 until length && !sameAlbumNext()) volume = minOf(volume, ease(left.toFloat() / length))
         }
+        volume *= gain
         if (volume != player.volume) player.volume = volume
     }
 
@@ -78,7 +110,7 @@ class SoftFades(context: Context, private val player: Player) : Player.Listener 
         // Straight on from the previous song of the same album: no fade-in either.
         startedAt = if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO && lastAlbumMatched) -mode.ms else 0L
         lastAlbumMatched = false
-        apply()
+        refreshGain()
     }
 
     private var lastAlbumMatched = false

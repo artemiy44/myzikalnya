@@ -25,6 +25,9 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.flow.first
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -321,6 +324,7 @@ private fun PlayerApp(settings: SettingsViewModel) {
         ActivityResultContracts.RequestPermission()
     ) { }
 
+
     // First launch: the welcome screens ask for this themselves, in their own step.
     LaunchedEffect(settings.onboardingDone) {
         if (settings.onboardingDone == true && Build.VERSION.SDK_INT >= 33 &&
@@ -332,6 +336,31 @@ private fun PlayerApp(settings: SettingsViewModel) {
 
     // The launch cover (see the end of this function) stays up until the library is in.
     var libraryLoaded by remember { mutableStateOf(false) }
+
+    // The welcome screens' "restore a backup": needs the music permission (to find the songs), then a file; on success the welcome ends.
+    val restoreBackupLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            // The songs have to be known before the file's playlists and stats can be matched to them.
+            snapshotFlow { libraryLoaded }.first { it }
+            val ok = runCatching {
+                withContext(Dispatchers.IO) {
+                    val text = context.contentResolver.openInputStream(uri)!!.use { String(it.readBytes(), Charsets.UTF_8) }
+                    com.artemiy.player.data.Backup.import(context, songs.toList(), text)
+                }
+            }.isSuccess
+            if (ok) settings.updateOnboardingDone(true)
+            else android.widget.Toast.makeText(context, context.getString(R.string.backup_bad_file), android.widget.Toast.LENGTH_LONG).show()
+        }
+    }
+    var restoreWhenAllowed by remember { mutableStateOf(false) }
+    LaunchedEffect(permissionGranted, restoreWhenAllowed) {
+        if (restoreWhenAllowed && permissionGranted) {
+            restoreWhenAllowed = false
+            restoreBackupLauncher.launch(arrayOf("*/*"))
+        }
+    }
+    val songsWithLyrics by lyricsSearch.withLyrics.collectAsState(initial = 0)
     var appReady by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(permissionGranted, settings.scanFolders, settings.minDurationSec) {
@@ -865,9 +894,9 @@ private fun PlayerApp(settings: SettingsViewModel) {
               com.artemiy.player.ui.nowplaying.LocalRepeatOne provides playback.repeatOne,
               com.artemiy.player.ui.components.LocalGlassSliders provides settings.glassSliders,
               com.artemiy.player.ui.nowplaying.LocalShowVolumeBar provides settings.showVolumeBar,
-              com.artemiy.player.ui.nowplaying.LocalDialMinimal provides settings.dialMinimal,
               com.artemiy.player.ui.nowplaying.LocalDialDots provides settings.dialDots,
-              com.artemiy.player.ui.theme.LocalDiscFont provides settings.discFont.family,
+              com.artemiy.player.ui.nowplaying.LocalExpressiveWide provides settings.expressiveWide,
+              com.artemiy.player.ui.nowplaying.LocalExpressiveRoundKeys provides settings.expressiveRoundKeys,
               com.artemiy.player.ui.nowplaying.LocalCoverCorner provides (if (settings.coverCornerDp >= 0) settings.coverCornerDp.dp else null),
               com.artemiy.player.ui.nowplaying.LocalShowSeekTimes provides settings.showSeekTimes,
               com.artemiy.player.ui.nowplaying.LocalQueueHistory provides remember(playback.queueHistory) { com.artemiy.player.ui.nowplaying.QueueHistoryState(playback.queueHistory, playback::playFromHistory) },
@@ -1000,18 +1029,20 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 extras = com.artemiy.player.ui.settings.ExtraSettings(
                     fadeMode = settings.fadeMode,
                     onFadeModeChange = { settings.updateFadeMode(it) },
+                    replayGain = settings.replayGain,
+                    onReplayGainChange = { settings.updateReplayGain(it) },
                     qualityBadge = settings.qualityBadge,
                     onQualityBadgeChange = { settings.updateQualityBadge(it) },
                     glassSliders = settings.glassSliders,
                     onGlassSlidersChange = { settings.updateGlassSliders(it) },
                     onClearQueueHistory = { playback.clearQueueHistory() },
                     haptics = settings.haptics,
-                    dialMinimal = settings.dialMinimal,
                     dialDots = settings.dialDots,
-                    discFont = settings.discFont,
-                    onDiscFontChange = { settings.updateDiscFont(it) },
                     onDialDotsChange = { settings.updateDialDots(it) },
-                    onDialMinimalChange = { settings.updateDialMinimal(it) },
+                    expressiveWide = settings.expressiveWide,
+                    onExpressiveWideChange = { settings.updateExpressiveWide(it) },
+                    expressiveRoundKeys = settings.expressiveRoundKeys,
+                    onExpressiveRoundKeysChange = { settings.updateExpressiveRoundKeys(it) },
                     coverCornerDp = settings.coverCornerDp,
                     onCoverCornerChange = { settings.updateCoverCornerDp(it) },
                     onHapticsChange = { settings.updateHaptics(it) },
@@ -1063,6 +1094,11 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 uiStyle = settings.uiStyle,
                 notificationsNeedAsking = Build.VERSION.SDK_INT >= 33 &&
                     ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED,
+                accent = settings.accent,
+                expressiveWide = settings.expressiveWide,
+                dialCard = settings.dialCard,
+                songsWithLyrics = songsWithLyrics,
+                lyricsScanning = lyricsSearch.indexProgress != null || !libraryLoaded,
             ),
             actions = com.artemiy.player.ui.onboarding.OnboardingActions(
                 requestMusic = { permissionLauncher.launch(audioPermission) },
@@ -1071,6 +1107,14 @@ private fun PlayerApp(settings: SettingsViewModel) {
                 setThemeMode = { settings.updateThemeMode(it) },
                 setPlayerStyle = { settings.updatePlayerStyle(it) },
                 setUiStyle = { settings.updateUiStyle(it) },
+                setAccent = { settings.updateAccent(it) },
+                setExpressiveWide = { settings.updateExpressiveWide(it) },
+                setDialCard = { settings.updateDialCard(it) },
+                refreshLyrics = { lyricsSearch.sync(songs.toList(), isPlaying = { playback.isPlaying }) },
+                restoreBackup = {
+                    if (permissionGranted) restoreBackupLauncher.launch(arrayOf("*/*"))
+                    else { restoreWhenAllowed = true; permissionLauncher.launch(audioPermission) }
+                },
                 requestNotifications = {
                     if (Build.VERSION.SDK_INT >= 33) notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 },

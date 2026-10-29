@@ -214,6 +214,8 @@ internal fun QueueList(
     state: LazyListState = rememberLazyListState(),
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
+    /** How long the rows take to fade out at the edges of the list. */
+    fadeSpan: androidx.compose.ui.unit.Dp = FADE_SPAN,
 ) {
     // Local copies so a drag can reorder rows live under the finger; the player's real queue is
     // only changed once, when the drag ends. Any change coming back from the player (the move
@@ -351,7 +353,7 @@ internal fun QueueList(
                     color = LocalAdaptiveSecondaryColor.current,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.fadeInList(state, 0, topFadePx, bottomFadePx).padding(top = 12.dp, bottom = 4.dp),
+                    modifier = Modifier.fadeInList(state, 0, topFadePx, bottomFadePx, fadeSpan, fadeSpan).padding(top = 12.dp, bottom = 4.dp),
                 )
             }
             itemsIndexed(historyEntries, key = { _, entry -> entry.key }, contentType = { _, _ -> "history" }) { i, entry ->
@@ -359,7 +361,7 @@ internal fun QueueList(
                     HistoryRow(
                         song = entry.song,
                         onClick = { history.onPlay(entry.song) },
-                        modifier = Modifier.fadeInList(state, 1 + i, topFadePx, bottomFadePx),
+                        modifier = Modifier.fadeInList(state, 1 + i, topFadePx, bottomFadePx, fadeSpan, fadeSpan),
                     )
                 }
             }
@@ -368,7 +370,7 @@ internal fun QueueList(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fadeInList(state, historyOffset, topFadePx, bottomFadePx)
+                    .fadeInList(state, historyOffset, topFadePx, bottomFadePx, fadeSpan, fadeSpan)
                     .padding(top = 12.dp, bottom = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
@@ -386,7 +388,7 @@ internal fun QueueList(
             }
         }
         item(key = "header-add") {
-            AddSongsToQueueRow(onClick = onAddSongsClick, modifier = Modifier.fadeInList(state, historyOffset + 1, topFadePx, bottomFadePx))
+            AddSongsToQueueRow(onClick = onAddSongsClick, modifier = Modifier.fadeInList(state, historyOffset + 1, topFadePx, bottomFadePx, fadeSpan, fadeSpan))
         }
         itemsIndexed(manualDisplay, key = { _, row -> row.entry.key }, contentType = { _, _ -> "song" }) { i, row ->
             val entry = row.entry
@@ -408,7 +410,7 @@ internal fun QueueList(
                                 onDragActiveChange(false)
                             },
                         ),
-                        modifier = Modifier.fadeInList(state, manualQueueStart + i, topFadePx, bottomFadePx),
+                        modifier = Modifier.fadeInList(state, manualQueueStart + i, topFadePx, bottomFadePx, fadeSpan, fadeSpan),
                     )
                 }
               }
@@ -422,7 +424,7 @@ internal fun QueueList(
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
-                        .fadeInList(state, manualQueueStart + manualDisplay.size, topFadePx, bottomFadePx)
+                        .fadeInList(state, manualQueueStart + manualDisplay.size, topFadePx, bottomFadePx, fadeSpan, fadeSpan)
                         .padding(top = 18.dp, bottom = 4.dp),
                 )
             }
@@ -448,7 +450,7 @@ internal fun QueueList(
                                     onDragActiveChange(false)
                                 },
                             ),
-                            modifier = Modifier.fadeInList(state, continueQueueStart + i, topFadePx, bottomFadePx),
+                            modifier = Modifier.fadeInList(state, continueQueueStart + i, topFadePx, bottomFadePx, fadeSpan, fadeSpan),
                         )
                     }
                   }

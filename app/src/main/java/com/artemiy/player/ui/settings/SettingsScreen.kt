@@ -87,6 +87,8 @@ import com.artemiy.player.ui.theme.lightPalette
 class ExtraSettings(
     val fadeMode: com.artemiy.player.data.FadeMode = com.artemiy.player.data.FadeMode.OFF,
     val onFadeModeChange: (com.artemiy.player.data.FadeMode) -> Unit = {},
+    val replayGain: com.artemiy.player.data.ReplayGainMode = com.artemiy.player.data.ReplayGainMode.OFF,
+    val onReplayGainChange: (com.artemiy.player.data.ReplayGainMode) -> Unit = {},
     val qualityBadge: Boolean = false,
     val onQualityBadgeChange: (Boolean) -> Unit = {},
     val glassSliders: Boolean = false,
@@ -102,12 +104,12 @@ class ExtraSettings(
     val onShowSeekTimesChange: (Boolean) -> Unit = {},
     val coverCornerDp: Int = -1,
     val onCoverCornerChange: (Int) -> Unit = {},
-    val dialMinimal: Boolean = false,
-    val onDialMinimalChange: (Boolean) -> Unit = {},
     val dialDots: Boolean = false,
     val onDialDotsChange: (Boolean) -> Unit = {},
-    val discFont: com.artemiy.player.ui.theme.DiscFont = com.artemiy.player.ui.theme.DiscFont.STANDARD,
-    val onDiscFontChange: (com.artemiy.player.ui.theme.DiscFont) -> Unit = {},
+    val expressiveWide: Boolean = false,
+    val onExpressiveWideChange: (Boolean) -> Unit = {},
+    val expressiveRoundKeys: Boolean = false,
+    val onExpressiveRoundKeysChange: (Boolean) -> Unit = {},
 )
 
 /** Settings pages. [parent] is where "back" goes from each one. */
@@ -1102,6 +1104,28 @@ private fun SettingsSectionContent(
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 SettingsCard {
+                    SettingsLabel(stringResource(R.string.set_replaygain))
+                    Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                        com.artemiy.player.data.ReplayGainMode.entries.forEach { mode ->
+                            InfinitePlayModeChip(
+                                stringResource(when (mode) {
+                                    com.artemiy.player.data.ReplayGainMode.OFF -> R.string.fade_off
+                                    com.artemiy.player.data.ReplayGainMode.TRACK -> R.string.rg_track
+                                    com.artemiy.player.data.ReplayGainMode.ALBUM -> R.string.rg_album
+                                }),
+                                mode == extras.replayGain,
+                            ) { extras.onReplayGainChange(mode) }
+                        }
+                    }
+                    Text(
+                        text = stringResource(R.string.set_replaygain_desc),
+                        color = PlayerColors.TextSecondary,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 10.dp),
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                SettingsCard {
                     val clearedText = stringResource(R.string.history_cleared)
                     SettingsRow(
                         icon = AppIcons.Close,
@@ -1178,15 +1202,34 @@ private fun SettingsSectionContent(
                             fontSize = 12.sp,
                             modifier = Modifier.padding(top = 10.dp),
                         )
+                        if (playerStyle == PlayerStyle.EXPRESSIVE) {
+                            SettingsLabel(stringResource(R.string.set_dial_look), top = 14.dp)
+                            Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                                InfinitePlayModeChip(stringResource(R.string.expressive_look_square), !extras.expressiveWide) { extras.onExpressiveWideChange(false) }
+                                InfinitePlayModeChip(stringResource(R.string.expressive_look_wide), extras.expressiveWide) { extras.onExpressiveWideChange(true) }
+                            }
+                            Text(
+                                text = stringResource(if (extras.expressiveWide) R.string.set_expressive_wide_desc else R.string.set_expressive_square_desc),
+                                color = PlayerColors.TextSecondary,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(top = 10.dp),
+                            )
+                            if (extras.expressiveWide) {
+                                SettingsLabel(stringResource(R.string.set_island_keys), top = 14.dp)
+                                Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                                    InfinitePlayModeChip(stringResource(R.string.island_keys_clover), !extras.expressiveRoundKeys) { extras.onExpressiveRoundKeysChange(false) }
+                                    InfinitePlayModeChip(stringResource(R.string.island_keys_round), extras.expressiveRoundKeys) { extras.onExpressiveRoundKeysChange(true) }
+                                }
+                            }
+                        }
                         if (playerStyle == PlayerStyle.DIAL) {
                             SettingsLabel(stringResource(R.string.set_dial_look), top = 14.dp)
                             Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
-                                InfinitePlayModeChip(stringResource(R.string.dial_look_card), dialCard && !extras.dialMinimal) { onDialCardChange(true); extras.onDialMinimalChange(false) }
-                                InfinitePlayModeChip(stringResource(R.string.dial_look_full), !dialCard && !extras.dialMinimal) { onDialCardChange(false); extras.onDialMinimalChange(false) }
-                                InfinitePlayModeChip(stringResource(R.string.dial_look_minimal), extras.dialMinimal) { extras.onDialMinimalChange(true) }
+                                InfinitePlayModeChip(stringResource(R.string.dial_look_card), dialCard) { onDialCardChange(true) }
+                                InfinitePlayModeChip(stringResource(R.string.dial_look_full), !dialCard) { onDialCardChange(false) }
                             }
                             Text(
-                                text = stringResource(if (extras.dialMinimal) R.string.set_dial_minimal_desc else if (dialCard) R.string.set_dial_card_desc else R.string.set_dial_full_desc),
+                                text = stringResource(if (dialCard) R.string.set_dial_card_desc else R.string.set_dial_full_desc),
                                 color = PlayerColors.TextSecondary,
                                 fontSize = 12.sp,
                                 modifier = Modifier.padding(top = 10.dp),
@@ -1224,7 +1267,7 @@ private fun SettingsSectionContent(
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    androidx.compose.animation.Crossfade(targetState = Triple(playerStyle, dialCard, nowPlayingBackgroundMode), animationSpec = androidx.compose.animation.core.tween(220), label = "playerStylePreview") { (st, card, bg) -> PlayerStylePreview(st, card, bg) }
+                    androidx.compose.animation.Crossfade(targetState = PreviewKey(playerStyle, dialCard, nowPlayingBackgroundMode, extras.expressiveWide, extras.expressiveRoundKeys), animationSpec = androidx.compose.animation.core.tween(220), label = "playerStylePreview") { k -> PlayerStylePreview(k.style, k.card, k.background, island = k.island, roundKeys = k.roundKeys) }
                     Spacer(modifier = Modifier.height(12.dp))
                     SettingsCard {
                     SettingsRow(
@@ -1308,14 +1351,6 @@ private fun SettingsSectionContent(
                                 subtitle = stringResource(R.string.set_dial_dots_sub),
                                 checked = extras.dialDots,
                                 onCheckedChange = extras.onDialDotsChange,
-                                modifier = Modifier.padding(top = 16.dp),
-                            )
-                            SettingsSwitchRow(
-                                icon = AppIcons.TextSize,
-                                title = stringResource(R.string.set_disc_pixel_font),
-                                subtitle = stringResource(R.string.set_disc_pixel_font_sub),
-                                checked = extras.discFont != com.artemiy.player.ui.theme.DiscFont.STANDARD,
-                                onCheckedChange = { on -> extras.onDiscFontChange(if (on) com.artemiy.player.ui.theme.DiscFont.DOTGOTHIC else com.artemiy.player.ui.theme.DiscFont.STANDARD) },
                                 modifier = Modifier.padding(top = 16.dp),
                             )
                         }
@@ -1572,12 +1607,6 @@ private val THIRD_PARTY = listOf(
         authors = "The Murecho Project Authors",
         license = "SIL Open Font License 1.1",
         files = listOf("murecho-ofl.txt"),
-    ),
-    ThirdPartyComponent(
-        name = "DotGothic16 (cut down)",
-        authors = "The DotGothic16 Project Authors (Fontworks)",
-        license = "SIL Open Font License 1.1",
-        files = listOf("dotgothic16-ofl.txt"),
     ),
     ThirdPartyComponent(
         name = "Dela Gothic One (cut down)",

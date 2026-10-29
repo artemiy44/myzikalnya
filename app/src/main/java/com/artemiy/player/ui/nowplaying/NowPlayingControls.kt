@@ -189,8 +189,11 @@ internal fun RomanizationToggle(enabled: Boolean, onToggle: () -> Unit) {
 val LocalShowVolumeBar = androidx.compose.runtime.compositionLocalOf { true }
 val LocalShowSeekTimes = androidx.compose.runtime.compositionLocalOf { true }
 
-/** The Dial's minimal look is chosen (it ignores the card / full-screen choice). */
-val LocalDialMinimal = androidx.compose.runtime.compositionLocalOf { false }
+/** The expressive player is in its "cover across the top" look. */
+val LocalExpressiveWide = androidx.compose.runtime.compositionLocalOf { false }
+
+/** ...and its skip keys are plain soft squares rather than the clover. */
+val LocalExpressiveRoundKeys = androidx.compose.runtime.compositionLocalOf { false }
 
 /** The Dial shows its time as rows of pixels (Settings → Player). */
 val LocalDialDots = androidx.compose.runtime.compositionLocalOf { false }

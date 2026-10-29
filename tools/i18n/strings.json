@@ -215,9 +215,9 @@
   "ru_x": "Ну вот, всё готово!"
  },
  "bye_2": {
-  "en": "Mixes and weekly recaps need about nine days to learn the taste.",
+  "en": "Mixes and weekly recaps need a few days of listening to learn your taste.",
   "en_x": "Mixes and recaps need about nine days to suss out the taste.",
-  "ru": "Миксам и итогам недели нужно около девяти дней, чтобы понять вкус.",
+  "ru": "Миксам и итогам недели нужно несколько дней прослушивания, чтобы узнать твой вкус.",
   "ru_x": "Миксам и итогам недели нужно дней девять, чтобы распробовать вкус."
  },
  "bye_3": {
@@ -231,6 +231,18 @@
   "en_x": "Enjoy the tunes. Cheers!",
   "ru": "Приятного прослушивания!",
   "ru_x": "Приятного прослушивания!"
+ },
+ "bye_g1": {
+  "en": "Hold a lyric line — a card to share comes up.",
+  "ru": "Удержи строку песни — появится открытка, которой можно поделиться."
+ },
+ "bye_g2": {
+  "en": "Pull the queue down at its top — the history of what played appears.",
+  "ru": "Потяни очередь вниз, когда она наверху — откроется история того, что играло."
+ },
+ "bye_g3": {
+  "en": "Hold any song in a list — its menu opens.",
+  "ru": "Удержи любую песню в списке — откроется её меню."
  },
  "cancel": {
   "en": "Cancel",
@@ -438,10 +450,6 @@
   "en": "Full screen",
   "ru": "На весь экран"
  },
- "dial_look_minimal": {
-  "en": "Minimal",
-  "ru": "Минимум"
- },
  "disc_n": {
   "en": "Disc %1$s",
   "ru": "Диск %1$s"
@@ -465,6 +473,14 @@
  "endless_play": {
   "en": "Endless play",
   "ru": "Бесконечное воспроизведение"
+ },
+ "expressive_look_square": {
+  "en": "Standard",
+  "ru": "Обычный"
+ },
+ "expressive_look_wide": {
+  "en": "Island",
+  "ru": "Остров"
  },
  "fade_long": {
   "en": "Long",
@@ -635,6 +651,14 @@
  "info_year": {
   "en": "Year",
   "ru": "Год выпуска"
+ },
+ "island_keys_clover": {
+  "en": "Clover",
+  "ru": "Клевер"
+ },
+ "island_keys_round": {
+  "en": "Rounded",
+  "ru": "Скруглённые"
  },
  "lang_chinese": {
   "en": "Chinese",
@@ -929,9 +953,21 @@
   "en": "Often played",
   "ru": "Часто слушаешь"
  },
+ "onb_accent": {
+  "en": "Accent colour",
+  "ru": "Цвет акцента"
+ },
  "onb_allow": {
   "en": "Allow",
   "ru": "Разрешить"
+ },
+ "onb_colours_text": {
+  "en": "Light or dark, and the colour the app wears. More palettes, fonts and icons are in the settings.",
+  "ru": "Светлая или тёмная тема и цвет, в который одето приложение. Больше палитр, шрифтов и значков — в настройках."
+ },
+ "onb_colours_title": {
+  "en": "Colours",
+  "ru": "Цвета"
  },
  "onb_folders_text": {
   "en": "Music folders can be picked here — then ringtones, voice notes and other sounds stay out of the library. With nothing picked, everything is found.",
@@ -956,6 +992,34 @@
  "onb_look_title": {
   "en": "Look",
   "ru": "Внешний вид"
+ },
+ "onb_lyrics_allow": {
+  "en": "Allow access to lyric files",
+  "ru": "Разрешить доступ к файлам с текстами"
+ },
+ "onb_lyrics_allowed": {
+  "en": "Access to lyric files is on",
+  "ru": "Доступ к файлам с текстами включён"
+ },
+ "onb_lyrics_checking": {
+  "en": "Looking through the files…",
+  "ru": "Просматриваю файлы…"
+ },
+ "onb_lyrics_count": {
+  "en": "songs with lyrics",
+  "ru": "песен с текстами"
+ },
+ "onb_lyrics_roman": {
+  "en": "Listening to Japanese, Korean or Chinese? The button in the lyrics' corner shows the Latin spelling above the lines, and hides it again.",
+  "ru": "Слушаешь японское, корейское или китайское? Кнопка в углу текста показывает латиницу над строками и снова прячет её."
+ },
+ "onb_lyrics_text": {
+  "en": "Lyrics are read from the song's tags, or from an .lrc / .elrc file with the same name next to it. For those files the app needs access to all files.",
+  "ru": "Тексты берутся из тегов песни или из файла .lrc / .elrc с тем же именем рядом. Для таких файлов плееру нужен доступ ко всем файлам."
+ },
+ "onb_lyrics_title": {
+  "en": "Song lyrics",
+  "ru": "Тексты песен"
  },
  "onb_music_text": {
   "en": "To find the songs, access to the music on this device is needed. Files never leave it — everything stays here.",
@@ -1000,6 +1064,22 @@
  "onb_player_expressive_hint": {
   "en": "Bold, in the spirit of Material: big buttons, a wavy bar and the queue at the bottom.",
   "ru": "Смелый, в духе Material: крупные кнопки, волнистая полоса и очередь снизу."
+ },
+ "onb_restore": {
+  "en": "Restore backup",
+  "ru": "Восстановить"
+ },
+ "onb_restore_choose": {
+  "en": "Choose file",
+  "ru": "Выбрать файл"
+ },
+ "onb_restore_text": {
+  "en": "This skips the welcome: playlists, listening stats and settings come back from the file. The app needs access to your music first, to find the songs.",
+  "ru": "Приветствие при этом пропустится: плейлисты, статистика и настройки вернутся из файла. Сначала плееру нужен доступ к музыке, чтобы найти песни."
+ },
+ "onb_restore_title": {
+  "en": "Restore from a backup?",
+  "ru": "Восстановить из копии?"
  },
  "onb_start": {
   "en": "Start",
@@ -1211,6 +1291,14 @@
   "en": "Replace the queue?",
   "ru": "Заменить очередь?"
  },
+ "rg_album": {
+  "en": "By album",
+  "ru": "По альбому"
+ },
+ "rg_track": {
+  "en": "By song",
+  "ru": "По песне"
+ },
  "sat_muted": {
   "en": "Muted",
   "ru": "Приглушённый"
@@ -1387,18 +1475,6 @@
   "en": "Look",
   "ru": "Вид"
  },
- "set_dial_minimal_desc": {
-  "en": "Just the title, a big plate, the time and three big buttons. Tap the plate for the queue, hold it for the lyrics.",
-  "ru": "Только название, большая пластинка, время и три больших кнопки. Нажми на пластинку — очередь, удержи — текст."
- },
- "set_disc_pixel_font": {
-  "en": "Pixel font",
-  "ru": "Пиксельный шрифт"
- },
- "set_disc_pixel_font_sub": {
-  "en": "DotGothic16 for the Disc player's text — the lyrics keep their own",
-  "ru": "DotGothic16 для текста плеера Диска; текст песни остаётся со своим шрифтом"
- },
  "set_dont_split": {
   "en": "Don't split",
   "ru": "Не делить"
@@ -1426,6 +1502,14 @@
  "set_equalizer_sub": {
   "en": "Open the system one or an installed one",
   "ru": "Открыть системный или установленный"
+ },
+ "set_expressive_square_desc": {
+  "en": "The usual look: the title on the left, the bar and three big keys in a row under it.",
+  "ru": "Привычный вид: название слева, под ним полоска и три больших кнопки в ряд."
+ },
+ "set_expressive_wide_desc": {
+  "en": "The title in the middle, the controls on an island with the wave bar and clover keys, and three small buttons below.",
+  "ru": "Название по центру, управление на «острове» с волнистой полоской и кнопками-клеверами, под ним три маленькие кнопки."
  },
  "set_fade": {
   "en": "Soft transitions",
@@ -1490,6 +1574,10 @@
  "set_icons_tabler": {
   "en": "Thinner and crisper — closer to Apple Music",
   "ru": "Тоньше и чётче — ближе к Apple Music"
+ },
+ "set_island_keys": {
+  "en": "Skip keys",
+  "ru": "Кнопки «назад» и «вперёд»"
  },
  "set_kept_artists": {
   "en": "Artists",
@@ -1639,6 +1727,14 @@
  "set_quality_badge_sub": {
   "en": "Shows the format of the playing song in the player — FLAC, MP3 320 kbps…",
   "ru": "Показывает формат играющей песни в плеере: FLAC, MP3 320 кбит/с…"
+ },
+ "set_replaygain": {
+  "en": "Volume levelling (ReplayGain)",
+  "ru": "Выравнивание громкости (ReplayGain)"
+ },
+ "set_replaygain_desc": {
+  "en": "Turns loud songs down using the ReplayGain tags in the files; files without the tags are left as they are. Nothing is written to your files.",
+  "ru": "Приглушает громкие песни по тегам ReplayGain в файлах; файлы без тегов остаются как есть. В твои файлы ничего не записывается."
  },
  "set_rescan": {
   "en": "Rescan the library",
