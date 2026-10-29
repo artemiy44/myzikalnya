@@ -205,7 +205,7 @@ internal fun LyricsView(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .fadeInList(listState, index, topFadePx, bottomFadePx, bottomFadeSpan)
+                            .fadeInListByLine(listState, index, topFadePx, bottomFadePx, bottomFadeSpan)
                             .combinedClickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null,
@@ -355,7 +355,7 @@ internal fun LyricsView(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .fadeInList(listState, index, topFadePx, bottomFadePx, bottomFadeSpan)
+                            .fadeInListByLine(listState, index, topFadePx, bottomFadePx, bottomFadeSpan)
                             .combinedClickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null,

@@ -486,6 +486,7 @@ class PlaybackViewModel(app: Application) : AndroidViewModel(app) {
     /** The disc being wound by hand: speed and pitch move together, like a record sped up or slowed down. 1 = normal. */
     fun scrubRate(rate: Float) {
         val c = controller ?: return
+        if (!ScrubSound.enabled && rate != 1f) return
         val r = rate.coerceIn(0.5f, 2f)
         if (c.playbackParameters.speed != r) c.playbackParameters = PlaybackParameters(r, r)
     }
@@ -862,4 +863,6 @@ private const val ROMANIZER_WARM_UP_DELAY_MS = 4_000L
 /** How the Dial's plate reaches the player while a finger winds it (the plate sits too many layers above the view model to pass it down). */
 object ScrubSound {
     var set: ((Float) -> Unit)? = null
+    /** Off in Settings: the song keeps its pitch while the plate is wound. */
+    @Volatile var enabled = true
 }

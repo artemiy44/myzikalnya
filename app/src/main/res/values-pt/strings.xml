@@ -105,6 +105,7 @@
     <string name="device_usb_headphones">Fones USB</string>
     <string name="dial_look_card">Cartão</string>
     <string name="dial_look_full">Tela cheia</string>
+    <string name="dial_look_minimal">Mínimo</string>
     <string name="disc_n">Disco %1$s</string>
     <string name="disc_sub_home">Hoje</string>
     <string name="disc_sub_library">Sua</string>
@@ -305,10 +306,17 @@
     <string name="set_clear_history_sub">As músicas acima da fila. Mixes e o resumo continuam como estão</string>
     <string name="set_colors">Cores e destaque</string>
     <string name="set_colors_sub">Fundos dos temas claro e escuro, cor de destaque</string>
+    <string name="set_cover_corner">Cantos da capa</string>
+    <string name="set_cover_corner_default">Padrão</string>
     <string name="set_dark_bg">Fundo do tema escuro</string>
     <string name="set_dial_card_desc">O fundo (o desfoque escolhido; sem desfoque, a cor do álbum e uma imagem do gênero) fica num cartão no topo; o resto segue nas cores do app.</string>
+    <string name="set_dial_dots">Tempo em pixels</string>
+    <string name="set_dial_dots_sub">Fileiras de quadradinhos em vez de números grandes: mostram a duração da música e podem ser tocadas ou arrastadas</string>
     <string name="set_dial_full_desc">O fundo preenche a tela toda; sem desfoque, apenas a cor de fundo do app, com o destaque só no botão de reproduzir.</string>
     <string name="set_dial_look">Aparência</string>
+    <string name="set_dial_minimal_desc">Só o título, um disco grande, o tempo e três botões grandes. Toque no disco para a fila, segure para a letra.</string>
+    <string name="set_disc_pixel_font">Fonte pixelada</string>
+    <string name="set_disc_pixel_font_sub">DotGothic16 para o texto do player Disco; a letra mantém a sua</string>
     <string name="set_dont_split">Não separar</string>
     <string name="set_endless">Reprodução sem fim</string>
     <string name="set_endless_desc">Quando a fila está acabando e o botão \"∞\" está ligado no player — com o que completá-la.</string>
@@ -324,6 +332,8 @@
     <string name="set_general_sub">Aba inicial, separação de artistas</string>
     <string name="set_glass_sliders">Barras suaves</string>
     <string name="set_glass_sliders_sub">Player clássico: barras de tempo e volume grossas e levemente translúcidas que crescem sob o dedo</string>
+    <string name="set_haptics">Resposta vibratória</string>
+    <string name="set_haptics_sub">Toques curtos em botões, linhas e disco</string>
     <string name="set_hero_classic_desc">A imagem desvanece no fundo da página</string>
     <string name="set_hero_style">Páginas com imagem</string>
     <string name="set_hero_vivid_desc">A cor da imagem escorre pela página e depois se funde com o fundo</string>
@@ -355,6 +365,8 @@
     <string name="set_no_folders_yet">Nenhuma pasta encontrada ainda — é preciso escanear a biblioteca de novo.</string>
     <string name="set_notif_button">Segundo botão na notificação</string>
     <string name="set_notif_button_desc">Ao lado de «Aleatório» no player do sistema.</string>
+    <string name="set_plate_pitch">Mudança de tom ao girar</string>
+    <string name="set_plate_pitch_sub">A música acelera e desacelera com a sua mão no disco</string>
     <string name="set_playback">Reprodução</string>
     <string name="set_playback_sub">Equalizador, reprodução sem fim</string>
     <string name="set_player_background">Fundo do player</string>
@@ -373,6 +385,10 @@
     <string name="set_screen_corners">Cantos da tela</string>
     <string name="set_screen_corners_desc">Este telefone não informa ao app o quanto a tela é arredondada. Ajuste para que o cartão e os botões do player Disco acompanhem os cantos.</string>
     <string name="set_search_names">Pesquisar nomes</string>
+    <string name="set_show_times">Tempo sob a barra</string>
+    <string name="set_show_times_sub">Tempo decorrido e restante no player clássico</string>
+    <string name="set_show_volume">Barra de volume</string>
+    <string name="set_show_volume_sub">Sob os botões no player clássico</string>
     <string name="set_show_welcome">Mostrar as boas-vindas de novo</string>
     <string name="set_split_now">Hoje separados em vários artistas</string>
     <string name="set_start_tab">Abrir ao iniciar</string>

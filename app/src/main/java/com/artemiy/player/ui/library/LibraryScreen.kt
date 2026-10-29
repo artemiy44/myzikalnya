@@ -141,7 +141,6 @@ fun LibraryScreen(
     // Where an artist's / year's / genre's page was scrolled to, while an album opened from it is
     // on top; dropped once back at the tabs.
     val detailScroll = remember { mutableMapOf<String, androidx.compose.foundation.lazy.LazyListState>() }
-    if (backStack.size <= 1) detailScroll.clear()
     // The same for how far each page's header has folded (the page is taken apart while another is on top).
     // How far each page's header has folded. Saved, like the pages' scroll positions are: leaving the tab
     // takes the screen apart, and a header that forgot its fold would come back big over a scrolled list.
@@ -155,7 +154,13 @@ fun LibraryScreen(
             },
         ),
     ) { androidx.compose.runtime.mutableStateMapOf<String, Float>() }
-    headerFolds.keys.retainAll(backStack.map { it.toString() }.toSet())
+    // Dropped only once the page that's leaving has finished its slide: cleared at once, a page closed
+    // from far down (by tapping the Library tab) would lose its scroll and header fold mid-animation and jump to the top.
+    LaunchedEffect(backStack.toList()) {
+        kotlinx.coroutines.delay(700)
+        if (backStack.size <= 1) detailScroll.clear()
+        headerFolds.keys.retainAll(backStack.map { it.toString() }.toSet())
+    }
     // Hoisted so scroll position survives navigating into a detail screen and back.
     val artistsListState = rememberLazyListState()
     val artistsGridState = rememberLazyGridState()

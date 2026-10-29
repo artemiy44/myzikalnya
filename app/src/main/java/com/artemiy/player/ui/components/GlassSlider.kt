@@ -123,7 +123,7 @@ fun GlassSlider(
                     modifier = Modifier
                         .fillMaxWidth(fraction)
                         .fillMaxHeight()
-                        .background(ink.copy(alpha = 0.62f + 0.30f * strength)),
+                        .background(ink.copy(alpha = 0.62f + 0.30f * strength), RoundedCornerShape(thickness / 2)),
                 )
             }
         }

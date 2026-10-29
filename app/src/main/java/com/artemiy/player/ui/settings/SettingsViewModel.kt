@@ -108,6 +108,14 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         private set
     var qualityBadge by mutableStateOf(false)
     var glassSliders by mutableStateOf(false)
+    var haptics by mutableStateOf(true)
+    var dialMinimal by mutableStateOf(false)
+    var dialDots by mutableStateOf(false)
+    var discFont by mutableStateOf(com.artemiy.player.ui.theme.DiscFont.STANDARD)
+    var coverCornerDp by mutableStateOf(-1)
+    var platePitch by mutableStateOf(true)
+    var showVolumeBar by mutableStateOf(true)
+    var showSeekTimes by mutableStateOf(true)
         private set
     /** How the songs inside folders are ordered — one choice for every folder, remembered. */
     private val sortNames = androidx.compose.runtime.mutableStateMapOf<String, String>()
@@ -219,6 +227,14 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { repository.fadeMode.collect { fadeMode = it } }
         viewModelScope.launch { repository.qualityBadge.collect { qualityBadge = it } }
         viewModelScope.launch { repository.glassSliders.collect { glassSliders = it } }
+        viewModelScope.launch { repository.haptics.collect { haptics = it } }
+        viewModelScope.launch { repository.dialMinimal.collect { dialMinimal = it } }
+        viewModelScope.launch { repository.dialDots.collect { dialDots = it } }
+        viewModelScope.launch { repository.discFont.collect { name -> discFont = runCatching { com.artemiy.player.ui.theme.DiscFont.valueOf(name) }.getOrDefault(com.artemiy.player.ui.theme.DiscFont.STANDARD) } }
+        viewModelScope.launch { repository.coverCornerDp.collect { coverCornerDp = it } }
+        viewModelScope.launch { repository.platePitch.collect { platePitch = it } }
+        viewModelScope.launch { repository.showVolumeBar.collect { showVolumeBar = it } }
+        viewModelScope.launch { repository.showSeekTimes.collect { showSeekTimes = it } }
         viewModelScope.launch {
             repository.folderSort.collect { name -> folderSort = com.artemiy.player.ui.library.FolderSort.entries.firstOrNull { it.name == name } ?: com.artemiy.player.ui.library.FolderSort.RECENT }
         }
@@ -380,6 +396,15 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         fadeMode = mode
         viewModelScope.launch { repository.setFadeMode(mode) }
     }
+
+    fun updateCoverCornerDp(dp: Int) { coverCornerDp = dp; viewModelScope.launch { repository.setCoverCornerDp(dp) } }
+    fun updateDiscFont(font: com.artemiy.player.ui.theme.DiscFont) { discFont = font; viewModelScope.launch { repository.setDiscFont(font.name) } }
+    fun updateDialDots(on: Boolean) { dialDots = on; viewModelScope.launch { repository.setDialDots(on) } }
+    fun updateDialMinimal(on: Boolean) { dialMinimal = on; viewModelScope.launch { repository.setDialMinimal(on) } }
+    fun updateHaptics(on: Boolean) { haptics = on; viewModelScope.launch { repository.setHaptics(on) } }
+    fun updatePlatePitch(on: Boolean) { platePitch = on; viewModelScope.launch { repository.setPlatePitch(on) } }
+    fun updateShowVolumeBar(on: Boolean) { showVolumeBar = on; viewModelScope.launch { repository.setShowVolumeBar(on) } }
+    fun updateShowSeekTimes(on: Boolean) { showSeekTimes = on; viewModelScope.launch { repository.setShowSeekTimes(on) } }
 
     fun updateGlassSliders(on: Boolean) {
         glassSliders = on

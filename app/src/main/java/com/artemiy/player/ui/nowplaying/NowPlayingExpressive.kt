@@ -166,7 +166,8 @@ internal fun ExpressiveNowPlaying(
     /** "Диск" with its background in a card up top (otherwise over the whole screen). */
     dialCard: Boolean = true,
 ) {
-    val cardLook = dial && dialCard
+    val dialMinimal = dial && LocalDialMinimal.current
+    val cardLook = dial && dialCard && !dialMinimal
     var showLyrics by memory::expressiveLyrics
     var showAddToQueuePicker by remember { mutableStateOf(false) }
     // The "Диск" style has no bottom sheet: its queue is a panel opened by a button.
@@ -234,7 +235,65 @@ internal fun ExpressiveNowPlaying(
             // A little extra lift, so the bar doesn't sit right on the screen's bottom edge.
             val barHeight = (if (dial) 8.dp else 78.dp) + navBottom
 
-            if (dial) DialContent(
+            val dialQueuePanel: @Composable (Modifier) -> Unit = { panelModifier ->
+                    DialQueuePanel(
+                        // Lit modes wear the app's accent where the play tile does (the card, or no blur);
+                        // over a full-screen blur they stay plain, like the white play tile.
+                        accentModes = cardLook || backgroundMode == NowPlayingBackgroundMode.NONE,
+                        manualQueue = manualQueue,
+                        continueQueue = continueQueue,
+                        shuffleEnabled = shuffleEnabled,
+                        repeatEnabled = repeatEnabled,
+                        infinitePlayEnabled = infinitePlayEnabled,
+                        onQueueItemClick = onQueueItemClick,
+                        onClearManualQueue = onClearManualQueue,
+                        onMoveInQueue = onMoveInQueue,
+                        onRemoveFromQueue = onRemoveFromQueue,
+                        onToggleShuffle = onToggleShuffle,
+                        onToggleRepeat = onToggleRepeat,
+                        onToggleInfinitePlay = onToggleInfinitePlay,
+                        onAddSongsClick = { showAddToQueuePicker = true },
+                        songActions = remember(onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist) {
+                            QueueSongActions(onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
+                        },
+                        modifier = panelModifier,
+                        flat = dialMinimal,
+                    )
+                }
+
+            if (dialMinimal) DialMinimalContent(
+                song = song,
+                isPlaying = isPlaying,
+                positionMs = positionMs,
+                durationMs = durationMs,
+                showLyrics = showLyrics,
+                lyrics = lyrics,
+                lyricsRomanization = lyricsRomanization,
+                lyricsLoading = lyricsLoading,
+                lyricsTapPlays = lyricsTapPlays,
+                onSeek = onSeek,
+                onTogglePlayPause = onTogglePlayPause,
+                onSkipNext = onSkipNext,
+                onSkipPrevious = onSkipPrevious,
+                onGoToAlbum = onGoToAlbum,
+                onGoToArtist = onGoToArtist,
+                onPlayNext = onPlayNext,
+                onAddToQueue = onAddToQueue,
+                onAddToPlaylist = onAddToPlaylist,
+                onLineLongClick = { shareFrom = it },
+                expand = expand,
+                active = active,
+                barHeight = barHeight,
+                statusTop = statusTop,
+                playingFrom = playingFrom,
+                backgroundMode = backgroundMode,
+                onClose = onClose,
+                onToggleRomanization = onToggleLyricsRomanization,
+                onToggleLyrics = { showLyrics = !showLyrics },
+                queueOpen = dialQueueOpen,
+                onQueueOpenChange = { dialQueueOpen = it; memory.expressiveQueueOpen = it },
+                queuePanel = dialQueuePanel,
+            ) else if (dial) DialContent(
                 song = song,
                 isPlaying = isPlaying,
                 positionMs = positionMs,
@@ -268,30 +327,7 @@ internal fun ExpressiveNowPlaying(
                 onDeviceClick = { openOutputSwitcher(context) },
                 queueOpen = dialQueueOpen,
                 onQueueOpenChange = { dialQueueOpen = it; memory.expressiveQueueOpen = it },
-                queuePanel = { panelModifier ->
-                    DialQueuePanel(
-                        // Lit modes wear the app's accent where the play tile does (the card, or no blur);
-                        // over a full-screen blur they stay plain, like the white play tile.
-                        accentModes = cardLook || backgroundMode == NowPlayingBackgroundMode.NONE,
-                        manualQueue = manualQueue,
-                        continueQueue = continueQueue,
-                        shuffleEnabled = shuffleEnabled,
-                        repeatEnabled = repeatEnabled,
-                        infinitePlayEnabled = infinitePlayEnabled,
-                        onQueueItemClick = onQueueItemClick,
-                        onClearManualQueue = onClearManualQueue,
-                        onMoveInQueue = onMoveInQueue,
-                        onRemoveFromQueue = onRemoveFromQueue,
-                        onToggleShuffle = onToggleShuffle,
-                        onToggleRepeat = onToggleRepeat,
-                        onToggleInfinitePlay = onToggleInfinitePlay,
-                        onAddSongsClick = { showAddToQueuePicker = true },
-                        songActions = remember(onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist) {
-                            QueueSongActions(onPlayNext, onAddToQueue, onAddToPlaylist, onGoToAlbum, onGoToArtist)
-                        },
-                        modifier = panelModifier,
-                    )
-                },
+                queuePanel = dialQueuePanel,
             ) else Column(modifier = Modifier.fillMaxSize()) {
                 // Everything above the title: the cover sitting at the bottom of this space, or the
                 // lyrics filling all of it.
@@ -326,7 +362,8 @@ internal fun ExpressiveNowPlaying(
                             // A rounded square as wide as the seek bar, centered in the space above
                             // the title; on pause it eases back a little and rounds off more.
                             val coverScale by animateFloatAsState(if (isPlaying) 1f else 0.92f, spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessLow), label = "coverScale")
-                            val coverCorner by animateDpAsState(if (isPlaying) 28.dp else 40.dp, spring(stiffness = Spring.StiffnessLow), label = "coverCorner")
+                            val chosenCorner = LocalCoverCorner.current
+                            val coverCorner by animateDpAsState(chosenCorner ?: if (isPlaying) 28.dp else 40.dp, spring(stiffness = Spring.StiffnessLow), label = "coverCorner")
                             BoxWithConstraints(
                                 modifier = Modifier
                                     .fillMaxSize()

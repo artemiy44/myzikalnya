@@ -105,6 +105,7 @@
     <string name="device_usb_headphones">Słuchawki USB</string>
     <string name="dial_look_card">Karta</string>
     <string name="dial_look_full">Pełny ekran</string>
+    <string name="dial_look_minimal">Minimum</string>
     <string name="disc_n">Płyta %1$s</string>
     <string name="disc_sub_home">Dziś</string>
     <string name="disc_sub_library">Twoja</string>
@@ -305,10 +306,17 @@
     <string name="set_clear_history_sub">Utwory nad kolejką. Miksy i podsumowanie tygodnia pozostają bez zmian</string>
     <string name="set_colors">Kolory i akcent</string>
     <string name="set_colors_sub">Tła jasnego i ciemnego motywu, kolor akcentu</string>
+    <string name="set_cover_corner">Rogi okładki</string>
+    <string name="set_cover_corner_default">Domyślnie</string>
     <string name="set_dark_bg">Tło ciemnego motywu</string>
     <string name="set_dial_card_desc">Tło (wybrane rozmycie; bez rozmycia kolor albumu i obrazek gatunku) jest w karcie u góry; reszta zostaje w kolorach aplikacji.</string>
+    <string name="set_dial_dots">Czas w pikselach</string>
+    <string name="set_dial_dots_sub">Rzędy małych kwadratów zamiast dużych cyfr: pokazują długość utworu, można je dotykać i przeciągać</string>
     <string name="set_dial_full_desc">Tło wypełnia cały ekran; bez rozmycia tylko kolor tła aplikacji, akcent wyłącznie na przycisku odtwarzania.</string>
     <string name="set_dial_look">Wygląd</string>
+    <string name="set_dial_minimal_desc">Tylko tytuł, duży talerz, czas i trzy duże przyciski. Dotknij talerza, by otworzyć kolejkę, przytrzymaj, by zobaczyć tekst.</string>
+    <string name="set_disc_pixel_font">Czcionka pikselowa</string>
+    <string name="set_disc_pixel_font_sub">DotGothic16 dla tekstu odtwarzacza Dysk; tekst piosenki zachowuje własną</string>
     <string name="set_dont_split">Nie dziel</string>
     <string name="set_endless">Odtwarzanie bez końca</string>
     <string name="set_endless_desc">Gdy kolejka dobiega końca, a w odtwarzaczu włączony jest przycisk \"∞\" — czym ją uzupełniać.</string>
@@ -324,6 +332,8 @@
     <string name="set_general_sub">Karta startowa, dzielenie wykonawców</string>
     <string name="set_glass_sliders">Miękkie paski</string>
     <string name="set_glass_sliders_sub">Klasyczny odtwarzacz: grube, lekko przezroczyste paski czasu i głośności, które rosną pod palcem</string>
+    <string name="set_haptics">Wibracje przy dotyku</string>
+    <string name="set_haptics_sub">Krótkie impulsy na przyciskach, wierszach i talerzu</string>
     <string name="set_hero_classic_desc">Obraz zanika w tle strony</string>
     <string name="set_hero_style">Strony z obrazem</string>
     <string name="set_hero_vivid_desc">Kolor obrazu spływa w dół strony, a potem przechodzi w tło</string>
@@ -355,6 +365,8 @@
     <string name="set_no_folders_yet">Nie znaleziono jeszcze folderów — trzeba przeskanować bibliotekę.</string>
     <string name="set_notif_button">Drugi przycisk w powiadomieniu</string>
     <string name="set_notif_button_desc">Obok „Losowo” w systemowym odtwarzaczu.</string>
+    <string name="set_plate_pitch">Zmiana tonu przy kręceniu</string>
+    <string name="set_plate_pitch_sub">Utwór przyspiesza i zwalnia razem z twoją ręką na talerzu</string>
     <string name="set_playback">Odtwarzanie</string>
     <string name="set_playback_sub">Korektor, odtwarzanie bez końca</string>
     <string name="set_player_background">Tło odtwarzacza</string>
@@ -373,6 +385,10 @@
     <string name="set_screen_corners">Zaokrąglenie ekranu</string>
     <string name="set_screen_corners_desc">Ten telefon nie mówi aplikacji, jak bardzo jest zaokrąglony jego ekran. Ustaw, by karta i przyciski odtwarzacza Dysk szły równo z rogami.</string>
     <string name="set_search_names">Szukaj nazw</string>
+    <string name="set_show_times">Czas pod paskiem</string>
+    <string name="set_show_times_sub">Czas, który upłynął i który został, w klasycznym odtwarzaczu</string>
+    <string name="set_show_volume">Pasek głośności</string>
+    <string name="set_show_volume_sub">Pod przyciskami w klasycznym odtwarzaczu</string>
     <string name="set_show_welcome">Pokaż powitanie ponownie</string>
     <string name="set_split_now">Obecnie dzielone na kilku wykonawców</string>
     <string name="set_start_tab">Otwieraj przy starcie</string>

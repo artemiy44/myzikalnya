@@ -109,6 +109,7 @@
     <string name="device_usb_headphones">USB headphones</string>
     <string name="dial_look_card">Card</string>
     <string name="dial_look_full">Full screen</string>
+    <string name="dial_look_minimal">Minimal</string>
     <string name="disc_n">Disc %1$s</string>
     <string name="disc_sub_home">Tonight</string>
     <string name="disc_sub_library">Yours</string>
@@ -319,12 +320,19 @@
     <string name="set_clear_history_sub">The songs shown above the queue. Mixes and the recap stay as they are</string>
     <string name="set_colors">Colors &amp; accent</string>
     <string name="set_colors_sub">Backgrounds of the light and dark themes, accent colour</string>
+    <string name="set_cover_corner">Cover corners</string>
+    <string name="set_cover_corner_default">Default</string>
     <string name="set_dark_bg">Dark theme background</string>
     <string name="set_debug">Debug</string>
     <string name="set_debug_sub">Tools for testing, only in test builds</string>
     <string name="set_dial_card_desc">The background (the blur you picked; with no blur, the album\'s colour and its genre picture) sits in a card up top; the rest stays in the app\'s own colours.</string>
+    <string name="set_dial_dots">Time as pixels</string>
+    <string name="set_dial_dots_sub">Rows of small squares instead of the big digits: they show how long the song is, and can be tapped or dragged</string>
     <string name="set_dial_full_desc">The background fills the whole screen; with no blur, just the app\'s background colour, the accent only on the play button.</string>
     <string name="set_dial_look">Look</string>
+    <string name="set_dial_minimal_desc">Just the title, a big plate, the time and three big buttons. Tap the plate for the queue, hold it for the lyrics.</string>
+    <string name="set_disc_pixel_font">Pixel font</string>
+    <string name="set_disc_pixel_font_sub">DotGothic16 for the Disc player\'s text — the lyrics keep their own</string>
     <string name="set_dont_split">Don\'t split</string>
     <string name="set_endless">Endless play</string>
     <string name="set_endless_desc">When the queue is running out and the \"∞\" button is on in the player — what to top it up with.</string>
@@ -340,6 +348,8 @@
     <string name="set_general_sub">Start tab, splitting artists</string>
     <string name="set_glass_sliders">Soft bars</string>
     <string name="set_glass_sliders_sub">Classic player: thick, slightly see-through seek and volume bars that swell under your finger</string>
+    <string name="set_haptics">Vibration feedback</string>
+    <string name="set_haptics_sub">Short ticks on buttons, rows and the plate</string>
     <string name="set_hero_classic_desc">The picture fades into the page background</string>
     <string name="set_hero_style">Picture pages</string>
     <string name="set_hero_vivid_desc">The picture\'s colour flows on down the page, then settles into the background</string>
@@ -371,6 +381,8 @@
     <string name="set_no_folders_yet">No folders found yet — the library needs a rescan.</string>
     <string name="set_notif_button">Second button in the notification</string>
     <string name="set_notif_button_desc">Next to shuffle in the system media player.</string>
+    <string name="set_plate_pitch">Pitch change when winding</string>
+    <string name="set_plate_pitch_sub">The song speeds up and slows down with your hand on the plate</string>
     <string name="set_playback">Playback</string>
     <string name="set_playback_sub">Equalizer, endless play</string>
     <string name="set_player_background">Player background</string>
@@ -389,6 +401,10 @@
     <string name="set_screen_corners">Screen corners</string>
     <string name="set_screen_corners_desc">This phone doesn\'t tell the app how round its screen is. Set it so the card and the buttons of the Dial player follow the corners.</string>
     <string name="set_search_names">Search the names</string>
+    <string name="set_show_times">Time under the bar</string>
+    <string name="set_show_times_sub">Elapsed and remaining time in the classic player</string>
+    <string name="set_show_volume">Volume bar</string>
+    <string name="set_show_volume_sub">Under the buttons in the classic player</string>
     <string name="set_show_welcome">Show the welcome again</string>
     <string name="set_split_now">Currently split into several artists</string>
     <string name="set_start_tab">Open on start</string>

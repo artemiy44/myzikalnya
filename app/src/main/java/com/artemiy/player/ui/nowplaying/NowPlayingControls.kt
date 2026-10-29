@@ -185,6 +185,19 @@ internal fun RomanizationToggle(enabled: Boolean, onToggle: () -> Unit) {
     }
 }
 
+/** The classic player's volume bar and the times under its seek bar can be switched off (Settings → Player). */
+val LocalShowVolumeBar = androidx.compose.runtime.compositionLocalOf { true }
+val LocalShowSeekTimes = androidx.compose.runtime.compositionLocalOf { true }
+
+/** The Dial's minimal look is chosen (it ignores the card / full-screen choice). */
+val LocalDialMinimal = androidx.compose.runtime.compositionLocalOf { false }
+
+/** The Dial shows its time as rows of pixels (Settings → Player). */
+val LocalDialDots = androidx.compose.runtime.compositionLocalOf { false }
+
+/** The big cover's corner radius chosen in Settings (classic and expressive players); null = the style's own. */
+val LocalCoverCorner = androidx.compose.runtime.compositionLocalOf<androidx.compose.ui.unit.Dp?> { null }
+
 @Composable
 internal fun VolumeRow(modifier: Modifier = Modifier) {
     val context = LocalContext.current
@@ -256,8 +269,8 @@ internal fun BottomQuickActionsRow(
     onQueueClick: () -> Unit,
 ) {
     Row(
-        // Side buttons pulled in a little toward the middle one.
-        modifier = modifier.fillMaxWidth().padding(horizontal = 22.dp),
+        // Side buttons pulled in toward the middle one: their outer edges stand under the ends of the volume bar.
+        modifier = modifier.fillMaxWidth().padding(start = 28.dp, end = 30.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.Top,
     ) {
@@ -454,7 +467,7 @@ internal fun SeekBar(positionMs: Long, durationMs: Long, onSeek: (Long) -> Unit,
             },
             valueRange = 0f..safeDuration.toFloat(),
         )
-        Row(
+        if (LocalShowSeekTimes.current) Row(
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {

@@ -1,5 +1,7 @@
 package com.artemiy.player.ui.nowplaying
 
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import com.artemiy.player.R
@@ -16,6 +18,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -65,6 +70,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -161,10 +168,15 @@ internal fun DialContent(
     // However big the text is set (system size × the app's), the Dial keeps to a size its tiles and
     // card can hold; everywhere else in the app the setting applies in full.
     val outerDensity = LocalDensity.current
+    // The text style as the rest of the app has it: the lyrics keep it whatever font the Disc is set in.
+    val usualTextStyle = androidx.compose.material3.LocalTextStyle.current
     val dialDensity = remember(outerDensity.density, outerDensity.fontScale) {
         androidx.compose.ui.unit.Density(outerDensity.density, minOf(outerDensity.fontScale, DIAL_MAX_FONT_SCALE))
     }
-    androidx.compose.runtime.CompositionLocalProvider(LocalDensity provides dialDensity) {
+    androidx.compose.runtime.CompositionLocalProvider(
+        LocalDensity provides dialDensity,
+        androidx.compose.material3.LocalTextStyle provides androidx.compose.material3.LocalTextStyle.current.let { base -> com.artemiy.player.ui.theme.LocalDiscFont.current?.let { base.copy(fontFamily = it) } ?: base },
+    ) {
     val density = LocalDensity.current
     // Winding the song with the plate makes the player blink "stopped" for a moment while it loads the
     // new spot; the play tile and the plate keep to what they showed when the finger went down, and
@@ -186,6 +198,7 @@ internal fun DialContent(
         if (winding) windHold = true
         windingNow = winding
     }
+    val dialDots = LocalDialDots.current
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     val appPalette = com.artemiy.player.ui.theme.LocalAppPalette.current
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -206,7 +219,7 @@ internal fun DialContent(
         // The same air under the grid as at its sides (16 dp), on top of the system's own bottom inset.
         val groupBottom = barHeight + 8.dp
         // Without the card the timecode runs along the top of the grid (with it, along the card's bottom).
-        val timeRow = if (card) 0.dp else 52.dp
+        val timeRow = if (card) 0.dp else if (dialDots) 78.dp else 52.dp
         val gridHeight = tile * 2 + tileGap + timeRow + (if (card) 0.dp else tileGap)
         // What sits above the grid: lyrics, the queue panel (and the card) stop short of it.
         val aboveGrid = groupBottom + gridHeight + 12.dp
@@ -252,111 +265,41 @@ internal fun DialContent(
                     // The lyrics run on behind the timecode, with no extra mask: the usual per-line fade, but it ends at the very
                     // bottom edge (card bottom / the tiles), so it plays out under the digits instead of stopping short above them.
                     Box(modifier = Modifier.fillMaxSize().padding(bottom = if (card) 0.dp else aboveGrid - timeRow - tileGap)) {
-                        LyricsView(
-                            lyrics = lyrics,
-                            positionMs = positionMs,
-                            isPlaying = isPlaying,
-                            topFadePx = { topPx },
-                            bottomFadePx = { 0 },
-                            anchorTopPx = topPx,
-                            anchorBottomPx = 0,
-                            onLineClick = { timeMs ->
-                                onSeek(timeMs)
-                                if (lyricsTapPlays && !isPlaying) onTogglePlayPause()
-                            },
-                            onLineLongClick = onLineLongClick,
-                            showRomanization = lyricsRomanization,
-                            loading = lyricsLoading,
-                            contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = contentTop + 36.dp + FADE_SPAN, bottom = FADE_SPAN),
-                            bottomFadeSpan = FADE_SPAN * 1.6f,
-                        )
+                        androidx.compose.runtime.CompositionLocalProvider(androidx.compose.material3.LocalTextStyle provides usualTextStyle) {
+                            LyricsView(
+                                lyrics = lyrics,
+                                positionMs = positionMs,
+                                isPlaying = isPlaying,
+                                topFadePx = { topPx },
+                                bottomFadePx = { 0 },
+                                anchorTopPx = topPx,
+                                anchorBottomPx = 0,
+                                onLineClick = { timeMs ->
+                                    onSeek(timeMs)
+                                    if (lyricsTapPlays && !isPlaying) onTogglePlayPause()
+                                },
+                                onLineLongClick = onLineLongClick,
+                                showRomanization = lyricsRomanization,
+                                loading = lyricsLoading,
+                                contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = contentTop + 36.dp + FADE_SPAN, bottom = FADE_SPAN),
+                                bottomFadeSpan = FADE_SPAN * 1.6f,
+                            )
+                        }
                     }
                 } else {
-                    var menuOpen by remember { mutableStateOf(false) }
-                    Box(
+                    DialTitleBlock(
+                        song = song,
+                        playingFrom = playingFrom,
+                        onGoToAlbum = onGoToAlbum,
+                        onGoToArtist = onGoToArtist,
+                        onPlayNext = onPlayNext,
+                        onAddToQueue = onAddToQueue,
+                        onAddToPlaylist = onAddToPlaylist,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(start = 24.dp, end = 24.dp, top = contentTop + (if (card) 44.dp else 52.dp))
                             .popIn(expand, active, order = 1),
-                    ) {
-                        Column {
-                            // "Играет из …": small and quiet, above the title.
-                            val playingFromLabel = stringResource(R.string.playing_from)
-                            val queueLabel = stringResource(R.string.playing_from_queue)
-                            Text(
-                                text = buildAnnotatedString {
-                                    // The resource's trailing space gets trimmed at build time, so it is put back here.
-                                    append(playingFromLabel.trimEnd())
-                                    if (!playingFromLabel.endsWith('：')) append(' ')
-                                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(playingFrom?.name ?: queueLabel) }
-                                },
-                                color = LocalAdaptiveSecondaryColor.current,
-                                fontSize = 13.sp,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.padding(bottom = 10.dp),
-                            )
-                            // Title and artist at the same size, the artist in the secondary color.
-                            // A tap goes to the album / artist; a long press opens the song's menu.
-                            val openMenu = {
-                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                menuOpen = true
-                            }
-                            DialFitText(
-                                text = song?.title ?: stringResource(R.string.nothing_playing),
-                                color = PlayerColors.TextPrimary,
-                                maxLines = 3,
-                                marqueeWhenTooLong = false,
-                                onClick = { song?.let(onGoToAlbum) },
-                                onLongClick = openMenu,
-                                bracketOnNewLine = true,
-                            )
-                            // The artist: the first name (up to two lines), with the rest folded into a "+N" tile;
-                            // a name too long even for that runs as a marquee.
-                            val artistNames = remember(song?.artist) { song?.artists().orEmpty() }
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                DialFitText(
-                                    text = artistNames.firstOrNull() ?: song?.artist.orEmpty(),
-                                    color = LocalAdaptiveSecondaryColor.current,
-                                    maxLines = 2,
-                                    marqueeWhenTooLong = true,
-                                    onClick = { song?.let(onGoToArtist) },
-                                    onLongClick = openMenu,
-                                    modifier = Modifier.weight(1f, fill = false),
-                                )
-                                if (artistNames.size > 1) {
-                                    Box(
-                                        modifier = Modifier
-                                            .padding(start = 10.dp)
-                                            .clip(RoundedCornerShape(10.dp))
-                                            .background(LocalAdaptiveSecondaryColor.current.copy(alpha = 0.22f))
-                                            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { song?.let(onGoToArtist) }
-                                            .padding(horizontal = 9.dp, vertical = 4.dp),
-                                    ) {
-                                        Text(
-                                            text = "+" + (artistNames.size - 1),
-                                            color = LocalAdaptiveSecondaryColor.current,
-                                            fontSize = 17.sp,
-                                            fontWeight = FontWeight.ExtraBold,
-                                            maxLines = 1,
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        if (song != null) {
-                            SongActionsMenuPopup(
-                                song = song,
-                                expanded = menuOpen,
-                                onDismiss = { menuOpen = false },
-                                onPlayNext = onPlayNext,
-                                onAddToQueue = onAddToQueue,
-                                onAddToPlaylist = onAddToPlaylist,
-                                onGoToAlbum = onGoToAlbum,
-                                onGoToArtist = onGoToArtist,
-                            )
-                        }
-                    }
+                    )
                 }
             }
 
@@ -381,12 +324,11 @@ internal fun DialContent(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        .padding(start = 24.dp, end = 24.dp, bottom = 18.dp),
+                        .padding(start = 24.dp, end = 24.dp, bottom = if (dialDots) 12.dp else 18.dp),
                     verticalAlignment = Alignment.Bottom,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text(text = dialTime(positionMs), color = PlayerColors.TextPrimary, fontSize = 40.sp, fontWeight = FontWeight.Medium, maxLines = 1)
-                    Text(text = dialTime(durationMs), color = LocalAdaptiveSecondaryColor.current, fontSize = 22.sp, maxLines = 1, modifier = Modifier.padding(bottom = 4.dp))
+                    DialTimecode(positionMs, durationMs, onSeek, onWinding, pixels = dialDots, small = false)
                 }
             }
 
@@ -425,14 +367,13 @@ internal fun DialContent(
                             .fillMaxWidth()
                             .popIn(expand, active, order = 3)
                             .height(timeRow)
-                            .padding(horizontal = 6.dp)
+                            .padding(horizontal = if (dialDots) 0.dp else 6.dp)
                             // Gives way to the queue panel as it opens, so no edge of the digits peeks out under it.
                             .graphicsLayer { alpha = 1f - queueShown.coerceIn(0f, 1f) },
                         verticalAlignment = Alignment.Bottom,
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        Text(text = dialTime(positionMs), color = PlayerColors.TextPrimary, fontSize = 40.sp, fontWeight = FontWeight.Medium, maxLines = 1)
-                        Text(text = dialTime(durationMs), color = LocalAdaptiveSecondaryColor.current, fontSize = 22.sp, maxLines = 1, modifier = Modifier.padding(bottom = 4.dp))
+                        DialTimecode(positionMs, durationMs, onSeek, onWinding, pixels = dialDots, small = false)
                     }
                 }
                 // The two rows come in one after the other: the upper one first, the lower a beat later.
@@ -513,6 +454,419 @@ internal fun DialContent(
         if (!card) panelLayer()
     }
     }
+}
+
+/**
+ * The minimal "Диск": the title, a big disc, the time and three big buttons — nothing else. The disc turns under a finger
+ * and winds the song, a tap on it opens the queue, a long press puts the lyrics in its place (and back).
+ * With a blur behind it the disc is frosted, like the card; on the plain background it is the cover's colour.
+ */
+@Composable
+internal fun DialMinimalContent(
+    song: Song?,
+    isPlaying: Boolean,
+    positionMs: Long,
+    durationMs: Long,
+    showLyrics: Boolean,
+    lyrics: ParsedLyrics?,
+    lyricsRomanization: Boolean,
+    lyricsLoading: Boolean,
+    lyricsTapPlays: Boolean,
+    onSeek: (Long) -> Unit,
+    onTogglePlayPause: () -> Unit,
+    onSkipNext: () -> Unit,
+    onSkipPrevious: () -> Unit,
+    onGoToAlbum: (Song) -> Unit,
+    onGoToArtist: (Song) -> Unit,
+    onPlayNext: (Song) -> Unit,
+    onAddToQueue: (Song) -> Unit,
+    onAddToPlaylist: (Song) -> Unit,
+    onLineLongClick: (Int) -> Unit,
+    expand: () -> Float,
+    active: Boolean,
+    barHeight: androidx.compose.ui.unit.Dp,
+    statusTop: androidx.compose.ui.unit.Dp,
+    playingFrom: PlaySource?,
+    backgroundMode: NowPlayingBackgroundMode,
+    onClose: () -> Unit,
+    onToggleRomanization: () -> Unit,
+    onToggleLyrics: () -> Unit,
+    queueOpen: Boolean,
+    onQueueOpenChange: (Boolean) -> Unit,
+    queuePanel: @Composable (Modifier) -> Unit,
+) {
+    val outerDensity = LocalDensity.current
+    // The text style as the rest of the app has it: the lyrics keep it whatever font the Disc is set in.
+    val usualTextStyle = androidx.compose.material3.LocalTextStyle.current
+    val dialDensity = remember(outerDensity.density, outerDensity.fontScale) {
+        androidx.compose.ui.unit.Density(outerDensity.density, minOf(outerDensity.fontScale, DIAL_MAX_FONT_SCALE))
+    }
+    androidx.compose.runtime.CompositionLocalProvider(
+        LocalDensity provides dialDensity,
+        androidx.compose.material3.LocalTextStyle provides androidx.compose.material3.LocalTextStyle.current.let { base -> com.artemiy.player.ui.theme.LocalDiscFont.current?.let { base.copy(fontFamily = it) } ?: base },
+    ) {
+    val density = LocalDensity.current
+    // Winding the song with the disc: the play button and the disc keep to what they showed when the finger went down.
+    var windHold by remember { mutableStateOf(false) }
+    var windHeldPlaying by remember { mutableStateOf(isPlaying) }
+    var windingNow by remember { mutableStateOf(false) }
+    LaunchedEffect(windingNow) {
+        if (!windingNow && windHold) {
+            kotlinx.coroutines.delay(900)
+            windHold = false
+        }
+    }
+    val shownPlaying = if (windHold) windHeldPlaying else isPlaying
+    val onWinding: (Boolean) -> Unit = { winding ->
+        if (winding && !windHold) windHeldPlaying = isPlaying
+        if (winding) windHold = true
+        windingNow = winding
+    }
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+    val dialDots = LocalDialDots.current
+    val blurred = backgroundMode != NowPlayingBackgroundMode.NONE
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val side = 16.dp
+        val gap = 10.dp
+        // Three flat keys in one strip, like a tape deck's.
+        val keyHeight = 76.dp
+        val buttonsWidth = maxWidth - side * 2
+        val groupBottom = barHeight + 8.dp
+        val timeRowHeight = if (dialDots) 74.dp else 36.dp
+        // The disc is one size whatever the title does: what the width allows, or what is left of the height once the
+        // buttons, the time and room for a long title (three lines and the artist's line) are taken out. It sits at the bottom
+        // of its space, so a longer title only uses the room above it.
+        val discSize = minOf(
+            maxWidth - 48.dp,
+            maxHeight - statusTop - 52.dp - timeRowHeight - gap - keyHeight - groupBottom - 12.dp - 160.dp,
+        ).coerceAtLeast(150.dp)
+
+        BackHandler(enabled = queueOpen && LocalNowPlayingActive.current) { onQueueOpenChange(false) }
+        val queueShown by animateFloatAsState(
+            if (queueOpen) 1f else 0f,
+            spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow),
+            label = "dialMinimalQueue",
+        )
+        // The disc's colours live here, outside the disc/lyrics switch, so that coming back from the lyrics finds them as they were.
+                            // Frosted (a veil of the text colour over the blur) — or, on the plain background, the cover's own bright colour.
+                            val coverColor = com.artemiy.player.ui.components.rememberCoverTone(song?.uri)
+                            // Three colours the cover itself has (or, for a cover of one colour, that colour paler and deeper), calmed a
+                            // little, eased between songs rather than switching to the next song's at once; on the plain background
+                            // they are laid round the disc as a sweep, and turn with it.
+                            val swatches = com.artemiy.player.ui.components.rememberCoverSwatches(song?.uri)
+                            fun calm(c: Color, valueCap: Float): Color {
+                                val hsv = FloatArray(3)
+                                android.graphics.Color.colorToHSV(c.toArgb(), hsv)
+                                // The cover's own colours are often dark (a dark cover has dark colours): kept in hue, but lifted to a light floor so the disc is never dull.
+                                return Color.hsv(hsv[0], (hsv[1] * 0.75f).coerceIn(0.30f, 0.62f), (0.62f + 0.32f * hsv[2]).coerceIn(0.70f, valueCap))
+                            }
+                            // A cover with no colour of its own (black and white): the app's accent, paler and deeper, as for a one-colour cover.
+                            val accentHsv = FloatArray(3).also { android.graphics.Color.colorToHSV(PlayerColors.Accent.toArgb(), it) }
+                            val accentSet = listOf(
+                                PlayerColors.Accent,
+                                Color.hsv((accentHsv[0] + 14f) % 360f, accentHsv[1] * 0.55f, minOf(1f, accentHsv[2] * 1.15f)),
+                                Color.hsv((accentHsv[0] + 346f) % 360f, minOf(1f, accentHsv[1] * 1.05f), accentHsv[2] * 0.7f),
+                            )
+                            val usable = swatches ?: accentSet
+                            val targetA = calm(usable[0], 0.88f)
+                            val targetB = calm(usable[1], 0.84f)
+                            val targetC = calm(usable[2], 0.90f)
+                            val paintA by androidx.compose.animation.animateColorAsState(targetA, tween(700), label = "discA")
+                            val paintB by androidx.compose.animation.animateColorAsState(targetB, tween(700), label = "discB")
+                            val paintC by androidx.compose.animation.animateColorAsState(targetC, tween(700), label = "discC")
+                            val discPaint by androidx.compose.animation.animateColorAsState(
+                                if (blurred) PlayerColors.TextPrimary.copy(alpha = 0.18f) else paintA,
+                                tween(700),
+                                label = "discPaint",
+                            )
+                            val discSweep = androidx.compose.ui.graphics.Brush.sweepGradient(listOf(paintA, paintB, paintC, paintA))
+                            val markPaint by androidx.compose.animation.animateColorAsState(
+                                if (blurred) PlayerColors.TextPrimary.copy(alpha = 0.55f) else PlayerColors.Background.copy(alpha = 0.8f),
+                                tween(700),
+                                label = "markPaint",
+                            )
+
+        Column(modifier = Modifier.fillMaxSize()) {
+            // (The close handle and the romanization switch are drawn over the whole player, as in the full-screen look.)
+            Spacer(modifier = Modifier.height(statusTop + 52.dp))
+            DialTitleBlock(
+                song = song,
+                playingFrom = playingFrom,
+                onGoToAlbum = onGoToAlbum,
+                onGoToArtist = onGoToArtist,
+                onPlayNext = onPlayNext,
+                onAddToQueue = onAddToQueue,
+                onAddToPlaylist = onAddToPlaylist,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 24.dp, end = 24.dp)
+                    .popIn(expand, active, order = 1),
+                artistOnTop = true,
+            )
+            // The disc — or, held down, the lyrics in its place.
+            Box(
+                modifier = Modifier.fillMaxWidth().weight(1f).popIn(expand, active, order = 2, grow = true),
+                contentAlignment = Alignment.BottomCenter,
+            ) {
+                // The soft shadow under the disc lives out here, not inside the lyrics/disc fade: that fade is a layer, and a
+                // layer cuts off whatever is drawn beyond its edge (the shadow's lower half went missing for a moment).
+                val shadowAlpha by animateFloatAsState(if (showLyrics) 0f else 1f, tween(300), label = "discShadow")
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = if (dialDots) 26.dp else 12.dp)
+                        .size(discSize)
+                        .drawBehind {
+                            val r = size.minDimension / 2f
+                            val reach = r * 1.22f
+                            drawCircle(
+                                brush = androidx.compose.ui.graphics.Brush.radialGradient(
+                                    0.55f to Color.Black.copy(alpha = 0.22f * shadowAlpha),
+                                    0.80f to Color.Black.copy(alpha = 0.10f * shadowAlpha),
+                                    1f to Color.Transparent,
+                                    center = center + Offset(0f, 10.dp.toPx()),
+                                    radius = reach,
+                                ),
+                                radius = reach,
+                                center = center + Offset(0f, 10.dp.toPx()),
+                            )
+                        },
+                )
+                Crossfade(targetState = showLyrics, animationSpec = tween(300), label = "dialMinimalDiscOrLyrics") { lyricsShown ->
+                    if (lyricsShown) {
+                        if (LocalNowPlayingActive.current) com.artemiy.player.ui.components.KeepScreenOn()
+                        androidx.compose.runtime.CompositionLocalProvider(androidx.compose.material3.LocalTextStyle provides usualTextStyle) {
+                            LyricsView(
+                                lyrics = lyrics,
+                                positionMs = positionMs,
+                                isPlaying = isPlaying,
+                                topFadePx = { 0 },
+                                bottomFadePx = { 0 },
+                                anchorTopPx = 0,
+                                anchorBottomPx = 0,
+                                onLineClick = { timeMs ->
+                                    onSeek(timeMs)
+                                    if (lyricsTapPlays && !isPlaying) onTogglePlayPause()
+                                },
+                                onLineLongClick = onLineLongClick,
+                                showRomanization = lyricsRomanization,
+                                loading = lyricsLoading,
+                                contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = FADE_SPAN, bottom = FADE_SPAN),
+                                bottomFadeSpan = FADE_SPAN,
+                            )
+                        }
+                    } else {
+                        Box(modifier = Modifier.fillMaxSize().padding(bottom = if (dialDots) 26.dp else 12.dp), contentAlignment = Alignment.BottomCenter) {
+                            DialPlate(
+                                isPlaying = shownPlaying,
+                                active = active,
+                                positionMs = positionMs,
+                                durationMs = durationMs,
+                                onSeek = onSeek,
+                                onWinding = onWinding,
+                                modifier = Modifier.size(discSize),
+                                bare = true,
+                                discColor = discPaint,
+                                markColor = markPaint,
+                                discBrush = if (blurred) null else discSweep,
+                                onTap = { onQueueOpenChange(!queueOpen) },
+                                onLongPress = {
+                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                    if (!showLyrics) onQueueOpenChange(false)
+                                    onToggleLyrics()
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+            // The time, small, over where the dots will run.
+            Row(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .width(buttonsWidth)
+                    .height(timeRowHeight)
+                    .padding(horizontal = if (dialDots) 0.dp else 6.dp)
+                    .popIn(expand, active, order = 3)
+                    .graphicsLayer { alpha = 1f - queueShown.coerceIn(0f, 1f) },
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                DialTimecode(positionMs, durationMs, onSeek, onWinding, pixels = dialDots, small = true)
+            }
+            Spacer(modifier = Modifier.height(gap))
+            Row(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(bottom = groupBottom)
+                    .width(buttonsWidth)
+                    .height(keyHeight)
+                    .popIn(expand, active, order = 4),
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                DialKey(
+                    onClick = onTogglePlayPause,
+                    strong = true,
+                    // Held down, play puts away whatever is open over the disc: the queue and the lyrics.
+                    onLongClick = {
+                        if (queueOpen || showLyrics) {
+                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                            if (queueOpen) onQueueOpenChange(false)
+                            if (showLyrics) onToggleLyrics()
+                        }
+                    },
+                ) {
+                    PlayPauseIcon(isPlaying = shownPlaying, tint = PlayerColors.TextPrimary, modifier = Modifier.size(36.dp))
+                    // The little lamp of an old recorder: lit and breathing while the song plays, dim when it doesn't.
+                    val lamp by androidx.compose.animation.core.rememberInfiniteTransition(label = "lamp").animateFloat(
+                        initialValue = 1f,
+                        targetValue = 0.2f,
+                        animationSpec = androidx.compose.animation.core.infiniteRepeatable(tween(900), androidx.compose.animation.core.RepeatMode.Reverse),
+                        label = "lampBlink",
+                    )
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(12.dp)
+                            .size(8.dp)
+                            .graphicsLayer { alpha = if (shownPlaying) lamp else 0.25f }
+                            .background(PlayerColors.Accent, androidx.compose.foundation.shape.CircleShape),
+                    )
+                }
+                DialKey(onClick = onSkipPrevious) {
+                    Icon(AppIcons.SkipPrevious, stringResource(R.string.cd_previous_track), tint = PlayerColors.TextPrimary, modifier = Modifier.size(34.dp))
+                }
+                DialKey(onClick = onSkipNext) {
+                    Icon(AppIcons.SkipNext, stringResource(R.string.cd_next_track), tint = PlayerColors.TextPrimary, modifier = Modifier.size(34.dp))
+                }
+            }
+        }
+
+        // The queue panel: over the title and the disc, stopping above the buttons (held-down play, or back, closes it).
+        if (queueShown > 0.001f) {
+            queuePanel(
+                Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(start = side, end = side, top = statusTop + 14.dp, bottom = groupBottom + keyHeight + 2.dp)
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        alpha = queueShown.coerceIn(0f, 1f)
+                        translationY = (1f - queueShown) * 48.dp.toPx()
+                    },
+            )
+        }
+    }
+    }
+}
+
+/** "Playing from …", the title and the artist of the Dial's screen (and of the minimal look): a tap goes to the album / artist, a long press opens the song's menu. */
+@Composable
+private fun DialTitleBlock(
+    song: Song?,
+    playingFrom: PlaySource?,
+    onGoToAlbum: (Song) -> Unit,
+    onGoToArtist: (Song) -> Unit,
+    onPlayNext: (Song) -> Unit,
+    onAddToQueue: (Song) -> Unit,
+    onAddToPlaylist: (Song) -> Unit,
+    modifier: Modifier = Modifier,
+    /** The minimal look: the artist is the small line above the title (where "Playing from" stood) and has no big lines of its own. */
+    artistOnTop: Boolean = false,
+) {
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+    var menuOpen by remember { mutableStateOf(false) }
+    Box(modifier = modifier) {
+                        Column {
+                            // "Играет из …": small and quiet, above the title.
+                            val playingFromLabel = stringResource(R.string.playing_from)
+                            val queueLabel = stringResource(R.string.playing_from_queue)
+                            if (artistOnTop) {
+                                val allNames = remember(song?.artist) { song?.artists().orEmpty().joinToString(", ").ifBlank { song?.artist.orEmpty() } }
+                                Text(
+                                    text = if (com.artemiy.player.ui.theme.LocalDiscFont.current != null) androidx.compose.ui.text.AnnotatedString(allNames) else com.artemiy.player.ui.theme.lyricAnnotated(allNames),
+                                    color = LocalAdaptiveSecondaryColor.current,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1,
+                                    modifier = Modifier
+                                        .padding(bottom = 10.dp)
+                                        .marquee(LocalNowPlayingActive.current)
+                                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { song?.let(onGoToArtist) },
+                                )
+                            } else Text(
+                                text = buildAnnotatedString {
+                                    // The resource's trailing space gets trimmed at build time, so it is put back here.
+                                    append(playingFromLabel.trimEnd())
+                                    if (!playingFromLabel.endsWith('：')) append(' ')
+                                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(playingFrom?.name ?: queueLabel) }
+                                },
+                                color = LocalAdaptiveSecondaryColor.current,
+                                fontSize = 13.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.padding(bottom = 10.dp),
+                            )
+                            // Title and artist at the same size, the artist in the secondary color.
+                            // A tap goes to the album / artist; a long press opens the song's menu.
+                            val openMenu = {
+                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                menuOpen = true
+                            }
+                            DialFitText(
+                                text = song?.title ?: stringResource(R.string.nothing_playing),
+                                color = PlayerColors.TextPrimary,
+                                maxLines = 3,
+                                marqueeWhenTooLong = false,
+                                onClick = { song?.let(onGoToAlbum) },
+                                onLongClick = openMenu,
+                                bracketOnNewLine = true,
+                            )
+                            // The artist: the first name (up to two lines), with the rest folded into a "+N" tile;
+                            // a name too long even for that runs as a marquee.
+                            val artistNames = remember(song?.artist) { song?.artists().orEmpty() }
+                            if (!artistOnTop) Row(verticalAlignment = Alignment.CenterVertically) {
+                                DialFitText(
+                                    text = artistNames.firstOrNull() ?: song?.artist.orEmpty(),
+                                    color = LocalAdaptiveSecondaryColor.current,
+                                    maxLines = 2,
+                                    marqueeWhenTooLong = true,
+                                    onClick = { song?.let(onGoToArtist) },
+                                    onLongClick = openMenu,
+                                    modifier = Modifier.weight(1f, fill = false),
+                                )
+                                if (artistNames.size > 1) {
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(start = 10.dp)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(LocalAdaptiveSecondaryColor.current.copy(alpha = 0.22f))
+                                            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { song?.let(onGoToArtist) }
+                                            .padding(horizontal = 9.dp, vertical = 4.dp),
+                                    ) {
+                                        Text(
+                                            text = "+" + (artistNames.size - 1),
+                                            color = LocalAdaptiveSecondaryColor.current,
+                                            fontSize = 17.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            maxLines = 1,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        if (song != null) {
+                            SongActionsMenuPopup(
+                                song = song,
+                                expanded = menuOpen,
+                                onDismiss = { menuOpen = false },
+                                onPlayNext = onPlayNext,
+                                onAddToQueue = onAddToQueue,
+                                onAddToPlaylist = onAddToPlaylist,
+                                onGoToAlbum = onGoToAlbum,
+                                onGoToArtist = onGoToArtist,
+                            )
+                        }
+                    }
 }
 
 /** The grid's colors: the app theme's when it sits on the app's own background (the card look), else the player's as they are. */
@@ -629,12 +983,14 @@ internal fun DialQueuePanel(
     onAddSongsClick: () -> Unit,
     songActions: QueueSongActions,
     modifier: Modifier = Modifier,
+    /** The minimal look: a square panel and flat keys for the modes, like the strip below it. */
+    flat: Boolean = false,
 ) {
     val appPalette = com.artemiy.player.ui.theme.LocalAppPalette.current
     QueueSheetPalette(appPalette) {
         Column(
             modifier = modifier
-                .clip(RoundedCornerShape(DIAL_CORNER))
+                .then(if (flat) Modifier else Modifier.clip(RoundedCornerShape(DIAL_CORNER)))
                 .background(appPalette.background.copy(alpha = 1f)),
         ) {
             QueueList(
@@ -660,7 +1016,8 @@ internal fun DialQueuePanel(
                 onToggleShuffle = onToggleShuffle,
                 onToggleRepeat = onToggleRepeat,
                 onToggleInfinitePlay = onToggleInfinitePlay,
-                modifier = Modifier.padding(start = DIAL_MODES_INSET, end = DIAL_MODES_INSET, bottom = DIAL_MODES_INSET),
+                modifier = if (flat) Modifier else Modifier.padding(start = DIAL_MODES_INSET, end = DIAL_MODES_INSET, bottom = DIAL_MODES_INSET),
+                flat = flat,
             )
         }
     }
@@ -684,6 +1041,7 @@ private fun DialQueueModes(
     onToggleRepeat: () -> Unit,
     onToggleInfinitePlay: () -> Unit,
     modifier: Modifier = Modifier,
+    flat: Boolean = false,
 ) {
     // Lit: the app's accent (or, when plain, the text color itself, as the play tile is white).
     val accent = if (accented) PlayerColors.Accent else PlayerColors.TextPrimary
@@ -691,26 +1049,32 @@ private fun DialQueueModes(
     val offFill = PlayerColors.TextPrimary.copy(alpha = 0.10f)
     val follow = DIAL_CORNER - DIAL_MODES_INSET
     val inner = 12.dp
-    Row(modifier = modifier.fillMaxWidth().height(54.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+    Row(modifier = modifier.fillMaxWidth().height(if (flat) 56.dp else 54.dp), horizontalArrangement = Arrangement.spacedBy(if (flat) 2.dp else 6.dp)) {
         listOf(
             Triple(AppIcons.Shuffle to stringResource(R.string.shuffle), shuffleEnabled, onToggleShuffle),
             Triple(AppIcons.Repeat to stringResource(R.string.repeat), repeatEnabled, onToggleRepeat),
             Triple(AppIcons.Infinite to stringResource(R.string.endless_play), infinitePlayEnabled, onToggleInfinitePlay),
         ).forEachIndexed { index, (iconAndLabel, enabled, onClick) ->
             val interaction = remember { MutableInteractionSource() }
-            val fill by animateColorAsState(if (enabled) accent else offFill, tween(220), label = "dialModeFill")
-            val tint by animateColorAsState(if (enabled) onAccent else PlayerColors.TextPrimary, tween(220), label = "dialModeTint")
+            val fill by animateColorAsState(
+                if (flat) PlayerColors.TextPrimary.copy(alpha = if (enabled) 0.30f else 0.10f) else if (enabled) accent else offFill,
+                tween(220),
+                label = "dialModeFill",
+            )
+            val tint by animateColorAsState(if (flat) PlayerColors.TextPrimary else if (enabled) onAccent else PlayerColors.TextPrimary, tween(220), label = "dialModeTint")
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
-                    .pressScale(interaction, pressedScale = 0.95f)
-                    .clip(
-                        RoundedCornerShape(
-                            topStart = inner,
-                            topEnd = inner,
-                            bottomStart = if (index == 0) follow else inner,
-                            bottomEnd = if (index == 2) follow else inner,
+                    .then(if (flat) Modifier else Modifier.pressScale(interaction, pressedScale = 0.95f))
+                    .then(
+                        if (flat) Modifier else Modifier.clip(
+                            RoundedCornerShape(
+                                topStart = inner,
+                                topEnd = inner,
+                                bottomStart = if (index == 0) follow else inner,
+                                bottomEnd = if (index == 2) follow else inner,
+                            ),
                         ),
                     )
                     .background(fill)
@@ -783,7 +1147,19 @@ private fun DialPlate(
     /** Told when a finger starts winding the song (true) and when it lets go (false). */
     onWinding: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    /** The minimal look: just the disc, no square tile under it, drawn in [discColor] / [markColor] when given. */
+    bare: Boolean = false,
+    discColor: Color? = null,
+    markColor: Color? = null,
+    /** A tap and a long press on the disc (it still turns under a finger that moves). */
+    onTap: (() -> Unit)? = null,
+    onLongPress: (() -> Unit)? = null,
+    /** The minimal look: a very soft shadow behind the disc, and the disc painted with [discBrush] (it turns with the disc). */
+    softShadow: Boolean = false,
+    discBrush: androidx.compose.ui.graphics.Brush? = null,
 ) {
+    val onTapNow by rememberUpdatedState(onTap)
+    val onLongPressNow by rememberUpdatedState(onLongPress)
     // The turning is shared with the mini player's small plate, so the two always match.
     var angle by com.artemiy.player.ui.components.PlateRotation::angle
     var dragging by com.artemiy.player.ui.components.PlateRotation::dragging
@@ -806,13 +1182,17 @@ private fun DialPlate(
         }
     }
 
-    val disc = PlayerColors.TextPrimary
-    val mark = PlayerColors.Background
+    val disc = discColor ?: PlayerColors.TextPrimary
+    val mark = markColor ?: PlayerColors.Background
     val seekLabel = stringResource(R.string.cd_plate_seek)
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(DIAL_CORNER))
-            .background(PlayerColors.TextPrimary.copy(alpha = 0.14f))
+            .then(if (bare) Modifier else Modifier.clip(RoundedCornerShape(DIAL_CORNER)).background(PlayerColors.TextPrimary.copy(alpha = 0.14f)))
+            .then(
+                if (onTap != null || onLongPress != null) Modifier.pointerInput(Unit) {
+                    detectTapGestures(onTap = { onTapNow?.invoke() }, onLongPress = { onLongPressNow?.invoke() })
+                } else Modifier,
+            )
             // What a screen reader (TalkBack) says and does: it is a seek control, and adjusting it
             // (the volume keys, "increase / decrease") winds the song like turning it does.
             .semantics {
@@ -910,14 +1290,27 @@ private fun DialPlate(
             },
         contentAlignment = Alignment.Center,
     ) {
+        if (softShadow) Canvas(modifier = Modifier.fillMaxSize().graphicsLayer { translationY = 10.dp.toPx() }) {
+            val r = size.minDimension / 2f
+            drawCircle(
+                brush = androidx.compose.ui.graphics.Brush.radialGradient(
+                    0.55f to Color.Black.copy(alpha = 0.22f),
+                    0.80f to Color.Black.copy(alpha = 0.10f),
+                    1f to Color.Transparent,
+                    center = center,
+                    radius = r * 1.22f,
+                ),
+                radius = r * 1.22f,
+            )
+        }
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(14.dp)
+                .padding(if (bare) 0.dp else 14.dp)
                 .graphicsLayer { rotationZ = angle },
         ) {
             val r = size.minDimension / 2f
-            drawCircle(disc, radius = r)
+            if (discBrush != null) drawCircle(discBrush, radius = r) else drawCircle(disc, radius = r)
             // Fine grooves, then the dot that shows the turning, and the spindle hole.
             drawCircle(mark.copy(alpha = 0.12f), radius = r * 0.62f, style = Stroke(1.dp.toPx()))
             drawCircle(mark.copy(alpha = 0.12f), radius = r * 0.44f, style = Stroke(1.dp.toPx()))
@@ -954,7 +1347,8 @@ private fun DialFitText(
     val baseStyle = androidx.compose.material3.LocalTextStyle.current
     val heading = androidx.compose.ui.text.TextStyle(lineBreak = androidx.compose.ui.text.style.LineBreak.Heading)
     // The hieroglyphs in the font picked for the lyrics (the phone's own may have no bold ones).
-    val shown = com.artemiy.player.ui.theme.lyricAnnotated(text)
+    // In the pixel font the kana and kanji are its own (it has them all); otherwise they are set in the lyrics' fonts.
+    val shown = if (com.artemiy.player.ui.theme.LocalDiscFont.current != null) androidx.compose.ui.text.AnnotatedString(text) else com.artemiy.player.ui.theme.lyricAnnotated(text)
     BoxWithConstraints(modifier = modifier) {
         val widthPx = constraints.maxWidth
         val density = LocalDensity.current
@@ -1005,3 +1399,168 @@ private fun DialFitText(
  * system's "touch feedback" switch.
  */
 private fun plateTick(context: android.content.Context) = buttonTick(context)
+
+/**
+ * The Dial's time: the big digits (elapsed on the left, the full length on the right) — or, with "Time as pixels", the
+ * small digits over [DialDots].
+ */
+@Composable
+private fun DialTimecode(positionMs: Long, durationMs: Long, onSeek: (Long) -> Unit, onWinding: (Boolean) -> Unit, pixels: Boolean, small: Boolean, modifier: Modifier = Modifier) {
+    if (!pixels) {
+        Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
+            Text(text = dialTime(positionMs), color = PlayerColors.TextPrimary, fontSize = if (small) 22.sp else 40.sp, fontWeight = FontWeight.Medium, maxLines = 1)
+            Text(
+                text = dialTime(durationMs),
+                color = LocalAdaptiveSecondaryColor.current,
+                fontSize = if (small) 16.sp else 22.sp,
+                maxLines = 1,
+                modifier = if (small) Modifier else Modifier.padding(bottom = 4.dp),
+            )
+        }
+        return
+    }
+    BoxWithConstraints(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.BottomCenter) {
+        // The row always runs the whole width (from the left edge of the first button to the right edge of the last).
+        // The song's length sets how many squares that is: a short one has fewer, bigger ones (up to 10 dp), a long one
+        // more, smaller ones (down to 5 dp) — so they always read as pixels, never as a bar.
+        val gap = 4.dp
+        val fullWidth = maxWidth
+        // While the next song's length is not known yet (it reads 0) the row keeps the last one's look rather than jumping.
+        val lastLength = remember { LongArray(1) }
+        if (durationMs > 0) lastLength[0] = durationMs
+        val shapedBy = if (durationMs > 0) durationMs else lastLength[0]
+        val minColumns = kotlin.math.ceil((maxWidth + gap) / (DOT_MAX + gap)).toInt()
+        val maxColumns = ((maxWidth + gap) / (DOT_MIN + gap)).toInt().coerceAtLeast(minColumns)
+        val longness = ((shapedBy / 1000f - 60f) / 360f).coerceIn(0f, 1f)
+        val columns = (minColumns + (maxColumns - minColumns) * longness).toInt().coerceIn(minColumns, maxColumns)
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(text = dialTime(positionMs), color = PlayerColors.TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Medium, maxLines = 1)
+                Text(text = dialTime(durationMs), color = LocalAdaptiveSecondaryColor.current, fontSize = 14.sp, maxLines = 1)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            // A different count of squares (the next song is a different length) fades over rather than jumping.
+            androidx.compose.animation.Crossfade(targetState = columns, animationSpec = tween(260), label = "dialDotsLayout") { cols ->
+                DialDots(positionMs, durationMs, cols, (fullWidth - gap * (cols - 1)) / cols, gap, onSeek, onWinding)
+            }
+        }
+    }
+}
+
+/** The squares of the pixel time are at least this big... */
+private val DOT_MIN = 5.dp
+/** ...and at most this (the row's height is kept for the biggest). */
+private val DOT_MAX = 10.dp
+
+/**
+ * Rows of small squares, three high, filled column by column (top to bottom, then the next column): the lit ones are the
+ * time that has gone, the one in progress warms up as it goes. A tap or a drag along them sets the time.
+ */
+@Composable
+private fun DialDots(
+    positionMs: Long,
+    durationMs: Long,
+    columns: Int,
+    dot: androidx.compose.ui.unit.Dp,
+    gap: androidx.compose.ui.unit.Dp,
+    onSeek: (Long) -> Unit,
+    onWinding: (Boolean) -> Unit,
+) {
+    var dragFraction by remember { mutableStateOf<Float?>(null) }
+    val onWindingNow by rememberUpdatedState(onWinding)
+    val durationNow by rememberUpdatedState(durationMs)
+    val onSeekNow by rememberUpdatedState(onSeek)
+    val played = PlayerColors.TextPrimary
+    val rest = PlayerColors.TextPrimary.copy(alpha = 0.2f)
+    val total = columns * 3
+    Canvas(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(DOT_MAX * 3 + gap * 2)
+            .pointerInput(Unit) {
+                detectTapGestures { offset ->
+                    if (durationNow > 0) onSeekNow(((offset.x / size.width).coerceIn(0f, 1f) * durationNow).toLong())
+                }
+            }
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures(
+                    onDragStart = { offset ->
+                        dragFraction = (offset.x / size.width).coerceIn(0f, 1f)
+                        // The disc is wound along with the squares: held still by the finger's hand, it turns with it.
+                        com.artemiy.player.ui.components.PlateRotation.dragging = true
+                        onWindingNow(true)
+                    },
+                    onDragEnd = {
+                        dragFraction?.let { if (durationNow > 0) onSeekNow((it * durationNow).toLong()) }
+                        dragFraction = null
+                        com.artemiy.player.ui.components.PlateRotation.dragging = false
+                        onWindingNow(false)
+                    },
+                    onDragCancel = {
+                        dragFraction = null
+                        com.artemiy.player.ui.components.PlateRotation.dragging = false
+                        onWindingNow(false)
+                    },
+                ) { change, dragAmount ->
+                    change.consume()
+                    val before = dragFraction ?: 0f
+                    val now = (change.position.x / size.width).coerceIn(0f, 1f)
+                    dragFraction = now
+                    // Turned as the plate itself is: DIAL_SECONDS_PER_TURN of the song to a turn, clockwise forward.
+                    val seconds = (now - before) * durationNow / 1000f
+                    com.artemiy.player.ui.components.PlateRotation.angle =
+                        (com.artemiy.player.ui.components.PlateRotation.angle + seconds / DIAL_SECONDS_PER_TURN * 360f) % 360f
+                }
+            },
+    ) {
+        val fraction = dragFraction ?: if (durationMs > 0) (positionMs.toFloat() / durationMs).coerceIn(0f, 1f) else 0f
+        val exact = fraction * total
+        val lit = exact.toInt()
+        val partial = exact - lit
+        val side = dot.toPx()
+        val pitch = side + gap.toPx()
+        val corner = androidx.compose.ui.geometry.CornerRadius(2.dp.toPx())
+        val top = (size.height - (side * 3 + gap.toPx() * 2)) / 2f
+        for (i in 0 until total) {
+            val color = when {
+                i < lit -> played
+                i == lit -> androidx.compose.ui.graphics.lerp(rest, played, partial)
+                else -> rest
+            }
+            drawRoundRect(
+                color = color,
+                topLeft = Offset((i / 3) * pitch, top + (i % 3) * pitch),
+                size = androidx.compose.ui.geometry.Size(side, side),
+                cornerRadius = corner,
+            )
+        }
+    }
+}
+
+/**
+ * One flat key of the minimal look's strip (no rounded corners, like the keys of a tape deck): a faint plate, a notch lighter
+ * when [strong]; pressed, it sinks a little. [onLongClick] gives it a second job.
+ */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@Composable
+private fun androidx.compose.foundation.layout.RowScope.DialKey(
+    onClick: () -> Unit,
+    strong: Boolean = false,
+    onLongClick: (() -> Unit)? = null,
+    content: @Composable androidx.compose.foundation.layout.BoxScope.() -> Unit,
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val sink by androidx.compose.animation.core.animateFloatAsState(if (pressed) 1f else 0f, tween(70), label = "keySink")
+    val plate = PlayerColors.TextPrimary.copy(alpha = (if (strong) 0.24f else 0.13f) + 0.07f * sink)
+    Box(
+        modifier = Modifier
+            .weight(1f)
+            .fillMaxHeight()
+            .graphicsLayer { translationY = 3.dp.toPx() * sink }
+            .background(plate)
+            .combinedClickable(interactionSource = interaction, indication = null, onClick = buttonTicked(onClick), onLongClick = onLongClick),
+        contentAlignment = Alignment.Center,
+        content = content,
+    )
+}

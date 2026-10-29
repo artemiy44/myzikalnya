@@ -105,6 +105,7 @@
     <string name="device_usb_headphones">Auriculares USB</string>
     <string name="dial_look_card">Tarjeta</string>
     <string name="dial_look_full">Pantalla completa</string>
+    <string name="dial_look_minimal">Mínimo</string>
     <string name="disc_n">Disco %1$s</string>
     <string name="disc_sub_home">Hoy</string>
     <string name="disc_sub_library">Tuya</string>
@@ -305,10 +306,17 @@
     <string name="set_clear_history_sub">Las canciones sobre la cola. Las mezclas y el resumen no se tocan</string>
     <string name="set_colors">Colores y acento</string>
     <string name="set_colors_sub">Fondos de los temas claro y oscuro, color de acento</string>
+    <string name="set_cover_corner">Esquinas de la portada</string>
+    <string name="set_cover_corner_default">Predeterminado</string>
     <string name="set_dark_bg">Fondo del tema oscuro</string>
     <string name="set_dial_card_desc">El fondo (el desenfoque elegido; sin desenfoque, el color del álbum y una imagen del género) va en una tarjeta arriba; el resto queda en los colores de la app.</string>
+    <string name="set_dial_dots">Tiempo en píxeles</string>
+    <string name="set_dial_dots_sub">Filas de cuadrados pequeños en lugar de cifras grandes: muestran la duración de la canción y se pueden tocar o arrastrar</string>
     <string name="set_dial_full_desc">El fondo ocupa toda la pantalla; sin desenfoque, solo el color de fondo de la app, con el acento únicamente en el botón de reproducir.</string>
     <string name="set_dial_look">Aspecto</string>
+    <string name="set_dial_minimal_desc">Solo el título, un disco grande, el tiempo y tres botones grandes. Toca el disco para la cola, mantenlo para la letra.</string>
+    <string name="set_disc_pixel_font">Fuente pixelada</string>
+    <string name="set_disc_pixel_font_sub">DotGothic16 para el texto del reproductor Disco; la letra conserva la suya</string>
     <string name="set_dont_split">No dividir</string>
     <string name="set_endless">Reproducción sin fin</string>
     <string name="set_endless_desc">Cuando la cola se acaba y el botón \"∞\" está activo en el reproductor: con qué rellenarla.</string>
@@ -324,6 +332,8 @@
     <string name="set_general_sub">Pestaña inicial, división de artistas</string>
     <string name="set_glass_sliders">Barras suaves</string>
     <string name="set_glass_sliders_sub">Reproductor clásico: barras de tiempo y volumen gruesas y algo translúcidas que crecen bajo el dedo</string>
+    <string name="set_haptics">Respuesta vibratoria</string>
+    <string name="set_haptics_sub">Pulsos cortos en botones, filas y disco</string>
     <string name="set_hero_classic_desc">La imagen se desvanece en el fondo de la página</string>
     <string name="set_hero_style">Páginas con imagen</string>
     <string name="set_hero_vivid_desc">El color de la imagen fluye por la página y luego se funde con el fondo</string>
@@ -355,6 +365,8 @@
     <string name="set_no_folders_yet">Aún no se encontraron carpetas: hay que volver a escanear la biblioteca.</string>
     <string name="set_notif_button">Segundo botón en la notificación</string>
     <string name="set_notif_button_desc">Junto a «Aleatorio» en el reproductor del sistema.</string>
+    <string name="set_plate_pitch">Cambio de tono al girar</string>
+    <string name="set_plate_pitch_sub">La canción se acelera y se frena con tu mano en el disco</string>
     <string name="set_playback">Reproducción</string>
     <string name="set_playback_sub">Ecualizador, reproducción sin fin</string>
     <string name="set_player_background">Fondo del reproductor</string>
@@ -373,6 +385,10 @@
     <string name="set_screen_corners">Esquinas de pantalla</string>
     <string name="set_screen_corners_desc">Este teléfono no le dice a la app cuán redondeada es su pantalla. Ajústalo para que la tarjeta y los botones del reproductor Disco sigan las esquinas.</string>
     <string name="set_search_names">Buscar nombres</string>
+    <string name="set_show_times">Tiempo bajo la barra</string>
+    <string name="set_show_times_sub">Tiempo transcurrido y restante en el reproductor clásico</string>
+    <string name="set_show_volume">Barra de volumen</string>
+    <string name="set_show_volume_sub">Bajo los botones en el reproductor clásico</string>
     <string name="set_show_welcome">Mostrar la bienvenida otra vez</string>
     <string name="set_split_now">Ahora se dividen en varios artistas</string>
     <string name="set_start_tab">Abrir al iniciar</string>

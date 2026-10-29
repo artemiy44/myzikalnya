@@ -14,6 +14,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
@@ -109,6 +115,69 @@ internal fun Modifier.fadeInList(
     alpha = minOf(topAlpha, bottomAlpha)
 }
 
+/**
+ * [fadeInList] for text that can run over several lines: instead of one alpha for the whole item
+ * (which makes a two- or three-line block vanish at once, leaving odd gaps), the item is drawn
+ * through a vertical mask, so each line fades by its own height — the top line of a block goes
+ * first at the top edge, the bottom one first at the bottom edge. Items that sit clear of both
+ * fades are drawn as they are, with no extra layer.
+ */
+internal fun Modifier.fadeInListByLine(
+    state: LazyListState,
+    absoluteIndex: Int,
+    topPx: () -> Int,
+    bottomPx: () -> Int,
+    bottomSpan: androidx.compose.ui.unit.Dp = FADE_SPAN,
+): Modifier = this.drawWithContent {
+    val info = state.layoutInfo
+    val itemInfo = info.visibleItemsInfo.firstOrNull { it.index == absoluteIndex }
+    val h = size.height
+    val pad = 48.dp.toPx()
+    if (itemInfo == null || h <= 0f) {
+        drawContent()
+        return@drawWithContent
+    }
+    val topSpan = FADE_SPAN.toPx().coerceAtLeast(1f)
+    val botSpan = bottomSpan.toPx().coerceAtLeast(1f)
+    val offset = itemInfo.offset.toFloat()
+    val topEdge = topPx().toFloat() + info.viewportStartOffset - offset
+    val bottomEdge = info.viewportEndOffset - bottomPx().toFloat() - offset
+    // Local y where each ramp starts/ends: 0 at topEdge → 1 at topEdge+span; 1 at bottomEdge-span → 0 at bottomEdge.
+    fun alphaAt(y: Float): Float =
+        minOf(((y - topEdge) / topSpan).coerceIn(0f, 1f), ((bottomEdge - y) / botSpan).coerceIn(0f, 1f))
+    val clearFrom = topEdge + topSpan
+    val clearTo = bottomEdge - botSpan
+    when {
+        clearFrom > clearTo -> {
+            // Panels closer than the fades are long: fall back to one alpha for the item.
+            val a = alphaAt(h / 2f)
+            if (a >= 1f) drawContent() else if (a > 0f) {
+                drawIntoCanvas { c ->
+                    c.saveLayer(androidx.compose.ui.geometry.Rect(-pad, -pad, size.width + pad, h + pad), Paint().apply { this.alpha = a })
+                    drawContent()
+                    c.restore()
+                }
+            }
+        }
+        clearFrom <= 0f && clearTo >= h -> drawContent()
+        topEdge >= h || bottomEdge <= 0f -> Unit
+        else -> {
+            // The layer reaches past the item so a glow around the text isn't clipped at its box.
+            val lo = -pad
+            val hi = h + pad
+            val ys = sortedSetOf(lo, hi)
+            for (y in floatArrayOf(topEdge, clearFrom, clearTo, bottomEdge)) if (y > lo && y < hi) ys.add(y)
+            val stops = ys.map { ((it - lo) / (hi - lo)) to Color.Black.copy(alpha = alphaAt(it)) }.toTypedArray()
+            drawIntoCanvas { c ->
+                c.saveLayer(androidx.compose.ui.geometry.Rect(-pad, lo, size.width + pad, hi), Paint())
+                drawContent()
+                drawRect(Brush.verticalGradient(colorStops = stops, startY = lo, endY = hi), topLeft = Offset(-pad, lo), size = androidx.compose.ui.geometry.Size(size.width + 2 * pad, hi - lo), blendMode = BlendMode.DstIn)
+                c.restore()
+            }
+        }
+    }
+}
+
 internal fun formatMs(ms: Long): String {
     val totalSeconds = (ms / 1000).coerceAtLeast(0)
     val minutes = totalSeconds / 60
@@ -157,7 +226,13 @@ internal fun Modifier.flyFrom(
 }
 
 /** One short tick from the vibration motor for a button press. It goes to the motor directly: the usual "haptic feedback" call is too easily swallowed. It follows the system's "touch feedback" switch. */
+/** Whether the direct vibration ticks are on (the switch in Settings → General). */
+object AppHaptics {
+    @Volatile var enabled = true
+}
+
 internal fun buttonTick(context: android.content.Context) {
+    if (!AppHaptics.enabled) return
     val touchFeedbackOn = android.provider.Settings.System.getInt(context.contentResolver, android.provider.Settings.System.HAPTIC_FEEDBACK_ENABLED, 1) == 1
     if (!touchFeedbackOn) return
     val vibrator = context.getSystemService(android.os.Vibrator::class.java) ?: return

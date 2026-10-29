@@ -105,6 +105,7 @@
     <string name="device_usb_headphones">Cuffie USB</string>
     <string name="dial_look_card">Scheda</string>
     <string name="dial_look_full">Schermo intero</string>
+    <string name="dial_look_minimal">Minimo</string>
     <string name="disc_n">Disco %1$s</string>
     <string name="disc_sub_home">Stasera</string>
     <string name="disc_sub_library">Tua</string>
@@ -305,10 +306,17 @@
     <string name="set_clear_history_sub">I brani sopra la coda. Mix e riepilogo restano com\'erano</string>
     <string name="set_colors">Colori e accento</string>
     <string name="set_colors_sub">Sfondi dei temi chiaro e scuro, colore d\'accento</string>
+    <string name="set_cover_corner">Angoli della copertina</string>
+    <string name="set_cover_corner_default">Predefinito</string>
     <string name="set_dark_bg">Sfondo del tema scuro</string>
     <string name="set_dial_card_desc">Lo sfondo (la sfocatura scelta; senza sfocatura, il colore dell\'album e un\'immagine del genere) sta in una scheda in alto; il resto resta nei colori dell\'app.</string>
+    <string name="set_dial_dots">Tempo in pixel</string>
+    <string name="set_dial_dots_sub">File di piccoli quadrati al posto delle cifre grandi: mostrano la durata del brano e si possono toccare o trascinare</string>
     <string name="set_dial_full_desc">Lo sfondo riempie tutto lo schermo; senza sfocatura, solo il colore di sfondo dell\'app, con l\'accento solo sul pulsante play.</string>
     <string name="set_dial_look">Aspetto</string>
+    <string name="set_dial_minimal_desc">Solo il titolo, un grande disco, il tempo e tre grandi pulsanti. Tocca il disco per la coda, tienilo premuto per il testo.</string>
+    <string name="set_disc_pixel_font">Carattere pixel</string>
+    <string name="set_disc_pixel_font_sub">DotGothic16 per il testo del player Disco; il testo della canzone mantiene il suo</string>
     <string name="set_dont_split">Non dividere</string>
     <string name="set_endless">Riproduzione infinita</string>
     <string name="set_endless_desc">Quando la coda sta finendo e nel lettore è attivo il pulsante \"∞\" — con cosa riempirla.</string>
@@ -324,6 +332,8 @@
     <string name="set_general_sub">Scheda iniziale, divisione degli artisti</string>
     <string name="set_glass_sliders">Barre morbide</string>
     <string name="set_glass_sliders_sub">Player classico: barre di tempo e volume spesse e leggermente trasparenti che crescono sotto il dito</string>
+    <string name="set_haptics">Feedback vibrazione</string>
+    <string name="set_haptics_sub">Brevi impulsi su pulsanti, righe e disco</string>
     <string name="set_hero_classic_desc">L\'immagine sfuma nello sfondo della pagina</string>
     <string name="set_hero_style">Pagine con immagine</string>
     <string name="set_hero_vivid_desc">Il colore dell\'immagine scorre lungo la pagina e poi si fonde con lo sfondo</string>
@@ -355,6 +365,8 @@
     <string name="set_no_folders_yet">Nessuna cartella trovata finora — serve una nuova scansione della libreria.</string>
     <string name="set_notif_button">Secondo pulsante nella notifica</string>
     <string name="set_notif_button_desc">Accanto a «Casuale» nel lettore di sistema.</string>
+    <string name="set_plate_pitch">Cambio di tono girando</string>
+    <string name="set_plate_pitch_sub">Il brano accelera e rallenta con la tua mano sul disco</string>
     <string name="set_playback">Riproduzione</string>
     <string name="set_playback_sub">Equalizzatore, riproduzione infinita</string>
     <string name="set_player_background">Sfondo del lettore</string>
@@ -373,6 +385,10 @@
     <string name="set_screen_corners">Angoli dello schermo</string>
     <string name="set_screen_corners_desc">Questo telefono non dice all\'app quanto è arrotondato lo schermo. Impostalo perché la scheda e i pulsanti del player Disco seguano gli angoli.</string>
     <string name="set_search_names">Cerca i nomi</string>
+    <string name="set_show_times">Tempo sotto la barra</string>
+    <string name="set_show_times_sub">Tempo trascorso e rimanente nel player classico</string>
+    <string name="set_show_volume">Barra del volume</string>
+    <string name="set_show_volume_sub">Sotto i pulsanti nel player classico</string>
     <string name="set_show_welcome">Mostra di nuovo il benvenuto</string>
     <string name="set_split_now">Attualmente divisi in più artisti</string>
     <string name="set_start_tab">Apri all’avvio</string>

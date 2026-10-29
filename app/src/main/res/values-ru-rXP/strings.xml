@@ -111,6 +111,7 @@
     <string name="device_usb_headphones">USB-наушники</string>
     <string name="dial_look_card">Карточка</string>
     <string name="dial_look_full">На весь экранъ</string>
+    <string name="dial_look_minimal">Минимумъ</string>
     <string name="disc_n">Дискъ %1$s</string>
     <string name="disc_sub_home">Сегодня</string>
     <string name="disc_sub_library">Твоя</string>
@@ -325,12 +326,19 @@
     <string name="set_clear_history_sub">Пѣсни надъ очередью. Миксы и итоги недѣли не затрагиваются</string>
     <string name="set_colors">Цвѣта и акцентъ</string>
     <string name="set_colors_sub">Фонъ свѣтлой и темной ѳемы, цвѣтъ акцента</string>
+    <string name="set_cover_corner">Скругленіе обложки</string>
+    <string name="set_cover_corner_default">По умолчанію</string>
     <string name="set_dark_bg">Фонъ темной ѳемы</string>
     <string name="set_debug">Отладка</string>
     <string name="set_debug_sub">Инструменты для проверки, только въ тестовыхъ сборкахъ</string>
     <string name="set_dial_card_desc">Фонъ (выбранный блюръ, а безъ блюра — цвѣтъ альбома и картинка жанра) лежитъ въ карточке сверху, а все остальное — въ цветахъ приложенія.</string>
+    <string name="set_dial_dots">Время пикселями</string>
+    <string name="set_dial_dots_sub">Ряды маленькихъ квадратовъ вместо большихъ цифръ: по нимъ видно длину пѣсни, ихъ можно нажимать и протягивать</string>
     <string name="set_dial_full_desc">Фонъ заполняетъ весь экранъ; безъ блюра — просто фонъ приложенія, акцентъ только на кнопке плей.</string>
     <string name="set_dial_look">Видъ</string>
+    <string name="set_dial_minimal_desc">Только названіе, большая пластинка, время и три большихъ кнопки. Нажми на пластинку — очередь, удержи — текстъ.</string>
+    <string name="set_disc_pixel_font">Пиксельный шрифтъ</string>
+    <string name="set_disc_pixel_font_sub">DotGothic16 для текста плеера Диска; текстъ пѣсни остается со своимъ шрифтомъ</string>
     <string name="set_dont_split">Не дѣлить</string>
     <string name="set_endless">«Безконечное» возпроизведеніе</string>
     <string name="set_endless_desc">Когда очередь подходитъ къ концу, а въ плеерѣ включена кнопка \"∞\" — чѣмъ ея подмѣшивать.</string>
@@ -346,6 +354,8 @@
     <string name="set_general_sub">Вкладка при запускѣ, дѣленіе исполнителей</string>
     <string name="set_glass_sliders">Мягкія полоски</string>
     <string name="set_glass_sliders_sub">Классическій плееръ: толстые, чуть прозрачные полоски времени и громкости, которые растутъ подъ пальцемъ</string>
+    <string name="set_haptics">Вибро-откликъ</string>
+    <string name="set_haptics_sub">Короткіе тики на кнопкахъ, строкахъ и пластинке</string>
     <string name="set_hero_classic_desc">Картинка затухаетъ въ цвѣтъ фона страницы</string>
     <string name="set_hero_style">Страницы съ картинкой</string>
     <string name="set_hero_vivid_desc">Цвѣтъ картинки перетекаетъ внизъ по страницѣ и потомъ сходитъ на фонъ</string>
@@ -377,6 +387,8 @@
     <string name="set_no_folders_yet">Папки еще не найдены — нужно пересканировать медіатеку.</string>
     <string name="set_notif_button">Вторая кнопка въ извѣщеніи</string>
     <string name="set_notif_button_desc">Рядомъ съ «Перемѣшать» въ системномъ плеерѣ.</string>
+    <string name="set_plate_pitch">Смена тона при крученіи</string>
+    <string name="set_plate_pitch_sub">Пѣсня ускоряется и замедляется вследъ за рукой на пластинке</string>
     <string name="set_playback">Возпроизведеніе</string>
     <string name="set_playback_sub">Эквалайзеръ, «безконечное» возпроизведеніе</string>
     <string name="set_player_background">Фонъ плеера</string>
@@ -395,6 +407,10 @@
     <string name="set_screen_corners">Скругленіе экрана</string>
     <string name="set_screen_corners_desc">Этотъ телефонъ не сообщаетъ приложенію, насколько скругленъ его экранъ. Задай, чтобы карточка и кнопки плеера «Дискъ» шли вровень съ углами.</string>
     <string name="set_search_names">Поискъ по именамъ</string>
+    <string name="set_show_times">Время подъ полоской</string>
+    <string name="set_show_times_sub">Прошедшее и оставшееся время въ классическомъ плеерѣ</string>
+    <string name="set_show_volume">Полоска громкости</string>
+    <string name="set_show_volume_sub">Подъ кнопками въ классическомъ плеерѣ</string>
     <string name="set_show_welcome">Показать привѣтствіе снова</string>
     <string name="set_split_now">Сейчасъ дѣлятся на нѣсколькихъ исполнителей</string>
     <string name="set_start_tab">Открывать при запускѣ</string>

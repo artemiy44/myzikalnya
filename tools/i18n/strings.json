@@ -438,6 +438,10 @@
   "en": "Full screen",
   "ru": "На весь экран"
  },
+ "dial_look_minimal": {
+  "en": "Minimal",
+  "ru": "Минимум"
+ },
  "disc_n": {
   "en": "Disc %1$s",
   "ru": "Диск %1$s"
@@ -1343,6 +1347,14 @@
   "en": "Backgrounds of the light and dark themes, accent colour",
   "ru": "Фон светлой и тёмной темы, цвет акцента"
  },
+ "set_cover_corner": {
+  "en": "Cover corners",
+  "ru": "Скругление обложки"
+ },
+ "set_cover_corner_default": {
+  "en": "Default",
+  "ru": "По умолчанию"
+ },
  "set_dark_bg": {
   "en": "Dark theme background",
   "ru": "Фон тёмной темы"
@@ -1359,6 +1371,14 @@
   "en": "The background (the blur you picked; with no blur, the album's colour and its genre picture) sits in a card up top; the rest stays in the app's own colours.",
   "ru": "Фон (выбранный блюр, а без блюра — цвет альбома и картинка жанра) лежит в карточке сверху, а всё остальное — в цветах приложения."
  },
+ "set_dial_dots": {
+  "en": "Time as pixels",
+  "ru": "Время пикселями"
+ },
+ "set_dial_dots_sub": {
+  "en": "Rows of small squares instead of the big digits: they show how long the song is, and can be tapped or dragged",
+  "ru": "Ряды маленьких квадратов вместо больших цифр: по ним видно длину песни, их можно нажимать и протягивать"
+ },
  "set_dial_full_desc": {
   "en": "The background fills the whole screen; with no blur, just the app's background colour, the accent only on the play button.",
   "ru": "Фон заполняет весь экран; без блюра — просто фон приложения, акцент только на кнопке плей."
@@ -1366,6 +1386,18 @@
  "set_dial_look": {
   "en": "Look",
   "ru": "Вид"
+ },
+ "set_dial_minimal_desc": {
+  "en": "Just the title, a big plate, the time and three big buttons. Tap the plate for the queue, hold it for the lyrics.",
+  "ru": "Только название, большая пластинка, время и три больших кнопки. Нажми на пластинку — очередь, удержи — текст."
+ },
+ "set_disc_pixel_font": {
+  "en": "Pixel font",
+  "ru": "Пиксельный шрифт"
+ },
+ "set_disc_pixel_font_sub": {
+  "en": "DotGothic16 for the Disc player's text — the lyrics keep their own",
+  "ru": "DotGothic16 для текста плеера Диска; текст песни остаётся со своим шрифтом"
  },
  "set_dont_split": {
   "en": "Don't split",
@@ -1426,6 +1458,14 @@
  "set_glass_sliders_sub": {
   "en": "Classic player: thick, slightly see-through seek and volume bars that swell under your finger",
   "ru": "Классический плеер: толстые, чуть прозрачные полоски времени и громкости, которые растут под пальцем"
+ },
+ "set_haptics": {
+  "en": "Vibration feedback",
+  "ru": "Вибро-отклик"
+ },
+ "set_haptics_sub": {
+  "en": "Short ticks on buttons, rows and the plate",
+  "ru": "Короткие тики на кнопках, строках и пластинке"
  },
  "set_hero_classic_desc": {
   "en": "The picture fades into the page background",
@@ -1552,6 +1592,14 @@
   "en": "Next to shuffle in the system media player.",
   "ru": "Рядом с «Перемешать» в системном плеере."
  },
+ "set_plate_pitch": {
+  "en": "Pitch change when winding",
+  "ru": "Смена тона при кручении"
+ },
+ "set_plate_pitch_sub": {
+  "en": "The song speeds up and slows down with your hand on the plate",
+  "ru": "Песня ускоряется и замедляется вслед за рукой на пластинке"
+ },
  "set_playback": {
   "en": "Playback",
   "ru": "Воспроизведение"
@@ -1623,6 +1671,22 @@
  "set_search_names": {
   "en": "Search the names",
   "ru": "Поиск по именам"
+ },
+ "set_show_times": {
+  "en": "Time under the bar",
+  "ru": "Время под полоской"
+ },
+ "set_show_times_sub": {
+  "en": "Elapsed and remaining time in the classic player",
+  "ru": "Прошедшее и оставшееся время в классическом плеере"
+ },
+ "set_show_volume": {
+  "en": "Volume bar",
+  "ru": "Полоска громкости"
+ },
+ "set_show_volume_sub": {
+  "en": "Under the buttons in the classic player",
+  "ru": "Под кнопками в классическом плеере"
  },
  "set_show_welcome": {
   "en": "Show the welcome again",

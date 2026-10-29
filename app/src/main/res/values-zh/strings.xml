@@ -105,6 +105,7 @@
     <string name="device_usb_headphones">USB 耳机</string>
     <string name="dial_look_card">卡片</string>
     <string name="dial_look_full">全屏</string>
+    <string name="dial_look_minimal">极简</string>
     <string name="disc_n">碟 %1$s</string>
     <string name="disc_sub_home">今晚</string>
     <string name="disc_sub_library">你的</string>
@@ -305,10 +306,17 @@
     <string name="set_clear_history_sub">队列上方显示的歌曲。混音和每周回顾不受影响</string>
     <string name="set_colors">颜色与强调色</string>
     <string name="set_colors_sub">浅色和深色主题的背景、强调色</string>
+    <string name="set_cover_corner">封面圆角</string>
+    <string name="set_cover_corner_default">默认</string>
     <string name="set_dark_bg">深色主题背景</string>
     <string name="set_dial_card_desc">背景（所选的模糊；无模糊时为专辑颜色和流派图案）放在顶部的卡片里，其余保持应用自己的配色。</string>
+    <string name="set_dial_dots">用像素显示时间</string>
+    <string name="set_dial_dots_sub">用一排排小方块代替大数字：能看出歌曲长度，也可以点按或拖动</string>
     <string name="set_dial_full_desc">背景铺满整个屏幕；无模糊时只用应用的背景色，强调色只出现在播放按钮上。</string>
     <string name="set_dial_look">外观</string>
+    <string name="set_dial_minimal_desc">只有标题、一个大唱盘、时间和三个大按钮。点按唱盘打开队列，长按显示歌词。</string>
+    <string name="set_disc_pixel_font">像素字体</string>
+    <string name="set_disc_pixel_font_sub">唱盘播放器的文字使用 DotGothic16（歌词保持自己的字体）</string>
     <string name="set_dont_split">不拆分</string>
     <string name="set_endless">无尽播放</string>
     <string name="set_endless_desc">当队列快结束且播放器中开启了\"∞\"按钮时——用什么来补充。</string>
@@ -324,6 +332,8 @@
     <string name="set_general_sub">启动标签页、艺人拆分</string>
     <string name="set_glass_sliders">柔和进度条</string>
     <string name="set_glass_sliders_sub">经典播放器：略带透明的粗进度条和音量条，手指按住时会变大</string>
+    <string name="set_haptics">振动反馈</string>
+    <string name="set_haptics_sub">按钮、列表行和唱盘上的短促振动</string>
     <string name="set_hero_classic_desc">图片渐隐为页面背景色</string>
     <string name="set_hero_style">带图片的页面</string>
     <string name="set_hero_vivid_desc">图片的颜色顺着页面流下，再融入背景</string>
@@ -355,6 +365,8 @@
     <string name="set_no_folders_yet">还没有找到文件夹——需要重新扫描音乐库。</string>
     <string name="set_notif_button">通知中的第二个按钮</string>
     <string name="set_notif_button_desc">显示在系统播放器中“随机播放”旁边。</string>
+    <string name="set_plate_pitch">转动时音调变化</string>
+    <string name="set_plate_pitch_sub">歌曲会随着你手在唱盘上的动作加快或放慢</string>
     <string name="set_playback">播放</string>
     <string name="set_playback_sub">均衡器、无尽播放</string>
     <string name="set_player_background">播放器背景</string>
@@ -373,6 +385,10 @@
     <string name="set_screen_corners">屏幕圆角</string>
     <string name="set_screen_corners_desc">这部手机没有告诉应用屏幕有多圆。请设置它，让唱盘播放器的卡片和按钮贴合屏幕圆角。</string>
     <string name="set_search_names">搜索名称</string>
+    <string name="set_show_times">进度条下的时间</string>
+    <string name="set_show_times_sub">经典播放器中的已播放和剩余时间</string>
+    <string name="set_show_volume">音量条</string>
+    <string name="set_show_volume_sub">经典播放器里按钮的下方</string>
     <string name="set_show_welcome">再次显示欢迎页</string>
     <string name="set_split_now">目前被拆分为多位艺人的</string>
     <string name="set_start_tab">启动时打开</string>

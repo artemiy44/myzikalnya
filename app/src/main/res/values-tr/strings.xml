@@ -105,6 +105,7 @@
     <string name="device_usb_headphones">USB kulaklık</string>
     <string name="dial_look_card">Kart</string>
     <string name="dial_look_full">Tam ekran</string>
+    <string name="dial_look_minimal">Minimal</string>
     <string name="disc_n">Disk %1$s</string>
     <string name="disc_sub_home">Bu akşam</string>
     <string name="disc_sub_library">Senin</string>
@@ -305,10 +306,17 @@
     <string name="set_clear_history_sub">Sıranın üstünde görünen parçalar. Miksler ve haftalık özet etkilenmez</string>
     <string name="set_colors">Renkler ve vurgu</string>
     <string name="set_colors_sub">Açık ve koyu temanın arka planları, vurgu rengi</string>
+    <string name="set_cover_corner">Kapak köşeleri</string>
+    <string name="set_cover_corner_default">Varsayılan</string>
     <string name="set_dark_bg">Koyu tema arka planı</string>
     <string name="set_dial_card_desc">Arka plan (seçtiğin bulanıklık; bulanıklık yoksa albümün rengi ve tür resmi) üstteki bir kartın içinde durur; geri kalanı uygulamanın kendi renklerinde kalır.</string>
+    <string name="set_dial_dots">Süreyi piksel olarak</string>
+    <string name="set_dial_dots_sub">Büyük rakamlar yerine küçük kare sıraları: parçanın uzunluğunu gösterir, dokunulup sürüklenebilir</string>
     <string name="set_dial_full_desc">Arka plan tüm ekranı kaplar; bulanıklık yoksa yalnızca uygulamanın arka plan rengi, vurgu sadece oynat düğmesinde.</string>
     <string name="set_dial_look">Görünüm</string>
+    <string name="set_dial_minimal_desc">Yalnızca başlık, büyük bir plak, süre ve üç büyük düğme. Sıra için plağa dokun, söz için basılı tut.</string>
+    <string name="set_disc_pixel_font">Piksel yazı tipi</string>
+    <string name="set_disc_pixel_font_sub">Disk oynatıcısının metni için DotGothic16; şarkı sözleri kendi yazı tipini korur</string>
     <string name="set_dont_split">Bölme</string>
     <string name="set_endless">Sonsuz çalma</string>
     <string name="set_endless_desc">Kuyruk biterken ve oynatıcıda \"∞\" düğmesi açıkken — kuyruğun neyle doldurulacağı.</string>
@@ -324,6 +332,8 @@
     <string name="set_general_sub">Başlangıç sekmesi, sanatçıların bölünmesi</string>
     <string name="set_glass_sliders">Yumuşak çubuklar</string>
     <string name="set_glass_sliders_sub">Klasik oynatıcı: parmağınızın altında büyüyen, kalın ve hafif saydam süre ve ses çubukları</string>
+    <string name="set_haptics">Titreşim geri bildirimi</string>
+    <string name="set_haptics_sub">Düğmelerde, satırlarda ve plakta kısa titreşimler</string>
     <string name="set_hero_classic_desc">Görsel sayfa arka planına karışır</string>
     <string name="set_hero_style">Görselli sayfalar</string>
     <string name="set_hero_vivid_desc">Görselin rengi sayfada aşağı akar, sonra arka plana yerleşir</string>
@@ -355,6 +365,8 @@
     <string name="set_no_folders_yet">Henüz klasör bulunamadı — kitaplığın yeniden taranması gerekiyor.</string>
     <string name="set_notif_button">Bildirimdeki ikinci düğme</string>
     <string name="set_notif_button_desc">Sistem oynatıcısında «Karıştır»ın yanında.</string>
+    <string name="set_plate_pitch">Çevirirken ses tonu değişimi</string>
+    <string name="set_plate_pitch_sub">Parça, plağın üzerindeki elinle hızlanır ve yavaşlar</string>
     <string name="set_playback">Çalma</string>
     <string name="set_playback_sub">Ekolayzer, sonsuz çalma</string>
     <string name="set_player_background">Oynatıcı arka planı</string>
@@ -373,6 +385,10 @@
     <string name="set_screen_corners">Ekran köşeleri</string>
     <string name="set_screen_corners_desc">Bu telefon uygulamaya ekranının ne kadar yuvarlak olduğunu söylemiyor. Disk oynatıcının kartı ve düğmeleri köşeleri izlesin diye ayarla.</string>
     <string name="set_search_names">İsimlerde ara</string>
+    <string name="set_show_times">Çubuğun altındaki süre</string>
+    <string name="set_show_times_sub">Klasik oynatıcıda geçen ve kalan süre</string>
+    <string name="set_show_volume">Ses çubuğu</string>
+    <string name="set_show_volume_sub">Klasik oynatıcıda düğmelerin altında</string>
     <string name="set_show_welcome">Karşılamayı yeniden göster</string>
     <string name="set_split_now">Şu an birkaç sanatçıya bölünenler</string>
     <string name="set_start_tab">Açılışta göster</string>

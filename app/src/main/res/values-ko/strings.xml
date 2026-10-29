@@ -105,6 +105,7 @@
     <string name="device_usb_headphones">USB 헤드폰</string>
     <string name="dial_look_card">카드</string>
     <string name="dial_look_full">전체 화면</string>
+    <string name="dial_look_minimal">미니멀</string>
     <string name="disc_n">디스크 %1$s</string>
     <string name="disc_sub_home">오늘 밤</string>
     <string name="disc_sub_library">나의</string>
@@ -305,10 +306,17 @@
     <string name="set_clear_history_sub">대기열 위에 보이는 곡입니다. 믹스와 주간 요약에는 영향이 없어요</string>
     <string name="set_colors">색상 및 강조색</string>
     <string name="set_colors_sub">라이트/다크 테마 배경과 강조색</string>
+    <string name="set_cover_corner">커버 모서리</string>
+    <string name="set_cover_corner_default">기본값</string>
     <string name="set_dark_bg">다크 테마 배경</string>
     <string name="set_dial_card_desc">배경(선택한 블러, 블러가 없으면 앨범 색과 장르 그림)은 위쪽 카드에 들어가고 나머지는 앱 고유의 색을 유지합니다.</string>
+    <string name="set_dial_dots">시간을 픽셀로</string>
+    <string name="set_dial_dots_sub">큰 숫자 대신 작은 네모 줄을 보여줘요. 곡의 길이를 알 수 있고 누르거나 끌 수 있어요</string>
     <string name="set_dial_full_desc">배경이 화면 전체를 채웁니다. 블러가 없으면 앱 배경색만 쓰고 강조색은 재생 버튼에만 씁니다.</string>
     <string name="set_dial_look">모양</string>
+    <string name="set_dial_minimal_desc">제목, 큰 플레이트, 시간, 큰 버튼 세 개만. 플레이트를 누르면 대기열, 길게 누르면 가사.</string>
+    <string name="set_disc_pixel_font">픽셀 글꼴</string>
+    <string name="set_disc_pixel_font_sub">디스크 플레이어의 글자에 DotGothic16을 써요 (가사는 자체 글꼴 유지)</string>
     <string name="set_dont_split">나누지 않기</string>
     <string name="set_endless">무한 재생</string>
     <string name="set_endless_desc">대기열이 끝나 가고 플레이어의 \"∞\" 버튼이 켜져 있을 때 — 무엇으로 채울지.</string>
@@ -324,6 +332,8 @@
     <string name="set_general_sub">시작 탭, 아티스트 나누기</string>
     <string name="set_glass_sliders">부드러운 바</string>
     <string name="set_glass_sliders_sub">클래식 플레이어: 손가락을 대면 두꺼워지는 살짝 투명한 재생 위치·음량 바</string>
+    <string name="set_haptics">진동 반응</string>
+    <string name="set_haptics_sub">버튼, 줄, 플레이트에서 짧게 진동해요</string>
     <string name="set_hero_classic_desc">이미지가 페이지 배경으로 서서히 사라집니다</string>
     <string name="set_hero_style">이미지 페이지</string>
     <string name="set_hero_vivid_desc">이미지의 색이 페이지 아래로 흘러내린 뒤 배경에 스며듭니다</string>
@@ -355,6 +365,8 @@
     <string name="set_no_folders_yet">아직 폴더를 찾지 못했어요 — 보관함을 다시 스캔해야 해요.</string>
     <string name="set_notif_button">알림의 두 번째 버튼</string>
     <string name="set_notif_button_desc">시스템 플레이어에서 «셔플» 옆에 표시돼요.</string>
+    <string name="set_plate_pitch">돌릴 때 음높이 변화</string>
+    <string name="set_plate_pitch_sub">플레이트 위의 손에 맞춰 곡이 빨라지고 느려져요</string>
     <string name="set_playback">재생</string>
     <string name="set_playback_sub">이퀄라이저, 무한 재생</string>
     <string name="set_player_background">플레이어 배경</string>
@@ -373,6 +385,10 @@
     <string name="set_screen_corners">화면 모서리</string>
     <string name="set_screen_corners_desc">이 휴대폰은 화면이 얼마나 둥근지 앱에 알려 주지 않습니다. 디스크 플레이어의 카드와 버튼이 모서리를 따르도록 설정하세요.</string>
     <string name="set_search_names">이름 검색</string>
+    <string name="set_show_times">바 아래 시간</string>
+    <string name="set_show_times_sub">클래식 플레이어의 경과 및 남은 시간</string>
+    <string name="set_show_volume">음량 바</string>
+    <string name="set_show_volume_sub">클래식 플레이어의 버튼 아래</string>
     <string name="set_show_welcome">환영 화면 다시 보기</string>
     <string name="set_split_now">현재 여러 아티스트로 나뉜 항목</string>
     <string name="set_start_tab">시작할 때 열 탭</string>

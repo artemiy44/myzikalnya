@@ -105,6 +105,7 @@
     <string name="device_usb_headphones">USB-Kopfhörer</string>
     <string name="dial_look_card">Karte</string>
     <string name="dial_look_full">Vollbild</string>
+    <string name="dial_look_minimal">Minimal</string>
     <string name="disc_n">CD %1$s</string>
     <string name="disc_sub_home">Heute</string>
     <string name="disc_sub_library">Deine</string>
@@ -305,10 +306,17 @@
     <string name="set_clear_history_sub">Die Songs über der Warteschlange. Mixe und Wochenrückblick bleiben unberührt</string>
     <string name="set_colors">Farben &amp; Akzent</string>
     <string name="set_colors_sub">Hintergründe der hellen und dunklen Themes, Akzentfarbe</string>
+    <string name="set_cover_corner">Ecken des Covers</string>
+    <string name="set_cover_corner_default">Standard</string>
     <string name="set_dark_bg">Hintergrund des dunklen Designs</string>
     <string name="set_dial_card_desc">Der Hintergrund (der gewählte Blur; ohne Blur die Farbe des Albums und ein Genrebild) liegt in einer Karte oben; der Rest bleibt in den Farben der App.</string>
+    <string name="set_dial_dots">Zeit als Pixel</string>
+    <string name="set_dial_dots_sub">Reihen kleiner Quadrate statt großer Ziffern: sie zeigen die Länge des Songs und lassen sich antippen und ziehen</string>
     <string name="set_dial_full_desc">Der Hintergrund füllt den ganzen Bildschirm; ohne Blur nur die Hintergrundfarbe der App, der Akzent nur auf der Play-Taste.</string>
     <string name="set_dial_look">Ansicht</string>
+    <string name="set_dial_minimal_desc">Nur Titel, eine große Platte, die Zeit und drei große Tasten. Tippen auf die Platte öffnet die Warteschlange, Halten den Text.</string>
+    <string name="set_disc_pixel_font">Pixelschrift</string>
+    <string name="set_disc_pixel_font_sub">DotGothic16 für den Text des Disc-Players – der Songtext behält seine eigene</string>
     <string name="set_dont_split">Nicht aufteilen</string>
     <string name="set_endless">Endloswiedergabe</string>
     <string name="set_endless_desc">Wenn die Warteschlange zu Ende geht und im Player die Taste \"∞\" an ist — womit sie aufgefüllt wird.</string>
@@ -324,6 +332,8 @@
     <string name="set_general_sub">Start-Tab, Aufteilen von Künstlern</string>
     <string name="set_glass_sliders">Weiche Leisten</string>
     <string name="set_glass_sliders_sub">Klassischer Player: dicke, leicht durchsichtige Zeit- und Lautstärkeleisten, die unter dem Finger wachsen</string>
+    <string name="set_haptics">Vibrationsfeedback</string>
+    <string name="set_haptics_sub">Kurze Impulse bei Tasten, Zeilen und Platte</string>
     <string name="set_hero_classic_desc">Das Bild blendet in den Seitenhintergrund aus</string>
     <string name="set_hero_style">Seiten mit Bild</string>
     <string name="set_hero_vivid_desc">Die Farbe des Bildes fließt die Seite hinunter und geht dann in den Hintergrund über</string>
@@ -355,6 +365,8 @@
     <string name="set_no_folders_yet">Noch keine Ordner gefunden — die Mediathek muss neu gescannt werden.</string>
     <string name="set_notif_button">Zweiter Knopf in der Benachrichtigung</string>
     <string name="set_notif_button_desc">Neben „Zufallswiedergabe“ im System-Player.</string>
+    <string name="set_plate_pitch">Tonhöhe beim Drehen</string>
+    <string name="set_plate_pitch_sub">Der Song wird mit deiner Hand auf der Platte schneller und langsamer</string>
     <string name="set_playback">Wiedergabe</string>
     <string name="set_playback_sub">Equalizer, Endloswiedergabe</string>
     <string name="set_player_background">Player-Hintergrund</string>
@@ -373,6 +385,10 @@
     <string name="set_screen_corners">Bildschirmecken</string>
     <string name="set_screen_corners_desc">Dieses Handy sagt der App nicht, wie rund sein Bildschirm ist. Stell es ein, damit Karte und Tasten des Scheibe-Players den Ecken folgen.</string>
     <string name="set_search_names">Namen suchen</string>
+    <string name="set_show_times">Zeit unter der Leiste</string>
+    <string name="set_show_times_sub">Verstrichene und verbleibende Zeit im klassischen Player</string>
+    <string name="set_show_volume">Lautstärkeleiste</string>
+    <string name="set_show_volume_sub">Unter den Tasten im klassischen Player</string>
     <string name="set_show_welcome">Begrüßung erneut zeigen</string>
     <string name="set_split_now">Derzeit in mehrere Künstler aufgeteilt</string>
     <string name="set_start_tab">Beim Start öffnen</string>

@@ -152,6 +152,13 @@ class MainActivity : ComponentActivity() {
                     )
                 }
             }
+            // Read here, in composition, so a change recomposes this and the effect runs (state read only inside the effect doesn't).
+            val hapticsOn = settings.haptics
+            val platePitchOn = settings.platePitch
+            androidx.compose.runtime.SideEffect {
+                com.artemiy.player.ui.nowplaying.AppHaptics.enabled = hapticsOn
+                com.artemiy.player.playback.ScrubSound.enabled = platePitchOn
+            }
             val palette = appPalette(settings.themeMode, settings.lightVariant, settings.darkVariant, settings.accent, isSystemInDarkTheme())
             CompositionLocalProvider(
                 LocalIconSet provides settings.iconSet,
@@ -163,6 +170,8 @@ class MainActivity : ComponentActivity() {
                     com.artemiy.player.ui.theme.ScreenCornerSetting(settings.screenCornerDp) { settings.updateScreenCornerDp(it) }
                 },
                 com.artemiy.player.ui.nowplaying.LocalLrcGapDots provides settings.lrcGapDots,
+                // Switched off, every haptic of the Compose UI becomes a no-op; the direct ticks (buttons, plate) look at AppHaptics.
+                androidx.compose.ui.platform.LocalHapticFeedback provides (if (settings.haptics) androidx.compose.ui.platform.LocalHapticFeedback.current else NoHaptics),
                 com.artemiy.player.ui.components.LocalHeroBleed provides (settings.heroStyle == com.artemiy.player.data.HeroStyle.VIVID),
             ) {
                 PlayerTheme(palette = palette, appTextScale = settings.fontScale, font = settings.appFont) {
@@ -855,6 +864,12 @@ private fun PlayerApp(settings: SettingsViewModel) {
               LocalNowPlayingActive provides showNowPlaying,
               com.artemiy.player.ui.nowplaying.LocalRepeatOne provides playback.repeatOne,
               com.artemiy.player.ui.components.LocalGlassSliders provides settings.glassSliders,
+              com.artemiy.player.ui.nowplaying.LocalShowVolumeBar provides settings.showVolumeBar,
+              com.artemiy.player.ui.nowplaying.LocalDialMinimal provides settings.dialMinimal,
+              com.artemiy.player.ui.nowplaying.LocalDialDots provides settings.dialDots,
+              com.artemiy.player.ui.theme.LocalDiscFont provides settings.discFont.family,
+              com.artemiy.player.ui.nowplaying.LocalCoverCorner provides (if (settings.coverCornerDp >= 0) settings.coverCornerDp.dp else null),
+              com.artemiy.player.ui.nowplaying.LocalShowSeekTimes provides settings.showSeekTimes,
               com.artemiy.player.ui.nowplaying.LocalQueueHistory provides remember(playback.queueHistory) { com.artemiy.player.ui.nowplaying.QueueHistoryState(playback.queueHistory, playback::playFromHistory) },
               com.artemiy.player.ui.nowplaying.LocalQualityLabel provides (if (settings.qualityBadge) playback.qualityLabel else null),
           ) {
@@ -990,6 +1005,22 @@ private fun PlayerApp(settings: SettingsViewModel) {
                     glassSliders = settings.glassSliders,
                     onGlassSlidersChange = { settings.updateGlassSliders(it) },
                     onClearQueueHistory = { playback.clearQueueHistory() },
+                    haptics = settings.haptics,
+                    dialMinimal = settings.dialMinimal,
+                    dialDots = settings.dialDots,
+                    discFont = settings.discFont,
+                    onDiscFontChange = { settings.updateDiscFont(it) },
+                    onDialDotsChange = { settings.updateDialDots(it) },
+                    onDialMinimalChange = { settings.updateDialMinimal(it) },
+                    coverCornerDp = settings.coverCornerDp,
+                    onCoverCornerChange = { settings.updateCoverCornerDp(it) },
+                    onHapticsChange = { settings.updateHaptics(it) },
+                    platePitch = settings.platePitch,
+                    onPlatePitchChange = { settings.updatePlatePitch(it) },
+                    showVolumeBar = settings.showVolumeBar,
+                    onShowVolumeBarChange = { settings.updateShowVolumeBar(it) },
+                    showSeekTimes = settings.showSeekTimes,
+                    onShowSeekTimesChange = { settings.updateShowSeekTimes(it) },
                 ),
                 songs = songs,
                 onDataRestored = { playlistsVm.refresh(); home.refresh(songs) },
@@ -1158,3 +1189,8 @@ private const val QUEUE_WORTH_ASKING = 20
 
 /** How far the player sinks toward the mini player while the back gesture is made. */
 private const val BACK_PEEK = 0.12f
+
+/** The Compose haptic feedback with the vibration switched off in Settings. */
+private object NoHaptics : androidx.compose.ui.hapticfeedback.HapticFeedback {
+    override fun performHapticFeedback(hapticFeedbackType: androidx.compose.ui.hapticfeedback.HapticFeedbackType) {}
+}

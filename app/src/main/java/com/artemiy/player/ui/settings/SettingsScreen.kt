@@ -92,6 +92,22 @@ class ExtraSettings(
     val glassSliders: Boolean = false,
     val onGlassSlidersChange: (Boolean) -> Unit = {},
     val onClearQueueHistory: () -> Unit = {},
+    val haptics: Boolean = true,
+    val onHapticsChange: (Boolean) -> Unit = {},
+    val platePitch: Boolean = true,
+    val onPlatePitchChange: (Boolean) -> Unit = {},
+    val showVolumeBar: Boolean = true,
+    val onShowVolumeBarChange: (Boolean) -> Unit = {},
+    val showSeekTimes: Boolean = true,
+    val onShowSeekTimesChange: (Boolean) -> Unit = {},
+    val coverCornerDp: Int = -1,
+    val onCoverCornerChange: (Int) -> Unit = {},
+    val dialMinimal: Boolean = false,
+    val onDialMinimalChange: (Boolean) -> Unit = {},
+    val dialDots: Boolean = false,
+    val onDialDotsChange: (Boolean) -> Unit = {},
+    val discFont: com.artemiy.player.ui.theme.DiscFont = com.artemiy.player.ui.theme.DiscFont.STANDARD,
+    val onDiscFontChange: (com.artemiy.player.ui.theme.DiscFont) -> Unit = {},
 )
 
 /** Settings pages. [parent] is where "back" goes from each one. */
@@ -247,6 +263,7 @@ fun SettingsScreen(
                     onStartTabChange = onStartTabChange,
                     onOpenKeptArtists = { route = SettingsRoute.KeptArtists },
                     onOpenLibraryTabs = { route = SettingsRoute.LibraryTabs },
+                    extras = extras,
                 )
                 SettingsRoute.Colors -> ColorsContent(
                     themeMode = themeMode,
@@ -592,7 +609,7 @@ private fun ColorSwatch(color: androidx.compose.ui.graphics.Color, selected: Boo
 }
 
 @Composable
-private fun GeneralContent(startTab: AppTab, onStartTabChange: (AppTab) -> Unit, onOpenKeptArtists: () -> Unit, onOpenLibraryTabs: () -> Unit) {
+private fun GeneralContent(startTab: AppTab, onStartTabChange: (AppTab) -> Unit, onOpenKeptArtists: () -> Unit, onOpenLibraryTabs: () -> Unit, extras: ExtraSettings) {
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState()).barsInset()
@@ -607,6 +624,16 @@ private fun GeneralContent(startTab: AppTab, onStartTabChange: (AppTab) -> Unit,
                     InfinitePlayModeChip(tab.label, tab == startTab) { onStartTabChange(tab) }
                 }
             }
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        SettingsCard {
+            SettingsSwitchRow(
+                icon = AppIcons.Tap,
+                title = stringResource(R.string.set_haptics),
+                subtitle = stringResource(R.string.set_haptics_sub),
+                checked = extras.haptics,
+                onCheckedChange = extras.onHapticsChange,
+            )
         }
         Spacer(modifier = Modifier.height(12.dp))
         SettingsCard {
@@ -1154,11 +1181,12 @@ private fun SettingsSectionContent(
                         if (playerStyle == PlayerStyle.DIAL) {
                             SettingsLabel(stringResource(R.string.set_dial_look), top = 14.dp)
                             Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
-                                InfinitePlayModeChip(stringResource(R.string.dial_look_card), dialCard) { onDialCardChange(true) }
-                                InfinitePlayModeChip(stringResource(R.string.dial_look_full), !dialCard) { onDialCardChange(false) }
+                                InfinitePlayModeChip(stringResource(R.string.dial_look_card), dialCard && !extras.dialMinimal) { onDialCardChange(true); extras.onDialMinimalChange(false) }
+                                InfinitePlayModeChip(stringResource(R.string.dial_look_full), !dialCard && !extras.dialMinimal) { onDialCardChange(false); extras.onDialMinimalChange(false) }
+                                InfinitePlayModeChip(stringResource(R.string.dial_look_minimal), extras.dialMinimal) { extras.onDialMinimalChange(true) }
                             }
                             Text(
-                                text = stringResource(if (dialCard) R.string.set_dial_card_desc else R.string.set_dial_full_desc),
+                                text = stringResource(if (extras.dialMinimal) R.string.set_dial_minimal_desc else if (dialCard) R.string.set_dial_card_desc else R.string.set_dial_full_desc),
                                 color = PlayerColors.TextSecondary,
                                 fontSize = 12.sp,
                                 modifier = Modifier.padding(top = 10.dp),
@@ -1216,6 +1244,79 @@ private fun SettingsSectionContent(
                                 subtitle = stringResource(R.string.set_glass_sliders_sub),
                                 checked = extras.glassSliders,
                                 onCheckedChange = extras.onGlassSlidersChange,
+                            )
+                            SettingsSwitchRow(
+                                icon = AppIcons.VolumeUp,
+                                title = stringResource(R.string.set_show_volume),
+                                subtitle = stringResource(R.string.set_show_volume_sub),
+                                checked = extras.showVolumeBar,
+                                onCheckedChange = extras.onShowVolumeBarChange,
+                                modifier = Modifier.padding(top = 16.dp),
+                            )
+                            SettingsSwitchRow(
+                                icon = AppIcons.TextSize,
+                                title = stringResource(R.string.set_show_times),
+                                subtitle = stringResource(R.string.set_show_times_sub),
+                                checked = extras.showSeekTimes,
+                                onCheckedChange = extras.onShowSeekTimesChange,
+                                modifier = Modifier.padding(top = 16.dp),
+                            )
+                        }
+                    }
+                    if (playerStyle != PlayerStyle.DIAL) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        SettingsCard {
+                            val stock = if (playerStyle == PlayerStyle.CLASSIC) 16 else 28
+                            val shown = if (extras.coverCornerDp >= 0) extras.coverCornerDp else stock
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = stringResource(R.string.set_cover_corner),
+                                    color = PlayerColors.TextPrimary,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                Text(
+                                    text = if (extras.coverCornerDp >= 0) "$shown dp" else stringResource(R.string.set_cover_corner_default),
+                                    color = PlayerColors.TextSecondary,
+                                    fontSize = 13.sp,
+                                    modifier = Modifier.padding(end = if (extras.coverCornerDp >= 0) 10.dp else 0.dp),
+                                )
+                                if (extras.coverCornerDp >= 0) InfinitePlayModeChip(stringResource(R.string.set_cover_corner_default), false) { extras.onCoverCornerChange(-1) }
+                            }
+                            MinimalSlider(
+                                value = shown.toFloat(),
+                                onValueChange = { extras.onCoverCornerChange(it.toInt().coerceIn(0, 60)) },
+                                valueRange = 0f..60f,
+                                modifier = Modifier.padding(top = 14.dp),
+                            )
+                        }
+                    }
+                    if (playerStyle == PlayerStyle.DIAL) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        SettingsCard {
+                            SettingsSwitchRow(
+                                icon = AppIcons.Equalizer,
+                                title = stringResource(R.string.set_plate_pitch),
+                                subtitle = stringResource(R.string.set_plate_pitch_sub),
+                                checked = extras.platePitch,
+                                onCheckedChange = extras.onPlatePitchChange,
+                            )
+                            SettingsSwitchRow(
+                                icon = AppIcons.ViewGridDense,
+                                title = stringResource(R.string.set_dial_dots),
+                                subtitle = stringResource(R.string.set_dial_dots_sub),
+                                checked = extras.dialDots,
+                                onCheckedChange = extras.onDialDotsChange,
+                                modifier = Modifier.padding(top = 16.dp),
+                            )
+                            SettingsSwitchRow(
+                                icon = AppIcons.TextSize,
+                                title = stringResource(R.string.set_disc_pixel_font),
+                                subtitle = stringResource(R.string.set_disc_pixel_font_sub),
+                                checked = extras.discFont != com.artemiy.player.ui.theme.DiscFont.STANDARD,
+                                onCheckedChange = { on -> extras.onDiscFontChange(if (on) com.artemiy.player.ui.theme.DiscFont.DOTGOTHIC else com.artemiy.player.ui.theme.DiscFont.STANDARD) },
+                                modifier = Modifier.padding(top = 16.dp),
                             )
                         }
                     }
@@ -1471,6 +1572,12 @@ private val THIRD_PARTY = listOf(
         authors = "The Murecho Project Authors",
         license = "SIL Open Font License 1.1",
         files = listOf("murecho-ofl.txt"),
+    ),
+    ThirdPartyComponent(
+        name = "DotGothic16 (cut down)",
+        authors = "The DotGothic16 Project Authors (Fontworks)",
+        license = "SIL Open Font License 1.1",
+        files = listOf("dotgothic16-ofl.txt"),
     ),
     ThirdPartyComponent(
         name = "Dela Gothic One (cut down)",

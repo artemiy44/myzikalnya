@@ -105,6 +105,7 @@
     <string name="device_usb_headphones">USB ヘッドホン</string>
     <string name="dial_look_card">カード</string>
     <string name="dial_look_full">全画面</string>
+    <string name="dial_look_minimal">ミニマル</string>
     <string name="disc_n">ディスク %1$s</string>
     <string name="disc_sub_home">今夜</string>
     <string name="disc_sub_library">あなたの</string>
@@ -305,10 +306,17 @@
     <string name="set_clear_history_sub">キューの上に出る曲です。ミックスや週のまとめには影響しません</string>
     <string name="set_colors">色とアクセント</string>
     <string name="set_colors_sub">ライト／ダークテーマの背景色とアクセントカラー</string>
+    <string name="set_cover_corner">ジャケットの角</string>
+    <string name="set_cover_corner_default">標準</string>
     <string name="set_dark_bg">ダークテーマの背景</string>
     <string name="set_dial_card_desc">背景（選んだぼかし。ぼかしなしの場合はアルバムの色とジャンルの絵）は上のカードに入り、残りはアプリ本来の色のままです。</string>
+    <string name="set_dial_dots">時間をピクセルで</string>
+    <string name="set_dial_dots_sub">大きな数字の代わりに小さな四角の列を表示。曲の長さが分かり、タップやドラッグもできます</string>
     <string name="set_dial_full_desc">背景は画面全体に広がります。ぼかしなしの場合はアプリの背景色のみで、アクセントは再生ボタンだけです。</string>
     <string name="set_dial_look">見た目</string>
+    <string name="set_dial_minimal_desc">タイトル、大きなプレート、時間、大きなボタン3つだけ。プレートをタップでキュー、長押しで歌詞。</string>
+    <string name="set_disc_pixel_font">ピクセルフォント</string>
+    <string name="set_disc_pixel_font_sub">ディスクプレーヤーの文字にDotGothic16を使用（歌詞は独自のフォントのまま）</string>
     <string name="set_dont_split">分けない</string>
     <string name="set_endless">エンドレス再生</string>
     <string name="set_endless_desc">キューが終わりそうで、プレーヤーの「∞」ボタンがオンのとき — 何で補うか。</string>
@@ -324,6 +332,8 @@
     <string name="set_general_sub">起動時のタブ、アーティストの分割</string>
     <string name="set_glass_sliders">やわらかいバー</string>
     <string name="set_glass_sliders_sub">クラシックプレーヤー：指に合わせて太くなる、少し透けた再生位置と音量のバー</string>
+    <string name="set_haptics">バイブ反応</string>
+    <string name="set_haptics_sub">ボタン・行・プレートで短く振動します</string>
     <string name="set_hero_classic_desc">画像がページの背景にフェードします</string>
     <string name="set_hero_style">画像のあるページ</string>
     <string name="set_hero_vivid_desc">画像の色がページを流れ落ち、やがて背景に溶け込みます</string>
@@ -355,6 +365,8 @@
     <string name="set_no_folders_yet">フォルダがまだ見つかりません — ライブラリの再スキャンが必要です。</string>
     <string name="set_notif_button">通知の 2 つ目のボタン</string>
     <string name="set_notif_button_desc">システムのプレーヤーで「シャッフル」の隣に表示されます。</string>
+    <string name="set_plate_pitch">回すときの音程変化</string>
+    <string name="set_plate_pitch_sub">プレートに触れた手の動きに合わせて曲が速くなったり遅くなったりします</string>
     <string name="set_playback">再生</string>
     <string name="set_playback_sub">イコライザー、エンドレス再生</string>
     <string name="set_player_background">プレーヤーの背景</string>
@@ -373,6 +385,10 @@
     <string name="set_screen_corners">画面の角丸</string>
     <string name="set_screen_corners_desc">この端末は画面の角の丸みをアプリに伝えません。ディスクプレーヤーのカードとボタンが角に沿うよう設定してください。</string>
     <string name="set_search_names">名前を検索</string>
+    <string name="set_show_times">バーの下の時間</string>
+    <string name="set_show_times_sub">クラシックプレーヤーの経過時間と残り時間</string>
+    <string name="set_show_volume">音量バー</string>
+    <string name="set_show_volume_sub">クラシックプレーヤーのボタンの下</string>
     <string name="set_show_welcome">ようこそ画面をもう一度表示</string>
     <string name="set_split_now">現在、複数のアーティストに分かれているもの</string>
     <string name="set_start_tab">起動時に開くタブ</string>

@@ -105,6 +105,7 @@
     <string name="device_usb_headphones">Casque USB</string>
     <string name="dial_look_card">Carte</string>
     <string name="dial_look_full">Plein écran</string>
+    <string name="dial_look_minimal">Minimal</string>
     <string name="disc_n">Disque %1$s</string>
     <string name="disc_sub_home">Ce soir</string>
     <string name="disc_sub_library">À toi</string>
@@ -305,10 +306,17 @@
     <string name="set_clear_history_sub">Les titres au-dessus de la file. Les mix et le récap ne changent pas</string>
     <string name="set_colors">Couleurs et accent</string>
     <string name="set_colors_sub">Fonds des thèmes clair et sombre, couleur d\'accent</string>
+    <string name="set_cover_corner">Coins de la pochette</string>
+    <string name="set_cover_corner_default">Par défaut</string>
     <string name="set_dark_bg">Fond du thème sombre</string>
     <string name="set_dial_card_desc">L\'arrière-plan (le flou choisi ; sans flou, la couleur de l\'album et une image de genre) se trouve dans une carte en haut ; le reste garde les couleurs de l\'appli.</string>
+    <string name="set_dial_dots">Temps en pixels</string>
+    <string name="set_dial_dots_sub">Des rangées de petits carrés au lieu des grands chiffres : ils montrent la durée du morceau et se touchent ou se glissent</string>
     <string name="set_dial_full_desc">L\'arrière-plan remplit tout l\'écran ; sans flou, simplement la couleur de fond de l\'appli, l\'accent seulement sur le bouton lecture.</string>
     <string name="set_dial_look">Aspect</string>
+    <string name="set_dial_minimal_desc">Juste le titre, un grand disque, le temps et trois gros boutons. Touche le disque pour la file, maintiens-le pour les paroles.</string>
+    <string name="set_disc_pixel_font">Police pixel</string>
+    <string name="set_disc_pixel_font_sub">DotGothic16 pour le texte du lecteur Disque ; les paroles gardent la leur</string>
     <string name="set_dont_split">Ne pas séparer</string>
     <string name="set_endless">Lecture sans fin</string>
     <string name="set_endless_desc">Quand la file arrive à sa fin et que le bouton \"∞\" est activé dans le lecteur — avec quoi la compléter.</string>
@@ -324,6 +332,8 @@
     <string name="set_general_sub">Onglet au démarrage, séparation des artistes</string>
     <string name="set_glass_sliders">Barres douces</string>
     <string name="set_glass_sliders_sub">Lecteur classique : barres de temps et de volume épaisses et un peu translucides, qui grossissent sous le doigt</string>
+    <string name="set_haptics">Retour vibratoire</string>
+    <string name="set_haptics_sub">Petits tics sur les boutons, les lignes et le disque</string>
     <string name="set_hero_classic_desc">L\'image se fond dans l\'arrière-plan de la page</string>
     <string name="set_hero_style">Pages avec image</string>
     <string name="set_hero_vivid_desc">La couleur de l\'image coule le long de la page, puis se fond dans l\'arrière-plan</string>
@@ -355,6 +365,8 @@
     <string name="set_no_folders_yet">Aucun dossier trouvé pour l’instant — il faut relancer l’analyse de la bibliothèque.</string>
     <string name="set_notif_button">Deuxième bouton dans la notification</string>
     <string name="set_notif_button_desc">À côté de « Aléatoire » dans le lecteur du système.</string>
+    <string name="set_plate_pitch">Changement de tonalité en tournant</string>
+    <string name="set_plate_pitch_sub">Le morceau accélère et ralentit avec ta main sur le disque</string>
     <string name="set_playback">Lecture</string>
     <string name="set_playback_sub">Égaliseur, lecture sans fin</string>
     <string name="set_player_background">Fond du lecteur</string>
@@ -373,6 +385,10 @@
     <string name="set_screen_corners">Coins de l\'écran</string>
     <string name="set_screen_corners_desc">Ce téléphone ne dit pas à l\'appli à quel point son écran est arrondi. Réglez-le pour que la carte et les boutons du lecteur Disque suivent les coins.</string>
     <string name="set_search_names">Chercher un nom</string>
+    <string name="set_show_times">Temps sous la barre</string>
+    <string name="set_show_times_sub">Temps écoulé et restant dans le lecteur classique</string>
+    <string name="set_show_volume">Barre de volume</string>
+    <string name="set_show_volume_sub">Sous les boutons du lecteur classique</string>
     <string name="set_show_welcome">Revoir l’accueil</string>
     <string name="set_split_now">Actuellement séparés en plusieurs artistes</string>
     <string name="set_start_tab">Ouvrir au démarrage</string>

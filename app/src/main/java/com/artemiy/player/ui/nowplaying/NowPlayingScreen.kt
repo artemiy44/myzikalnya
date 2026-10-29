@@ -321,7 +321,7 @@ fun NowPlayingScreen(
     val growFromNothing = { if (closingFromHidden) ((1f - expand()) / 0.25f).coerceIn(0f, 1f) else 1f }
     var finalArtBounds by remember { mutableStateOf<Rect?>(null) }
     val miniCornerPx = with(LocalDensity.current) { (mini?.artCorner ?: MINI_ART_CORNER).toPx() }
-    val artCornerPx = with(LocalDensity.current) { 16.dp.toPx() }
+    val artCornerPx = with(LocalDensity.current) { (LocalCoverCorner.current ?: 16.dp).toPx() }
     // The sheet starts as the mini player bar itself (in its own color) and grows to the full screen.
     // The mini player's own colors are read here, before the player's palette takes over.
     val miniColor = mini?.color ?: PlayerColors.SurfaceDim
@@ -518,7 +518,8 @@ fun NowPlayingScreen(
                         )
                     }
 
-                    CenterMode.Lyrics -> Box(modifier = Modifier.fillMaxSize().graphicsLayer { alpha = chromeAlpha() }.modeContentIn { modeFlight }) {
+                    // ModulateAlpha: an offscreen fade here clips the active line's glow at the list's edge while the sheet is dragged.
+                    CenterMode.Lyrics -> Box(modifier = Modifier.fillMaxSize().graphicsLayer { alpha = chromeAlpha(); compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.ModulateAlpha }.modeContentIn { modeFlight }) {
                         // Reading along: the screen stays awake (only while the player is open —
                         // it's kept around, hidden, after closing).
                         if (LocalNowPlayingActive.current) com.artemiy.player.ui.components.KeepScreenOn()
@@ -800,7 +801,8 @@ fun NowPlayingScreen(
                         onSkipPrevious = onSkipPrevious,
                         onTogglePlayPause = onTogglePlayPause,
                         onSkipNext = onSkipNext,
-                        modifier = Modifier.fillMaxWidth().padding(top = 32.dp, bottom = 12.dp),
+                        // Without the times under the seek bar the buttons would crowd it: the room they took is given back.
+                        modifier = Modifier.fillMaxWidth().padding(top = if (LocalShowSeekTimes.current) 32.dp else 52.dp, bottom = 12.dp),
                         prevModifier = Modifier.graphicsLayer { alpha = panelAlpha() },
                         // Play and next fly over from the mini player's buttons.
                         playModifier = Modifier.flyFrom(mini?.play, expand, fromCenter = true).graphicsLayer {
@@ -831,12 +833,13 @@ fun NowPlayingScreen(
                         },
                     )
 
-                    VolumeRow(modifier = Modifier.padding(top = 28.dp).graphicsLayer { alpha = panelAlpha() })
+                    if (LocalShowVolumeBar.current) VolumeRow(modifier = Modifier.padding(top = 28.dp).graphicsLayer { alpha = panelAlpha() })
 
                     BottomQuickActionsRow(
                         // ModulateAlpha: an offscreen fade would clip the little modes badge that
                         // sticks out above the queue button.
-                        modifier = Modifier.padding(top = 30.dp).graphicsLayer {
+                        // …and likewise without the volume bar above the bottom row.
+                        modifier = Modifier.padding(top = if (LocalShowVolumeBar.current) 30.dp else 58.dp).graphicsLayer {
                             alpha = panelAlpha()
                             compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.ModulateAlpha
                         },

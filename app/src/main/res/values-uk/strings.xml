@@ -105,6 +105,7 @@
     <string name="device_usb_headphones">USB-навушники</string>
     <string name="dial_look_card">Картка</string>
     <string name="dial_look_full">На весь екран</string>
+    <string name="dial_look_minimal">Мінімум</string>
     <string name="disc_n">Диск %1$s</string>
     <string name="disc_sub_home">Сьогодні</string>
     <string name="disc_sub_library">Твоя</string>
@@ -305,10 +306,17 @@
     <string name="set_clear_history_sub">Пісні над чергою. Міксі й підсумки тижня не зачіпаються</string>
     <string name="set_colors">Кольори й акцент</string>
     <string name="set_colors_sub">Тло світлої та темної теми, колір акценту</string>
+    <string name="set_cover_corner">Заокруглення обкладинки</string>
+    <string name="set_cover_corner_default">Типово</string>
     <string name="set_dark_bg">Тло темної теми</string>
     <string name="set_dial_card_desc">Тло (обране розмиття; без розмиття — колір альбому та картинка жанру) лежить у картці вгорі, а все інше — в кольорах застосунку.</string>
+    <string name="set_dial_dots">Час пікселями</string>
+    <string name="set_dial_dots_sub">Ряди маленьких квадратів замість великих цифр: за ними видно довжину пісні, їх можна натискати й протягувати</string>
     <string name="set_dial_full_desc">Тло заповнює весь екран; без розмиття — просто колір тла застосунку, акцент лише на кнопці плей.</string>
     <string name="set_dial_look">Вигляд</string>
+    <string name="set_dial_minimal_desc">Лише назва, велика платівка, час і три великі кнопки. Натисни на платівку — черга, утримуй — текст.</string>
+    <string name="set_disc_pixel_font">Піксельний шрифт</string>
+    <string name="set_disc_pixel_font_sub">DotGothic16 для тексту плеєра Диска; текст пісні лишається зі своїм шрифтом</string>
     <string name="set_dont_split">Не розділяти</string>
     <string name="set_endless">Безкінечне відтворення</string>
     <string name="set_endless_desc">Коли черга добігає кінця, а в плеєрі ввімкнена кнопка \"∞\" — чим її доповнювати.</string>
@@ -324,6 +332,8 @@
     <string name="set_general_sub">Вкладка під час запуску, розділення виконавців</string>
     <string name="set_glass_sliders">М\'які смужки</string>
     <string name="set_glass_sliders_sub">Класичний плеєр: товсті, трохи прозорі смужки часу й гучності, що ростуть під пальцем</string>
+    <string name="set_haptics">Вібровідгук</string>
+    <string name="set_haptics_sub">Короткі тики на кнопках, рядках і платівці</string>
     <string name="set_hero_classic_desc">Картинка згасає в колір тла сторінки</string>
     <string name="set_hero_style">Сторінки з картинкою</string>
     <string name="set_hero_vivid_desc">Колір картинки перетікає вниз по сторінці й потім сходить на тло</string>
@@ -355,6 +365,8 @@
     <string name="set_no_folders_yet">Теки ще не знайдено — потрібно пересканувати медіатеку.</string>
     <string name="set_notif_button">Друга кнопка в сповіщенні</string>
     <string name="set_notif_button_desc">Поруч із «Перемішати» в системному плеєрі.</string>
+    <string name="set_plate_pitch">Зміна тону під час кручення</string>
+    <string name="set_plate_pitch_sub">Пісня прискорюється й сповільнюється разом із рукою на платівці</string>
     <string name="set_playback">Відтворення</string>
     <string name="set_playback_sub">Еквалайзер, безкінечне відтворення</string>
     <string name="set_player_background">Тло плеєра</string>
@@ -373,6 +385,10 @@
     <string name="set_screen_corners">Заокруглення екрана</string>
     <string name="set_screen_corners_desc">Цей телефон не повідомляє застосунку, наскільки заокруглений його екран. Задай, щоб картка й кнопки плеєра «Диск» ішли врівень з кутами.</string>
     <string name="set_search_names">Пошук за іменами</string>
+    <string name="set_show_times">Час під смужкою</string>
+    <string name="set_show_times_sub">Минулий і залишений час у класичному плеєрі</string>
+    <string name="set_show_volume">Смужка гучності</string>
+    <string name="set_show_volume_sub">Під кнопками в класичному плеєрі</string>
     <string name="set_show_welcome">Показати привітання знову</string>
     <string name="set_split_now">Зараз розділяються на кількох виконавців</string>
     <string name="set_start_tab">Відкривати під час запуску</string>

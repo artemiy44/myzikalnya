@@ -11,6 +11,7 @@ import androidx.compose.ui.res.stringResource
 import com.artemiy.player.ui.icons.AppIcons
 import com.artemiy.player.ui.theme.inAppFont
 import androidx.compose.foundation.background
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -138,6 +139,8 @@ fun ArtistDetailScreen(
         }
     }
     val totalMs = remember(songs) { songs.sumOf { it.durationMs } }
+    val heardCount = remember(songs, playCounts) { songs.count { (playCounts[it.id] ?: 0) >= 1 } }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
     var showAddToQueueDialog by remember { mutableStateOf(false) }
     // A lazy list: only the rows on screen are built (and their covers loaded) — a page of hundreds
     // of songs ("no genre") built all at once heated the phone up.
@@ -230,13 +233,13 @@ fun ArtistDetailScreen(
                     modifier = Modifier.fillMaxWidth().heroPanel(roundTop = true).padding(horizontal = 20.dp).padding(top = 20.dp, bottom = 10.dp),
                     verticalAlignment = Alignment.Bottom,
                 ) {
-                    Text(text = stringResource(R.string.often_played), color = PlayerColors.TextPrimary, style = com.artemiy.player.ui.theme.sectionTitleStyle)
+                    Text(text = stringResource(R.string.often_played), color = PlayerColors.TextPrimary, style = com.artemiy.player.ui.theme.sectionTitleStyle, modifier = Modifier.alignByBaseline())
                     val totalPlays = topPlayed.sumOf { playCounts[it.id] ?: 0 }
                     Text(
                         text = pluralStringResource(R.plurals.plays_count, totalPlays, totalPlays),
                         color = PlayerColors.TextSecondary,
                         fontSize = 12.sp,
-                        modifier = Modifier.padding(start = 10.dp, bottom = 3.dp),
+                        modifier = Modifier.padding(start = 10.dp).alignByBaseline(),
                     )
                 }
             }
@@ -260,6 +263,32 @@ fun ArtistDetailScreen(
                             Text(text = song.title, color = PlayerColors.TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.dp))
                             val count = playCounts[song.id] ?: 0
                             Text(text = pluralStringResource(R.plurals.plays_count, count, count), color = PlayerColors.TextSecondary, fontSize = 11.sp, maxLines = 1)
+                        }
+                    }
+                    // Everything that was ever played, most played first: the song list below, sorted that way.
+                    if (heardCount > topPlayed.size) {
+                        Box(
+                            modifier = Modifier
+                                .size(124.dp)
+                                .clip(RoundedCornerShape(if (com.artemiy.player.ui.theme.expressiveUi) 22.dp else 10.dp))
+                                .background(PlayerColors.Surface)
+                                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = com.artemiy.player.ui.components.SoftPress) {
+                                    sortName = TrackSort.MOST_PLAYED.name
+                                    query = ""
+                                    searching = false
+                                    val tracksIndex = 1 + 2 + (if (albums.isNotEmpty()) 1 + albumRows.size else 0)
+                                    scope.launch { listState.animateScrollToItem(tracksIndex) }
+                                },
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                text = stringResource(R.string.recap_show_all, heardCount),
+                                color = PlayerColors.TextPrimary,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                modifier = Modifier.padding(12.dp),
+                            )
                         }
                     }
                 }

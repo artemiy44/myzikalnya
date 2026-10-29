@@ -70,6 +70,14 @@ class SettingsRepository(private val context: Context) {
         val FADE_MODE_KEY = stringPreferencesKey("fade_mode")
         val QUALITY_BADGE_KEY = booleanPreferencesKey("quality_badge")
         val GLASS_SLIDERS_KEY = booleanPreferencesKey("glass_sliders")
+        val HAPTICS_KEY = booleanPreferencesKey("haptics")
+        val DIAL_MINIMAL_KEY = booleanPreferencesKey("dial_minimal")
+        val DIAL_DOTS_KEY = booleanPreferencesKey("dial_dots")
+        val DISC_FONT_KEY = androidx.datastore.preferences.core.stringPreferencesKey("disc_font")
+        val COVER_CORNER_KEY = androidx.datastore.preferences.core.intPreferencesKey("cover_corner_dp")
+        val PLATE_PITCH_KEY = booleanPreferencesKey("plate_pitch")
+        val SHOW_VOLUME_BAR_KEY = booleanPreferencesKey("show_volume_bar")
+        val SHOW_SEEK_TIMES_KEY = booleanPreferencesKey("show_seek_times")
         val ONBOARDING_DONE_KEY = booleanPreferencesKey("onboarding_done")
         private fun viewModeKey(tab: String) = stringPreferencesKey("view_mode_$tab")
     }
@@ -347,6 +355,36 @@ class SettingsRepository(private val context: Context) {
     suspend fun setFadeMode(value: FadeMode) {
         context.settingsDataStore.edit { it[FADE_MODE_KEY] = value.name }
     }
+
+    /** The big cover's corner radius in dp for the classic and expressive players; -1 = each style's own. */
+    val coverCornerDp: Flow<Int> = context.settingsDataStore.data.map { it[COVER_CORNER_KEY] ?: -1 }
+    suspend fun setCoverCornerDp(value: Int) { context.settingsDataStore.edit { it[COVER_CORNER_KEY] = value } }
+
+    /** The Dial\'s third look: the minimal one (it takes the place of the card / full-screen choice while on). */
+    val dialMinimal: Flow<Boolean> = context.settingsDataStore.data.map { it[DIAL_MINIMAL_KEY] ?: false }
+    suspend fun setDialMinimal(value: Boolean) { context.settingsDataStore.edit { it[DIAL_MINIMAL_KEY] = value } }
+
+    /** The typeface of the Dial's player (enum name; the usual one by default). */
+    val discFont: Flow<String> = context.settingsDataStore.data.map { it[DISC_FONT_KEY] ?: "STANDARD" }
+    suspend fun setDiscFont(value: String) { context.settingsDataStore.edit { it[DISC_FONT_KEY] = value } }
+
+    /** The Dial shows the time as rows of small squares instead of the big digits. */
+    val dialDots: Flow<Boolean> = context.settingsDataStore.data.map { it[DIAL_DOTS_KEY] ?: false }
+    suspend fun setDialDots(value: Boolean) { context.settingsDataStore.edit { it[DIAL_DOTS_KEY] = value } }
+
+    /** Vibration ticks on buttons, rows and the plate; everything is on by default. */
+    val haptics: Flow<Boolean> = context.settingsDataStore.data.map { it[HAPTICS_KEY] ?: true }
+    suspend fun setHaptics(value: Boolean) { context.settingsDataStore.edit { it[HAPTICS_KEY] = value } }
+
+    /** The song's pitch following the hand while the Dial's plate is wound. */
+    val platePitch: Flow<Boolean> = context.settingsDataStore.data.map { it[PLATE_PITCH_KEY] ?: true }
+    suspend fun setPlatePitch(value: Boolean) { context.settingsDataStore.edit { it[PLATE_PITCH_KEY] = value } }
+
+    /** The classic player's volume bar and the times under its seek bar. */
+    val showVolumeBar: Flow<Boolean> = context.settingsDataStore.data.map { it[SHOW_VOLUME_BAR_KEY] ?: true }
+    suspend fun setShowVolumeBar(value: Boolean) { context.settingsDataStore.edit { it[SHOW_VOLUME_BAR_KEY] = value } }
+    val showSeekTimes: Flow<Boolean> = context.settingsDataStore.data.map { it[SHOW_SEEK_TIMES_KEY] ?: true }
+    suspend fun setShowSeekTimes(value: Boolean) { context.settingsDataStore.edit { it[SHOW_SEEK_TIMES_KEY] = value } }
 
     /** The classic player's seek/volume bars in the soft see-through look. */
     val glassSliders: Flow<Boolean> = context.settingsDataStore.data.map { it[GLASS_SLIDERS_KEY] ?: false }
